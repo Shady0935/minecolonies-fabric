@@ -584,7 +584,16 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(allowedVictim,
               "DAMAGE_ENTITIES policy incorrectly blocked explosion damage to a colony entity");
 
-            final BlockPos relativeProtectedBlock = new BlockPos(4, 1, 2);
+            final BlockPos relativeFilteredBlock = new BlockPos(4, 1, 2);
+            final BlockPos filteredBlock = helper.absolutePos(relativeFilteredBlock);
+            helper.setBlock(relativeFilteredBlock, Blocks.STONE);
+            MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(Explosions.DAMAGE_ENTITIES);
+            level.explode(null, filteredBlock.getX() + 0.5D, filteredBlock.getY() + 0.5D,
+              filteredBlock.getZ() + 0.5D, 2.0F, net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
+            helper.assertTrue(level.getBlockState(filteredBlock).is(Blocks.STONE),
+              "ExplosionEvent.Detonate did not filter a colony block under DAMAGE_ENTITIES");
+
+            final BlockPos relativeProtectedBlock = new BlockPos(6, 1, 2);
             final BlockPos protectedBlock = helper.absolutePos(relativeProtectedBlock);
             helper.setBlock(relativeProtectedBlock, Blocks.STONE);
             MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(Explosions.DAMAGE_NOTHING);

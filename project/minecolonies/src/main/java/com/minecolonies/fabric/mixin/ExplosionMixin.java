@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+
 /** Bridges Forge's explosion-start cancellation at vanilla's explosion phase. */
 @Mixin(Explosion.class)
 public abstract class ExplosionMixin
@@ -40,6 +42,10 @@ public abstract class ExplosionMixin
         if (minecolonies$cancelled)
         {
             callbackInfo.cancel();
+            return;
         }
+
+        final Explosion explosion = (Explosion) (Object) this;
+        MinecraftForge.EVENT_BUS.post(new ExplosionEvent.Detonate(level, explosion, explosion.getToBlow(), List.of()));
     }
 }
