@@ -22,6 +22,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - The standalone MultiPiston Forge dependency is not included in the Fabric
   runtime. The current MineColonies main source has no direct runtime reference
   to it, but its independent block/content remains unported.
+- The command/entity smoke test summons a citizen without a colony only to
+  exercise registration, entity construction and serialization. The upstream
+  `CitizenColonyHandler` intentionally removes that isolated citizen on the
+  next load, so this does not validate colony-backed citizen persistence.
 
 ## Validation still pending
 

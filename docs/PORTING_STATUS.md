@@ -38,6 +38,11 @@ completed.
 - [x] Fabric play networking registered in both directions
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
+- [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
+  lifecycle, commands, login/logout and datapack reload callbacks
+- [x] Server JSON listeners are registered through Fabric's server-data reload
+  manager and rebuild 130 worker recipes, 201 research recipes, quests and
+  1,455 item-NBT compatibility rules
 
 ## Gameplay systems
 
@@ -62,5 +67,6 @@ completed.
 - [x] Network transport smoke coverage for login/server-to-client packet path
 - [x] Fabric GameTest feasibility checked; no port-specific GameTest suite is
   included yet
-- [ ] Core gameplay runtime tests
+- [x] Core runtime command/entity smoke test and datapack reload
+- [ ] Core colony gameplay runtime tests
 - [x] Manual validation list and remaining limitations documented

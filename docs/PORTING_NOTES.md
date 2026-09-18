@@ -45,6 +45,21 @@ are declared in `fabric.mod.json` for common and client initialization.
   retained as explicit Fabric-compatible tag namespaces because the upstream
   structure data references them.
 
+## Lifecycle and datapack events
+
+The Fabric common entrypoint now bridges the lifecycle callbacks that the
+retained MineColonies event handlers require: server starting/started/stopping,
+server and world ticks, world/chunk/entity load, player login/logout, command
+registration and datapack reload/synchronisation. Client start/end ticks are
+bridged by the client entrypoint.
+
+The six MineColonies server-data listeners raised by the retained reload event
+are wrapped as Fabric `IdentifiableResourceReloadListener` instances and
+registered with `ResourceManagerHelper`. This keeps the existing listener
+implementations while giving Fabric control of reload ordering and execution.
+The verified startup and `/reload` path rebuilds 130 worker recipes, 201
+research recipes, quests and 1,455 item-NBT compatibility rules.
+
 ## Fabric datagen
 
 The target exposes Fabric Loom's `runDatagen` task through the

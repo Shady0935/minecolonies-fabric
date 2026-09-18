@@ -10,9 +10,11 @@ import com.minecolonies.fabric.client.event.RegisterRecipeBookCategoriesEvent;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.coremod.event.ClientRegistryHandler;
 import com.minecolonies.coremod.event.TextureReloadListener;
+import com.minecolonies.fabric.event.TickEvent;
 import com.minecolonies.fabric.client.event.RenderLevelStageEvent;
 import com.minecolonies.api.util.constant.Constants;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
@@ -66,6 +68,11 @@ public final class MineColoniesClientFabric implements ClientModInitializer
         registerRenderers();
         registerParticles();
         registerReloadListeners();
+
+        ClientTickEvents.START_CLIENT_TICK.register(client ->
+          MinecraftForge.EVENT_BUS.post(new TickEvent.ClientTickEvent(TickEvent.Phase.START)));
+        ClientTickEvents.END_CLIENT_TICK.register(client ->
+          MinecraftForge.EVENT_BUS.post(new TickEvent.ClientTickEvent(TickEvent.Phase.END)));
 
         // This retained lifecycle event is only consumed by menu screens.  It
         // is dispatched directly so the common setup handler is not repeated.
