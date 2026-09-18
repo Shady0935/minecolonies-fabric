@@ -45,11 +45,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `NaturalSpawner`, living-entity explosion damage follows the configured
   colony policy through `ALLOW_DAMAGE`, and a narrow `Explosion` mixin now
   preserves `ExplosionEvent.Start` cancellation with the real vanilla
-  position, and its finalize hook filters the live detonate block list before
-  vanilla destroys protected blocks. Because that hook runs after vanilla has
-  applied entity damage, non-living blast victims and mutable affected-entity
-  lists remain explicit coverage gaps; they are not hidden behind broad no-op
-  adapters.
+  position. The same mixin publishes `ExplosionEvent.Detonate` immediately
+  before vanilla's damage loop with the live block and entity lists, so the
+  colony policy filters protected blocks and non-living entities at the
+  correct point. No broad no-op adapter is used for the covered explosion
+  paths.
 - The retained bow adapter now dispatches `ArrowLooseEvent` and respects
   cancellation for MineColonies colony permissions. Fabric still has no direct
   `ArrowNockEvent` callback in this target, so external listeners cannot yet

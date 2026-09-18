@@ -78,9 +78,9 @@ completed.
   MineColonies-owned spawn paths
 - [x] Fabric's living-damage callback applies the retained colony explosion
   policy to living entities, the retained `ExplosionEvent.Start` phase is
-  cancellable before vanilla computes/finalizes the blast, and the finalize
-  bridge filters protected blocks through `ExplosionEvent.Detonate`; non-living
-  blast victims and mutable affected-entity lists remain documented limitations
+  cancellable before vanilla computes/finalizes the blast, and the explosion
+  bridge filters the live block and entity lists through
+  `ExplosionEvent.Detonate` before vanilla damage/finalization
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules

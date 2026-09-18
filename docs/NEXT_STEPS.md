@@ -24,9 +24,8 @@ The following work remains, in order:
    or server hook can preserve semantics. Item toss/pickup, farmland trampling
    and bucket filling now have focused Fabric bridges and cancellation coverage;
    hostile natural/chunk-generation position checks, living-entity explosion
-   damage, `ExplosionEvent.Start` cancellation and detonate block filtering are
-   also covered. Non-living blast victims and mutable affected-entity lists
-   remain explicit gaps. The retained
+   damage, `ExplosionEvent.Start` cancellation and complete detonate block and
+   entity filtering are also covered. The retained
    `ArrowLooseEvent` bridge is covered, while the unsupported `ArrowNock`
    extension point stays documented.
 4. Keep the documented DataFixer policy aligned with upstream: no custom
