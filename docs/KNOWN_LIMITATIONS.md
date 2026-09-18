@@ -58,9 +58,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   The transport itself has a login/server-to-client smoke pass, including
   `ServerUUIDMessage`.
 - The new interaction/combat callback bridge has been loaded by dedicated
-  server and client bootstrap. The focused fixture covers server-side colony
-  permission/quest synchronization; client GUI actions and the full gameplay
-  loop remain pending.
+  server and client bootstrap. The focused fixture now drives the server-side
+  Town Hall protection callback for an owner and an unauthorized player;
+  client GUI actions and the full gameplay loop remain pending.
 - A valid authenticated profile was not available in the development client;
   the network smoke test consequently used a temporary offline server setting.
   The checked-in/test workspace configuration was restored to

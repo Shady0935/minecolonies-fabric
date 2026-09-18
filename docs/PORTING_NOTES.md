@@ -80,9 +80,10 @@ Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
 `fabric.mod.json`. `MineColoniesGameTests` verifies common registries, creates
 a real Town Hall block entity, creates a colony through `IColonyManager`,
 attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
-spawns an `EntityCitizen` through `CitizenManager`, and round-trips colony and
-citizen NBT. The passing batch is recorded in
-`logs/minecolonies-gametest-supply-loot.log`. The same batch also verifies the
+spawns an `EntityCitizen` through `CitizenManager`, round-trips colony and
+citizen NBT, and drives the Fabric Town Hall protection callback for both an
+outsider and the colony owner. The passing batch is recorded in
+`logs/minecolonies-gametest-protection.log`. The same batch also verifies the
 Fabric loot-table modifier against dungeon and shipwreck targets, preserving
 the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope

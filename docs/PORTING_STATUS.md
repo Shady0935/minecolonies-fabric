@@ -59,6 +59,8 @@ completed.
   round-trip exercised by Fabric GameTest
 - [ ] Citizen rendering/work cycle and hostile custom entities exercised
 - [x] Town Hall and colony creation exercised server-side by Fabric GameTest
+- [x] Colony protection callback denies unauthorized Town Hall access and
+  accepts the colony owner through Fabric's interaction event
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
 - [ ] Warehouse and courier logistics
@@ -77,7 +79,8 @@ completed.
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
   Town Hall registration, colony creation, permissions, NBT round-trip and
   representative network codec/split-envelope behavior, plus citizen entity
-  registration and serialization, and supply-loot target tables
+  registration and serialization, supply-loot target tables and Town Hall
+  protection callbacks
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending
