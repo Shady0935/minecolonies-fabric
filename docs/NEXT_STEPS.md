@@ -32,10 +32,11 @@ The following work remains, in order:
    MineColonies 1.20.1 entity schemas exist in either the Forge source or the
    modern Fabric reference, so do not invent migrations. Revisit only if
    upstream publishes schemas or a real legacy-save requirement is defined.
-5. Compare the freshly generated advancements, entity icons and translations
-   against the retained upstream snapshot, then decide whether the snapshot
-   can be removed from the repository after the audit is complete. It is no
-   longer part of the runtime resource source set.
+5. Keep the retained upstream generated snapshot as an audit baseline. The
+   semantic comparison is complete: native Fabric output is authoritative at
+   runtime, and the deliberate differences are recorded in
+   `PORTING_NOTES.md`; the snapshot is no longer part of the runtime source
+   set.
 6. Decide whether the standalone MultiPiston feature belongs in the supported
    Fabric distribution; if it does, port it as its own Fabric module rather
    than hiding its Forge implementation behind compatibility stubs.

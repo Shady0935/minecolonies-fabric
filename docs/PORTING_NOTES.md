@@ -8,9 +8,9 @@ API migration references only; modern gameplay code is not copied wholesale
 into the 1.20.1 target.
 
 The target build lives under `project/minecolonies`. Its main source combines
-the upstream API and implementation trees while excluding the still-unported
-generation and optional JEI/JourneyMap integration packages. Fabric entrypoints
-are declared in `fabric.mod.json` for common and client initialization.
+the upstream API and implementation trees while excluding only the optional
+JEI/JourneyMap integration packages. Fabric entrypoints are declared in
+`fabric.mod.json` for common, client, datagen and GameTest initialization.
 
 The runtime resource source set is limited to `src/main/generated/resources`
 and `src/main/resources`. The tracked official 1.20.1 generated snapshot at
@@ -51,6 +51,10 @@ entity icons.
 - Forge worldgen tag names such as `forge:is_plains` and `forge:is_peak` are
   retained as explicit Fabric-compatible tag namespaces because the upstream
   structure data references them.
+- Forge-only loader metadata (`META-INF/mods.toml` and
+  `META-INF/accesstransformer.cfg`) is not part of the Fabric source or
+  artifact. The package audit confirms that the JAR contains the Fabric
+  descriptor and mixin configuration only.
 
 ## Lifecycle and datapack events
 
@@ -196,6 +200,14 @@ processing, avoiding the client-only `NativeImage` class during server-side
 datagen while preserving the upstream head crop and dark border. Quest
 translations are read deterministically from authored quest JSON and emitted
 alongside the transformed quest files.
+
+The parity audit compared 948 shared JSON files semantically: 705 are equal to
+the retained upstream snapshot and 243 differ only for deliberate Fabric
+adaptations. Those adaptations are the native `c:` conventional tags and
+replacements for Forge tag references, vanilla-compatible loot-table output,
+and removal of the standalone `multipiston:multipistonblock` compatibility
+entry because MultiPiston is not in the Fabric runtime. The snapshot remains
+tracked as an audit baseline rather than being loaded at runtime.
 
 ## Networking
 

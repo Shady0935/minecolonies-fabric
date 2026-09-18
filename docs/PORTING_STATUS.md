@@ -38,6 +38,12 @@ completed.
   130 tags, 152 advancements and 9 quests, plus 2,609 generated citizen/
   raider icon textures. The previous upstream snapshot remains in the tree as
   an audit comparison only and is no longer a runtime resource root.
+- [x] Resource parity audit completed: shared JSON is semantically equal for
+  705 files; the remaining 243 differences are documented Fabric adaptations
+  (native `c:` tags, vanilla loot-table serialization and the intentionally
+  absent standalone MultiPiston item entry).
+- [x] Fabric artifact audit confirms the packaged JAR contains no Forge
+  `mods.toml` or access-transformer metadata.
 - [x] Dedicated server startup reaches `Done`
 - [x] Dedicated server `save-all`/`stop` and same-world restart verified
 - [x] Post-restart entity persistence probe found a saved `EntityCitizen` and
