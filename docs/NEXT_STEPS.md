@@ -1,9 +1,9 @@
 # Next steps
 
 The datagen, lifecycle, gameplay-callback, mob-conversion and first server-side
-colony fixture checkpoints are now complete: `runDatagen` is reproducible, the
-portable providers are wired to the Fabric entrypoint, the tracked upstream
-generated parity snapshot is packaged at valid runtime paths, retained
+colony fixture checkpoints are now complete: `runDatagen` is reproducible with
+all 37 providers, native advancements/icons/quests are wired to the Fabric
+entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity.
@@ -32,10 +32,10 @@ The following work remains, in order:
    MineColonies 1.20.1 entity schemas exist in either the Forge source or the
    modern Fabric reference, so do not invent migrations. Revisit only if
    upstream publishes schemas or a real legacy-save requirement is defined.
-5. Replace the packaged upstream parity snapshot with native Fabric providers
-   for the three excluded datagen areas, then compare freshly generated
-   advancements, entity icons and translations against the current validated
-   snapshot.
+5. Compare the freshly generated advancements, entity icons and translations
+   against the retained upstream snapshot, then decide whether the snapshot
+   can be removed from the repository after the audit is complete. It is no
+   longer part of the runtime resource source set.
 6. Decide whether the standalone MultiPiston feature belongs in the supported
    Fabric distribution; if it does, port it as its own Fabric module rather
    than hiding its Forge implementation behind compatibility stubs.

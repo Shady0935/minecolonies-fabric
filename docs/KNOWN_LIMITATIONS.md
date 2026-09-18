@@ -11,15 +11,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   minecolonies:<entity>` for the custom entities. The Fabric port preserves
   that upstream behavior rather than inventing migration schemas; existing
   saves that require entity-version migration are not covered yet.
-- Fabric datagen is available and reproducible for the portable provider set:
-  34 providers generated 895 JSON resources, including native MineColonies
-  block/item/entity/damage tags and the missing `c:` conventional tags. Three
-  upstream providers remain explicitly excluded because they still depend on
-  Forge-only APIs: `DefaultAdvancementsProvider`, `DefaultEntityIconProvider`
-  and `QuestTranslationProvider`. Their tracked upstream 1.20.1 outputs are
-  nevertheless packaged as a runtime parity snapshot. This restores runtime
-  content parity but does not make those three provider graphs reproducible
-  from Fabric datagen.
+- Fabric datagen is reproducible for the full registered provider set: 37
+  providers generate 3,576 resources, including 967 JSON files, 2,609
+  citizen/raider icons and the native MineColonies plus conventional `c:`
+  tags. The previous upstream generated snapshot remains only as an audit
+  baseline and is not a runtime resource root.
+- Entity icons are generated in the dedicated-server datagen environment with
+  headless Java2D/ImageIO rather than Minecraft's client-only `NativeImage`.
+  The implementation preserves the upstream 8x8 head crop, 16x16 output and
+  darkened border; byte-for-byte PNG identity with the Forge NativeImage
+  implementation is not promised.
 - JEI and JourneyMap integrations are excluded from the target source set.
 - The standalone MultiPiston Forge dependency is not included in the Fabric
   runtime. The current MineColonies main source has no direct runtime reference
