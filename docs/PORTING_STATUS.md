@@ -31,6 +31,11 @@ completed.
 - [x] Fabric datagen task and portable provider set; `runDatagen` registered 27
   providers and generated 764 JSON resources. The eight remaining Forge-only
   providers are explicitly excluded and tracked in the limitations.
+- [x] The tracked upstream 1.20.1 generated parity snapshot is included on
+  the runtime resource path: the packaged JAR now exposes 1,434 JSON files,
+  including 28 damage types, 96 tags, 152 advancements and 9 quests, plus
+  2,599 generated citizen/raider icon textures. Fabric-generated files remain
+  authoritative when a path overlaps.
 - [x] Dedicated server startup reaches `Done`
 - [x] Dedicated server `save-all`/`stop` and same-world restart verified
 - [x] Client bootstrap reaches OpenAL and all texture atlases
@@ -97,6 +102,9 @@ completed.
 ## Validation
 
 - [x] Automated Java compilation and package build
+- [x] Packaged-resource audit confirms valid `assets/...` and `data/...`
+  paths, zero datagen-cache entries, and successful client resource reload
+  after the parity snapshot was added
 - [x] Client bootstrap reaches resource reload and OpenAL after the spear
   renderer and extended screen-handler registration fixes; the visual result
   remains manual-validation work

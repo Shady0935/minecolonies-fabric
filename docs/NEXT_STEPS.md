@@ -2,10 +2,11 @@
 
 The datagen, lifecycle, gameplay-callback, mob-conversion and first server-side
 colony fixture checkpoints are now complete: `runDatagen` is reproducible, the
-portable providers are wired to the Fabric entrypoint, retained
+portable providers are wired to the Fabric entrypoint, the tracked upstream
+generated parity snapshot is packaged at valid runtime paths, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
-through Fabric server lifecycle, generated JSON is included in the resource
-source set, and the populated-tavern conversion creates a real visitor entity.
+through Fabric server lifecycle, and the populated-tavern conversion creates a
+real visitor entity.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable
@@ -28,9 +29,10 @@ The following work remains, in order:
    extension point stays documented.
 4. Port the entity DataFixer registrations or document a deliberate migration
    policy for existing MineColonies 1.20.1 saves.
-5. Port the eight excluded Forge-only datagen providers and compare their
-   generated tags, advancements, damage data, entity icons and translations
-   against the preserved upstream resources.
+5. Replace the packaged upstream parity snapshot with native Fabric providers
+   for the eight excluded datagen areas, then compare freshly generated tags,
+   advancements, damage data, entity icons and translations against the current
+   validated snapshot.
 6. Decide whether the standalone MultiPiston feature belongs in the supported
    Fabric distribution; if it does, port it as its own Fabric module rather
    than hiding its Forge implementation behind compatibility stubs.

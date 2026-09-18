@@ -17,7 +17,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `DefaultEntityIconProvider`, `DefaultEntityTypeTagsProvider`,
   `DefaultItemTagsProvider` and `QuestTranslationProvider`. Their exact parity
   is not claimed until those providers are ported or replaced with Fabric
-  implementations.
+  implementations. Their tracked upstream 1.20.1 outputs are nevertheless
+  packaged as a runtime parity snapshot: the JAR contains 1,434 JSON files and
+  2,599 citizen/raider icon textures. This restores runtime content parity but
+  does not make the excluded provider graph reproducible from Fabric datagen.
 - JEI and JourneyMap integrations are excluded from the target source set.
 - The standalone MultiPiston Forge dependency is not included in the Fabric
   runtime. The current MineColonies main source has no direct runtime reference
