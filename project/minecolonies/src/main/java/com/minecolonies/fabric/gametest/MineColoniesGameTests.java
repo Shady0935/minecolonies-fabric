@@ -3,20 +3,39 @@ package com.minecolonies.fabric.gametest;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.network.IMessage;
+import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.colony.Colony;
+import com.minecolonies.coremod.network.NetworkChannel;
+import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
+import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
+import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
+import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
+import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
+import io.netty.buffer.Unpooled;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Focused server-side fixtures for the Fabric port.
@@ -93,5 +112,91 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(loaded.getName().equals(colony.getName()),
           "Colony name changed during NBT round-trip");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void networkCodecsAndSplitEnvelopeRoundTrip(final GameTestHelper helper)
+    {
+        final NetworkChannel channel = Network.getNetwork();
+        helper.assertTrue(isMessageRegistered(channel, ServerUUIDMessage.class),
+          "Server UUID message was not registered");
+        helper.assertTrue(isMessageRegistered(channel, GlobalQuestSyncMessage.class),
+          "Global quest message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, OpenDecoBuildWindowMessage.class),
+          "Build-window message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, SaveStructureNBTMessage.class),
+          "Scan-save message was not registered on the server");
+
+        final OpenDecoBuildWindowMessage original = new OpenDecoBuildWindowMessage(
+          new BlockPos(11, 64, -7), Constants.DEFAULT_STYLE, "fundamentals/townhall1.blueprint",
+          Rotation.CLOCKWISE_90, Mirror.FRONT_BACK);
+        final byte[] encoded = encode(original);
+        final OpenDecoBuildWindowMessage decoded = new OpenDecoBuildWindowMessage();
+        final FriendlyByteBuf decodeBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(encoded));
+        try
+        {
+            decoded.fromBytes(decodeBuffer);
+        }
+        finally
+        {
+            decodeBuffer.release();
+        }
+        helper.assertTrue(Arrays.equals(encoded, encode(decoded)),
+          "OpenDecoBuildWindowMessage changed during codec round-trip");
+
+        final int serverUuidId = findMessageId(channel, ServerUUIDMessage.class);
+        helper.assertTrue(serverUuidId > 0, "Server UUID message has no inner network id");
+        final UUID expected = UUID.fromString("11111111-2222-3333-4444-555555555555");
+        final FriendlyByteBuf uuidBuffer = new FriendlyByteBuf(Unpooled.buffer());
+        PacketUtils.writeUUID(uuidBuffer, expected);
+        final byte[] uuidPayload = new byte[uuidBuffer.readableBytes()];
+        uuidBuffer.getBytes(uuidBuffer.readerIndex(), uuidPayload);
+        uuidBuffer.release();
+
+        final int communicationId = 0x4D435446;
+        final byte[] firstChunk = Arrays.copyOfRange(uuidPayload, 0, 7);
+        final byte[] secondChunk = Arrays.copyOfRange(uuidPayload, 7, uuidPayload.length);
+        final NetworkEvent.Context context = new NetworkEvent.Context(null, LogicalSide.SERVER);
+        new SplitPacketMessage(communicationId, 1, false, serverUuidId, secondChunk).onExecute(context, false);
+        new SplitPacketMessage(communicationId, 0, true, serverUuidId, firstChunk).onExecute(context, false);
+
+        helper.assertTrue(IColonyManager.getInstance().getServerUUID().equals(expected),
+          "Split packet reassembly did not deliver the UUID payload");
+        helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+          "Completed split packet was not removed from the cache");
+        helper.succeed();
+    }
+
+    private static boolean isMessageRegistered(final NetworkChannel channel, final Class<? extends IMessage> messageClass)
+    {
+        return findMessageId(channel, messageClass) > 0;
+    }
+
+    private static int findMessageId(final NetworkChannel channel, final Class<? extends IMessage> messageClass)
+    {
+        for (final Map.Entry<Integer, NetworkChannel.NetworkingMessageEntry<?>> entry : channel.getMessagesTypes().entrySet())
+        {
+            if (messageClass.isInstance(entry.getValue().getCreator().get()))
+            {
+                return entry.getKey();
+            }
+        }
+        return -1;
+    }
+
+    private static byte[] encode(final IMessage message)
+    {
+        final FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+        try
+        {
+            message.toBytes(buffer);
+            final byte[] bytes = new byte[buffer.readableBytes()];
+            buffer.getBytes(buffer.readerIndex(), bytes);
+            return bytes;
+        }
+        finally
+        {
+            buffer.release();
+        }
     }
 }
