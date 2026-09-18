@@ -11,10 +11,14 @@ import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.coremod.event.ClientRegistryHandler;
 import com.minecolonies.coremod.event.TextureReloadListener;
 import com.minecolonies.fabric.event.TickEvent;
+import com.minecolonies.fabric.client.event.ClientPlayerNetworkEvent;
+import com.minecolonies.fabric.event.entity.player.ItemTooltipEvent;
 import com.minecolonies.fabric.client.event.RenderLevelStageEvent;
 import com.minecolonies.api.util.constant.Constants;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
@@ -73,6 +77,10 @@ public final class MineColoniesClientFabric implements ClientModInitializer
           MinecraftForge.EVENT_BUS.post(new TickEvent.ClientTickEvent(TickEvent.Phase.START)));
         ClientTickEvents.END_CLIENT_TICK.register(client ->
           MinecraftForge.EVENT_BUS.post(new TickEvent.ClientTickEvent(TickEvent.Phase.END)));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
+          MinecraftForge.EVENT_BUS.post(new ClientPlayerNetworkEvent.LoggingOut()));
+        ItemTooltipCallback.EVENT.register((stack, context, lines) ->
+          MinecraftForge.EVENT_BUS.post(new ItemTooltipEvent(net.minecraft.client.Minecraft.getInstance().player, stack, lines)));
 
         // This retained lifecycle event is only consumed by menu screens.  It
         // is dispatched directly so the common setup handler is not repeated.

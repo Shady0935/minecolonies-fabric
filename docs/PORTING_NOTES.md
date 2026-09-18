@@ -60,6 +60,20 @@ implementations while giving Fabric control of reload ordering and execution.
 The verified startup and `/reload` path rebuilds 130 worker recipes, 201
 research recipes, quests and 1,455 item-NBT compatibility rules.
 
+## Gameplay callbacks
+
+`FabricGameplayHooks` connects the retained permission and quest handlers to
+Fabric's real 1.20.1 callbacks: right-click block/item/entity, entity attack,
+block-break preflight, player dimension changes, living-entity damage and
+living-entity death. Block placement uses `BlockPlaceContext.canPlace()` and
+the resolved placement position to raise the retained `EntityPlaceEvent` before
+vanilla performs the placement; cancelling that event prevents the placement.
+
+The client entrypoint also forwards item tooltip and play-connection disconnect
+callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
+expose a direct equivalent for every Forge event, so unsupported event points
+remain documented gaps instead of being represented by no-op shims.
+
 ## Fabric datagen
 
 The target exposes Fabric Loom's `runDatagen` task through the

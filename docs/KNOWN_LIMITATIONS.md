@@ -26,6 +26,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   exercise registration, entity construction and serialization. The upstream
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
   next load, so this does not validate colony-backed citizen persistence.
+- Fabric 1.20.1 has no direct callback equivalent for several retained Forge
+  event points: farmland trampling, pre-conversion, explosion start/detonate,
+  item toss/pickup, bucket fill, arrow loose and mob-spawn position checks.
+  Those paths remain explicit coverage gaps; they are not hidden behind broad
+  no-op adapters.
+- The retained block-place event is emitted as a pre-vanilla placement
+  preflight because Fabric has no matching post-placement event. The bridge
+  validates `BlockPlaceContext` and prevents placement when the retained event
+  denies it, but it is not a byte-for-byte replacement for Forge's post-place
+  timing.
 
 ## Validation still pending
 
@@ -35,6 +45,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. The transport itself has a login/server-to-client smoke
   pass, including `ServerUUIDMessage`.
+- The new interaction/combat callback bridge has been loaded by dedicated
+  server and client bootstrap, but Town Hall placement, colony creation and
+  the resulting permission/quest actions still require a real in-game or
+  focused integration fixture.
 - A valid authenticated profile was not available in the development client;
   the network smoke test consequently used a temporary offline server setting.
   The checked-in/test workspace configuration was restored to

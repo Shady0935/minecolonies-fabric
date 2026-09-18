@@ -40,6 +40,9 @@ completed.
   the MineColonies server UUID packet
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
   lifecycle, commands, login/logout and datapack reload callbacks
+- [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,
+  pre-break, pre-place, dimension-change, damage and death callbacks; client
+  tooltip and disconnect callbacks are also connected
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
@@ -68,5 +71,7 @@ completed.
 - [x] Fabric GameTest feasibility checked; no port-specific GameTest suite is
   included yet
 - [x] Core runtime command/entity smoke test and datapack reload
+- [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
+  and client bootstrap; real colony interaction remains pending
 - [ ] Core colony gameplay runtime tests
 - [x] Manual validation list and remaining limitations documented
