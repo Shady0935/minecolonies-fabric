@@ -25,7 +25,10 @@ import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
@@ -539,6 +542,12 @@ public class ColonyPermissionEventHandler
     @SubscribeEvent
     public void on(final LivingHurtEvent event)
     {
+        if (!allowExplosionDamage(event.getEntity(), event.getSource()))
+        {
+            event.setCanceled(true);
+            return;
+        }
+
         if (event.getEntity() instanceof ServerPlayer
               && event.getSource().getEntity() instanceof EntityCitizen
               && ((EntityCitizen) event.getSource().getEntity()).getCitizenColonyHandler().getColonyId() == colony.getID()
@@ -547,6 +556,41 @@ public class ColonyPermissionEventHandler
         {
             event.setCanceled(true);
         }
+    }
+
+    /**
+     * Restores the entity half of the retained explosion policy through
+     * Fabric's living-damage callback.  Block damage still requires an
+     * explosion-phase hook, which Fabric 1.20.1 does not expose.
+     *
+     * @param entity entity receiving damage
+     * @param source damage source
+     * @return true when the explosion damage may proceed
+     */
+    private boolean allowExplosionDamage(final LivingEntity entity, final DamageSource source)
+    {
+        if (entity instanceof ServerPlayer || !source.is(DamageTypeTags.IS_EXPLOSION))
+        {
+            return true;
+        }
+
+        if (!MineColonies.getConfig().getServer().enableColonyProtection.get())
+        {
+            return true;
+        }
+
+        final Explosions policy = MineColonies.getConfig().getServer().turnOffExplosionsInColonies.get();
+        if (policy == Explosions.DAMAGE_EVERYTHING || policy == Explosions.DAMAGE_ENTITIES)
+        {
+            return true;
+        }
+
+        if (policy == Explosions.DAMAGE_PLAYERS && entity instanceof Enemy)
+        {
+            return true;
+        }
+
+        return !colony.isCoordInColony(entity.level(), entity.blockPosition());
     }
 
     /**

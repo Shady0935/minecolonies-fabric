@@ -5,6 +5,7 @@
   "mixins": [
     "FarmBlockMixin",
     "ItemEntityMixin",
+    "NaturalSpawnerMixin",
     "PlayerDropMixin"
   ],
   "injectors": {

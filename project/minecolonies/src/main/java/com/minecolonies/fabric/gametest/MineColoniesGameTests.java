@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.inventory.ModContainers;
@@ -14,6 +15,7 @@ import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.Network;
+import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
@@ -28,9 +30,11 @@ import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.common.extensions.IForgeMenuType;
+import com.minecolonies.fabric.event.Event;
 import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
 import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
+import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import com.minecolonies.fabric.event.entity.player.EntityItemPickupEvent;
 import com.minecolonies.fabric.event.level.BlockEvent;
@@ -61,6 +65,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -516,10 +521,73 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(probe.trample, "FarmBlock.fallOn did not dispatch FarmlandTrampleEvent");
             helper.assertTrue(level.getBlockState(farmland).is(Blocks.FARMLAND),
               "Canceled farmland trample still converted farmland to dirt");
+
+            final Mob hostile = EntityType.ZOMBIE.create(level);
+            helper.assertTrue(hostile != null, "Mob spawn fixture could not create a zombie");
+            hostile.setPos(player.getX(), player.getY(), player.getZ());
+            final java.lang.reflect.Method spawnCheck = NaturalSpawner.class.getDeclaredMethod(
+              "isValidPositionForMob", ServerLevel.class, Mob.class, double.class);
+            spawnCheck.setAccessible(true);
+            final boolean spawnAllowed = (boolean) spawnCheck.invoke(null, level, hostile, 0.0D);
+            helper.assertTrue(probe.spawn, "NaturalSpawner did not dispatch MobSpawnEvent.PositionCheck");
+            helper.assertTrue(!spawnAllowed, "Canceled mob position check allowed the hostile spawn");
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new AssertionError("Could not invoke the vanilla mob spawn position gate", exception);
         }
         finally
         {
             MinecraftForge.EVENT_BUS.unregister(probe);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void explosionDamagePolicyUsesLivingDamageBridge(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos townHall = helper.absolutePos(new BlockPos(160, 1, 160));
+        level.getChunkAt(townHall);
+        helper.setBlock(new BlockPos(160, 1, 160), ModBlocks.blockHutTownHall);
+        final BlockEntity blockEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "Explosion protection Town Hall did not create a colony-building block entity");
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Explosion GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Explosion protection colony was not created");
+        final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
+        colony.getBuildingManager().addNewBuilding(hut, level);
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 0, level, true);
+
+        final Mob victim = EntityType.COW.create(level);
+        helper.assertTrue(victim != null, "Explosion protection victim could not be created");
+        victim.setPos(townHall.getX() + 0.5D, townHall.getY(), townHall.getZ() + 0.5D);
+        final Explosions previousPolicy = MineColonies.getConfig().getServer().turnOffExplosionsInColonies.get();
+        final boolean previousProtection = MineColonies.getConfig().getServer().enableColonyProtection.get();
+        try
+        {
+            MineColonies.getConfig().getServer().enableColonyProtection.set(true);
+            MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(Explosions.DAMAGE_PLAYERS);
+            final var explosionSource = level.damageSources().explosion(null);
+            final boolean protectedVictim = ServerLivingEntityEvents.ALLOW_DAMAGE.invoker()
+              .allowDamage(victim, explosionSource, 4.0F);
+            helper.assertTrue(!protectedVictim,
+              "DAMAGE_PLAYERS policy allowed explosion damage to a non-hostile colony entity");
+
+            MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(Explosions.DAMAGE_ENTITIES);
+            final boolean allowedVictim = ServerLivingEntityEvents.ALLOW_DAMAGE.invoker()
+              .allowDamage(victim, explosionSource, 4.0F);
+            helper.assertTrue(allowedVictim,
+              "DAMAGE_ENTITIES policy incorrectly blocked explosion damage to a colony entity");
+        }
+        finally
+        {
+            MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(previousPolicy);
+            MineColonies.getConfig().getServer().enableColonyProtection.set(previousProtection);
         }
         helper.succeed();
     }
@@ -615,6 +683,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         private boolean pickup;
         private boolean toss;
         private boolean trample;
+        private boolean spawn;
 
         @SubscribeEvent
         public void onPickup(final EntityItemPickupEvent event)
@@ -635,6 +704,13 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             trample = true;
             event.setCanceled(true);
+        }
+
+        @SubscribeEvent
+        public void onSpawn(final MobSpawnEvent.PositionCheck event)
+        {
+            spawn = true;
+            event.setResult(Event.Result.DENY);
         }
     }
 
