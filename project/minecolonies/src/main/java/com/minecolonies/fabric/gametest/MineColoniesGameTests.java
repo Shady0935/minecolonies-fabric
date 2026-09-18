@@ -7,6 +7,7 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.items.ModItems;
+import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
@@ -26,12 +27,14 @@ import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.common.extensions.IForgeMenuType;
 import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -47,6 +50,9 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
@@ -438,6 +444,48 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void extendedMenuTypesPreserveOpeningBuffer(final GameTestHelper helper)
+    {
+        helper.assertTrue(ModContainers.citizenInv.get() instanceof ExtendedScreenHandlerType,
+          "Citizen inventory menu is not an extended Fabric screen handler type");
+        helper.assertTrue(ModContainers.buildingInv.get() instanceof ExtendedScreenHandlerType,
+          "Building inventory menu is not an extended Fabric screen handler type");
+        helper.assertTrue(ModContainers.rackInv.get() instanceof ExtendedScreenHandlerType,
+          "Rack menu is not an extended Fabric screen handler type");
+        helper.assertTrue(ModContainers.graveInv.get() instanceof ExtendedScreenHandlerType,
+          "Grave menu is not an extended Fabric screen handler type");
+        helper.assertTrue(ModContainers.craftingFurnace.get() instanceof ExtendedScreenHandlerType,
+          "Furnace crafting menu is not an extended Fabric screen handler type");
+        helper.assertTrue(ModContainers.craftingGrid.get() instanceof ExtendedScreenHandlerType,
+          "Crafting menu is not an extended Fabric screen handler type");
+        helper.assertTrue(ModContainers.craftingBrewingstand.get() instanceof ExtendedScreenHandlerType,
+          "Brewing menu is not an extended Fabric screen handler type");
+
+        final MenuType<OpeningDataMenu> type = IForgeMenuType.create(
+          (windowId, inventory, buffer) -> new OpeningDataMenu(windowId, buffer.readVarInt()));
+        helper.assertTrue(type instanceof ExtendedScreenHandlerType,
+          "IForgeMenuType did not create an extended screen handler type");
+
+        final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        final FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+        try
+        {
+            buffer.writeVarInt(731);
+            @SuppressWarnings("unchecked")
+            final ExtendedScreenHandlerType<OpeningDataMenu> extendedType =
+              (ExtendedScreenHandlerType<OpeningDataMenu>) (ExtendedScreenHandlerType<?>) type;
+            final OpeningDataMenu menu = extendedType.create(4, player.getInventory(), buffer);
+            helper.assertTrue(menu.openingData == 731,
+              "Extended screen handler factory did not receive the opening buffer");
+        }
+        finally
+        {
+            buffer.release();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void networkCodecsAndSplitEnvelopeRoundTrip(final GameTestHelper helper)
     {
         final NetworkChannel channel = Network.getNetwork();
@@ -520,6 +568,29 @@ public final class MineColoniesGameTests implements FabricGameTest
         finally
         {
             buffer.release();
+        }
+    }
+
+    private static final class OpeningDataMenu extends AbstractContainerMenu
+    {
+        private final int openingData;
+
+        private OpeningDataMenu(final int windowId, final int openingData)
+        {
+            super(MenuType.CRAFTING, windowId);
+            this.openingData = openingData;
+        }
+
+        @Override
+        public boolean stillValid(final Player player)
+        {
+            return true;
+        }
+
+        @Override
+        public ItemStack quickMoveStack(final Player player, final int slot)
+        {
+            return ItemStack.EMPTY;
         }
     }
 }

@@ -4,9 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.flag.FeatureFlags;
-
-import java.util.function.Function;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 
 public final class IForgeMenuType
 {
@@ -22,6 +20,6 @@ public final class IForgeMenuType
 
     public static <T extends AbstractContainerMenu> MenuType<T> create(final CreateMenu<T> factory)
     {
-        return new MenuType<>((windowId, inventory) -> factory.create(windowId, inventory, new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer())), FeatureFlags.VANILLA_SET);
+        return new ExtendedScreenHandlerType<>(factory::create);
     }
 }
