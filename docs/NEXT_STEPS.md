@@ -11,10 +11,10 @@ following work remains, in order:
    offline test profile: place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, warehouse and
    research cycle.
-2. Extend the Fabric GameTest/focused integration fixtures with packet
-   encode/decode assertions for the now server-safe S2C families,
-   split-packet reassembly, a populated-colony stop/restart, citizen
-   persistence and the supply-loot target table set.
+2. Extend the Fabric GameTest/focused integration fixtures from the current
+   representative network coverage to every client-bound family, then add a
+   populated-colony stop/restart, citizen persistence and the supply-loot
+   target table set.
 3. Cover the remaining Forge event points that have no direct Fabric callback
    only where a narrow mixin or server hook can preserve semantics; keep the
    unsupported paths documented when that is not technically safe.

@@ -71,7 +71,8 @@ completed.
   recursive JSON parse covered 1,258 source plus generated JSON files
 - [x] Network transport smoke coverage for login/server-to-client packet path
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
-  Town Hall registration, colony creation, permissions and NBT round-trip
+  Town Hall registration, colony creation, permissions, NBT round-trip and
+  representative network codec/split-envelope behavior
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending
