@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/blockplacespeedmultiplier": 2
+    }
+  ],
+  "icon": "minecraft:glowstone",
+  "parentResearch": "minecolonies:technology/ability",
+  "requirements": [
+    {
+      "building": "miner",
+      "level": 2
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "quantity": 128
+    }
+  ],
+  "researchLevel": 3,
+  "subtitle": "com.minecolonies.research.technology.skills.subtitle"
+}

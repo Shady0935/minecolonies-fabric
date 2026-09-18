@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/minimumstockmultiplier": 2
+    }
+  ],
+  "icon": "minecraft:chest_minecart",
+  "parentResearch": "minecolonies:technology/space",
+  "requirements": [
+    {
+      "building": "miner",
+      "level": 4
+    },
+    {
+      "item": "minecolonies:blockminecoloniesrack",
+      "quantity": 32
+    }
+  ],
+  "researchLevel": 4,
+  "subtitle": "com.minecolonies.research.technology.capacity.subtitle"
+}

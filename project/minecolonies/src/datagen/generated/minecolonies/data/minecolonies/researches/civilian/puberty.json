@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/growthmultiplier": 3
+    }
+  ],
+  "icon": "minecolonies:textures/icons/research/childgrowth3.png",
+  "parentResearch": "minecolonies:civilian/hormones",
+  "requirements": [
+    {
+      "building": "library",
+      "level": 3
+    },
+    {
+      "item": "minecraft:cooked_chicken",
+      "quantity": 128
+    }
+  ],
+  "researchLevel": 4,
+  "subtitle": "com.minecolonies.research.civilian.puberty.subtitle"
+}

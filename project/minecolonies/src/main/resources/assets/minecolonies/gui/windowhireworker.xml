@@ -1,0 +1,26 @@
+<window xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" pause="false" lightbox="true"
+        xsi:noNamespaceSchemaLocation="file:../../../../../api/java/com/minecolonies/blockui/blockui.xsd">
+
+    <list id="jobs" size="100 120" pos="0 40">
+        <button id="job" size="80 15" pos="10 2"/>
+    </list>
+
+    <label size="100% 11" pos="0 20" textalign="MIDDLE" color="white" label="$(com.minecolonies.coremod.gui.hiring.description)"/>
+    <list id="unemployed" size="350 120" pos="90 40">
+        <view size="100% 38">
+            <label id="citizen" size="175 12" pos="10 4" color="yellow"/>
+            <button id="done" size="45 15" pos="190 2" label="$(com.minecolonies.coremod.gui.hiring.buttonhire)"/>
+            <button id="fire" size="45 15" pos="190 2" label="$(com.minecolonies.coremod.gui.hiring.buttonfire)"/>
+            <button id="pause" size="65 15" pos="240 2" label=""/>
+            <button id="restart" size="65 15" pos="310 2" label="$(com.minecolonies.coremod.gui.hiring.restart)"/>
+            <label id="attributes" size="100% 24" pos="1 12" color="white" textscale="0.75"/>
+        </view>
+    </list>
+    <label id="autoHireWarn" size="100% 11" pos="0 155" textalign="MIDDLE" color="white" label="$(com.minecolonies.coremod.gui.auto.hire.warning)"/>
+    <label id="buildingHireMode" size="200 11" pos="110 165" textalign="MIDDLE" color="white" label="$(com.minecolonies.coremod.gui.buildinghiremode)"/>
+    <button id="mode" size="200 20" pos="110 175"/>
+    <label id="showEmployedLabel" size="120 11" pos="110 200" textalign="MIDDLE" color="white" label="$(com.minecolonies.coremod.gui.showemployed)"/>
+    <button id="showEmployed" size="20 17" pos="250 200" label="N" textalign="MIDDLE" color="white"/>
+
+    <button id="cancel" size="200 20" pos="110 215" label="$(gui.cancel)"/>
+</window>

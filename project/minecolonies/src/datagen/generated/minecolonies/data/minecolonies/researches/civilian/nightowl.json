@@ -1,0 +1,23 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/workingdayhaddition": 1
+    }
+  ],
+  "icon": "minecraft:clock:1",
+  "parentResearch": "minecolonies:civilian/circus",
+  "requirements": [
+    {
+      "building": "library",
+      "level": 2
+    },
+    {
+      "item": "minecraft:golden_carrot",
+      "quantity": 25
+    }
+  ],
+  "researchLevel": 3,
+  "sortOrder": 2,
+  "subtitle": "com.minecolonies.research.civilian.nightowl.subtitle"
+}

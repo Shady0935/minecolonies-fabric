@@ -1,0 +1,19 @@
+# Upstream references are independent repositories and are intentionally not
+# versioned by the port workspace.
+/references/
+
+# Generated build and runtime state.
+/project/**/.gradle/
+/project/**/build/
+/project/**/run/
+/project/**/libs/*.jar
+/test-instance/
+/logs/
+
+# IDE and local machine files.
+.idea/
+*.iml
+.vscode/
+*.log
+hs_err_pid*.log
+
