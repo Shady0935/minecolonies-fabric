@@ -18,10 +18,12 @@ The following work remains, in order:
    the seven registered menu opening buffers now have an automated contract
    test. Then turn the populated-colony stop/restart smoke test into an
    explicit citizen-persistence assertion.
-3. Cover the remaining Forge event points that have no direct Fabric callback
-   only where a narrow mixin or server hook can preserve semantics. The retained
-   `ArrowLooseEvent` bridge is now covered; keep the unsupported `ArrowNock`
-   extension point and other gaps documented when that is not technically safe.
+3. Continue covering the remaining Forge event points only where a narrow mixin
+   or server hook can preserve semantics. Item toss/pickup, farmland trampling
+   and bucket filling now have focused Fabric bridges and cancellation coverage;
+   explosion start/detonate and mob-spawn position checks remain explicit gaps.
+   The retained `ArrowLooseEvent` bridge is covered, while the unsupported
+   `ArrowNock` extension point stays documented.
 4. Port the entity DataFixer registrations or document a deliberate migration
    policy for existing MineColonies 1.20.1 saves.
 5. Port the eight excluded Forge-only datagen providers and compare their

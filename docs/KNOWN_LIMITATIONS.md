@@ -34,9 +34,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   restart, or DataFixer migration for old entity data. The dedicated restart
   smoke test does restore the populated colony records.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
-  event points: farmland trampling, explosion start/detonate, item toss/pickup,
-  bucket fill and mob-spawn position checks. Those paths remain explicit
-  coverage gaps; they are not hidden behind broad no-op adapters.
+  event points. Narrow adapters now cover farmland trampling and item
+  toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
+  before vanilla fills the bucket; the focused server fixture verifies the
+  cancellation semantics of the three mixin-backed paths. Explosion
+  start/detonate and mob-spawn position checks remain explicit coverage gaps;
+  they are not hidden behind broad no-op adapters.
 - The retained bow adapter now dispatches `ArrowLooseEvent` and respects
   cancellation for MineColonies colony permissions. Fabric still has no direct
   `ArrowNockEvent` callback in this target, so external listeners cannot yet

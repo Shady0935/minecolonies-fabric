@@ -75,6 +75,20 @@ the cancellation gate in this port. Block placement uses
 retained `EntityPlaceEvent` before vanilla performs the placement; cancelling
 that event prevents the placement.
 
+Several Forge gameplay events that have no direct Fabric callback now use narrow
+adapters rather than broad compatibility no-ops. `Player.drop` posts the
+retained `ItemTossEvent` after vanilla creates the item entity and discards that
+entity when a listener cancels; `ItemEntity.playerTouch` posts
+`EntityItemPickupEvent` before vanilla consumes the stack. `FarmBlock.fallOn`
+redirects only the `turnToDirt` mutation, so a canceled `FarmlandTrampleEvent`
+preserves the farmland while retaining vanilla fall damage. Finally,
+`FabricGameplayHooks` posts `FillBucketEvent` for bucket use with the same
+raycast target before vanilla performs the fill. The focused server fixture in
+`logs/minecolonies-gametest-compat-event-mixins.log` verifies the three
+mixin-backed cancellation paths; explosion phases and mob-spawn position checks
+remain explicit gaps because they require different internal interception
+points.
+
 The client entrypoint also forwards item tooltip and play-connection disconnect
 callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
 expose a direct equivalent for every Forge event, so unsupported event points

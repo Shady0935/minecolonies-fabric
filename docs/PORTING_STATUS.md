@@ -52,6 +52,10 @@ completed.
   pre-break, pre-place, dimension-change, damage, death and mob-conversion
   callbacks; the retained bow adapter dispatches and respects cancellation of
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
+- [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
+  pickup and farmland-trample events, and gate bucket filling through the
+  retained `FillBucketEvent` contract; the 11-test server fixture covers the
+  cancellation semantics of the mixin-backed paths
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
@@ -99,12 +103,14 @@ completed.
   representative network codec/split-envelope behavior, extended menu opening
   data, citizen entity registration and serialization, supply-loot target
   tables, Town Hall protection callbacks, populated-tavern mob-conversion
-  replacement and bow-hook compatibility semantics
+  replacement, bow-hook compatibility semantics and cancellable gameplay-event
+  semantics for item toss/pickup and farmland trampling
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
-  replacement are exercised by real colony fixtures, while the retained bow
-  cancellation path is exercised by a focused fixture
+  replacement are exercised by real colony fixtures, while retained bow
+  cancellation plus item toss/pickup and farmland-trample cancellation paths
+  are exercised by focused fixtures
 - [x] Core colony creation and persistence runtime fixture
 - [x] Dedicated-server restart after common S2C registration changes
 - [x] Manual validation list and remaining limitations documented
