@@ -4,6 +4,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import com.mojang.datafixers.util.Pair;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,10 +34,16 @@ public final class FabricRegistryTags<T>
 
     public Optional<ReverseTag<T>> getReverseTag(final T value)
     {
-        // Reverse tag lookup is diagnostic-only in the upstream auditor.  The
-        // vanilla registry exposes forward tag lookup, so leave the optional
-        // empty until that audit is migrated to Fabric's tag entry API.
-        return Optional.empty();
+        if (value == null)
+        {
+            return Optional.empty();
+        }
+
+        final List<TagKey<T>> keys = registry.getTags()
+          .filter(entry -> entry.getSecond().stream().anyMatch(holder -> holder.value() == value))
+          .map(Pair::getFirst)
+          .toList();
+        return keys.isEmpty() ? Optional.empty() : Optional.of(new ReverseTag<>(keys.stream()));
     }
 
     public record ReverseTag<T>(Stream<TagKey<T>> tagKeys)
