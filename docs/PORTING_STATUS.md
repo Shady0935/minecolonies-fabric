@@ -36,6 +36,8 @@ completed.
 - [x] Client bootstrap reaches OpenAL and all texture atlases
 - [x] Client/server classloading audit completed without a startup crash
 - [x] Fabric play networking registered in both directions
+- [x] Client-bound message codecs are server-loadable; visual execution is
+  isolated behind the client bridge while preserving the upstream message IDs
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
@@ -74,4 +76,5 @@ completed.
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending
 - [x] Core colony creation and persistence runtime fixture
+- [x] Dedicated-server restart after common S2C registration changes
 - [x] Manual validation list and remaining limitations documented

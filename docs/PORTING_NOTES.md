@@ -81,7 +81,7 @@ Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
 a real Town Hall block entity, creates a colony through `IColonyManager`,
 attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
 and round-trips the persisted colony NBT. The passing batch is recorded in
-`logs/minecolonies-gametest-009.log`.
+`logs/minecolonies-gametest-s2c-bridge.log`.
 
 Structurize's server pack loader is connected to Fabric's
 `SERVER_STARTING` callback. Its mod-resource scan also descends through the
@@ -139,6 +139,15 @@ sync registration far enough to ensure join and initial colony creation do not
 raise an unknown-message error on the Fabric channel. `GlobalQuestSyncMessage`,
 chunk capability updates and compatibility snapshots use the same common
 message IDs while their client behavior is isolated in `ClientNetworkHooks`.
+
+The same isolation now covers the remaining client-bound message families:
+colony-list/view removal, particles, audio, pathfinding debug updates, build
+window opening and scan saving. Their common message classes contain codecs and
+server-safe dispatch only; `ClientMessageBridge` resolves the client hook by
+reflection after the Fabric client entrypoint is present. `NetworkChannel`
+registers these classes on both logical environments without shifting the
+upstream numeric IDs. The dedicated server was started, asked to save and stop,
+then restarted on the same world after this change.
 
 ## Resource and startup fixes
 

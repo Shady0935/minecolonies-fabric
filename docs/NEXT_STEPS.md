@@ -12,8 +12,9 @@ following work remains, in order:
    open each BlockUI screen, and exercise a builder, citizen, warehouse and
    research cycle.
 2. Extend the Fabric GameTest/focused integration fixtures with packet
-   encode/decode, split-packet reassembly, a populated-colony stop/restart,
-   citizen persistence and the supply-loot target table set.
+   encode/decode assertions for the now server-safe S2C families,
+   split-packet reassembly, a populated-colony stop/restart, citizen
+   persistence and the supply-loot target table set.
 3. Cover the remaining Forge event points that have no direct Fabric callback
    only where a narrow mixin or server hook can preserve semantics; keep the
    unsupported paths documented when that is not technically safe.

@@ -47,8 +47,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   and raids still need a real in-game interaction pass. The server-side Town
   Hall/colony creation path has an automated GameTest fixture.
 - Client-to-server gameplay packets have not been driven through every GUI or
-  block interaction. The transport itself has a login/server-to-client smoke
-  pass, including `ServerUUIDMessage`.
+  block interaction. The common codecs for the client-bound colony, particle,
+  audio, pathfinding, build-window and scan messages are now server-load safe,
+  but their visual/client behavior still needs an in-game interaction pass.
+  The transport itself has a login/server-to-client smoke pass, including
+  `ServerUUIDMessage`.
 - The new interaction/combat callback bridge has been loaded by dedicated
   server and client bootstrap. The focused fixture covers server-side colony
   permission/quest synchronization; client GUI actions and the full gameplay
