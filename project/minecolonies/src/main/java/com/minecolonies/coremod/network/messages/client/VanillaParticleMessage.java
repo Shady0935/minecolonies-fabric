@@ -1,22 +1,14 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.world.level.Level;
-import com.minecolonies.fabric.dist.Dist;
-import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Random;
-
-import static com.minecolonies.api.util.constant.CitizenConstants.CITIZEN_HEIGHT;
-import static com.minecolonies.api.util.constant.CitizenConstants.CITIZEN_WIDTH;
 
 /**
  * Message for vanilla particles around a citizen, in villager-like shape.
@@ -71,38 +63,9 @@ public class VanillaParticleMessage implements IMessage
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        final ClientLevel world = Minecraft.getInstance().level;
-
-        spawnParticles(type, world, x, y, z);
-    }
-
-    /**
-     * Spawns the given particle randomly around the position.
-     *
-     * @param particleType praticle to spawn
-     * @param world        world to use
-     * @param x            x pos
-     * @param y            y pos
-     * @param z            z pos
-     */
-    private void spawnParticles(SimpleParticleType particleType, Level world, double x, double y, double z)
-    {
-        final Random rand = new Random();
-        for (int i = 0; i < 5; ++i)
-        {
-            double d0 = rand.nextGaussian() * 0.02D;
-            double d1 = rand.nextGaussian() * 0.02D;
-            double d2 = rand.nextGaussian() * 0.02D;
-            world.addParticle(particleType,
-              x + (rand.nextFloat() * CITIZEN_WIDTH * 2.0F) - CITIZEN_WIDTH,
-              y + 1.0D + (rand.nextFloat() * CITIZEN_HEIGHT),
-              z + (rand.nextFloat() * CITIZEN_WIDTH * 2.0F) - CITIZEN_WIDTH,
-              d0,
-              d1,
-              d2);
-        }
+        ClientMessageBridge.invoke("handleVanillaParticleMessage",
+          new Class<?>[] {double.class, double.class, double.class, SimpleParticleType.class}, x, y, z, type);
     }
 }

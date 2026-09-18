@@ -1,18 +1,16 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Random;
 
 /**
  * Handles spawning item particle effects in a circle around a target.
@@ -22,8 +20,6 @@ public class CircleParticleEffectMessage implements IMessage
     /**
      * Random obj.
      */
-    private static final Random RAND = new Random();
-
     /**
      * The itemStack for the particles.
      */
@@ -96,22 +92,8 @@ public class CircleParticleEffectMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        final ClientLevel world = Minecraft.getInstance().level;
-
-        double x = 1.0 * Math.cos(stage * 45.0) + posX;
-        double z = 1.0 * Math.sin(stage * 45.0) + posZ;
-
-        for (int i = 0; i < 5; ++i)
-        {
-            final Vec3 randomPos = new Vec3(RAND.nextDouble() * 0.1D + 0.1D, RAND.nextDouble() * 0.1D + 0.1D, RAND.nextDouble() * 0.1D + 0.1D);
-            final Vec3 randomOffset = new Vec3((RAND.nextDouble() - 0.5D) * 0.1D, (RAND.nextDouble() - 0.5D) * 0.1D, (RAND.nextDouble() - 0.5D) * 0.1D);
-            world.addParticle(type,
-              x + randomOffset.x,
-              posY + randomOffset.y,
-              z + randomOffset.z,
-              randomPos.x,
-              randomPos.y + 0.05D,
-              randomPos.z);
-        }
+        ClientMessageBridge.invoke("handleCircleParticleEffectMessage",
+          new Class<?>[] {SimpleParticleType.class, double.class, double.class, double.class, int.class},
+          type, posX, posY, posZ, stage);
     }
 }

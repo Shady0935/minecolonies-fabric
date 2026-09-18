@@ -1,7 +1,6 @@
 package com.minecolonies.coremod.network.messages.client.colony;
 
 import com.minecolonies.api.network.IMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -13,6 +12,7 @@ import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.dist.Dist;
 import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.Nullable;
@@ -97,13 +97,11 @@ public class PlayMusicAtPosMessage implements IMessage
         return LogicalSide.CLIENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        if (Minecraft.getInstance().level.dimension() == dimensionID)
-        {
-            Minecraft.getInstance().level.playSound(Minecraft.getInstance().player, pos.getX(), pos.getY(), pos.getZ(), soundEvent, SoundSource.AMBIENT, volume, pitch);
-        }
+        ClientMessageBridge.invoke("handlePlayMusicAtPosMessage",
+          new Class<?>[] {SoundEvent.class, BlockPos.class, ResourceKey.class, float.class, float.class},
+          soundEvent, pos, dimensionID, volume, pitch);
     }
 }

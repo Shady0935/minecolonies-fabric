@@ -2,9 +2,7 @@ package com.minecolonies.coremod.network.messages.client.colony;
 
 import com.minecolonies.api.entity.citizen.AbstractCivilianEntity;
 import com.minecolonies.api.network.IMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -16,6 +14,7 @@ import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.dist.Dist;
 import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.Nullable;
@@ -182,14 +181,12 @@ public class PlaySoundForCitizenMessage implements IMessage
         return LogicalSide.CLIENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        final Entity entity = Minecraft.getInstance().level.getEntity(this.entityid);
-        if (entity instanceof AbstractCivilianEntity)
-        {
-            ((AbstractCivilianEntity) entity).getSoundManager().addToQueue(this.soundEvent, this.soundSource, this.repetitions, this.length, this.pos, this.volume, this.pitch);
-        }
+        ClientMessageBridge.invoke("handlePlaySoundForCitizenMessage",
+          new Class<?>[] {int.class, SoundEvent.class, SoundSource.class, BlockPos.class, ResourceKey.class,
+            float.class, float.class, int.class, int.class}, entityid, soundEvent, soundSource, pos, dimensionID,
+          volume, pitch, length, repetitions);
     }
 }

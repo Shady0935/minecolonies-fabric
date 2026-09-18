@@ -1,20 +1,15 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Random;
 
 /**
  * Handles spawning item particle effects on top of a block..
@@ -24,8 +19,6 @@ public class LocalizedParticleEffectMessage implements IMessage
     /**
      * Random obj.
      */
-    private static final Random RAND = new Random();
-
     /**
      * The itemStack for the particles.
      */
@@ -89,20 +82,7 @@ public class LocalizedParticleEffectMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        final ClientLevel world = Minecraft.getInstance().level;
-        final ItemStack localStack = stack;
-
-        for (int i = 0; i < 5; ++i)
-        {
-            final Vec3 randomPos = new Vec3((RAND.nextDouble() - 0.5D) * 0.1D, RAND.nextDouble() * 0.1D + 0.1D, 0.0D);
-            final Vec3 randomOffset = new Vec3((RAND.nextDouble() - 0.5D) * 0.1D, RAND.nextDouble() - 0.5D * 0.1D, (RAND.nextDouble() - 0.5D) * 0.1D);
-            world.addParticle(new ItemParticleOption(ParticleTypes.ITEM, localStack),
-              posX + randomOffset.x,
-              posY + randomOffset.y,
-              posZ + randomOffset.z,
-              randomPos.x,
-              randomPos.y + 0.05D,
-              randomPos.z);
-        }
+        ClientMessageBridge.invoke("handleLocalizedParticleEffectMessage",
+          new Class<?>[] {ItemStack.class, double.class, double.class, double.class}, stack, posX, posY, posZ);
     }
 }

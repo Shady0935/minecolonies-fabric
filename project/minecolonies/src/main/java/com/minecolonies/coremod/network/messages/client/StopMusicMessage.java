@@ -1,9 +1,9 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,6 @@ public class StopMusicMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        Minecraft.getInstance().getSoundManager().stop();
-        Minecraft.getInstance().getMusicManager().stopPlaying();
+        ClientMessageBridge.invoke("handleStopMusicMessage", new Class<?>[0]);
     }
 }

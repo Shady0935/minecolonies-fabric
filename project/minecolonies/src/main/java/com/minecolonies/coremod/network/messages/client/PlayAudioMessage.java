@@ -3,9 +3,6 @@ package com.minecolonies.coremod.network.messages.client;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.coremod.Network;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,6 +11,7 @@ import net.minecraft.sounds.SoundEvent;
 import com.minecolonies.fabric.dist.Dist;
 import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.Nullable;
@@ -85,13 +83,11 @@ public class PlayAudioMessage implements IMessage
         return LogicalSide.CLIENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(
-          soundEvent, category,
-          1.0F, 1.0F, RandomSource.create(), 0.0, 0.0, 0.0));
+        ClientMessageBridge.invoke("handlePlayAudioMessage",
+          new Class<?>[] {SoundEvent.class, SoundSource.class}, soundEvent, category);
     }
 
     /**

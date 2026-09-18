@@ -1,9 +1,5 @@
 package com.minecolonies.coremod.network.messages.client;
 
-import com.minecolonies.api.colony.workorders.WorkOrderType;
-import com.minecolonies.api.network.IMessage;
-import com.minecolonies.coremod.network.messages.server.PlantationFieldBuildRequestMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -35,9 +31,4 @@ public class OpenPlantationFieldBuildWindowMessage extends OpenBuildWindowMessag
         super(pos, packName, path, rotation, mirror);
     }
 
-    @Override
-    protected IMessage createWorkOrderMessage(final BlockPos builder)
-    {
-        return new PlantationFieldBuildRequestMessage(WorkOrderType.BUILD, pos, packName, path, Minecraft.getInstance().level.dimension(), rotation, mirror, builder);
-    }
 }

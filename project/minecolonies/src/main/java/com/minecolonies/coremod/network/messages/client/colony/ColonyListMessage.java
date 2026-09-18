@@ -4,7 +4,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.coremod.Network;
-import com.minecolonies.coremod.client.gui.map.WindowColonyMap;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import com.minecolonies.fabric.network.NetworkEvent;
@@ -76,7 +76,7 @@ public class ColonyListMessage implements IMessage
     {
         if (!isLogicalServer)
         {
-            WindowColonyMap.setColonies(colonyInfo);
+            ClientMessageBridge.invoke("handleColonyListMessage", new Class<?>[] {List.class}, colonyInfo);
         }
         else if (ctxIn.getSender() != null)
         {

@@ -1,7 +1,7 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import com.minecolonies.coremod.client.gui.WindowBuildDecoration;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.Mirror;
@@ -90,8 +90,9 @@ public abstract class OpenBuildWindowMessage implements IMessage
     @Override
     public final void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        new WindowBuildDecoration(this.pos, this.packName, this.path, this.rotation, this.mirror, this::createWorkOrderMessage).open();
+        ClientMessageBridge.invoke("handleOpenBuildWindowMessage",
+          new Class<?>[] {BlockPos.class, String.class, String.class, Rotation.class, boolean.class, boolean.class},
+          this.pos, this.packName, this.path, this.rotation, this.mirror,
+          this instanceof OpenPlantationFieldBuildWindowMessage);
     }
-
-    protected abstract IMessage createWorkOrderMessage(BlockPos builder);
 }

@@ -1,25 +1,18 @@
 package com.minecolonies.coremod.network.messages.client;
 
-import com.ldtteam.structurize.storage.StructurePacks;
-import com.ldtteam.structurize.storage.rendering.RenderingCache;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.util.Log;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Locale;
-
-import static com.ldtteam.structurize.api.util.constant.Constants.BLUEPRINT_FOLDER;
-import static com.ldtteam.structurize.api.util.constant.Constants.SCANS_FOLDER;
 
 /**
  * Handles sendScanMessages.
@@ -102,13 +95,8 @@ public class SaveStructureNBTMessage implements IMessage
     {
         if (compoundNBT != null)
         {
-            final String packName = Minecraft.getInstance().getUser().getName().toLowerCase(Locale.US);
-            RenderingCache.getOrCreateBlueprintPreviewData("blueprint").setBlueprintFuture(
-              StructurePacks.storeBlueprint(packName, compoundNBT, Minecraft.getInstance().gameDirectory.toPath()
-                                                                  .resolve(BLUEPRINT_FOLDER)
-                                                                  .resolve(Minecraft.getInstance().getUser().getName().toLowerCase(Locale.US))
-                                                                  .resolve(SCANS_FOLDER).resolve(fileName)));
-            Minecraft.getInstance().player.displayClientMessage(Component.translatable("Scan successfully saved as %s", fileName), false);
+            ClientMessageBridge.invoke("handleSaveStructureNBTMessage",
+              new Class<?>[] {CompoundTag.class, String.class}, compoundNBT, fileName);
         }
     }
 }

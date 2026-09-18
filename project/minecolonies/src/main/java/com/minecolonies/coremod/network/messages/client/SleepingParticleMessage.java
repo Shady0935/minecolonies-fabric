@@ -1,12 +1,9 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import com.minecolonies.apiimp.initializer.ModParticleTypesInitializer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import com.minecolonies.fabric.dist.Dist;
-import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,15 +55,9 @@ public class SleepingParticleMessage implements IMessage
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        Minecraft.getInstance().level.addParticle(ModParticleTypesInitializer.SLEEPINGPARTICLE_TYPE,
-          x,
-          y,
-          z,
-          1.0f,
-          1.0f,
-          1.0f);
+        ClientMessageBridge.invoke("handleSleepingParticleMessage",
+          new Class<?>[] {double.class, double.class, double.class}, x, y, z);
     }
 }

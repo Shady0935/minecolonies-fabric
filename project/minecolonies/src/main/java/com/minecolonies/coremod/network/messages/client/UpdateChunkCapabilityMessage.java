@@ -9,7 +9,7 @@ import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 
 import static com.minecolonies.api.colony.IColony.CLOSE_COLONY_CAP;
 
@@ -65,32 +65,7 @@ public class UpdateChunkCapabilityMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        try
-        {
-            final Class<?> bridge = Class.forName("com.minecolonies.fabric.client.network.ClientNetworkHooks");
-            bridge.getMethod("handleUpdateChunkCapabilityMessage", ChunkCapData.class)
-              .invoke(null, chunkCapData);
-        }
-        catch (final ClassNotFoundException ignored)
-        {
-            // Client-bound packet; the client bridge is intentionally absent from dedicated-server execution.
-        }
-        catch (final NoSuchMethodException | IllegalAccessException exception)
-        {
-            throw new IllegalStateException("MineColonies client chunk capability bridge is unavailable", exception);
-        }
-        catch (final InvocationTargetException exception)
-        {
-            final Throwable cause = exception.getCause();
-            if (cause instanceof RuntimeException runtimeException)
-            {
-                throw runtimeException;
-            }
-            if (cause instanceof Error error)
-            {
-                throw error;
-            }
-            throw new IllegalStateException("MineColonies client chunk capability update failed", cause);
-        }
+        ClientMessageBridge.invoke("handleUpdateChunkCapabilityMessage",
+          new Class<?>[] {ChunkCapData.class}, chunkCapData);
     }
 }
