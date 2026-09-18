@@ -41,6 +41,9 @@ completed.
 - [x] Fabric play networking registered in both directions
 - [x] Client-bound message codecs are server-loadable; visual execution is
   isolated behind the client bridge while preserving the upstream message IDs
+- [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
+  for the seven MineColonies citizen, building, rack, grave and crafting menus;
+  the registrations and a payload round-trip are covered by GameTest
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
@@ -84,16 +87,19 @@ completed.
 
 - [x] Automated Java compilation and package build
 - [x] Client bootstrap reaches resource reload and OpenAL after the spear
-  renderer registration fix; the visual result remains manual-validation work
+  renderer and extended screen-handler registration fixes; the visual result
+  remains manual-validation work
 - [x] Automated resource serialization coverage: datagen completed and a
   recursive JSON parse covered 1,258 source plus generated JSON files
 - [x] Network transport smoke coverage for login/server-to-client packet path
+- [x] Extended screen-handler registrations and server-to-client opening-buffer
+  forwarding are covered for all seven registered MineColonies menu types
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
   Town Hall registration, colony creation, permissions, NBT round-trip and
-  representative network codec/split-envelope behavior, plus citizen entity
-  registration and serialization, supply-loot target tables, Town Hall
-  protection callbacks, populated-tavern mob-conversion replacement and bow-hook
-  compatibility semantics
+  representative network codec/split-envelope behavior, extended menu opening
+  data, citizen entity registration and serialization, supply-loot target
+  tables, Town Hall protection callbacks, populated-tavern mob-conversion
+  replacement and bow-hook compatibility semantics
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

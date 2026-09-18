@@ -182,6 +182,16 @@ upstream numeric IDs. The dedicated server was started, asked to save and stop,
 then restarted on the same world after this change; `logs/minecolonies-runserver-citizen-restart.log`
 records restoration of colonies 1–5 and a clean save/stop.
 
+The container-opening bridge had a separate Forge semantic that the first Fabric
+implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`
+must forward the extra bytes consumed by the client-side menu factory. It now
+uses Fabric's `ExtendedScreenHandlerFactory` and `ExtendedScreenHandlerType`,
+so the citizen inventory, building inventory, rack, grave, furnace-crafting,
+building-crafting and brewing-stand menus receive the same opening data as the
+upstream path. The 10-test GameTest batch verifies all seven registrations and
+a non-trivial buffer round-trip in `logs/minecolonies-gametest-extended-screen-handlers.log`;
+actual screen rendering and interaction remain manual validation.
+
 ## Resource and startup fixes
 
 The port includes the missing English language resource, Fabric-compatible

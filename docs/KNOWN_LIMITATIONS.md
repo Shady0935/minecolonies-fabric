@@ -66,7 +66,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   audio, pathfinding, build-window and scan messages are now server-load safe,
   but their visual/client behavior still needs an in-game interaction pass.
   The transport itself has a login/server-to-client smoke pass, including
-  `ServerUUIDMessage`.
+  `ServerUUIDMessage`; the seven registered MineColonies menu types also have
+  automated extended-opening-buffer forwarding coverage. GUI rendering and
+  interaction are still pending.
 - The MineColonies spear now has a lifecycle-safe Fabric built-in renderer
   registration, and client bootstrap reaches resource reload and OpenAL without
   the previous `EntityModelSet` initialization crash. No automated screenshot

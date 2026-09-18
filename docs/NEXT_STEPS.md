@@ -14,9 +14,10 @@ The following work remains, in order:
    research cycle. Include an inventory/GUI visual check for the custom spear
    renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
-   representative network and citizen coverage to every client-bound family,
-   then turn the populated-colony stop/restart smoke test into an explicit
-   citizen-persistence assertion.
+   representative network and citizen coverage to every client-bound family;
+   the seven registered menu opening buffers now have an automated contract
+   test. Then turn the populated-colony stop/restart smoke test into an
+   explicit citizen-persistence assertion.
 3. Cover the remaining Forge event points that have no direct Fabric callback
    only where a narrow mixin or server hook can preserve semantics. The retained
    `ArrowLooseEvent` bridge is now covered; keep the unsupported `ArrowNock`
