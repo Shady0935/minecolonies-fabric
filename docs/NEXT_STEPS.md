@@ -17,8 +17,9 @@ The following work remains, in order:
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative network and citizen coverage to every client-bound family;
    the seven registered menu opening buffers now have an automated contract
-   test. Then turn the populated-colony stop/restart smoke test into an
-   explicit citizen-persistence assertion.
+   test. The dedicated restart probe already confirms representative citizen
+   and visitor reappearance; broaden it to every custom entity family when
+   their gameplay fixtures exist.
 3. Continue covering the remaining Forge event points only where a narrow mixin
    or server hook can preserve semantics. Item toss/pickup, farmland trampling
    and bucket filling now have focused Fabric bridges and cancellation coverage;
@@ -27,8 +28,10 @@ The following work remains, in order:
    blast victims and full start cancellation remain explicit gaps. The retained
    `ArrowLooseEvent` bridge is covered, while the unsupported `ArrowNock`
    extension point stays documented.
-4. Port the entity DataFixer registrations or document a deliberate migration
-   policy for existing MineColonies 1.20.1 saves.
+4. Keep the documented DataFixer policy aligned with upstream: no custom
+   MineColonies 1.20.1 entity schemas exist in either the Forge source or the
+   modern Fabric reference, so do not invent migrations. Revisit only if
+   upstream publishes schemas or a real legacy-save requirement is defined.
 5. Replace the packaged upstream parity snapshot with native Fabric providers
    for the eight excluded datagen areas, then compare freshly generated tags,
    advancements, damage data, entity icons and translations against the current

@@ -227,7 +227,20 @@ reflection after the Fabric client entrypoint is present. `NetworkChannel`
 registers these classes on both logical environments without shifting the
 upstream numeric IDs. The dedicated server was started, asked to save and stop,
 then restarted on the same world after this change; `logs/minecolonies-runserver-citizen-restart.log`
-records restoration of colonies 1–5 and a clean save/stop.
+records restoration of MineColonies colony data and a clean save/stop. A
+focused follow-up query after the restart found a persisted `EntityCitizen` and
+`VisitorCitizen` with their colony/citizen NBT and then saved all dimensions
+cleanly; the transcript is in
+`logs/minecolonies-runserver-citizen-entity-restart.log`.
+
+The entity DataFixer audit is deliberately closed as a compatibility policy,
+not as an unverified TODO. The official Forge 1.20.1 entity initializer builds
+the same custom entity types without MineColonies DataFixer schemas, and the
+modern Fabric reference does not introduce them either. Minecraft therefore
+logs one `No data fixer registered` message per custom entity at bootstrap;
+this port preserves upstream behavior and does not invent migration schemas.
+Old entity data that needs a version migration remains outside the supported
+migration guarantee until upstream defines those schemas.
 
 The container-opening bridge had a separate Forge semantic that the first Fabric
 implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`

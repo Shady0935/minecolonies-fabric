@@ -38,6 +38,9 @@ completed.
   authoritative when a path overlaps.
 - [x] Dedicated server startup reaches `Done`
 - [x] Dedicated server `save-all`/`stop` and same-world restart verified
+- [x] Post-restart entity persistence probe found a saved `EntityCitizen` and
+  `VisitorCitizen` with MineColonies identity/colony NBT; evidence is in
+  `logs/minecolonies-runserver-citizen-entity-restart.log`
 - [x] Client bootstrap reaches OpenAL and all texture atlases
 - [x] Fabric built-in renderer registration for the MineColonies spear is
   lifecycle-safe; renderer construction is deferred until `EntityModelSet` is
@@ -129,4 +132,5 @@ completed.
   explosion entity-policy paths are exercised by focused fixtures
 - [x] Core colony creation and persistence runtime fixture
 - [x] Dedicated-server restart after common S2C registration changes
+- [x] Dedicated-server restart queried saved citizen and visitor entities
 - [x] Manual validation list and remaining limitations documented

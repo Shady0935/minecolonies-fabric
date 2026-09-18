@@ -6,9 +6,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 ## Confirmed technical limitations
 
 - MineColonies entity types currently have no registered Minecraft DataFixer
-  schemas. Client startup reports `No data fixer registered for
-  minecolonies:<entity>` for the custom entities. Existing saves that require
-  entity-version migration are therefore not covered yet.
+  schemas in the official Forge 1.20.1 source or the modern Fabric reference.
+  Client/server startup therefore reports `No data fixer registered for
+  minecolonies:<entity>` for the custom entities. The Fabric port preserves
+  that upstream behavior rather than inventing migration schemas; existing
+  saves that require entity-version migration are not covered yet.
 - Fabric datagen is available and reproducible for the portable provider set:
   27 providers generated 764 JSON resources. Eight upstream providers remain
   explicitly excluded because they still depend on Forge-only APIs:
@@ -32,10 +34,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
   ownership permissions, blueprint lookup, colony NBT round-trip and a
   colony-backed `EntityCitizen`/`CitizenData` round-trip. It does not yet
-  cover a client opening the Town Hall GUI, citizen rendering/work AI, an
-  explicit assertion that citizen entities reappear after a real server
-  restart, or DataFixer migration for old entity data. The dedicated restart
-  smoke test does restore the populated colony records.
+  cover a client opening the Town Hall GUI, citizen rendering/work AI, every
+  custom entity family after restart, or DataFixer migration for old entity
+  data. A dedicated restart probe does confirm that saved `EntityCitizen` and
+  `VisitorCitizen` instances reappear with colony/citizen NBT.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
@@ -68,8 +70,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   and raids still need a real in-game interaction pass. Server-side Town Hall,
   colony creation and colony-backed
   citizen registration have automated GameTest fixtures; the dedicated restart
-  smoke test restores the populated colony records but does not yet assert
-  citizen-entity reappearance.
+  probe confirms representative citizen-entity reappearance but is not a full
+  gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. The common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,
