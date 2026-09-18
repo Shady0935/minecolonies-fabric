@@ -1,9 +1,6 @@
 package com.minecolonies.coremod.network.messages.client.colony;
 
-import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.network.IMessage;
-import com.minecolonies.coremod.colony.Colony;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
@@ -15,6 +12,8 @@ import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Add or Update a ColonyView on the client.
@@ -52,13 +51,14 @@ public class ColonyViewMessage implements IMessage
     /**
      * Add or Update a ColonyView on the client.
      *
-     * @param colony Colony of the view to update.
-     * @param buf    the bytebuffer.
+     * @param colonyId colony id of the view to update.
+     * @param dimension dimension of the colony.
+     * @param buf       the bytebuffer.
      */
-    public ColonyViewMessage(@NotNull final Colony colony, final FriendlyByteBuf buf)
+    public ColonyViewMessage(final int colonyId, final ResourceKey<Level> dimension, final FriendlyByteBuf buf)
     {
-        this.colonyId = colony.getID();
-        this.dim = colony.getDimension();
+        this.colonyId = colonyId;
+        this.dim = dimension;
         this.colonyBuffer = new FriendlyByteBuf(buf.copy());
     }
 
@@ -103,10 +103,32 @@ public class ColonyViewMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        if (Minecraft.getInstance().level != null)
+        try
         {
-            IColonyManager.getInstance().handleColonyViewMessage(colonyId, colonyBuffer, Minecraft.getInstance().level, isNewSubscription, dim);
+            final Class<?> bridge = Class.forName("com.minecolonies.fabric.client.network.ClientNetworkHooks");
+            bridge.getMethod("handleColonyViewMessage", int.class, FriendlyByteBuf.class, boolean.class, ResourceKey.class)
+              .invoke(null, colonyId, colonyBuffer, isNewSubscription, dim);
         }
-        colonyBuffer.release();
+        catch (ClassNotFoundException ignored)
+        {
+            // The message is client-bound and is never executed on a dedicated server.
+        }
+        catch (NoSuchMethodException | IllegalAccessException exception)
+        {
+            throw new IllegalStateException("Unable to dispatch the MineColonies colony view to Fabric client hooks", exception);
+        }
+        catch (InvocationTargetException exception)
+        {
+            final Throwable cause = exception.getCause() == null ? exception : exception.getCause();
+            if (cause instanceof RuntimeException runtimeException)
+            {
+                throw runtimeException;
+            }
+            throw new IllegalStateException("Fabric client colony view dispatch failed", cause);
+        }
+        finally
+        {
+            colonyBuffer.release();
+        }
     }
 }

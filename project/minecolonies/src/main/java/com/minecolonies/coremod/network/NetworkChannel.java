@@ -43,6 +43,8 @@ import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.network.NetworkRegistry;
 import com.minecolonies.fabric.network.PacketDistributor;
 import com.minecolonies.fabric.network.simple.SimpleChannel;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -110,9 +112,23 @@ public class NetworkChannel
         //  ColonyView messages
         registerMessage(++idx, ColonyViewMessage.class, ColonyViewMessage::new);
         registerMessage(++idx, ColonyViewCitizenViewMessage.class, ColonyViewCitizenViewMessage::new);
-        registerMessage(++idx, ColonyViewRemoveCitizenMessage.class, ColonyViewRemoveCitizenMessage::new);
+        if (isClientEnvironment())
+        {
+            registerMessage(++idx, ColonyViewRemoveCitizenMessage.class, ColonyViewRemoveCitizenMessage::new);
+        }
+        else
+        {
+            idx++;
+        }
         registerMessage(++idx, ColonyViewBuildingViewMessage.class, ColonyViewBuildingViewMessage::new);
-        registerMessage(++idx, ColonyViewRemoveBuildingMessage.class, ColonyViewRemoveBuildingMessage::new);
+        if (isClientEnvironment())
+        {
+            registerMessage(++idx, ColonyViewRemoveBuildingMessage.class, ColonyViewRemoveBuildingMessage::new);
+        }
+        else
+        {
+            idx++;
+        }
         registerMessage(++idx, ColonyViewFieldsUpdateMessage.class, ColonyViewFieldsUpdateMessage::new);
         registerMessage(++idx, PermissionsMessage.View.class, PermissionsMessage.View::new);
         registerMessage(++idx, ColonyViewWorkOrderMessage.class, ColonyViewWorkOrderMessage::new);
@@ -206,28 +222,56 @@ public class NetworkChannel
         registerMessage(++idx, InteractionClose.class, InteractionClose::new);
 
         //Client side only
-        registerMessage(++idx, BlockParticleEffectMessage.class, BlockParticleEffectMessage::new);
-        registerMessage(++idx, CompostParticleMessage.class, CompostParticleMessage::new);
-        registerMessage(++idx, ItemParticleEffectMessage.class, ItemParticleEffectMessage::new);
-        registerMessage(++idx, LocalizedParticleEffectMessage.class, LocalizedParticleEffectMessage::new);
+        if (isClientEnvironment())
+        {
+            registerMessage(++idx, BlockParticleEffectMessage.class, BlockParticleEffectMessage::new);
+            registerMessage(++idx, CompostParticleMessage.class, CompostParticleMessage::new);
+            registerMessage(++idx, ItemParticleEffectMessage.class, ItemParticleEffectMessage::new);
+            registerMessage(++idx, LocalizedParticleEffectMessage.class, LocalizedParticleEffectMessage::new);
+        }
+        else
+        {
+            idx += 4;
+        }
         registerMessage(++idx, UpdateChunkRangeCapabilityMessage.class, UpdateChunkRangeCapabilityMessage::new);
         registerMessage(++idx, OpenSuggestionWindowMessage.class, OpenSuggestionWindowMessage::new);
         registerMessage(++idx, UpdateClientWithCompatibilityMessage.class, UpdateClientWithCompatibilityMessage::new);
-        registerMessage(++idx, CircleParticleEffectMessage.class, CircleParticleEffectMessage::new);
-        registerMessage(++idx, StreamParticleEffectMessage.class, StreamParticleEffectMessage::new);
-        registerMessage(++idx, SleepingParticleMessage.class, SleepingParticleMessage::new);
-        registerMessage(++idx, VanillaParticleMessage.class, VanillaParticleMessage::new);
-        registerMessage(++idx, StopMusicMessage.class, StopMusicMessage::new);
-        registerMessage(++idx, PlayAudioMessage.class, PlayAudioMessage::new);
-        registerMessage(++idx, PlayMusicAtPosMessage.class, PlayMusicAtPosMessage::new);
+        if (isClientEnvironment())
+        {
+            registerMessage(++idx, CircleParticleEffectMessage.class, CircleParticleEffectMessage::new);
+            registerMessage(++idx, StreamParticleEffectMessage.class, StreamParticleEffectMessage::new);
+            registerMessage(++idx, SleepingParticleMessage.class, SleepingParticleMessage::new);
+            registerMessage(++idx, VanillaParticleMessage.class, VanillaParticleMessage::new);
+            registerMessage(++idx, StopMusicMessage.class, StopMusicMessage::new);
+            registerMessage(++idx, PlayAudioMessage.class, PlayAudioMessage::new);
+            registerMessage(++idx, PlayMusicAtPosMessage.class, PlayMusicAtPosMessage::new);
+        }
+        else
+        {
+            idx += 7;
+        }
         registerMessage(++idx, ColonyVisitorViewDataMessage.class, ColonyVisitorViewDataMessage::new);
-        registerMessage(++idx, SyncPathMessage.class, SyncPathMessage::new);
-        registerMessage(++idx, SyncPathReachedMessage.class, SyncPathReachedMessage::new);
+        if (isClientEnvironment())
+        {
+            registerMessage(++idx, SyncPathMessage.class, SyncPathMessage::new);
+            registerMessage(++idx, SyncPathReachedMessage.class, SyncPathReachedMessage::new);
+        }
+        else
+        {
+            idx += 2;
+        }
         registerMessage(++idx, ReactivateBuildingMessage.class, ReactivateBuildingMessage::new);
-        registerMessage(++idx, PlaySoundForCitizenMessage.class, PlaySoundForCitizenMessage::new);
-        registerMessage(++idx, OpenDecoBuildWindowMessage.class, OpenDecoBuildWindowMessage::new);
-        registerMessage(++idx, OpenPlantationFieldBuildWindowMessage.class, OpenPlantationFieldBuildWindowMessage::new);
-        registerMessage(++idx, SaveStructureNBTMessage.class, SaveStructureNBTMessage::new);
+        if (isClientEnvironment())
+        {
+            registerMessage(++idx, PlaySoundForCitizenMessage.class, PlaySoundForCitizenMessage::new);
+            registerMessage(++idx, OpenDecoBuildWindowMessage.class, OpenDecoBuildWindowMessage::new);
+            registerMessage(++idx, OpenPlantationFieldBuildWindowMessage.class, OpenPlantationFieldBuildWindowMessage::new);
+            registerMessage(++idx, SaveStructureNBTMessage.class, SaveStructureNBTMessage::new);
+        }
+        else
+        {
+            idx += 4;
+        }
         registerMessage(++idx, GlobalQuestSyncMessage.class, GlobalQuestSyncMessage::new);
 
         //JEI Messages
@@ -251,6 +295,11 @@ public class NetworkChannel
 
         // Resource scroll NBT share message
         registerMessage(++idx, ResourceScrollSaveWarehouseSnapshotMessage.class, ResourceScrollSaveWarehouseSnapshotMessage::new);
+    }
+
+    private static boolean isClientEnvironment()
+    {
+        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
     }
 
     /** Register the Fabric play receiver after common message registration. */

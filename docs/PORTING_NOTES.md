@@ -74,6 +74,23 @@ callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
 expose a direct equivalent for every Forge event, so unsupported event points
 remain documented gaps instead of being represented by no-op shims.
 
+## Server-side colony fixture and structure packs
+
+Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
+`fabric.mod.json`. `MineColoniesGameTests` verifies common registries, creates
+a real Town Hall block entity, creates a colony through `IColonyManager`,
+attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
+and round-trips the persisted colony NBT. The passing batch is recorded in
+`logs/minecolonies-gametest-009.log`.
+
+Structurize's server pack loader is connected to Fabric's
+`SERVER_STARTING` callback. Its mod-resource scan also descends through the
+`blueprints/minecolonies/<style>` layout used by the official MineColonies
+styles, so the Colonial and Original packs are available before gameplay
+looks up a blueprint. Client-bound network messages used during join and chunk
+claim now keep their common codecs server-loadable and delegate visual work to
+the client bridge by reflection; their upstream message IDs remain stable.
+
 ## Fabric datagen
 
 The target exposes Fabric Loom's `runDatagen` task through the
@@ -116,6 +133,12 @@ The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test
 used offline mode only because the development profile had no valid Mojang
 credentials; `run/server.properties` was restored to secure defaults afterward.
+
+The server-side GameTest also exercises chunk capability and quest/compatibility
+sync registration far enough to ensure join and initial colony creation do not
+raise an unknown-message error on the Fabric channel. `GlobalQuestSyncMessage`,
+chunk capability updates and compatibility snapshots use the same common
+message IDs while their client behavior is isolated in `ClientNetworkHooks`.
 
 ## Resource and startup fixes
 

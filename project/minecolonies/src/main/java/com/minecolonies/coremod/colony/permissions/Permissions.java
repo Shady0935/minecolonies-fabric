@@ -11,6 +11,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -372,7 +373,7 @@ public class Permissions implements IPermissions
                 rank = ranks.get(oldRank.ordinal());
             }
 
-            final GameProfile player = ServerLifecycleHooks.getCurrentServer().getProfileCache().get(id).orElse(null);
+            final GameProfile player = lookupProfile(id);
 
             if (player != null && rank != null)
             {
@@ -422,7 +423,7 @@ public class Permissions implements IPermissions
         final Map.Entry<UUID, ColonyPlayer> owner = getOwnerEntry();
         if (owner == null && ownerUUID != null)
         {
-            final GameProfile player = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().getProfileCache().get(ownerUUID).orElse(null);
+            final GameProfile player = lookupProfile(ownerUUID);
 
             if (player != null)
             {
@@ -433,6 +434,22 @@ public class Permissions implements IPermissions
         {
             setOwnerAbandoned();
         }
+    }
+
+    /**
+     * Resolve a persisted player when the active server exposes a profile
+     * cache. GameTestServer intentionally leaves that cache unset, while a
+     * normal dedicated or integrated server provides it.
+     */
+    @Nullable
+    private static GameProfile lookupProfile(final UUID id)
+    {
+        final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null || server.getProfileCache() == null)
+        {
+            return null;
+        }
+        return server.getProfileCache().get(id).orElse(null);
     }
 
     /**

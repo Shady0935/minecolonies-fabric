@@ -2,18 +2,14 @@ package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.colony.IColonyTagCapability;
 import com.minecolonies.api.network.IMessage;
-import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.coremod.util.ChunkCapData;
-import com.minecolonies.coremod.util.ChunkClientDataHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.LevelChunk;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
 
 import static com.minecolonies.api.colony.IColony.CLOSE_COLONY_CAP;
 
@@ -69,20 +65,32 @@ public class UpdateChunkCapabilityMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        final ClientLevel world = Minecraft.getInstance().level;
-
-        if (!WorldUtil.isChunkLoaded(world, new ChunkPos(chunkCapData.x, chunkCapData.z)))
+        try
         {
-            ChunkClientDataHelper.addCapData(chunkCapData);
-            return;
+            final Class<?> bridge = Class.forName("com.minecolonies.fabric.client.network.ClientNetworkHooks");
+            bridge.getMethod("handleUpdateChunkCapabilityMessage", ChunkCapData.class)
+              .invoke(null, chunkCapData);
         }
-
-        final LevelChunk chunk = world.getChunk(chunkCapData.x, chunkCapData.z);
-        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).orElseGet(null);
-
-        if (cap != null && cap.getOwningColony() != chunkCapData.owningColony)
+        catch (final ClassNotFoundException ignored)
         {
-            ChunkClientDataHelper.applyCap(chunkCapData, chunk);
+            // Client-bound packet; the client bridge is intentionally absent from dedicated-server execution.
+        }
+        catch (final NoSuchMethodException | IllegalAccessException exception)
+        {
+            throw new IllegalStateException("MineColonies client chunk capability bridge is unavailable", exception);
+        }
+        catch (final InvocationTargetException exception)
+        {
+            final Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException runtimeException)
+            {
+                throw runtimeException;
+            }
+            if (cause instanceof Error error)
+            {
+                throw error;
+            }
+            throw new IllegalStateException("MineColonies client chunk capability update failed", cause);
         }
     }
 }

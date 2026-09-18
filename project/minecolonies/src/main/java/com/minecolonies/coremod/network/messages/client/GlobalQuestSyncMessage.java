@@ -1,15 +1,13 @@
 package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.network.IMessage;
-import com.minecolonies.coremod.datalistener.QuestJsonListener;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import com.minecolonies.fabric.dist.Dist;
-import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * The message used to synchronize global quest data from a server to a remote client.
@@ -60,14 +58,42 @@ public class GlobalQuestSyncMessage implements IMessage
         return LogicalSide.CLIENT;
     }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        if (Minecraft.getInstance().level != null)
+        try
         {
-            QuestJsonListener.readGlobalQuestPackets(questBuffer);
+            final Class<?> bridge = Class.forName("com.minecolonies.fabric.client.network.ClientNetworkHooks");
+            bridge.getMethod("handleGlobalQuestSyncMessage", FriendlyByteBuf.class)
+              .invoke(null, questBuffer);
         }
-        questBuffer.release();
+        catch (final ClassNotFoundException ignored)
+        {
+            // Client-bound packet; the client bridge is intentionally absent from dedicated-server execution.
+        }
+        catch (final NoSuchMethodException | IllegalAccessException exception)
+        {
+            throw new IllegalStateException("MineColonies client quest bridge is unavailable", exception);
+        }
+        catch (final InvocationTargetException exception)
+        {
+            final Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException runtimeException)
+            {
+                throw runtimeException;
+            }
+            if (cause instanceof Error error)
+            {
+                throw error;
+            }
+            throw new IllegalStateException("MineColonies client quest sync failed", cause);
+        }
+        finally
+        {
+            if (questBuffer != null)
+            {
+                questBuffer.release();
+            }
+        }
     }
 }

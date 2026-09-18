@@ -10,7 +10,8 @@
   "entrypoints": {
     "main": ["com.minecolonies.coremod.MineColoniesFabric"],
     "client": ["com.minecolonies.coremod.MineColoniesClientFabric"],
-    "fabric-datagen": ["com.minecolonies.coremod.generation.MineColoniesDataGenerator"]
+    "fabric-datagen": ["com.minecolonies.coremod.generation.MineColoniesDataGenerator"],
+    "fabric-gametest": ["com.minecolonies.fabric.gametest.MineColoniesGameTests"]
   },
   "depends": {
     "fabricloader": ">=0.15.11",

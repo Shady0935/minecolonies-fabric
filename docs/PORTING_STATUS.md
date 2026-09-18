@@ -50,16 +50,16 @@ completed.
 ## Gameplay systems
 
 - [x] Core registries, recipes, tags, sounds, particles and content bootstrap
-- [ ] Colony saved data and permissions exercised through gameplay
+- [x] Colony saved data, ownership permissions and NBT round-trip exercised by Fabric GameTest
 - [ ] Citizens and custom entities exercised in-world
-- [ ] Town Hall and colony creation
+- [x] Town Hall and colony creation exercised server-side by Fabric GameTest
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
 - [ ] Warehouse and courier logistics
 - [ ] Farmer and Miner
 - [ ] Research
 - [ ] Guards and raids
-- [ ] Structurize blueprints and placement
+- [x] Structurize pack discovery and Town Hall blueprint lookup exercised by Fabric GameTest
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -68,10 +68,10 @@ completed.
 - [x] Automated resource serialization coverage: datagen completed and a
   recursive JSON parse covered 1,258 source plus generated JSON files
 - [x] Network transport smoke coverage for login/server-to-client packet path
-- [x] Fabric GameTest feasibility checked; no port-specific GameTest suite is
-  included yet
+- [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
+  Town Hall registration, colony creation, permissions and NBT round-trip
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending
-- [ ] Core colony gameplay runtime tests
+- [x] Core colony creation and persistence runtime fixture
 - [x] Manual validation list and remaining limitations documented

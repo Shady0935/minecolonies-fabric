@@ -26,6 +26,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   exercise registration, entity construction and serialization. The upstream
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
   next load, so this does not validate colony-backed citizen persistence.
+- The Fabric GameTest now covers server-side Colonial Town Hall creation,
+  ownership permissions, blueprint lookup and colony NBT round-trip. It does
+  not yet cover a client opening the Town Hall GUI, a populated colony across
+  a real server restart, or DataFixer migration for old entity data.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points: farmland trampling, pre-conversion, explosion start/detonate,
   item toss/pickup, bucket fill, arrow loose and mob-spawn position checks.
@@ -39,16 +43,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Validation still pending
 
-- Town Hall placement, colony creation, permissions, BlockUI screens, builder
-  placement, citizen work cycles, logistics, research and raids still need a
-  real in-game interaction pass.
+- BlockUI screens, builder placement, citizen work cycles, logistics, research
+  and raids still need a real in-game interaction pass. The server-side Town
+  Hall/colony creation path has an automated GameTest fixture.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. The transport itself has a login/server-to-client smoke
   pass, including `ServerUUIDMessage`.
 - The new interaction/combat callback bridge has been loaded by dedicated
-  server and client bootstrap, but Town Hall placement, colony creation and
-  the resulting permission/quest actions still require a real in-game or
-  focused integration fixture.
+  server and client bootstrap. The focused fixture covers server-side colony
+  permission/quest synchronization; client GUI actions and the full gameplay
+  loop remain pending.
 - A valid authenticated profile was not available in the development client;
   the network smoke test consequently used a temporary offline server setting.
   The checked-in/test workspace configuration was restored to

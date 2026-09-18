@@ -217,7 +217,7 @@ public class ColonyPackageManager implements IColonyPackageManager
             }
             players.addAll(newSubscribers);
 
-            final ColonyViewMessage message = new ColonyViewMessage(colony, colonyFriendlyByteBuf);
+            final ColonyViewMessage message = new ColonyViewMessage(colony.getID(), colony.getDimension(), colonyFriendlyByteBuf);
             for (ServerPlayer player : players)
             {
                 message.setIsNewSubscription(newSubscribers.contains(player));

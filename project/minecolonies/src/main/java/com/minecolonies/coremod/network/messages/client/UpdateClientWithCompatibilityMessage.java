@@ -2,16 +2,14 @@ package com.minecolonies.coremod.network.messages.client;
 
 import com.minecolonies.api.IMinecoloniesAPI;
 import com.minecolonies.api.network.IMessage;
-import com.minecolonies.api.util.Log;
-import com.minecolonies.coremod.util.FurnaceRecipes;
 import io.netty.buffer.Unpooled;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Message to update the recipes on the client side.
@@ -64,16 +62,39 @@ public class UpdateClientWithCompatibilityMessage implements IMessage
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
-        final ClientLevel world = Minecraft.getInstance().level;
-        FurnaceRecipes.getInstance().loadUtilityPredicates();
         try
         {
-            IMinecoloniesAPI.getInstance().getColonyManager().getCompatibilityManager().deserialize(this.buffer, world);
+            final Class<?> bridge = Class.forName("com.minecolonies.fabric.client.network.ClientNetworkHooks");
+            bridge.getMethod("handleUpdateClientWithCompatibilityMessage", FriendlyByteBuf.class)
+              .invoke(null, this.buffer);
         }
-        catch (Exception e)
+        catch (final ClassNotFoundException ignored)
         {
-            Log.getLogger().error("Failed to load compatibility manager", e);
+            // Client-bound packet; the client bridge is intentionally absent from dedicated-server execution.
         }
-        this.buffer.release();
+        catch (final NoSuchMethodException | IllegalAccessException exception)
+        {
+            throw new IllegalStateException("MineColonies client compatibility bridge is unavailable", exception);
+        }
+        catch (final InvocationTargetException exception)
+        {
+            final Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException runtimeException)
+            {
+                throw runtimeException;
+            }
+            if (cause instanceof Error error)
+            {
+                throw error;
+            }
+            throw new IllegalStateException("MineColonies client compatibility update failed", cause);
+        }
+        finally
+        {
+            if (this.buffer != null)
+            {
+                this.buffer.release();
+            }
+        }
     }
 }

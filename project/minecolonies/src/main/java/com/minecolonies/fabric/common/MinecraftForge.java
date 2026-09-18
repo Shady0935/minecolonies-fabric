@@ -1,8 +1,10 @@
 package com.minecolonies.fabric.common;
 
+import com.minecolonies.api.util.Log;
 import com.minecolonies.fabric.event.Event;
 import com.minecolonies.fabric.event.SubscribeEvent;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -53,9 +55,14 @@ public final class MinecraftForge
                         method.setAccessible(true);
                         method.invoke(Modifier.isStatic(method.getModifiers()) ? null : listener, event);
                     }
+                    catch (InvocationTargetException exception)
+                    {
+                        final Throwable cause = exception.getCause() == null ? exception : exception.getCause();
+                        Log.getLogger().error("Fabric event listener {} failed for {}", method, event.getClass().getName(), cause);
+                    }
                     catch (ReflectiveOperationException ignored)
                     {
-                        // A listener must not take down the server; the caller's event remains usable.
+                        Log.getLogger().error("Unable to invoke Fabric event listener {} for {}", method, event.getClass().getName(), ignored);
                     }
                 }
             }
