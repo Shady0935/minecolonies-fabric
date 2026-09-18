@@ -112,10 +112,16 @@ Explosion protection has a deliberately split scope on 1.20.1. The existing
 `ALLOW_DAMAGE` callback now applies `turnOffExplosionsInColonies` to living
 entities with the upstream policy: `DAMAGE_PLAYERS` protects non-hostile
 colony entities, `DAMAGE_NOTHING` protects all non-player colony entities, and
-the two permissive policies allow the damage. Fabric 1.20.1 still exposes no
-generic explosion start/detonate callback, so block-list filtering, non-living
-blast victims and a full start cancellation remain open limitations rather
-than being approximated by a global no-op.
+the two permissive policies allow the damage. A narrow `Explosion` mixin now
+posts the retained `ExplosionEvent.Start` before vanilla computes the blast;
+when the colony handler cancels it, both blast computation and finalization are
+skipped. The adapter also reads vanilla's actual `x/y/z` fields, not the
+nonexistent Forge `getPosition()` method. Fabric 1.20.1 still exposes no
+generic detonate callback, so affected-block filtering at the detonate phase,
+non-living blast victims and mutable affected-entity lists remain open rather
+than being approximated by a global no-op. The start-cancellation and living
+damage paths are covered by the 12-test GameTest batch in
+`logs/minecolonies-gametest-explosion-start.log`.
 
 The client entrypoint also forwards item tooltip and play-connection disconnect
 callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not

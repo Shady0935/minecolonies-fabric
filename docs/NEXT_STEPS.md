@@ -23,9 +23,10 @@ The following work remains, in order:
 3. Continue covering the remaining Forge event points only where a narrow mixin
    or server hook can preserve semantics. Item toss/pickup, farmland trampling
    and bucket filling now have focused Fabric bridges and cancellation coverage;
-   hostile natural/chunk-generation position checks and living-entity explosion
-   damage are also covered. Explosion start/detonate block filtering, non-living
-   blast victims and full start cancellation remain explicit gaps. The retained
+   hostile natural/chunk-generation position checks, living-entity explosion
+   damage and `ExplosionEvent.Start` cancellation are also covered.
+   `ExplosionEvent.Detonate` block filtering, non-living blast victims and
+   mutable affected-entity lists remain explicit gaps. The retained
    `ArrowLooseEvent` bridge is covered, while the unsupported `ArrowNock`
    extension point stays documented.
 4. Keep the documented DataFixer policy aligned with upstream: no custom
