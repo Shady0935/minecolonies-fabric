@@ -91,7 +91,7 @@ public class WorkerBuildingModuleView extends AbstractBuildingModuleView impleme
         this.hiringMode = HiringMode.values()[buf.readInt()];
         this.maxInhabitants = buf.readInt();
 
-        this.jobEntry = buf.readRegistryIdSafe(JobEntry.class);
+        this.jobEntry = com.minecolonies.fabric.network.FabricBufUtils.readRegistryIdSafe(buf, com.minecolonies.api.colony.jobs.registry.IJobRegistry.getInstance());
         this.primary = Skill.values()[buf.readInt()];
         this.secondary = Skill.values()[buf.readInt()];
     }

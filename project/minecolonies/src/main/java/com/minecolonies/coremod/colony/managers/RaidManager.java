@@ -550,7 +550,7 @@ public class RaidManager implements IRaiderManager
      */
     private boolean isOtherColony(final int x, final int z)
     {
-        final IColonyTagCapability cap = colony.getWorld().getChunk(x >> 4, z >> 4).getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(colony.getWorld().getChunk(x >> 4, z >> 4), CLOSE_COLONY_CAP, null).orElseGet(null);
         return cap != null && cap.getOwningColony() != 0 && cap.getOwningColony() != colony.getID();
     }
 

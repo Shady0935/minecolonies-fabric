@@ -9,8 +9,8 @@ import com.minecolonies.coremod.network.NetworkChannel;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -98,16 +98,28 @@ public class SplitPacketMessage implements IMessage
                 return;
             }
 
-            //No need to sync again, since we are now the last packet to arrive.
-            //All data gets sorted and appended.
-            final byte[] packetData = Network.getNetwork().getMessageCache().get(this.communicationId, Maps::newConcurrentMap).entrySet()
-                                        .stream()
-                                        .sorted(Map.Entry.comparingByKey())
-                                        .map(Map.Entry::getValue)
-              .reduce(new byte[0], Bytes::concat);
+            // Copy and remove the completed transaction while synchronized.
+            // Keeping completed envelopes in the cache would leak one entry
+            // for every packet sequence sent during the server lifetime.
+            final byte[] packetData;
+            synchronized (Network.getNetwork().getMessageCache())
+            {
+                final Map<Integer, byte[]> chunks = Network.getNetwork().getMessageCache().get(this.communicationId, Maps::newConcurrentMap);
+                packetData = chunks.entrySet()
+                                   .stream()
+                                   .sorted(Map.Entry.comparingByKey())
+                                   .map(Map.Entry::getValue)
+                                   .reduce(new byte[0], Bytes::concat);
+                Network.getNetwork().getMessageCache().invalidate(this.communicationId);
+            }
 
             //Grab the entry from the inner message id.
             final NetworkChannel.NetworkingMessageEntry<?> messageEntry = Network.getNetwork().getMessagesTypes().get(this.innerMessageId);
+            if (messageEntry == null)
+            {
+                Log.getLogger().error("Unknown MineColonies inner packet id {}", this.innerMessageId);
+                return;
+            }
 
             //Create a message.
             final IMessage message = messageEntry.getCreator().get();

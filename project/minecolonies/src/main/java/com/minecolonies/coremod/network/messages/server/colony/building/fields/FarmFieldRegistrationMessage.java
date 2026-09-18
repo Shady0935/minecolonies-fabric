@@ -7,7 +7,7 @@ import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.network.NetworkEvent;
 
 import java.util.Optional;
 

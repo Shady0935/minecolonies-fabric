@@ -6,9 +6,9 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +73,7 @@ public class CircleParticleEffectMessage implements IMessage
         this.posY = buf.readDouble();
         this.posZ = buf.readDouble();
         this.stage = buf.readInt();
-        this.type = (SimpleParticleType) ForgeRegistries.PARTICLE_TYPES.getValue(buf.readResourceLocation());
+        this.type = (SimpleParticleType) FabricRegistries.PARTICLE_TYPES.getValue(buf.readResourceLocation());
     }
 
     @Override
@@ -83,7 +83,7 @@ public class CircleParticleEffectMessage implements IMessage
         buf.writeDouble(this.posY);
         buf.writeDouble(this.posZ);
         buf.writeInt(this.stage);
-        buf.writeResourceLocation(ForgeRegistries.PARTICLE_TYPES.getKey(this.type));
+        buf.writeResourceLocation(FabricRegistries.PARTICLE_TYPES.getKey(this.type));
     }
 
     @Nullable

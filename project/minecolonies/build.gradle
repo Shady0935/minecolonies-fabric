@@ -1,44 +1,69 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
+plugins {
+    id 'fabric-loom' version '1.6.12'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', 'src/api/java']
+            // Datagen and optional integrations stay in the upstream tree and
+            // are restored explicitly as each Fabric equivalent is implemented.
+            exclude '**/generation/**'
+            exclude '**/compatibility/jei/**'
+            exclude '**/compatibility/journeymap/**'
+        }
+        resources {
+            srcDirs = ['src/main/resources', 'src/main/generated/resources']
         }
     }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0+', changing: true
-        classpath "gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0"
-        classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.4.0"
-        classpath 'de.undercouch:gradle-download-task:4.1.2'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    implementation files(project.blockui_jar)
+    implementation files(project.domum_jar)
+    implementation files(project.structurize_jar)
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version
+    }
+    exclude 'META-INF/mods.toml'
+    exclude 'META-INF/accesstransformer.cfg'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+    options.compilerArgs += ['-Xmaxerrs', '5000', '-Xmaxwarns', '0']
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    withSourcesJar()
+}
+
+jar {
+    from('LICENSE') {
+        rename { "${it}_${project.base.archivesName.get()}" }
     }
 }
-
-plugins {
-  id "org.sonarqube" version "3.0"
-}
-
-apply from: 'https://raw.githubusercontent.com/ldtteam/OperaPublicaCreator/main/gradle/mod.gradle'
-
-configurations {
-    library
-    implementation.extendsFrom library
-}
-
-// Allow 400 errors.
-gradle.projectsEvaluated {
-    tasks.withType(JavaCompile) {
-        options.compilerArgs << "-Xmaxerrs" << "1000"
-    }
-}
-
-minecraft.runs.all {
-    lazyToken('minecraft_classpath') {
-        configurations.library.copyRecursive().resolve().collect { it.absolutePath }.join(File.pathSeparator)
-    }
-}
-
-project.tasks.getByName("processResources", {task ->
-    task.duplicatesStrategy 'include'
-})

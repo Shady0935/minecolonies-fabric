@@ -19,10 +19,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.event.TickEvent;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.CapabilityManager;
+import com.minecolonies.fabric.capability.CapabilityToken;
+import com.minecolonies.fabric.event.TickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

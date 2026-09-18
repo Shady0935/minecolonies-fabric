@@ -25,7 +25,7 @@ import com.minecolonies.api.quests.registries.QuestRegistries;
 import com.minecolonies.api.research.IGlobalResearchTree;
 import com.minecolonies.api.research.effects.registry.ResearchEffectEntry;
 import com.minecolonies.api.research.registry.ResearchRequirementEntry;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 
 public final class MinecoloniesAPIProxy implements IMinecoloniesAPI
 {
@@ -78,13 +78,13 @@ public final class MinecoloniesAPIProxy implements IMinecoloniesAPI
     }
 
     @Override
-    public IForgeRegistry<BuildingEntry> getBuildingRegistry()
+    public FabricRegistry<BuildingEntry> getBuildingRegistry()
     {
         return apiInstance.getBuildingRegistry();
     }
 
     @Override
-    public IForgeRegistry<FieldRegistries.FieldEntry> getFieldRegistry()
+    public FabricRegistry<FieldRegistries.FieldEntry> getFieldRegistry()
     {
         return apiInstance.getFieldRegistry();
     }
@@ -96,13 +96,13 @@ public final class MinecoloniesAPIProxy implements IMinecoloniesAPI
     }
 
     @Override
-    public IForgeRegistry<JobEntry> getJobRegistry()
+    public FabricRegistry<JobEntry> getJobRegistry()
     {
         return apiInstance.getJobRegistry();
     }
 
     @Override
-    public IForgeRegistry<InteractionResponseHandlerEntry> getInteractionResponseHandlerRegistry()
+    public FabricRegistry<InteractionResponseHandlerEntry> getInteractionResponseHandlerRegistry()
     {
         return apiInstance.getInteractionResponseHandlerRegistry();
     }
@@ -114,7 +114,7 @@ public final class MinecoloniesAPIProxy implements IMinecoloniesAPI
     }
 
     @Override
-    public IForgeRegistry<GuardType> getGuardTypeRegistry()
+    public FabricRegistry<GuardType> getGuardTypeRegistry()
     {
         return apiInstance.getGuardTypeRegistry();
     }
@@ -150,67 +150,67 @@ public final class MinecoloniesAPIProxy implements IMinecoloniesAPI
     }
 
     @Override
-    public IForgeRegistry<ResearchRequirementEntry> getResearchRequirementRegistry() {return apiInstance.getResearchRequirementRegistry();}
+    public FabricRegistry<ResearchRequirementEntry> getResearchRequirementRegistry() {return apiInstance.getResearchRequirementRegistry();}
 
     @Override
-    public IForgeRegistry<ResearchEffectEntry> getResearchEffectRegistry() {return apiInstance.getResearchEffectRegistry();}
+    public FabricRegistry<ResearchEffectEntry> getResearchEffectRegistry() {return apiInstance.getResearchEffectRegistry();}
 
     @Override
-    public IForgeRegistry<ColonyEventTypeRegistryEntry> getColonyEventRegistry()
+    public FabricRegistry<ColonyEventTypeRegistryEntry> getColonyEventRegistry()
     {
         return apiInstance.getColonyEventRegistry();
     }
 
     @Override
-    public IForgeRegistry<ColonyEventDescriptionTypeRegistryEntry> getColonyEventDescriptionRegistry()
+    public FabricRegistry<ColonyEventDescriptionTypeRegistryEntry> getColonyEventDescriptionRegistry()
     {
         return apiInstance.getColonyEventDescriptionRegistry();
     }
 
     @Override
-    public IForgeRegistry<RecipeTypeEntry> getRecipeTypeRegistry()
+    public FabricRegistry<RecipeTypeEntry> getRecipeTypeRegistry()
     {
         return apiInstance.getRecipeTypeRegistry();
     }
 
     @Override
-    public IForgeRegistry<CraftingType> getCraftingTypeRegistry()
+    public FabricRegistry<CraftingType> getCraftingTypeRegistry()
     {
         return apiInstance.getCraftingTypeRegistry();
     }
 
     @Override
-    public IForgeRegistry<QuestRegistries.RewardEntry> getQuestRewardRegistry()
+    public FabricRegistry<QuestRegistries.RewardEntry> getQuestRewardRegistry()
     {
         return apiInstance.getQuestRewardRegistry();
     }
 
     @Override
-    public IForgeRegistry<QuestRegistries.ObjectiveEntry> getQuestObjectiveRegistry()
+    public FabricRegistry<QuestRegistries.ObjectiveEntry> getQuestObjectiveRegistry()
     {
         return apiInstance.getQuestObjectiveRegistry();
     }
 
     @Override
-    public IForgeRegistry<QuestRegistries.TriggerEntry> getQuestTriggerRegistry()
+    public FabricRegistry<QuestRegistries.TriggerEntry> getQuestTriggerRegistry()
     {
         return apiInstance.getQuestTriggerRegistry();
     }
 
     @Override
-    public IForgeRegistry<QuestRegistries.DialogueAnswerEntry> getQuestDialogueAnswerRegistry()
+    public FabricRegistry<QuestRegistries.DialogueAnswerEntry> getQuestDialogueAnswerRegistry()
     {
         return apiInstance.getQuestDialogueAnswerRegistry();
     }
 
     @Override
-    public IForgeRegistry<HappinessRegistry.HappinessFactorTypeEntry> getHappinessTypeRegistry()
+    public FabricRegistry<HappinessRegistry.HappinessFactorTypeEntry> getHappinessTypeRegistry()
     {
         return apiInstance.getHappinessTypeRegistry();
     }
 
     @Override
-    public IForgeRegistry<HappinessRegistry.HappinessFunctionEntry> getHappinessFunctionRegistry()
+    public FabricRegistry<HappinessRegistry.HappinessFunctionEntry> getHappinessFunctionRegistry()
     {
         return apiInstance.getHappinessFunctionRegistry();
     }

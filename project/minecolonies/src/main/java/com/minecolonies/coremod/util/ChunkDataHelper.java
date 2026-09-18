@@ -50,7 +50,7 @@ public final class ChunkDataHelper
         // If colony is farther away from a capability then this times the default colony distance it will delete the capability.
         final int distanceToDelete = MineColonies.getConfig().getServer().maxColonySize.get() * BLOCKS_PER_CHUNK * 2 * 5;
 
-        final IChunkmanagerCapability chunkManager = world.getCapability(CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
+        final IChunkmanagerCapability chunkManager = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
         if (chunkManager == null)
         {
             Log.getLogger().error(UNABLE_TO_FIND_WORLD_CAP_TEXT, new Exception());
@@ -59,7 +59,7 @@ public final class ChunkDataHelper
 
         if (!chunkManager.getAllChunkStorages().isEmpty())
         {
-            final IColonyManagerCapability cap = world.getCapability(COLONY_MANAGER_CAP, null).resolve().orElse(null);
+            final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).resolve().orElse(null);
             if (cap == null)
             {
                 return;
@@ -72,7 +72,7 @@ public final class ChunkDataHelper
             }
         }
 
-        final int closeColony = chunk.getCapability(CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
+        final int closeColony = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
         if (closeColony != 0)
         {
             final IColony colony = IColonyManager.getInstance().getColonyByDimension(closeColony, world.dimension());
@@ -91,7 +91,7 @@ public final class ChunkDataHelper
      */
     public static void unloadChunk(final LevelChunk chunk, final Level world)
     {
-        final int closeColony = chunk.getCapability(CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
+        final int closeColony = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
         if (closeColony != 0)
         {
             final IColony colony = IColonyManager.getInstance().getColonyByDimension(closeColony, world.dimension());
@@ -115,7 +115,7 @@ public final class ChunkDataHelper
             Log.getLogger().warn("Trying to claim zero chunk!", new Exception());
         }
 
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         storage.applyToCap(cap, chunk);
 
         if (cap != null)
@@ -173,7 +173,7 @@ public final class ChunkDataHelper
      */
     public static boolean canClaimChunksInRange(final Level w, final BlockPos pos, final int range)
     {
-        final IChunkmanagerCapability worldCapability = w.getCapability(CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
+        final IChunkmanagerCapability worldCapability = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(w, CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
         if (worldCapability == null)
         {
             return true;
@@ -187,7 +187,7 @@ public final class ChunkDataHelper
             for (int j = chunkZ - range; j <= chunkZ + range; j++)
             {
                 final LevelChunk chunk = w.getChunk(i, j);
-                final IColonyTagCapability colonyCap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+                final IColonyTagCapability colonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
                 if (colonyCap == null)
                 {
                     return true;
@@ -223,7 +223,7 @@ public final class ChunkDataHelper
       final boolean force)
     {
         final Level world = colony.getWorld();
-        final IChunkmanagerCapability chunkManager = world.getCapability(CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
+        final IChunkmanagerCapability chunkManager = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
         if (chunkManager == null)
         {
             Log.getLogger().error(UNABLE_TO_FIND_WORLD_CAP_TEXT, new Exception());
@@ -280,7 +280,7 @@ public final class ChunkDataHelper
       final Tuple<BlockPos, BlockPos> corners)
     {
         final Level world = colony.getWorld();
-        final IChunkmanagerCapability chunkManager = world.getCapability(CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
+        final IChunkmanagerCapability chunkManager = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
         if (chunkManager == null)
         {
             Log.getLogger().error(UNABLE_TO_FIND_WORLD_CAP_TEXT, new Exception());
@@ -323,7 +323,7 @@ public final class ChunkDataHelper
       final Level world,
       final boolean forceOwnerChange)
     {
-        final IChunkmanagerCapability chunkManager = world.getCapability(CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
+        final IChunkmanagerCapability chunkManager = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, CHUNK_STORAGE_UPDATE_CAP, null).resolve().orElse(null);
         if (chunkManager == null)
         {
             Log.getLogger().error(UNABLE_TO_FIND_WORLD_CAP_TEXT, new Exception());
@@ -370,7 +370,7 @@ public final class ChunkDataHelper
         }
 
         final LevelChunk chunk = (LevelChunk) world.getChunk(chunkBlockPos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             return false;
@@ -434,7 +434,7 @@ public final class ChunkDataHelper
         }
 
         final LevelChunk chunk = world.getChunkAt(chunkBlockPos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             return false;

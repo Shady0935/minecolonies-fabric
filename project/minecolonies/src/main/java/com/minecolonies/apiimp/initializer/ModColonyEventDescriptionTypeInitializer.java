@@ -9,8 +9,8 @@ import com.minecolonies.coremod.colony.colonyEvents.buildingEvents.BuildingRepai
 import com.minecolonies.coremod.colony.colonyEvents.buildingEvents.BuildingUpgradedEvent;
 import com.minecolonies.coremod.colony.colonyEvents.citizenEvents.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import net.minecraftforge.registries.RegisterEvent;
 
 /**
@@ -18,7 +18,7 @@ import net.minecraftforge.registries.RegisterEvent;
  */
 public final class ModColonyEventDescriptionTypeInitializer
 {
-    public final static DeferredRegister<ColonyEventDescriptionTypeRegistryEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "colonyeventdesctypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<ColonyEventDescriptionTypeRegistryEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "colonyeventdesctypes"), Constants.MOD_ID);
 
     private ModColonyEventDescriptionTypeInitializer()
     {

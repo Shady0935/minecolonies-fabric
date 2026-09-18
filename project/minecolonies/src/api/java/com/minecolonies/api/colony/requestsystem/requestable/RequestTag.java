@@ -209,7 +209,7 @@ public class RequestTag implements IDeliverable
         compound.putString(NBT_TAG, input.getTag().location().toString());
         if (!ItemStackUtils.isEmpty(input.getResult()))
         {
-            compound.put(NBT_RESULT, input.getResult().serializeNBT());
+            compound.put(NBT_RESULT, input.getResult().save(new net.minecraft.nbt.CompoundTag()));
         }
         compound.putInt(NBT_COUNT, input.getCount());
         compound.putInt(NBT_MINCOUNT, input.getMinimumCount());
@@ -231,7 +231,7 @@ public class RequestTag implements IDeliverable
 
     public static RequestTag deserialize(final IFactoryController controller, final FriendlyByteBuf buffer)
     {
-        final TagKey<Item> theTag = ItemTags.create(buffer.readResourceLocation());
+        final TagKey<Item> theTag = TagKey.create(net.minecraft.core.registries.Registries.ITEM, buffer.readResourceLocation());
         final ItemStack result = buffer.readBoolean() ? buffer.readItem() : ItemStack.EMPTY;
         final int count = buffer.readInt();
         final int minCount = buffer.readInt();
@@ -248,7 +248,7 @@ public class RequestTag implements IDeliverable
      */
     public static RequestTag deserialize(final IFactoryController controller, final CompoundTag compound)
     {
-        final TagKey<Item> theTag = ItemTags.create(new ResourceLocation(compound.getString(NBT_TAG)));
+        final TagKey<Item> theTag = TagKey.create(net.minecraft.core.registries.Registries.ITEM, new ResourceLocation(compound.getString(NBT_TAG)));
         final ItemStack result = compound.contains(NBT_RESULT) ? ItemStackUtils.deserializeFromNBT(compound.getCompound(NBT_RESULT)) : ItemStackUtils.EMPTY;
 
         int count = compound.getInt("size");

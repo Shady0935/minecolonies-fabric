@@ -7,7 +7,7 @@ import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.client.gui.map.WindowColonyMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class ColonyListMessage implements IMessage
         }
         else if (ctxIn.getSender() != null)
         {
-            Network.getNetwork().sendToPlayer(new ColonyListMessage(IColonyManager.getInstance().getColonies(ctxIn.getSender().level)), ctxIn.getSender());
+            Network.getNetwork().sendToPlayer(new ColonyListMessage(IColonyManager.getInstance().getColonies(ctxIn.getSender().level())), ctxIn.getSender());
         }
     }
 

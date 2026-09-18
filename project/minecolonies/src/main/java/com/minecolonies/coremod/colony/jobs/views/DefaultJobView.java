@@ -50,7 +50,7 @@ public class DefaultJobView implements IJobView
         {
             asyncRequests.add(StandardFactoryController.getInstance().deserialize(buffer));
         }
-        entry = buffer.readRegistryId();
+        entry = com.minecolonies.fabric.network.FabricBufUtils.readRegistryId(buffer, com.minecolonies.api.colony.jobs.registry.IJobRegistry.getInstance());
     }
 
     @Override

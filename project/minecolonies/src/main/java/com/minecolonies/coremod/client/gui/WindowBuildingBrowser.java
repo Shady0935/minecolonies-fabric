@@ -20,7 +20,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -310,7 +310,7 @@ public class WindowBuildingBrowser extends AbstractWindowSkeleton
     @NotNull
     private static List<Block> findBrowsableBlocks()
     {
-        return ForgeRegistries.BLOCKS.getValues().stream()
+        return FabricRegistries.BLOCKS.getValues().stream()
                 .filter(block -> block instanceof IBuildingBrowsableBlock)
                 .toList();
     }

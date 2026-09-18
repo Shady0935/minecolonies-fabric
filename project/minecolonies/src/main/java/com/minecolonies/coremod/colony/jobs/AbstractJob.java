@@ -228,7 +228,7 @@ public abstract class AbstractJob<AI extends AbstractAISkeleton<J> & ITickingSta
         {
             StandardFactoryController.getInstance().serialize(buffer, token);
         }
-        buffer.writeRegistryId(IJobRegistry.getInstance(), getJobRegistryEntry());
+        com.minecolonies.fabric.network.FabricBufUtils.writeRegistryId(buffer, IJobRegistry.getInstance(), getJobRegistryEntry());
     }
 
     /**

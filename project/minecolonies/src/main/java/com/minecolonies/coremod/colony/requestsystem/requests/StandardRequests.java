@@ -30,7 +30,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -172,13 +172,13 @@ public final class StandardRequests
         public ItemTagRequest(@NotNull final IRequester requester, @NotNull final IToken<?> token, @NotNull final RequestTag requested)
         {
             super(requester, token, requested);
-            stacks = ForgeRegistries.ITEMS.tags().getTag(requested.getTag()).stream().map(ItemStack::new).collect(Collectors.toList());
+            stacks = FabricRegistries.ITEMS.tags().getTag(requested.getTag()).stream().map(ItemStack::new).collect(Collectors.toList());
         }
 
         public ItemTagRequest(@NotNull final IRequester requester, @NotNull final IToken<?> token, @NotNull final RequestState state, @NotNull final RequestTag requested)
         {
             super(requester, token, state, requested);
-            stacks = ForgeRegistries.ITEMS.tags().getTag(requested.getTag()).stream().map(ItemStack::new).collect(Collectors.toList());
+            stacks = FabricRegistries.ITEMS.tags().getTag(requested.getTag()).stream().map(ItemStack::new).collect(Collectors.toList());
         }
 
         @NotNull

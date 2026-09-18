@@ -10,23 +10,23 @@ import com.minecolonies.coremod.quests.objectives.KillEntityObjectiveTemplateTem
 import com.minecolonies.coremod.quests.rewards.*;
 import com.minecolonies.coremod.quests.triggers.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 import static com.minecolonies.api.quests.registries.QuestRegistries.*;
 
 public final class ModQuestInitializer
 {
-    public final static DeferredRegister<QuestRegistries.ObjectiveEntry>
-      DEFERRED_REGISTER_OBJECTIVE = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questobjectives"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<QuestRegistries.ObjectiveEntry>
+      DEFERRED_REGISTER_OBJECTIVE = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questobjectives"), Constants.MOD_ID);
 
-    public final static DeferredRegister<QuestRegistries.TriggerEntry>
-      DEFERRED_REGISTER_TRIGGER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questtriggers"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<QuestRegistries.TriggerEntry>
+      DEFERRED_REGISTER_TRIGGER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questtriggers"), Constants.MOD_ID);
 
-    public final static DeferredRegister<QuestRegistries.RewardEntry>
-      DEFERRED_REGISTER_REWARD = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questrewards"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<QuestRegistries.RewardEntry>
+      DEFERRED_REGISTER_REWARD = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questrewards"), Constants.MOD_ID);
 
-    public final static DeferredRegister<QuestRegistries.DialogueAnswerEntry>
-      DEFERRED_REGISTER_ANSWER_RESULT = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questanswerresults"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<QuestRegistries.DialogueAnswerEntry>
+      DEFERRED_REGISTER_ANSWER_RESULT = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "questanswerresults"), Constants.MOD_ID);
 
 
     private ModQuestInitializer()

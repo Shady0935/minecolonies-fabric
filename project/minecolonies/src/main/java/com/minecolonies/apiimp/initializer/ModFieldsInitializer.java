@@ -7,15 +7,15 @@ import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.coremod.colony.fields.PlantationField;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 
 import java.util.function.Consumer;
 
 public final class ModFieldsInitializer
 {
-    public static final DeferredRegister<FieldRegistries.FieldEntry> DEFERRED_REGISTER =
-      DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "fields"), Constants.MOD_ID);
+    public static final FabricDeferredRegister<FieldRegistries.FieldEntry> DEFERRED_REGISTER =
+      FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "fields"), Constants.MOD_ID);
     static
     {
         FieldRegistries.farmField = createEntry(FieldRegistries.FARM_FIELD_ID,
@@ -78,7 +78,7 @@ public final class ModFieldsInitializer
         throw new IllegalStateException("Tried to initialize: ModFieldsInitializer but this is a Utility class.");
     }
 
-    private static RegistryObject<FieldRegistries.FieldEntry> createEntry(ResourceLocation registryName, Consumer<FieldRegistries.FieldEntry.Builder> builder)
+    private static FabricRegistryObject<FieldRegistries.FieldEntry> createEntry(ResourceLocation registryName, Consumer<FieldRegistries.FieldEntry.Builder> builder)
     {
         FieldRegistries.FieldEntry.Builder field = new FieldRegistries.FieldEntry.Builder()
                                                      .setRegistryName(registryName);

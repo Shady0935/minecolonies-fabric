@@ -33,16 +33,16 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import com.minecolonies.fabric.client.model.data.ModelData;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.util.LazyOptional;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.inventory.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -458,21 +458,18 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
         return this.saveWithId();
     }
 
-    @Override
     public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket packet)
     {
         this.load(packet.getTag());
     }
 
-    @Override
     public void handleUpdateTag(final CompoundTag tag)
     {
         this.load(tag);
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> capability, final Direction dir)
+    @NotNull
+    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> capability, final Direction dir)
     {
         if (version != VERSION)
         {
@@ -542,7 +539,7 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
                 return lastOptional.cast();
             }
         }
-        return super.getCapability(capability, dir);
+        return LazyOptional.empty();
     }
 
 
@@ -737,7 +734,6 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
         if (update)
         {
             this.textureDataCache = new MaterialTextureData(resMap);
-            this.requestModelDataUpdate();
             if (level != null)
             {
                 level.sendBlockUpdated(getBlockPos(), Blocks.AIR.defaultBlockState(), getBlockState(), Block.UPDATE_ALL);
@@ -746,7 +742,6 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
     }
 
     @NotNull
-    @Override
     public ModelData getModelData()
     {
         if (!checkedAfterStartup && level != null)

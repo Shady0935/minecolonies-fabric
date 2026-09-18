@@ -8,6 +8,7 @@ import com.minecolonies.api.entity.mobs.AbstractEntityRaiderMob;
 import com.minecolonies.coremod.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.items.ItemSpear;
+import com.minecolonies.coremod.items.ItemPharaoScepter;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -42,21 +43,21 @@ public class CombatUtils
      */
     public static AbstractArrow createArrowForShooter(final LivingEntity shooter)
     {
-        AbstractArrow arrowEntity = ModEntities.MC_NORMAL_ARROW.create(shooter.level);
+        AbstractArrow arrowEntity = ModEntities.MC_NORMAL_ARROW.create(shooter.level());
 
         final ItemStack rangedWeapon = shooter.getItemInHand(InteractionHand.MAIN_HAND);
         final Item rangedWeaponItem = rangedWeapon.getItem();
-        if (rangedWeaponItem instanceof BowItem)
+        if (rangedWeaponItem instanceof ItemPharaoScepter pharaoScepter)
         {
-            arrowEntity = ((BowItem) rangedWeaponItem).customArrow(arrowEntity);
+            arrowEntity = pharaoScepter.customArrow(arrowEntity);
         }
         else if (rangedWeaponItem instanceof ItemSpear)
         {
-            arrowEntity = ModEntities.SPEAR.create(shooter.level);
+            arrowEntity = ModEntities.SPEAR.create(shooter.level());
         }
         else if (rangedWeaponItem instanceof TridentItem)
         {
-            arrowEntity = EntityType.TRIDENT.create(shooter.level);
+            arrowEntity = EntityType.TRIDENT.create(shooter.level());
         }
 
         arrowEntity.setOwner(shooter);
@@ -79,7 +80,7 @@ public class CombatUtils
         final double distance = Mth.sqrt((float) (xVector * xVector + zVector * zVector));
         final double dist3d = Mth.sqrt((float) (yVector * yVector + xVector * xVector + zVector * zVector));
         arrow.shoot(xVector, yVector + distance * AIM_SLIGHTLY_HIGHER_MULTIPLIER, zVector, (float) (ARROW_SPEED * 1 + (dist3d / SPEED_FOR_DIST)), (float) hitChance);
-        target.level.addFreshEntity(arrow);
+        target.level().addFreshEntity(arrow);
     }
 
     /**

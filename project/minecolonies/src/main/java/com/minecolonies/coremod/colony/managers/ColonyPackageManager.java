@@ -114,7 +114,7 @@ public class ColonyPackageManager implements IColonyPackageManager
         {
             final ServerPlayer player = iterator.next();
 
-            if (!player.isAlive() || colony.getWorld() != player.level || !WorldUtil.isChunkLoaded(player.level, player.chunkPosition().x, player.chunkPosition().z))
+            if (!player.isAlive() || colony.getWorld() != player.level() || !WorldUtil.isChunkLoaded(player.level(), player.chunkPosition().x, player.chunkPosition().z))
             {
                 iterator.remove();
                 continue;
@@ -127,7 +127,7 @@ public class ColonyPackageManager implements IColonyPackageManager
                 continue;
             }
 
-            final IColonyTagCapability colonyCap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+            final IColonyTagCapability colonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
             if (colonyCap == null)
             {
                 iterator.remove();

@@ -29,8 +29,8 @@ public class CommandUnloadForcedChunks implements IMCCommand
         final Entity sender = context.getSource().getEntity();
         if (sender instanceof Player)
         {
-            final Level world = sender.level;
-            for (long chunk : ((ServerChunkCache) sender.level.getChunkSource()).chunkMap.visibleChunkMap.keySet())
+            final Level world = sender.level();
+            for (long chunk : com.minecolonies.fabric.compat.FabricVanillaCompat.getVisibleChunkKeys((ServerChunkCache) sender.level().getChunkSource()))
             {
                 ((ServerLevel) world).setChunkForced(ChunkPos.getX(chunk), ChunkPos.getZ(chunk), false);
             }

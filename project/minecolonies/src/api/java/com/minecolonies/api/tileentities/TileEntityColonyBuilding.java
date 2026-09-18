@@ -36,10 +36,10 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.util.LazyOptional;
+import com.minecolonies.fabric.inventory.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -284,7 +284,6 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
         this.load(tag);
     }
 
-    @Override
     public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket packet)
     {
         final CompoundTag compound = packet.getTag();
@@ -292,7 +291,6 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
         super.onDataPacket(net, packet);
     }
 
-    @Override
     public void onLoad()
     {
         if (building != null)

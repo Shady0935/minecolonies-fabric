@@ -84,7 +84,7 @@ public class Food implements IDeliverable
 
         if (!ItemStackUtils.isEmpty(food.result))
         {
-            compound.put(NBT_RESULT, food.result.serializeNBT());
+            compound.put(NBT_RESULT, food.result.save(new net.minecraft.nbt.CompoundTag()));
         }
         if (!food.exclusionList.isEmpty())
         {
@@ -183,7 +183,7 @@ public class Food implements IDeliverable
         return ItemStackUtils.ISFOOD.test(stack)
                  && !exclusionList.contains(new ItemStorage(stack))
                  && !(ItemStackUtils.ISCOOKABLE.test(stack) && exclusionList.contains(new ItemStorage(MinecoloniesAPIProxy.getInstance().getFurnaceRecipes().getSmeltingResult(stack))))
-                 && (ItemStackUtils.ISCOOKABLE.test(stack) || stack.getItem().getFoodProperties(stack, null).getNutrition() >= minNutrition);
+                 && (ItemStackUtils.ISCOOKABLE.test(stack) || stack.getItem().getFoodProperties().getNutrition() >= minNutrition);
     }
 
     @Override

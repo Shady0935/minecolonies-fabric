@@ -17,7 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.Tags;
+import com.minecolonies.fabric.common.Tags;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

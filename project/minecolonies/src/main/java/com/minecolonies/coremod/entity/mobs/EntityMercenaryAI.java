@@ -12,7 +12,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandler;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -237,7 +237,7 @@ public class EntityMercenaryAI extends Goal
         {
             entity.swing(InteractionHand.MAIN_HAND);
             entity.playSound(MercenarySounds.mercenaryAttack, 0.55f, 1.0f);
-            entity.getTarget().hurt(entity.level.damageSources().mobAttack(entity), 15);
+            entity.getTarget().hurt(entity.level().damageSources().mobAttack(entity), 15);
             entity.getTarget().setSecondsOnFire(3);
             attacktimer = ATTACK_DELAY;
         }

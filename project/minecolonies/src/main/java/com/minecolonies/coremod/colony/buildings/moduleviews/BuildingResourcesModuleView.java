@@ -8,8 +8,8 @@ import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;

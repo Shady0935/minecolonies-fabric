@@ -19,9 +19,9 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,7 +112,7 @@ public class SpearEntity extends ThrownTrident implements ICustomAttackSound
         }
 
         Entity ownerEntity = this.getOwner();
-        DamageSource damageSource = this.level.damageSources().source(SPEAR, this, ownerEntity == null ? this : ownerEntity);
+        DamageSource damageSource = this.level().damageSources().source(SPEAR, this, ownerEntity == null ? this : ownerEntity);
         this.dealtDamage = true;
         if (targetEntity.hurt(damageSource, damageAmount))
         {

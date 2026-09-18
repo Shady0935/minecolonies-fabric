@@ -3,8 +3,6 @@ package com.minecolonies.api.items;
 import com.minecolonies.api.util.constant.TagConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -18,50 +16,60 @@ import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
 public class ModTags
 {
+    private static TagKey<Block> blockTag(final ResourceLocation id)
+    {
+        return TagKey.create(Registries.BLOCK, id);
+    }
+
+    private static TagKey<Item> itemTag(final ResourceLocation id)
+    {
+        return TagKey.create(Registries.ITEM, id);
+    }
+
     /**
      * Flag to check if tags are already loaded.
      */
     public static boolean tagsLoaded = false;
 
-    public static final TagKey<Block> decorationItems = BlockTags.create(TagConstants.DECORATION_ITEMS);
-    public static final TagKey<Item>  concretePowder  = ItemTags.create(TagConstants.CONCRETE_POWDER);
-    public static final TagKey<Block> concreteBlock   = BlockTags.create(TagConstants.CONCRETE_BLOCK);
-    public static final TagKey<Block> pathingBlocks   = BlockTags.create(TagConstants.PATHING_BLOCKS);
-    public static final TagKey<Block> tier1blocks     = BlockTags.create(TagConstants.TIER1_BLOCKS);
-    public static final TagKey<Block> tier2blocks     = BlockTags.create(TagConstants.TIER2_BLOCKS);
-    public static final TagKey<Block> tier3blocks     = BlockTags.create(TagConstants.TIER3_BLOCKS);
-    public static final TagKey<Block> tier4blocks     = BlockTags.create(TagConstants.TIER4_BLOCKS);
-    public static final TagKey<Block> tier5blocks     = BlockTags.create(TagConstants.TIER5_BLOCKS);
-    public static final TagKey<Block> tier6blocks     = BlockTags.create(TagConstants.TIER6_BLOCKS);
-    public static final TagKey<Block> mangroveTree    = BlockTags.create(TagConstants.MANGROVE_TREE_BLOCKS);
-    public static final TagKey<Block> tree            = BlockTags.create(TagConstants.TREE_BLOCKS);
+    public static final TagKey<Block> decorationItems = blockTag(TagConstants.DECORATION_ITEMS);
+    public static final TagKey<Item>  concretePowder  = itemTag(TagConstants.CONCRETE_POWDER);
+    public static final TagKey<Block> concreteBlock   = blockTag(TagConstants.CONCRETE_BLOCK);
+    public static final TagKey<Block> pathingBlocks   = blockTag(TagConstants.PATHING_BLOCKS);
+    public static final TagKey<Block> tier1blocks     = blockTag(TagConstants.TIER1_BLOCKS);
+    public static final TagKey<Block> tier2blocks     = blockTag(TagConstants.TIER2_BLOCKS);
+    public static final TagKey<Block> tier3blocks     = blockTag(TagConstants.TIER3_BLOCKS);
+    public static final TagKey<Block> tier4blocks     = blockTag(TagConstants.TIER4_BLOCKS);
+    public static final TagKey<Block> tier5blocks     = blockTag(TagConstants.TIER5_BLOCKS);
+    public static final TagKey<Block> tier6blocks     = blockTag(TagConstants.TIER6_BLOCKS);
+    public static final TagKey<Block> mangroveTree    = blockTag(TagConstants.MANGROVE_TREE_BLOCKS);
+    public static final TagKey<Block> tree            = blockTag(TagConstants.TREE_BLOCKS);
 
-    public static final TagKey<Block> colonyProtectionException = BlockTags.create(TagConstants.COLONYPROTECTIONEXCEPTION);
-    public static final TagKey<Block> indestructible            = BlockTags.create(TagConstants.INDESTRUCTIBLE);
+    public static final TagKey<Block> colonyProtectionException = blockTag(TagConstants.COLONYPROTECTIONEXCEPTION);
+    public static final TagKey<Block> indestructible            = blockTag(TagConstants.INDESTRUCTIBLE);
 
-    public static final TagKey<Block> oreChanceBlocks = BlockTags.create(TagConstants.ORECHANCEBLOCKS);
+    public static final TagKey<Block> oreChanceBlocks = blockTag(TagConstants.ORECHANCEBLOCKS);
 
-    public static final TagKey<Block> validSpawn = BlockTags.create(TagConstants.VALIDSPAWNBLOCKS);
+    public static final TagKey<Block> validSpawn = blockTag(TagConstants.VALIDSPAWNBLOCKS);
 
-    public static final TagKey<Item> fungi             = ItemTags.create(TagConstants.FUNGI);
-    public static final TagKey<Item> compostables      = ItemTags.create(TagConstants.COMPOSTABLES);
-    public static final TagKey<Item> compostables_poor = ItemTags.create(TagConstants.COMPOSTABLES_POOR);
-    public static final TagKey<Item> compostables_rich = ItemTags.create(TagConstants.COMPOSTABLES_RICH);
+    public static final TagKey<Item> fungi             = itemTag(TagConstants.FUNGI);
+    public static final TagKey<Item> compostables      = itemTag(TagConstants.COMPOSTABLES);
+    public static final TagKey<Item> compostables_poor = itemTag(TagConstants.COMPOSTABLES_POOR);
+    public static final TagKey<Item> compostables_rich = itemTag(TagConstants.COMPOSTABLES_RICH);
 
-    public static final TagKey<Item> meshes = ItemTags.create(TagConstants.MESHES);
+    public static final TagKey<Item> meshes = itemTag(TagConstants.MESHES);
 
-    public static final TagKey<Item> floristFlowers = ItemTags.create(TagConstants.FLORIST_FLOWERS);
-    public static final TagKey<Item> excludedFood = ItemTags.create(TagConstants.EXCLUDED_FOOD);
+    public static final TagKey<Item> floristFlowers = itemTag(TagConstants.FLORIST_FLOWERS);
+    public static final TagKey<Item> excludedFood = itemTag(TagConstants.EXCLUDED_FOOD);
 
-    public static final TagKey<Item> breakable_ore = ItemTags.create(TagConstants.BREAKABLE_ORE);
-    public static final TagKey<Item> raw_ore = ItemTags.create(TagConstants.RAW_ORE);
+    public static final TagKey<Item> breakable_ore = itemTag(TagConstants.BREAKABLE_ORE);
+    public static final TagKey<Item> raw_ore = itemTag(TagConstants.RAW_ORE);
 
     public static final TagKey<EntityType<?>> hostile = TagKey.create(Registries.ENTITY_TYPE, TagConstants.HOSTILE);
     public static final TagKey<EntityType<?>> mobAttackBlacklist = TagKey.create(Registries.ENTITY_TYPE, TagConstants.MOB_ATTACK_BLACKLIST);
 
     public static final TagKey<EntityType<?>> raiders = TagKey.create(Registries.ENTITY_TYPE, TagConstants.RAIDERS);
 
-    public static final TagKey<Item> ignoreNBT = ItemTags.create(TagConstants.IGNORE_NBT);
+    public static final TagKey<Item> ignoreNBT = itemTag(TagConstants.IGNORE_NBT);
 
     public static final Map<String, TagKey<Item>> crafterProduct              = new HashMap<>();
     public static final Map<String, TagKey<Item>> crafterProductExclusions    = new HashMap<>();
@@ -127,11 +135,11 @@ public class ModTags
         final ResourceLocation ingredientsExcluded = new ResourceLocation(MOD_ID, crafterName.concat(INGREDIENT_EXCLUDED));
         final ResourceLocation doIngredients = new ResourceLocation(MOD_ID, crafterName.concat(DO_INGREDIENT));
 
-        crafterProduct.put(crafterName, ItemTags.create(products));
-        crafterProductExclusions.put(crafterName, ItemTags.create(productsExcluded));
-        crafterIngredient.put(crafterName, ItemTags.create(ingredients));
-        crafterIngredientExclusions.put(crafterName, ItemTags.create(ingredientsExcluded));
-        crafterDoIngredient.put(crafterName, ItemTags.create(doIngredients));
+        crafterProduct.put(crafterName, itemTag(products));
+        crafterProductExclusions.put(crafterName, itemTag(productsExcluded));
+        crafterIngredient.put(crafterName, itemTag(ingredients));
+        crafterIngredientExclusions.put(crafterName, itemTag(ingredientsExcluded));
+        crafterDoIngredient.put(crafterName, itemTag(doIngredients));
     }
 
     private ModTags()

@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -188,7 +188,7 @@ public abstract class CustomRecipeProvider implements DataProvider
 
         public void build(@NotNull final Consumer<FinishedRecipe> consumer)
         {
-            this.json.addProperty(CustomRecipe.RECIPE_INTERMEDIATE_PROP, ForgeRegistries.BLOCKS.getKey(this.intermediate).toString());
+            this.json.addProperty(CustomRecipe.RECIPE_INTERMEDIATE_PROP, FabricRegistries.BLOCKS.getKey(this.intermediate).toString());
             consumer.accept(new Result(this.json, this.id));
         }
 
@@ -196,7 +196,7 @@ public abstract class CustomRecipeProvider implements DataProvider
         private JsonObject stackAsJson(final ItemStack stack)
         {
             final JsonObject jsonItemStack = new JsonObject();
-            String name = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
+            String name = FabricRegistries.ITEMS.getKey(stack.getItem()).toString();
             // this could be incorrect for items with both damage and other NBT,
             // but that should be rare, and this avoids some annoyance.
             if (stack.hasTag() && !stack.isDamageableItem())

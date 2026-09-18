@@ -6,8 +6,8 @@ import com.minecolonies.api.colony.fields.modules.IFieldModule;
 import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricRegistry;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
@@ -36,20 +36,20 @@ public class FieldRegistries
     public static final ResourceLocation PLANTATION_CRIMSON_PLANTS_FIELD_ID = new ResourceLocation(Constants.MOD_ID, "plantation_crimson_plants");
     public static final ResourceLocation PLANTATION_WARPED_PLANTS_FIELD_ID  = new ResourceLocation(Constants.MOD_ID, "plantation_warped_plants");
 
-    public static RegistryObject<FieldRegistries.FieldEntry> farmField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationSugarCaneField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationCactusField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationBambooField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationCocoaBeansField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationVinesField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationKelpField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationSeagrassField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationSeaPicklesField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationGlowberriesField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationWeepingVinesField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationTwistingVinesField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationCrimsonPlantsField;
-    public static RegistryObject<FieldRegistries.FieldEntry> plantationWarpedPlantsField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> farmField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationSugarCaneField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationCactusField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationBambooField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationCocoaBeansField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationVinesField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationKelpField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationSeagrassField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationSeaPicklesField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationGlowberriesField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationWeepingVinesField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationTwistingVinesField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationCrimsonPlantsField;
+    public static FabricRegistryObject<FieldRegistries.FieldEntry> plantationWarpedPlantsField;
 
     private FieldRegistries()
     {
@@ -60,7 +60,7 @@ public class FieldRegistries
      *
      * @return the field registry.
      */
-    public static IForgeRegistry<FieldEntry> getFieldRegistry()
+    public static FabricRegistry<FieldEntry> getFieldRegistry()
     {
         return IMinecoloniesAPI.getInstance().getFieldRegistry();
     }

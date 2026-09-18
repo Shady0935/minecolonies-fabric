@@ -8,12 +8,12 @@ import com.minecolonies.coremod.recipes.ArchitectsCutterCraftingType;
 import com.minecolonies.coremod.recipes.BrewingCraftingType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 public final class ModCraftingTypesInitializer
 {
-    public final static DeferredRegister<CraftingType>
-       DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "craftingtypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<CraftingType>
+       DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "craftingtypes"), Constants.MOD_ID);
 
     private ModCraftingTypesInitializer()
     {

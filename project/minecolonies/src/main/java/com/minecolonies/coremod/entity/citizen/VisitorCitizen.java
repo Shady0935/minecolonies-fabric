@@ -45,7 +45,7 @@ import net.minecraft.world.item.BowlFoodItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.NameTagItem;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,8 +130,6 @@ VisitorCitizen extends AbstractEntityCitizen
     public VisitorCitizen(final EntityType<? extends PathfinderMob> type, final Level world)
     {
         super(type, world);
-        this.goalSelector = new CustomGoalSelector(this.goalSelector);
-        this.targetSelector = new CustomGoalSelector(this.targetSelector);
         this.citizenChatHandler = new CitizenChatHandler(this);
         this.citizenItemHandler = new CitizenItemHandler(this);
         this.citizenInventoryHandler = new CitizenInventoryHandler(this);
@@ -199,7 +197,7 @@ VisitorCitizen extends AbstractEntityCitizen
                     }
                     else
                     {
-                        final IColonyView colonyView = IColonyManager.getInstance().getColonyView(getCitizenColonyHandler().getColonyId(), level.dimension());
+                        final IColonyView colonyView = IColonyManager.getInstance().getColonyView(getCitizenColonyHandler().getColonyId(), level().dimension());
                         return damage <= 1 || colonyView == null || colonyView.getPermissions().hasPermission((Player) sourceEntity, Action.HURT_VISITOR);
                     }
                 }
@@ -476,10 +474,9 @@ VisitorCitizen extends AbstractEntityCitizen
      * @param player which interacts with the citizen.
      * @return If citizen should interact or not.
      */
-    @Override
     public InteractionResult checkAndHandleImportantInteractions(final Player player, @NotNull final InteractionHand hand)
     {
-        final IColonyView iColonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), player.level.dimension());
+        final IColonyView iColonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), player.level().dimension());
         if (iColonyView != null && !iColonyView.getPermissions().hasPermission(player, Action.ACCESS_HUTS))
         {
             return InteractionResult.FAIL;
@@ -487,7 +484,7 @@ VisitorCitizen extends AbstractEntityCitizen
 
         if (!ItemStackUtils.isEmpty(player.getItemInHand(hand)) && player.getItemInHand(hand).getItem() instanceof NameTagItem)
         {
-            return super.checkAndHandleImportantInteractions(player, hand);
+            return super.interact(player, hand);
         }
 
         final InteractionResult result = directPlayerInteraction(player, hand);
@@ -526,13 +523,13 @@ VisitorCitizen extends AbstractEntityCitizen
         final ItemStack usedStack = player.getItemInHand(hand);
         if (ISFOOD.test(usedStack))
         {
-            final ItemStack remainingItem = usedStack.finishUsingItem(level, this);
+            final ItemStack remainingItem = usedStack.finishUsingItem(level(), this);
             if (!remainingItem.isEmpty() && remainingItem.getItem() != usedStack.getItem())
             {
                 if (!player.getInventory().add(remainingItem))
                 {
                     InventoryUtils.spawnItemStack(
-                      player.level,
+                      player.level(),
                       player.getX(),
                       player.getY(),
                       player.getZ(),
@@ -541,9 +538,9 @@ VisitorCitizen extends AbstractEntityCitizen
                 }
             }
 
-            if (!level.isClientSide())
+            if (!level().isClientSide())
             {
-                getCitizenData().increaseSaturation(usedStack.getItem().getFoodProperties(usedStack, this).getNutrition());
+                getCitizenData().increaseSaturation(usedStack.getItem().getFoodProperties().getNutrition());
 
                 playSound(SoundEvents.GENERIC_EAT, 1.5f, (float) SoundUtils.getRandomPitch(getRandom()));
                 // Position needs to be centered on citizen, Eat AI wrong too?
@@ -571,7 +568,7 @@ VisitorCitizen extends AbstractEntityCitizen
             citizenColonyHandler.updateColonyClient();
             if (citizenColonyHandler.getColonyId() != 0 && citizenId != 0)
             {
-                final IColonyView colonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), level.dimension());
+                final IColonyView colonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), level().dimension());
                 if (colonyView != null)
                 {
                     this.citizenDataView = colonyView.getVisitor(citizenId);
@@ -610,7 +607,7 @@ VisitorCitizen extends AbstractEntityCitizen
             citizenColonyHandler.updateColonyClient();
             if (citizenColonyHandler.getColonyId() != 0 && citizenId != 0 && getOffsetTicks() % TICKS_20 == 0)
             {
-                final IColonyView colonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), level.dimension());
+                final IColonyView colonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), level().dimension());
                 if (colonyView != null)
                 {
                     this.citizenDataView = colonyView.getVisitor(citizenId);
@@ -664,7 +661,7 @@ VisitorCitizen extends AbstractEntityCitizen
     public void die(DamageSource cause)
     {
         super.die(cause);
-        if (!level.isClientSide())
+        if (!level().isClientSide())
         {
             IColony colony = getCitizenColonyHandler().getColony();
             if (colony != null && getCitizenData() != null)
@@ -673,7 +670,7 @@ VisitorCitizen extends AbstractEntityCitizen
                 if (getCitizenData().getHomeBuilding() instanceof TavernBuildingModule)
                 {
                     TavernBuildingModule tavern = (TavernBuildingModule) getCitizenData().getHomeBuilding();
-                    tavern.setNoVisitorTime(level.getRandom().nextInt(5000) + 30000);
+                    tavern.setNoVisitorTime(level().getRandom().nextInt(5000) + 30000);
                 }
 
                 final String deathLocation = BlockPosUtil.getString(blockPosition());

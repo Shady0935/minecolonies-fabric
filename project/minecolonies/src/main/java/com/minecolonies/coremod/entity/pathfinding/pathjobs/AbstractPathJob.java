@@ -353,7 +353,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         @NotNull BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(Mth.floor(entity.getX()),
           Mth.floor(entity.getY()),
           Mth.floor(entity.getZ()));
-        final Level level = entity.level;
+        final Level level = entity.level();
         BlockState bs = level.getBlockState(pos);
         // 1 Up when we're standing within this collision shape
         final VoxelShape collisionShape = bs.getCollisionShape(level, pos);
@@ -377,7 +377,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         }
 
         BlockState down = level.getBlockState(pos.below());
-        while (canStandInSolidBlock(bs) && canStandInSolidBlock(down) && !down.getBlock().isLadder(down, level, pos.below(), entity) && down.getFluidState().isEmpty())
+        while (canStandInSolidBlock(bs) && canStandInSolidBlock(down) && !com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(down, level, pos.below(), entity) && down.getFluidState().isEmpty())
         {
             pos.move(Direction.DOWN, 1);
             bs = down;
@@ -441,7 +441,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     private static boolean canStandInSolidBlock(final BlockState state)
     {
         return state.getBlock() instanceof DoorBlock || state.getBlock() instanceof TrapDoorBlock || (state.getBlock() instanceof PanelBlock && state.getValue(PanelBlock.OPEN))
-                 || !state.getBlock().properties.hasCollision;
+                 || !state.canOcclude();
     }
 
     /**
@@ -1464,7 +1464,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
                              || block.getBlock() instanceof BlockDecorationController
                              || block.getBlock() instanceof SignBlock
                              || block.getBlock() instanceof AbstractBannerBlock
-                             || !block.getBlock().properties.hasCollision;
+                             || !block.canOcclude();
                 }
             }
             else if (block.getBlock() instanceof FireBlock || block.getBlock() instanceof SweetBerryBushBlock || block.getBlock() instanceof PowderSnowBlock)
@@ -1480,11 +1480,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
 
                 if (shape.isEmpty() || shape.max(Direction.Axis.Y) <= 0.1 && !isLiquid((block)) && (block.getBlock() != Blocks.SNOW || block.getValue(SnowLayerBlock.LAYERS) == 1))
                 {
-                    final BlockPathTypes pathType = block.getBlockPathType(world, pos, (Mob) entity.get());
-                    if (pathType == null || pathType.getDanger() == null)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
                 return false;
             }
@@ -1556,7 +1552,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
      */
     protected boolean isLadder(@NotNull final Block block, final BlockPos pos)
     {
-        return block.isLadder(this.cachedBlockLookup.getBlockState(pos), world, pos, entity.get()) && (block != Blocks.VINE || pathingOptions.canClimbVines());
+        return com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(this.cachedBlockLookup.getBlockState(pos), world, pos, entity.get()) && (block != Blocks.VINE || pathingOptions.canClimbVines());
     }
 
     protected boolean isLadder(final BlockPos pos)

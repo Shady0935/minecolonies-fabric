@@ -48,8 +48,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.Score;
 import net.minecraft.world.scores.criteria.ObjectiveCriteria;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.common.ToolActions;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -143,11 +143,11 @@ public class EntityAIWorkNether extends AbstractEntityAICrafting<JobNetherWorker
             {
                 renderData.append(RENDER_META_TORCH);
             }
-            else if (stack.canPerformAction(ToolActions.PICKAXE_DIG) && renderData.indexOf(RENDER_META_PICKAXE) == -1)
+            else if (ToolActions.canPerformAction(stack, ToolActions.PICKAXE_DIG) && renderData.indexOf(RENDER_META_PICKAXE) == -1)
             {
                 renderData.append(RENDER_META_PICKAXE);
             }
-            else if (stack.canPerformAction(ToolActions.SHOVEL_DIG) && renderData.indexOf(RENDER_META_SHOVEL) == -1)
+            else if (ToolActions.canPerformAction(stack, ToolActions.SHOVEL_DIG) && renderData.indexOf(RENDER_META_SHOVEL) == -1)
             {
                 renderData.append(RENDER_META_SHOVEL);
             }
@@ -879,7 +879,7 @@ public class EntityAIWorkNether extends AbstractEntityAICrafting<JobNetherWorker
         if (slot > -1)
         {
             final ItemStack stack = worker.getInventoryCitizen().getStackInSlot(slot);
-            final FoodProperties itemFood = stack.getItem().getFoodProperties(stack, worker);
+            final FoodProperties itemFood = stack.getItem().getFoodProperties();
             final double satIncrease =
               itemFood.getNutrition() * (1.0 + worker.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(SATURATION));
 

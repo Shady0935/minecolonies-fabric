@@ -9,13 +9,13 @@ import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobRanger;
 import com.minecolonies.coremod.colony.jobs.JobDruid;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 import static com.minecolonies.api.util.constant.translation.JobTranslationConstants.*;
 
 public final class ModGuardTypesInitializer
 {
-    public final static DeferredRegister<GuardType> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "guardtypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<GuardType> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "guardtypes"), Constants.MOD_ID);
 
     private ModGuardTypesInitializer()
     {

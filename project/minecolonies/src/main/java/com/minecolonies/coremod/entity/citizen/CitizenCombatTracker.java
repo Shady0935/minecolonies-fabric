@@ -48,19 +48,18 @@ public class CitizenCombatTracker extends CombatTracker
               citizen.getCitizenData().getName());
         }
         //CombatTracker#getDeathMessage
-        if (entries.isEmpty())
+        if (citizen.getLastDamageSource() == null)
         {
             return Component.translatable("death.attack.generic", nameComponent);
         }
         else
         {
-            DamageSource lastSource = entries.get(entries.size() - 1).source();
+            DamageSource lastSource = citizen.getLastDamageSource();
             DeathMessageType messageType = lastSource.type().deathMessageType();
-            CombatEntry fallEntry = getMostSignificantFall();
-            if (messageType == DeathMessageType.FALL_VARIANTS && fallEntry != null)
+            if (messageType == DeathMessageType.FALL_VARIANTS)
             {
                 //CombatTracker#getFallMessage
-                DamageSource fallSource = fallEntry.source();
+                DamageSource fallSource = lastSource;
                 Entity lastEntity = lastSource.getEntity();
                 if (!fallSource.is(DamageTypeTags.IS_FALL) && !fallSource.is(DamageTypeTags.ALWAYS_MOST_SIGNIFICANT_FALL))
                 {
@@ -91,7 +90,7 @@ public class CitizenCombatTracker extends CombatTracker
                 }
                 else
                 {
-                    return Component.translatable(Objects.requireNonNullElse(fallEntry.fallLocation(), FallLocation.GENERIC).languageKey(), nameComponent);
+                    return Component.translatable(FallLocation.GENERIC.languageKey(), nameComponent);
                 }
             }
             else if (messageType == DeathMessageType.INTENTIONAL_GAME_DESIGN)

@@ -11,7 +11,7 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.client.gui.AbstractModuleWindow;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -160,7 +160,7 @@ public class EntityListModuleWindow extends AbstractModuleWindow
      */
     private void updateResources()
     {
-        final Predicate<ResourceLocation> filterPredicate = res -> filter.isEmpty() || ForgeRegistries.ENTITY_TYPES.getValue(res).getDescription().getString().toLowerCase(Locale.US).contains(filter.toLowerCase(Locale.US)) || res.toString().toLowerCase(Locale.US).contains(filter.toLowerCase(Locale.US));
+        final Predicate<ResourceLocation> filterPredicate = res -> filter.isEmpty() || FabricRegistries.ENTITY_TYPES.getValue(res).getDescription().getString().toLowerCase(Locale.US).contains(filter.toLowerCase(Locale.US)) || res.toString().toLowerCase(Locale.US).contains(filter.toLowerCase(Locale.US));
         currentDisplayedList.clear();
         for (final ResourceLocation storage : groupedItemList)
         {
@@ -224,7 +224,7 @@ public class EntityListModuleWindow extends AbstractModuleWindow
             {
                 final ResourceLocation resource = currentDisplayedList.get(index);
                 final Text resourceLabel = rowPane.findPaneOfTypeByID(RESOURCE_NAME, Text.class);
-                resourceLabel.setText(ForgeRegistries.ENTITY_TYPES.getValue(resource).getDescription());
+                resourceLabel.setText(FabricRegistries.ENTITY_TYPES.getValue(resource).getDescription());
                 resourceLabel.setColors(WHITE);
                 final boolean isAllowedItem  = building.getModuleViewMatching(IEntityListModuleView.class, view -> view.getId().equals(id)).isAllowedEntity(resource);
                 final Button switchButton = rowPane.findPaneOfTypeByID(BUTTON_SWITCH, Button.class);

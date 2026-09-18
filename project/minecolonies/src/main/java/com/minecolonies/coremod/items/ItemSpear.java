@@ -16,7 +16,7 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import com.minecolonies.fabric.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -28,10 +28,8 @@ public class ItemSpear extends TridentItem
         super(properties.durability(250));
     }
 
-    @Override
     public void initializeClient(final Consumer<IClientItemExtensions> consumer)
     {
-        super.initializeClient(consumer);
         consumer.accept(new IClientItemExtensions() {
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer()

@@ -3,7 +3,6 @@ package com.minecolonies.coremod.colony.crafting;
 import com.google.gson.*;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.util.Log;
-import com.minecolonies.coremod.generation.DatagenLootTableManager;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
@@ -22,7 +21,7 @@ import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.Deserializers;
 import net.minecraft.world.level.storage.loot.LootDataManager;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,8 +78,7 @@ public final class LootTableAnalyzer
         }
         catch (final JsonParseException ex)
         {
-            Log.getLogger().error(String.format("Failed to parse loot table from %s",
-                    lootTable.getLootTableId()), ex);
+            Log.getLogger().error("Failed to parse an in-memory loot table", ex);
             return Collections.emptyList();
         }
     }
@@ -149,7 +147,7 @@ public final class LootTableAnalyzer
         switch (type)
         {
             case "minecraft:item" -> {
-                final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(GsonHelper.getAsString(entryJson, "name")));
+                final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(GsonHelper.getAsString(entryJson, "name")));
                 final float quality = GsonHelper.getAsFloat(entryJson, "quality", 0);
                 float modifier = 1.0F;
                 final JsonArray conditions = GsonHelper.getAsJsonArray(entryJson, "conditions", new JsonArray());
@@ -241,7 +239,7 @@ public final class LootTableAnalyzer
             final String entityType = token.getTag().getString(TAG_ENTITY_TYPE);
             if (!entityType.isEmpty())
             {
-                final EntityType<?> mob = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(entityType));
+                final EntityType<?> mob = FabricRegistries.ENTITY_TYPES.getValue(new ResourceLocation(entityType));
                 if (mob != null)
                 {
                     return toDrops(lootTableManager, mob.getDefaultLootTable());
@@ -304,7 +302,7 @@ public final class LootTableAnalyzer
 
                 case "minecraft:set_potion":
                     final String id = GsonHelper.getAsString(function, "id");
-                    final Potion potion = ForgeRegistries.POTIONS.getValue(ResourceLocation.tryParse(id));
+                    final Potion potion = FabricRegistries.POTIONS.getValue(ResourceLocation.tryParse(id));
                     if (potion != null)
                     {
                         PotionUtils.setPotion(stack, potion);

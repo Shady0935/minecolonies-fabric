@@ -12,8 +12,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 import static com.minecolonies.api.util.constant.TranslationConstants.HUT_BLOCK_MISSING_COLONY;
@@ -114,7 +114,7 @@ public abstract class AbstractColonyServerMessage implements IMessage
     }
 
     @Override
-    public final void onExecute(final net.minecraftforge.network.NetworkEvent.Context ctxIn, final boolean isLogicalServer)
+    public final void onExecute(final com.minecolonies.fabric.network.NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
         final ServerPlayer player = ctxIn.getSender();
         final IColony colony = IColonyManager.getInstance().getColonyByDimension(colonyId, dimensionId);

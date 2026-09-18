@@ -1,91 +1,80 @@
 package com.minecolonies.coremod.loot;
 
-import com.google.common.base.Suppliers;
-import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.MineColonies;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
 import net.minecraft.world.level.storage.loot.LootPool;
-import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootTableReference;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.common.loot.LootModifier;
-import net.minecraftforge.event.LootTableLoadEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.Set;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
 /**
  * Helper class for supply camp loot
  */
-public class SupplyLoot extends LootModifier
+public final class SupplyLoot
 {
-    public static final DeferredRegister<Codec<? extends IGlobalLootModifier>> GLM = DeferredRegister.create(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, MOD_ID);
-    public static final Supplier<Codec<SupplyLoot>> SHIP_CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(inst -> codecStart(inst).apply(inst, (co) -> new SupplyLoot(co, false))));
-    public static final Supplier<Codec<SupplyLoot>> CAMP_CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(inst -> codecStart(inst).apply(inst, (co) -> new SupplyLoot(co, true))));
-
-    public static final RegistryObject<Codec<SupplyLoot>> SUPPLYSHIP_LOOT = GLM.register("supplyship_loot", SupplyLoot.SHIP_CODEC);
-    public static final RegistryObject<Codec<SupplyLoot>> SUPPLYCAMP_LOOT = GLM.register("supplycamp_loot", SupplyLoot.CAMP_CODEC);
-
-
     /**
      * Resource locations, path and names must fit the existing json file.
      */
     public final static ResourceLocation SUPPLY_CAMP_LT = new ResourceLocation(MOD_ID, "chests/supplycamp");
     public final static ResourceLocation SUPPLY_SHIP_LT = new ResourceLocation(MOD_ID, "chests/supplyship");
 
-    // If we need more we need a static block and put things into a map ResourceLocation-codec
-    private final boolean camp;
+    private SupplyLoot()
+    {
+    }
+
+    private static final Set<ResourceLocation> SUPPLY_CAMP_TARGETS = Set.of(
+        new ResourceLocation("minecraft", "chests/spawn_bonus_chest"),
+        new ResourceLocation("minecraft", "chests/simple_dungeon"),
+        new ResourceLocation("minecraft", "chests/village/village_cartographer"),
+        new ResourceLocation("minecraft", "chests/village/village_mason"),
+        new ResourceLocation("minecraft", "chests/village/village_desert_house"),
+        new ResourceLocation("minecraft", "chests/abandoned_mineshaft"),
+        new ResourceLocation("minecraft", "chests/stronghold_library"),
+        new ResourceLocation("minecraft", "chests/stronghold_crossing"),
+        new ResourceLocation("minecraft", "chests/stronghold_corridor"),
+        new ResourceLocation("minecraft", "chests/desert_pyramid"),
+        new ResourceLocation("minecraft", "chests/jungle_temple"),
+        new ResourceLocation("minecraft", "chests/igloo_chest"),
+        new ResourceLocation("minecraft", "chests/woodland_mansion"),
+        new ResourceLocation("minecraft", "chests/pillager_outpost"));
+
+    private static final Set<ResourceLocation> SUPPLY_SHIP_TARGETS = Set.of(
+        new ResourceLocation("minecraft", "chests/underwater_ruin_small"),
+        new ResourceLocation("minecraft", "chests/underwater_ruin_big"),
+        new ResourceLocation("minecraft", "chests/buried_treasure"),
+        new ResourceLocation("minecraft", "chests/shipwreck_map"),
+        new ResourceLocation("minecraft", "chests/shipwreck_supply"),
+        new ResourceLocation("minecraft", "chests/shipwreck_treasure"),
+        new ResourceLocation("minecraft", "chests/village/village_fisher"),
+        new ResourceLocation("minecraft", "chests/village/village_armorer"),
+        new ResourceLocation("minecraft", "chests/village/village_temple"));
 
     /**
-     * Maps vanilla lootable resource location to our loot pool to add.
+     * Fabric equivalent of the Forge global loot modifiers used upstream.
+     * The same target-table sets are used, without introducing a custom
+     * global-loot-modifier registry.
      */
-    private Map<ResourceLocation, ResourceLocation> lootTables = new HashMap<>();
-
-    public SupplyLoot(final LootItemCondition[] conditionsIn, final boolean camp)
+    public static void register()
     {
-        super(conditionsIn);
-        this.camp = camp;
-    }
-
-    @NotNull
-    @Override
-    protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext lootContext)
-    {
-        if (MineColonies.getConfig().getCommon().generateSupplyLoot.get() && !lootContext.getQueriedLootTableId().getNamespace().equals(MOD_ID))
+        LootTableEvents.MODIFY.register((resourceManager, lootManager, id, table, source) ->
         {
-            if (camp)
+            if (!MineColonies.getConfig().getCommon().generateSupplyLoot.get())
             {
-                LootTable stingerLootTable = lootContext.getLevel().getServer().getLootData().getLootTable(SUPPLY_CAMP_LT);
-                stingerLootTable.getRandomItemsRaw(lootContext, generatedLoot::add);
+                return;
             }
-            else
-            {
-                LootTable stingerLootTable = lootContext.getLevel().getServer().getLootData().getLootTable(SUPPLY_SHIP_LT);
-                stingerLootTable.getRandomItemsRaw(lootContext, generatedLoot::add);
-            }
-        }
-        return generatedLoot;
-    }
 
-    @Override
-    public Codec<? extends IGlobalLootModifier> codec()
-    {
-        return camp ? CAMP_CODEC.get() : SHIP_CODEC.get();
+            if (SUPPLY_CAMP_TARGETS.contains(id))
+            {
+                table.withPool(LootPool.lootPool().add(LootTableReference.lootTableReference(SUPPLY_CAMP_LT)));
+            }
+
+            if (SUPPLY_SHIP_TARGETS.contains(id))
+            {
+                table.withPool(LootPool.lootPool().add(LootTableReference.lootTableReference(SUPPLY_SHIP_LT)));
+            }
+        });
     }
 }

@@ -33,7 +33,7 @@ import com.minecolonies.coremod.entity.ai.util.WorkerLoadOnlyStructureHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.MinecraftForge;
+import com.minecolonies.fabric.common.MinecraftForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -441,7 +441,7 @@ public abstract class AbstractEntityAIStructureWithWorkOrder<J extends AbstractJ
                         else
                         {
                             // Normally levels are done through the schematic data, but in case it is missing we do it manually here.
-                            final BlockEntity te = worker.level.getBlockEntity(building.getID());
+                            final BlockEntity te = worker.level().getBlockEntity(building.getID());
                             if (te instanceof AbstractTileEntityColonyBuilding && ((IBlueprintDataProviderBE) te).getSchematicName().isEmpty())
                             {
                                 building.onUpgradeComplete(wo.getTargetLevel());

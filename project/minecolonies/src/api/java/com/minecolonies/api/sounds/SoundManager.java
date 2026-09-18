@@ -1,10 +1,10 @@
 package com.minecolonies.api.sounds;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -22,13 +22,13 @@ public class SoundManager
     /**
      * The client level.
      */
-    private final ClientLevel level;
+    private final Level level;
 
     /**
      * Create a new instance of the sound manager.
      * @param level the client level it belongs to.
      */
-    public SoundManager(final ClientLevel level)
+    public SoundManager(final Level level)
     {
         this.level = level;
     }
@@ -46,7 +46,7 @@ public class SoundManager
         final TimedSound instance = soundQueue.peek();
         if (instance.timeout <= 0)
         {
-            level.playSound(Minecraft.getInstance().player, instance.pos, instance.soundEvent, instance.source, instance.volume, instance.pitch);
+            level.playSound((Player) null, instance.pos, instance.soundEvent, instance.source, instance.volume, instance.pitch);
             instance.timeout = instance.length;
             instance.repetitions--;
             if (instance.repetitions < 0)

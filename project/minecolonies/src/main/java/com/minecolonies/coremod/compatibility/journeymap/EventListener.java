@@ -23,12 +23,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.client.event.ClientPlayerNetworkEvent;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.event.TickEvent;
+import com.minecolonies.fabric.event.level.ChunkEvent;
+import com.minecolonies.fabric.event.EventPriority;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;

@@ -5,8 +5,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+
+import static com.minecolonies.fabric.client.ButtonCompat.DEFAULT_NARRATION;
 
 import java.util.ArrayList;
 import java.util.List;

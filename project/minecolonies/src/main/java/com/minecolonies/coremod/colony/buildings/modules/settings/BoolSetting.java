@@ -9,8 +9,8 @@ import com.minecolonies.api.colony.buildings.modules.settings.ISettingsModuleVie
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 
 import static com.minecolonies.api.util.constant.WindowConstants.OFF;
 import static com.minecolonies.api.util.constant.WindowConstants.ON;

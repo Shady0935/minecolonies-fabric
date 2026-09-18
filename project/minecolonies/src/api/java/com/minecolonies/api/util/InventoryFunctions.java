@@ -1,8 +1,8 @@
 package com.minecolonies.api.util;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -213,6 +213,30 @@ public final class InventoryFunctions
     public static boolean matchFirstInProvider(final ICapabilityProvider inventory, @NotNull final BiPredicate<Integer, ItemStack> tester)
     {
         return matchInProvider(inventory, inv -> slot -> stack -> tester.test(slot, stack), true);
+    }
+
+    /** Adapter overload for vanilla players, entities and block entities. */
+    public static boolean matchFirstInProvider(final Object provider, @NotNull final Predicate<ItemStack> tester)
+    {
+        return matchFirstInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), tester);
+    }
+
+    /** Adapter overload for vanilla players, entities and block entities. */
+    public static boolean matchFirstInProviderWithAction(
+      final Object provider,
+      @NotNull final Predicate<ItemStack> tester,
+      @NotNull final IMatchActionResult action)
+    {
+        return matchFirstInProviderWithAction(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), tester, action);
+    }
+
+    /** Adapter overload for vanilla players, entities and block entities. */
+    public static boolean matchFirstInProviderWithSimpleAction(
+      final Object provider,
+      @NotNull final Predicate<ItemStack> tester,
+      @NotNull final Consumer<Integer> action)
+    {
+        return matchFirstInProviderWithSimpleAction(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), tester, action);
     }
 
     /**

@@ -478,7 +478,7 @@ public class RegisteredStructureManager implements IRegisteredStructureManager
     @Override
     public boolean isWithinBuildingZone(final LevelChunk chunk)
     {
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap != null)
         {
             final Set<BlockPos> capList = cap.getAllClaimingBuildings().get(colony.getID());

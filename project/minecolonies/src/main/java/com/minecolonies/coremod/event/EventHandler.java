@@ -40,7 +40,6 @@ import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMes
 import com.minecolonies.coremod.network.messages.client.UpdateChunkRangeCapabilityMessage;
 import com.minecolonies.coremod.util.ChunkClientDataHelper;
 import com.minecolonies.coremod.util.ChunkDataHelper;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -65,18 +64,18 @@ import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.event.*;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
-import net.minecraftforge.event.entity.living.LivingConversionEvent;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.event.*;
+import com.minecolonies.fabric.event.entity.EntityJoinLevelEvent;
+import com.minecolonies.fabric.event.entity.EntityTravelToDimensionEvent;
+import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
+import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
+import com.minecolonies.fabric.event.entity.player.PlayerEvent;
+import com.minecolonies.fabric.event.entity.player.PlayerInteractEvent;
+import com.minecolonies.fabric.event.level.BlockEvent;
+import com.minecolonies.fabric.event.level.ChunkEvent;
+import com.minecolonies.fabric.event.level.LevelEvent;
+import com.minecolonies.fabric.event.Event;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;
@@ -89,8 +88,8 @@ import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_COLONY_ID;
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_EVENT_ID;
 import static com.minecolonies.api.util.constant.TranslationConstants.*;
 import static com.minecolonies.api.util.constant.translation.BaseGameTranslationConstants.BASE_BED_OCCUPIED;
-import static net.minecraftforge.eventbus.api.EventPriority.HIGHEST;
-import static net.minecraftforge.eventbus.api.EventPriority.LOWEST;
+import static com.minecolonies.fabric.event.EventPriority.HIGHEST;
+import static com.minecolonies.fabric.event.EventPriority.LOWEST;
 
 /**
  * Handles all forge events.
@@ -122,8 +121,8 @@ public class EventHandler
               .getType()
               .is(ModTags.mobAttackBlacklist)))
             {
-                ((Mob) event.getEntity()).targetSelector.addGoal(6, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityCitizen.class, true, citizen -> !citizen.isInvisible()));
-                ((Mob) event.getEntity()).targetSelector.addGoal(7, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityMercenary.class, true));
+                net.minecraft.world.entity.MobAccess.targetSelector((Mob) event.getEntity()).addGoal(6, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityCitizen.class, true, citizen -> !citizen.isInvisible()));
+                net.minecraft.world.entity.MobAccess.targetSelector((Mob) event.getEntity()).addGoal(7, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityMercenary.class, true));
             }
         }
     }
@@ -163,7 +162,7 @@ public class EventHandler
         {
             ChunkDataHelper.loadChunk((LevelChunk) event.getChunk(), (ServerLevel) event.getLevel());
         }
-        else if (event.getLevel() instanceof ClientLevel)
+        else if (event.getLevel().isClientSide())
         {
             if (event.getChunk() instanceof LevelChunk)
             {
@@ -197,15 +196,15 @@ public class EventHandler
         if (event.getEntity() instanceof ServerPlayer && !event.isCanceled())
         {
             final ServerPlayer player = (ServerPlayer) event.getEntity();
-            final LevelChunk oldChunk = player.level.getChunk(player.chunkPosition().x, player.chunkPosition().z);
-            final IColonyTagCapability oldCloseColonies = oldChunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+            final LevelChunk oldChunk = player.level().getChunk(player.chunkPosition().x, player.chunkPosition().z);
+            final IColonyTagCapability oldCloseColonies = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(oldChunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
 
             if (oldCloseColonies != null)
             {
                 // Remove visiting/subscriber from old colony
                 if (oldCloseColonies.getOwningColony() != 0)
                 {
-                    final IColony oldColony = IColonyManager.getInstance().getColonyByWorld(oldCloseColonies.getOwningColony(), player.level);
+                    final IColony oldColony = IColonyManager.getInstance().getColonyByWorld(oldCloseColonies.getOwningColony(), player.level());
                     if (oldColony != null)
                     {
                         oldColony.removeVisitingPlayer(player);
@@ -228,12 +227,12 @@ public class EventHandler
         {
             final ServerPlayer player = (ServerPlayer) event.getEntity();
 
-            final LevelChunk newChunk = player.level.getChunk(player.chunkPosition().x, player.chunkPosition().z);
-            final IColonyTagCapability closeColonyCap = newChunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+            final LevelChunk newChunk = player.level().getChunk(player.chunkPosition().x, player.chunkPosition().z);
+            final IColonyTagCapability closeColonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(newChunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
             if (closeColonyCap != null)
             {
                 // Add visiting/subscriber to new colony
-                final IColony newColony = IColonyManager.getInstance().getColonyByWorld(closeColonyCap.getOwningColony(), player.level);
+                final IColony newColony = IColonyManager.getInstance().getColonyByWorld(closeColonyCap.getOwningColony(), player.level());
                 if (newColony != null)
                 {
                     newColony.addVisitingPlayer(player);
@@ -249,12 +248,12 @@ public class EventHandler
     @SubscribeEvent
     public static void onEnteringChunk(final TickEvent.PlayerTickEvent event)
     {
-        if (event.phase != TickEvent.Phase.END || event.player.level.isClientSide() || event.player.level.getGameTime() % 100 != 0)
+        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide() || event.player.level().getGameTime() % 100 != 0)
         {
             return;
         }
 
-        final Level world = event.player.level;
+        final Level world = event.player.level();
         final ChunkPos chunkPos = event.player.chunkPosition();
 
         final ChunkPos oldPos = playerPositions.get(event.player.getUUID());
@@ -280,7 +279,7 @@ public class EventHandler
             chunkPos.z,
             8, true), (ServerPlayer) event.player);
 
-        final IColonyTagCapability newCloseColonies = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability newCloseColonies = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (newCloseColonies == null)
         {
             return;
@@ -339,7 +338,7 @@ public class EventHandler
             return;
         }
 
-        final IColonyTagCapability closeColonyCap = ((Level) event.getLevel()).getChunkAt(pos).getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability closeColonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(((Level) event.getLevel()).getChunkAt(pos), CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (closeColonyCap == null || closeColonyCap.getOwningColony() == 0)
         {
             return;
@@ -389,7 +388,7 @@ public class EventHandler
                 final ItemStack stack = player.getInventory().getItem(i);
                 if (stack.getItem() instanceof ItemBannerRallyGuards)
                 {
-                    ItemBannerRallyGuards.broadcastPlayerToRally(stack, player.level, new EntityLocation(player.getUUID()));
+                    ItemBannerRallyGuards.broadcastPlayerToRally(stack, player.level(), new EntityLocation(player.getUUID()));
                 }
             }
         }
@@ -422,7 +421,7 @@ public class EventHandler
     {
         if (MineColonies.getConfig().getServer().pvp_mode.get() && newChunkPos != null)
         {
-            if (entityCitizen.level == null || !WorldUtil.isEntityChunkLoaded(entityCitizen.level, new ChunkPos(newChunkPos.x, newChunkPos.z)))
+            if (entityCitizen.level() == null || !WorldUtil.isEntityChunkLoaded(entityCitizen.level(), new ChunkPos(newChunkPos.x, newChunkPos.z)))
             {
                 return;
             }
@@ -432,11 +431,11 @@ public class EventHandler
                 final Level world = entityCitizen.getCommandSenderWorld();
 
                 final LevelChunk chunk = world.getChunk(newChunkPos.x, newChunkPos.z);
-                final IColonyTagCapability chunkCapability = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+                final IColonyTagCapability chunkCapability = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
                 if (chunkCapability != null && chunkCapability.getOwningColony() != 0
                       && entityCitizen.getCitizenColonyHandler().getColonyId() != chunkCapability.getOwningColony())
                 {
-                    final IColony colony = IColonyManager.getInstance().getColonyByWorld(chunkCapability.getOwningColony(), entityCitizen.level);
+                    final IColony colony = IColonyManager.getInstance().getColonyByWorld(chunkCapability.getOwningColony(), entityCitizen.level());
                     if (colony != null)
                     {
                         colony.addGuardToAttackers(entityCitizen, ((IGuardBuilding) entityCitizen.getCitizenColonyHandler().getWorkBuilding()).getPlayerToFollowOrRally());
@@ -467,11 +466,11 @@ public class EventHandler
             if (spawner instanceof SpawnerBlockEntity)
             {
                 final IColony colony = IColonyManager.getInstance()
-                  .getColonyByDimension(((SpawnerBlockEntity) spawner).getSpawner().nextSpawnData.getEntityToSpawn().getInt(TAG_COLONY_ID),
+                  .getColonyByDimension(com.minecolonies.fabric.compat.FabricVanillaCompat.getSpawnerEntityTag(((SpawnerBlockEntity) spawner).getSpawner()).getInt(TAG_COLONY_ID),
                     world.dimension());
                 if (colony != null)
                 {
-                    colony.getEventManager().onTileEntityBreak(((SpawnerBlockEntity) spawner).getSpawner().nextSpawnData.getEntityToSpawn().getInt(TAG_EVENT_ID), spawner);
+                    colony.getEventManager().onTileEntityBreak(com.minecolonies.fabric.compat.FabricVanillaCompat.getSpawnerEntityTag(((SpawnerBlockEntity) spawner).getSpawner()).getInt(TAG_EVENT_ID), spawner);
                 }
             }
         }
@@ -504,7 +503,7 @@ public class EventHandler
             return;
         }
 
-        if (world.getBlockState(event.getPos()).getBlock().isBed(world.getBlockState(event.getPos()), world, event.getPos(), player))
+        if (com.minecolonies.fabric.compat.FabricVanillaCompat.isBed(world.getBlockState(event.getPos()), world, event.getPos(), player))
         {
             final IColony colony = IColonyManager.getInstance().getColonyByPosFromWorld(world, bedBlockPos);
             //Checks to see if player tries to sleep in a bed belonging to a Citizen, cancels the event, and Notifies Player that bed is occupied
@@ -569,7 +568,7 @@ public class EventHandler
     private static boolean playerRightClickInteract(@NotNull final Player player, final Level world, final BlockPos pos)
     {
         return !player.isShiftKeyDown() || player.getMainHandItem() == null || player.getMainHandItem().getItem() == null
-                 || player.getMainHandItem().getItem().doesSneakBypassUse(player.getMainHandItem(), world, pos, player);
+                 || false;
     }
 
     /**
@@ -652,7 +651,7 @@ public class EventHandler
     /**
      * Gets called when world loads. Calls {@link ColonyManager#onWorldLoad(Level)})}
      *
-     * @param event {@link net.minecraftforge.event.level.LevelEvent.Load}
+     * @param event {@link com.minecolonies.fabric.event.level.LevelEvent.Load}
      */
     @SubscribeEvent(priority = HIGHEST)
     public static void onWorldLoad(@NotNull final LevelEvent.Load event)
@@ -677,7 +676,7 @@ public class EventHandler
     /**
      * Gets called when world unloads. Calls {@link ColonyManager#onWorldLoad(Level)}
      *
-     * @param event {@link net.minecraftforge.event.level.LevelEvent.Unload}
+     * @param event {@link com.minecolonies.fabric.event.level.LevelEvent.Unload}
      */
     @SubscribeEvent
     public static void onWorldUnload(@NotNull final LevelEvent.Unload event)

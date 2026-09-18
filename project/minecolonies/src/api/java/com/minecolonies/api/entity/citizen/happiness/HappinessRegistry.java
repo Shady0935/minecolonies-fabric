@@ -7,8 +7,8 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.NbtTagConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricRegistry;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -24,7 +24,7 @@ public class HappinessRegistry
      *
      * @return the reward registry.
      */
-    static IForgeRegistry<HappinessFactorTypeEntry> getHappinessTypeRegistry()
+    static FabricRegistry<HappinessFactorTypeEntry> getHappinessTypeRegistry()
     {
         return IMinecoloniesAPI.getInstance().getHappinessTypeRegistry();
     }
@@ -34,7 +34,7 @@ public class HappinessRegistry
      *
      * @return the reward registry.
      */
-    static IForgeRegistry<HappinessFunctionEntry> getHappinessFunctionRegistry()
+    static FabricRegistry<HappinessFunctionEntry> getHappinessFunctionRegistry()
     {
         return IMinecoloniesAPI.getInstance().getHappinessFunctionRegistry();
     }
@@ -126,9 +126,9 @@ public class HappinessRegistry
     public static ResourceLocation EXPIRATION_MODIFIER  = new ResourceLocation(Constants.MOD_ID, "expiration");
     public static ResourceLocation TIME_PERIOD_MODIFIER = new ResourceLocation(Constants.MOD_ID, "time");
 
-    public static RegistryObject<HappinessFactorTypeEntry> staticHappinessModifier;
-    public static RegistryObject<HappinessFactorTypeEntry> expirationBasedHappinessModifier;
-    public static RegistryObject<HappinessFactorTypeEntry> timeBasedHappinessModifier;
+    public static FabricRegistryObject<HappinessFactorTypeEntry> staticHappinessModifier;
+    public static FabricRegistryObject<HappinessFactorTypeEntry> expirationBasedHappinessModifier;
+    public static FabricRegistryObject<HappinessFactorTypeEntry> timeBasedHappinessModifier;
 
     public static ResourceLocation SCHOOL_FUNCTION      = new ResourceLocation(Constants.MOD_ID, "school");
     public static ResourceLocation SECURITY_FUNCTION      = new ResourceLocation(Constants.MOD_ID, "security");
@@ -142,16 +142,16 @@ public class HappinessRegistry
     public static ResourceLocation IDLEATJOB_FUNCTION      = new ResourceLocation(Constants.MOD_ID, "idleatjob");
     public static ResourceLocation SLEPTTONIGHT_FUNCTION      = new ResourceLocation(Constants.MOD_ID, "slepttonight");
 
-    public static RegistryObject<HappinessFunctionEntry> schoolFunction;
-    public static RegistryObject<HappinessFunctionEntry> securityFunction;
-    public static RegistryObject<HappinessFunctionEntry> socialFunction;
-    public static RegistryObject<HappinessFunctionEntry> saturationFunction;
-    public static RegistryObject<HappinessFunctionEntry> mysticalSiteFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> schoolFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> securityFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> socialFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> saturationFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> mysticalSiteFunction;
 
-    public static RegistryObject<HappinessFunctionEntry> housingFunction;
-    public static RegistryObject<HappinessFunctionEntry> unemploymentFunction;
-    public static RegistryObject<HappinessFunctionEntry> healthFunction;
-    public static RegistryObject<HappinessFunctionEntry> idleatjobFunction;
-    public static RegistryObject<HappinessFunctionEntry> sleptTonightFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> housingFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> unemploymentFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> healthFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> idleatjobFunction;
+    public static FabricRegistryObject<HappinessFunctionEntry> sleptTonightFunction;
 
 }

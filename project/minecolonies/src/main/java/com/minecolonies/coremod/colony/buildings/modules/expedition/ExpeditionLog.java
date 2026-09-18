@@ -13,7 +13,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -250,7 +250,7 @@ public class ExpeditionLog
         final ListTag equipment = new ListTag();
         for (final ItemStack stack : this.equipment)
         {
-            equipment.add(stack.serializeNBT());
+            equipment.add(stack.save(new net.minecraft.nbt.CompoundTag()));
         }
         compound.put(TAG_EQUIPMENT, equipment);
 
@@ -258,7 +258,7 @@ public class ExpeditionLog
         for (final Map.Entry<EntityType<?>, Integer> entry : this.mobs.entrySet())
         {
             final CompoundTag mob = new CompoundTag();
-            mob.putString(TAG_TYPE, ForgeRegistries.ENTITY_TYPES.getKey(entry.getKey()).toString());
+            mob.putString(TAG_TYPE, FabricRegistries.ENTITY_TYPES.getKey(entry.getKey()).toString());
             mob.putInt(TAG_COUNT, entry.getValue());
             mobs.add(mob);
         }
@@ -307,7 +307,7 @@ public class ExpeditionLog
         {
             final CompoundTag mob = mobs.getCompound(i);
             final ResourceLocation type = new ResourceLocation(mob.getString(TAG_TYPE));
-            final EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(type);
+            final EntityType<?> entityType = FabricRegistries.ENTITY_TYPES.getValue(type);
             if (entityType != null)
             {
                 this.mobs.put(entityType, mob.getInt(TAG_COUNT));
@@ -347,7 +347,7 @@ public class ExpeditionLog
         buf.writeVarInt(this.mobs.size());
         for (final Map.Entry<EntityType<?>, Integer> entry : this.mobs.entrySet())
         {
-            buf.writeRegistryIdUnsafe(ForgeRegistries.ENTITY_TYPES, entry.getKey());
+            com.minecolonies.fabric.network.FabricBufUtils.writeRegistryIdUnsafe(buf, FabricRegistries.ENTITY_TYPES, entry.getKey());
             buf.writeVarInt(entry.getValue());
         }
 
@@ -384,7 +384,7 @@ public class ExpeditionLog
         this.mobs.clear();
         for (int size = buf.readVarInt(); size > 0; --size)
         {
-            final EntityType<?> entityType = buf.readRegistryIdUnsafe(ForgeRegistries.ENTITY_TYPES);
+            final EntityType<?> entityType = com.minecolonies.fabric.network.FabricBufUtils.readRegistryIdUnsafe(buf, FabricRegistries.ENTITY_TYPES);
             final int count = buf.readVarInt();
             if (entityType != null)
             {

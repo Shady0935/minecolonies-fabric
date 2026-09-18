@@ -27,8 +27,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BannerPatterns;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.minecolonies.api.util.constant.translation.BaseGameTranslationConstants.BASE_GUI_DONE;
-import static net.minecraft.client.gui.components.Button.DEFAULT_NARRATION;
+import static com.minecolonies.fabric.client.ButtonCompat.DEFAULT_NARRATION;
 
 /**
  * A custom rendered Screen (i.e. not blockui) that renders a picker for the banners,
@@ -216,10 +216,7 @@ public class WindowBannerPicker extends Screen
      */
     protected void createCloseButtons()
     {
-        this.addRenderableWidget(new Button(
-                center(this.width, 2, 80, 1, 10),
-                this.height - 40,
-                80, SIDE,
+        this.addRenderableWidget(Button.builder(
                 Component.translatable(BASE_GUI_DONE),
                 pressed -> {
                     BannerPattern.Builder builder = new BannerPattern.Builder();
@@ -228,15 +225,11 @@ public class WindowBannerPicker extends Screen
 
                     colony.setColonyFlag(builder.toListTag());
                     window.open();
-                }, DEFAULT_NARRATION
-        ));
-        this.addRenderableWidget(new Button(
-                center(this.width, 2, 80, 0, 10),
-                this.height - 40,
-                80, SIDE,
+                }).bounds(center(this.width, 2, 80, 1, 10), this.height - 40, 80, SIDE).build());
+        this.addRenderableWidget(Button.builder(
                 Component.translatable("gui.cancel"),
-                pressed -> window.open(), DEFAULT_NARRATION
-        ));
+                pressed -> window.open()
+        ).bounds(center(this.width, 2, 80, 0, 10), this.height - 40, 80, SIDE).build());
     }
 
     /**
@@ -490,7 +483,7 @@ public class WindowBannerPicker extends Screen
             int tempIndex = 0;
             for (final Holder<BannerPattern> pat : WindowBannerPicker.this.patterns)
             {
-                if (pat.get().getHashname().equals(pattern.get().getHashname()))
+                if (pat.value().getHashname().equals(pattern.value().getHashname()))
                 {
                     this.index = tempIndex;
                     break;
@@ -521,7 +514,7 @@ public class WindowBannerPicker extends Screen
             }
             catch (final Exception ex)
             {
-                Log.getLogger().warn(pattern.get().getHashname());
+                Log.getLogger().warn(pattern.value().getHashname());
                 Log.getLogger().error(ex);
             }
         }

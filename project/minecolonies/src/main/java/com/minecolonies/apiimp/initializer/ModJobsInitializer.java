@@ -8,14 +8,14 @@ import com.minecolonies.coremod.colony.jobs.views.CrafterJobView;
 import com.minecolonies.coremod.colony.jobs.views.DefaultJobView;
 import com.minecolonies.coremod.colony.jobs.views.DmanJobView;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 
 import java.util.function.Supplier;
 
 public final class ModJobsInitializer
 {
-    public final static DeferredRegister<JobEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "jobs"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<JobEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "jobs"), Constants.MOD_ID);
 
     private ModJobsInitializer()
     {
@@ -308,7 +308,7 @@ public final class ModJobsInitializer
      * @param supplier the supplier of the entry.
      * @return the registry object.
      */
-    private static RegistryObject<JobEntry> register(final DeferredRegister<JobEntry> deferredRegister, final String path, final Supplier<JobEntry> supplier)
+    private static FabricRegistryObject<JobEntry> register(final FabricDeferredRegister<JobEntry> deferredRegister, final String path, final Supplier<JobEntry> supplier)
     {
         ModJobs.jobs.add(new ResourceLocation(Constants.MOD_ID, path));
         return deferredRegister.register(path, supplier);

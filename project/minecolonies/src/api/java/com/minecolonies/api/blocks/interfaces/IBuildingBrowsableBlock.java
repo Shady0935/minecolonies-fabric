@@ -1,6 +1,6 @@
 package com.minecolonies.api.blocks.interfaces;
 
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import com.minecolonies.fabric.event.entity.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**

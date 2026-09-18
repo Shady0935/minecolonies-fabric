@@ -6,11 +6,11 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
@@ -51,7 +51,7 @@ public class VanillaParticleMessage implements IMessage
         x = byteBuf.readDouble();
         y = byteBuf.readDouble();
         z = byteBuf.readDouble();
-        this.type = (SimpleParticleType) ForgeRegistries.PARTICLE_TYPES.getValue(byteBuf.readResourceLocation());
+        this.type = (SimpleParticleType) FabricRegistries.PARTICLE_TYPES.getValue(byteBuf.readResourceLocation());
     }
 
     @Override
@@ -60,7 +60,7 @@ public class VanillaParticleMessage implements IMessage
         byteBuf.writeDouble(x);
         byteBuf.writeDouble(y);
         byteBuf.writeDouble(z);
-        byteBuf.writeResourceLocation(ForgeRegistries.PARTICLE_TYPES.getKey(this.type));
+        byteBuf.writeResourceLocation(FabricRegistries.PARTICLE_TYPES.getKey(this.type));
     }
 
     @Nullable

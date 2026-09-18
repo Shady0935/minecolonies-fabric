@@ -31,7 +31,7 @@ import java.util.*;
 
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_CURR_STAGE;
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_TOTAL_STAGES;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
 
 /**
  * The structureBuilder building.

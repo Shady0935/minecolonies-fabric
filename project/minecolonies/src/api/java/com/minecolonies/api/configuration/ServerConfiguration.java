@@ -2,7 +2,7 @@ package com.minecolonies.api.configuration;
 
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.util.constant.CitizenConstants;
-import net.minecraftforge.common.ForgeConfigSpec;
+import com.minecolonies.fabric.config.FabricConfigSpec;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,138 +18,138 @@ public class ServerConfiguration extends AbstractConfiguration
      *  ------------------- ######## Gameplay settings ######## ------------------- *
      *  --------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.IntValue     initialCitizenAmount;
-    public final ForgeConfigSpec.BooleanValue builderPlaceConstructionTape;
-    public final ForgeConfigSpec.BooleanValue allowInfiniteSupplyChests;
-    public final ForgeConfigSpec.BooleanValue allowInfiniteColonies;
-    public final ForgeConfigSpec.BooleanValue allowOtherDimColonies;
-    public final ForgeConfigSpec.IntValue     citizenRespawnInterval;
-    public final ForgeConfigSpec.IntValue     maxCitizenPerColony;
-    public final ForgeConfigSpec.IntValue     builderBuildBlockDelay;
-    public final ForgeConfigSpec.IntValue     blockMiningDelayModifier;
-    public final ForgeConfigSpec.BooleanValue enableInDevelopmentFeatures;
-    public final ForgeConfigSpec.BooleanValue alwaysRenderNameTag;
-    public final ForgeConfigSpec.BooleanValue workersAlwaysWorkInRain;
-    public final ForgeConfigSpec.BooleanValue sendEnteringLeavingMessages;
-    public final ForgeConfigSpec.IntValue     allowGlobalNameChanges;
-    public final ForgeConfigSpec.BooleanValue holidayFeatures;
-    public final ForgeConfigSpec.IntValue     dirtFromCompost;
-    public final ForgeConfigSpec.IntValue     luckyBlockChance;
-    public final ForgeConfigSpec.IntValue     minThLevelToTeleport;
-    public final ForgeConfigSpec.BooleanValue suggestBuildToolPlacement;
-    public final ForgeConfigSpec.DoubleValue  foodModifier;
-    public final ForgeConfigSpec.IntValue     diseaseModifier;
-    public final ForgeConfigSpec.BooleanValue forceLoadColony;
-    public final ForgeConfigSpec.IntValue     loadtime;
-    public final ForgeConfigSpec.IntValue     colonyLoadStrictness;
-    public final ForgeConfigSpec.IntValue     badVisitorsChance;
-    public final ForgeConfigSpec.IntValue     maxTreeSize;
-    public final ForgeConfigSpec.BooleanValue noSupplyPlacementRestrictions;
-    public final ForgeConfigSpec.BooleanValue skyRaiders;
+    public final FabricConfigSpec.IntValue     initialCitizenAmount;
+    public final FabricConfigSpec.BooleanValue builderPlaceConstructionTape;
+    public final FabricConfigSpec.BooleanValue allowInfiniteSupplyChests;
+    public final FabricConfigSpec.BooleanValue allowInfiniteColonies;
+    public final FabricConfigSpec.BooleanValue allowOtherDimColonies;
+    public final FabricConfigSpec.IntValue     citizenRespawnInterval;
+    public final FabricConfigSpec.IntValue     maxCitizenPerColony;
+    public final FabricConfigSpec.IntValue     builderBuildBlockDelay;
+    public final FabricConfigSpec.IntValue     blockMiningDelayModifier;
+    public final FabricConfigSpec.BooleanValue enableInDevelopmentFeatures;
+    public final FabricConfigSpec.BooleanValue alwaysRenderNameTag;
+    public final FabricConfigSpec.BooleanValue workersAlwaysWorkInRain;
+    public final FabricConfigSpec.BooleanValue sendEnteringLeavingMessages;
+    public final FabricConfigSpec.IntValue     allowGlobalNameChanges;
+    public final FabricConfigSpec.BooleanValue holidayFeatures;
+    public final FabricConfigSpec.IntValue     dirtFromCompost;
+    public final FabricConfigSpec.IntValue     luckyBlockChance;
+    public final FabricConfigSpec.IntValue     minThLevelToTeleport;
+    public final FabricConfigSpec.BooleanValue suggestBuildToolPlacement;
+    public final FabricConfigSpec.DoubleValue  foodModifier;
+    public final FabricConfigSpec.IntValue     diseaseModifier;
+    public final FabricConfigSpec.BooleanValue forceLoadColony;
+    public final FabricConfigSpec.IntValue     loadtime;
+    public final FabricConfigSpec.IntValue     colonyLoadStrictness;
+    public final FabricConfigSpec.IntValue     badVisitorsChance;
+    public final FabricConfigSpec.IntValue     maxTreeSize;
+    public final FabricConfigSpec.BooleanValue noSupplyPlacementRestrictions;
+    public final FabricConfigSpec.BooleanValue skyRaiders;
 
     /*  --------------------------------------------------------------------------- *
      *  ------------------- ######## Research settings ######## ------------------- *
      *  --------------------------------------------------------------------------- */
-    public final ForgeConfigSpec.BooleanValue                        researchCreativeCompletion;
-    public final ForgeConfigSpec.BooleanValue                        researchDebugLog;
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> researchResetCost;
+    public final FabricConfigSpec.BooleanValue                        researchCreativeCompletion;
+    public final FabricConfigSpec.BooleanValue                        researchDebugLog;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> researchResetCost;
 
     /*  --------------------------------------------------------------------------- *
      *  ------------------- ######## Command settings ######## ------------------- *
      *  --------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.BooleanValue canPlayerUseRTPCommand;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseColonyTPCommand;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseAllyTHTeleport;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseHomeTPCommand;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseShowColonyInfoCommand;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseKillCitizensCommand;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseAddOfficerCommand;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseDeleteColonyCommand;
-    public final ForgeConfigSpec.IntValue     numberOfAttemptsForSafeTP;
+    public final FabricConfigSpec.BooleanValue canPlayerUseRTPCommand;
+    public final FabricConfigSpec.BooleanValue canPlayerUseColonyTPCommand;
+    public final FabricConfigSpec.BooleanValue canPlayerUseAllyTHTeleport;
+    public final FabricConfigSpec.BooleanValue canPlayerUseHomeTPCommand;
+    public final FabricConfigSpec.BooleanValue canPlayerUseShowColonyInfoCommand;
+    public final FabricConfigSpec.BooleanValue canPlayerUseKillCitizensCommand;
+    public final FabricConfigSpec.BooleanValue canPlayerUseAddOfficerCommand;
+    public final FabricConfigSpec.BooleanValue canPlayerUseDeleteColonyCommand;
+    public final FabricConfigSpec.IntValue     numberOfAttemptsForSafeTP;
 
     /*  --------------------------------------------------------------------------- *
      *  ------------------- ######## Claim settings ######## ------------------- *
      *  --------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.IntValue     maxColonySize;
-    public final ForgeConfigSpec.IntValue     minColonyDistance;
-    public final ForgeConfigSpec.IntValue     initialColonySize;
-    public final ForgeConfigSpec.BooleanValue restrictColonyPlacement;
-    public final ForgeConfigSpec.IntValue     maxDistanceFromWorldSpawn;
-    public final ForgeConfigSpec.IntValue     minDistanceFromWorldSpawn;
-    public final ForgeConfigSpec.BooleanValue officersReceiveAdvancements;
+    public final FabricConfigSpec.IntValue     maxColonySize;
+    public final FabricConfigSpec.IntValue     minColonyDistance;
+    public final FabricConfigSpec.IntValue     initialColonySize;
+    public final FabricConfigSpec.BooleanValue restrictColonyPlacement;
+    public final FabricConfigSpec.IntValue     maxDistanceFromWorldSpawn;
+    public final FabricConfigSpec.IntValue     minDistanceFromWorldSpawn;
+    public final FabricConfigSpec.BooleanValue officersReceiveAdvancements;
 
     /*  ------------------------------------------------------------------------- *
      *  ------------------- ######## Combat Settings ######## ------------------- *
      *  ------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.BooleanValue doBarbariansSpawn;
-    public final ForgeConfigSpec.IntValue     barbarianHordeDifficulty;
-    public final ForgeConfigSpec.IntValue     maxBarbarianSize;
-    public final ForgeConfigSpec.BooleanValue doBarbariansBreakThroughWalls;
-    public final ForgeConfigSpec.IntValue     averageNumberOfNightsBetweenRaids;
-    public final ForgeConfigSpec.IntValue     minimumNumberOfNightsBetweenRaids;
-    public final ForgeConfigSpec.BooleanValue shouldRaidersBreakDoors;
-    public final ForgeConfigSpec.BooleanValue mobAttackCitizens;
-    public final ForgeConfigSpec.BooleanValue citizenCallForHelp;
-    public final ForgeConfigSpec.DoubleValue  rangerDamageMult;
-    public final ForgeConfigSpec.DoubleValue  knightDamageMult;
-    public final ForgeConfigSpec.DoubleValue  guardHealthMult;
-    public final ForgeConfigSpec.BooleanValue pvp_mode;
-    public final ForgeConfigSpec.IntValue     daysUntilPirateshipsDespawn;
-    public final ForgeConfigSpec.IntValue     maxYForBarbarians;
+    public final FabricConfigSpec.BooleanValue doBarbariansSpawn;
+    public final FabricConfigSpec.IntValue     barbarianHordeDifficulty;
+    public final FabricConfigSpec.IntValue     maxBarbarianSize;
+    public final FabricConfigSpec.BooleanValue doBarbariansBreakThroughWalls;
+    public final FabricConfigSpec.IntValue     averageNumberOfNightsBetweenRaids;
+    public final FabricConfigSpec.IntValue     minimumNumberOfNightsBetweenRaids;
+    public final FabricConfigSpec.BooleanValue shouldRaidersBreakDoors;
+    public final FabricConfigSpec.BooleanValue mobAttackCitizens;
+    public final FabricConfigSpec.BooleanValue citizenCallForHelp;
+    public final FabricConfigSpec.DoubleValue  rangerDamageMult;
+    public final FabricConfigSpec.DoubleValue  knightDamageMult;
+    public final FabricConfigSpec.DoubleValue  guardHealthMult;
+    public final FabricConfigSpec.BooleanValue pvp_mode;
+    public final FabricConfigSpec.IntValue     daysUntilPirateshipsDespawn;
+    public final FabricConfigSpec.IntValue     maxYForBarbarians;
 
     /*  ----------------------------------------------------------------------------- *
      *  ------------------- ######## Permission Settings ######## ------------------- *
      *  ----------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.BooleanValue                        enableColonyProtection;
-    public final ForgeConfigSpec.EnumValue<Explosions>               turnOffExplosionsInColonies;
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> specialPermGroup;
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> freeToInteractBlocks;
-    public final ForgeConfigSpec.IntValue                            secondsBetweenPermissionMessages;
-    public final ForgeConfigSpec.IntValue                            maxkeptbackups;
+    public final FabricConfigSpec.BooleanValue                        enableColonyProtection;
+    public final FabricConfigSpec.EnumValue<Explosions>               turnOffExplosionsInColonies;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> specialPermGroup;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> freeToInteractBlocks;
+    public final FabricConfigSpec.IntValue                            secondsBetweenPermissionMessages;
+    public final FabricConfigSpec.IntValue                            maxkeptbackups;
 
     /*  -------------------------------------------------------------------------------- *
      *  ------------------- ######## Compatibility Settings ######## ------------------- *
      *  -------------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> configListStudyItems;
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> configListRecruitmentItems;
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> luckyOres;
-    public final ForgeConfigSpec.IntValue                            dynamicTreeHarvestSize;
-    public final ForgeConfigSpec.IntValue                            fishingRodDurabilityAdjustT1;
-    public final ForgeConfigSpec.IntValue                            fishingRodDurabilityAdjustT2;
-    public final ForgeConfigSpec.ConfigValue<List<? extends String>> diseases;
-    public final ForgeConfigSpec.BooleanValue                        auditCraftingTags;
-    public final ForgeConfigSpec.BooleanValue                        debugInventories;
-    public final ForgeConfigSpec.BooleanValue                        blueprintBuildMode;
-    public final ForgeConfigSpec.IntValue                            maxItemSubTypeScan;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> configListStudyItems;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> configListRecruitmentItems;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> luckyOres;
+    public final FabricConfigSpec.IntValue                            dynamicTreeHarvestSize;
+    public final FabricConfigSpec.IntValue                            fishingRodDurabilityAdjustT1;
+    public final FabricConfigSpec.IntValue                            fishingRodDurabilityAdjustT2;
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> diseases;
+    public final FabricConfigSpec.BooleanValue                        auditCraftingTags;
+    public final FabricConfigSpec.BooleanValue                        debugInventories;
+    public final FabricConfigSpec.BooleanValue                        blueprintBuildMode;
+    public final FabricConfigSpec.IntValue                            maxItemSubTypeScan;
 
     /*  ------------------------------------------------------------------------------ *
      *  ------------------- ######## Pathfinding Settings ######## ------------------- *
      *  ------------------------------------------------------------------------------ */
 
-    public final ForgeConfigSpec.IntValue pathfindingDebugVerbosity;
-    public final ForgeConfigSpec.IntValue pathfindingMaxThreadCount;
-    public final ForgeConfigSpec.IntValue minimumRailsToPath;
+    public final FabricConfigSpec.IntValue pathfindingDebugVerbosity;
+    public final FabricConfigSpec.IntValue pathfindingMaxThreadCount;
+    public final FabricConfigSpec.IntValue minimumRailsToPath;
 
     /*  --------------------------------------------------------------------------------- *
      *  ------------------- ######## Request System Settings ######## ------------------- *
      *  --------------------------------------------------------------------------------- */
 
-    public final ForgeConfigSpec.IntValue     maximalRetries;
-    public final ForgeConfigSpec.IntValue     delayBetweenRetries;
-    public final ForgeConfigSpec.BooleanValue creativeResolve;
-    public final ForgeConfigSpec.BooleanValue canPlayerUseResetCommand;
+    public final FabricConfigSpec.IntValue     maximalRetries;
+    public final FabricConfigSpec.IntValue     delayBetweenRetries;
+    public final FabricConfigSpec.BooleanValue creativeResolve;
+    public final FabricConfigSpec.BooleanValue canPlayerUseResetCommand;
 
     /**
      * Builds server configuration.
      *
      * @param builder config builder
      */
-    protected ServerConfiguration(final ForgeConfigSpec.Builder builder)
+    protected ServerConfiguration(final FabricConfigSpec.Builder builder)
     {
         createCategory(builder, "gameplay");
 

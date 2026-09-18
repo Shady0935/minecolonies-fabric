@@ -13,11 +13,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import static com.minecolonies.api.util.SoundUtils.PITCH;
@@ -150,7 +150,7 @@ public class PlaySoundForCitizenMessage implements IMessage
     @Override
     public void toBytes(final FriendlyByteBuf buf)
     {
-        buf.writeResourceLocation(ForgeRegistries.SOUND_EVENTS.getKey(this.soundEvent));
+        buf.writeResourceLocation(FabricRegistries.SOUND_EVENTS.getKey(this.soundEvent));
         buf.writeInt(this.soundSource.ordinal());
         buf.writeBlockPos(this.pos);
         buf.writeUtf(this.dimensionID.location().toString());
@@ -164,7 +164,7 @@ public class PlaySoundForCitizenMessage implements IMessage
     @Override
     public void fromBytes(final FriendlyByteBuf buf)
     {
-        this.soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(buf.readResourceLocation());
+        this.soundEvent = FabricRegistries.SOUND_EVENTS.getValue(buf.readResourceLocation());
         this.soundSource = SoundSource.values()[buf.readInt()];
         this.pos = buf.readBlockPos();
         this.dimensionID = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buf.readUtf(32767)));

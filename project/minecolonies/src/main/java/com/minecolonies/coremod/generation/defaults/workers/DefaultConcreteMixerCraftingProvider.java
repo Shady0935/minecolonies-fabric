@@ -10,7 +10,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -46,9 +46,9 @@ public class DefaultConcreteMixerCraftingProvider extends CustomRecipeProvider
         for (final DyeColor color : DyeColor.values())
         {
             final String prefix = color.name().toLowerCase(Locale.ROOT);
-            final Item powder = ForgeRegistries.ITEMS.getValue(new ResourceLocation(prefix + "_concrete_powder"));
-            final Item concrete = ForgeRegistries.ITEMS.getValue(new ResourceLocation(prefix + "_concrete"));
-            final Item dye = ForgeRegistries.ITEMS.getValue(new ResourceLocation(prefix + "_dye"));
+            final Item powder = FabricRegistries.ITEMS.getValue(new ResourceLocation(prefix + "_concrete_powder"));
+            final Item concrete = FabricRegistries.ITEMS.getValue(new ResourceLocation(prefix + "_concrete"));
+            final Item dye = FabricRegistries.ITEMS.getValue(new ResourceLocation(prefix + "_dye"));
 
             if (powder == null || concrete == null || dye == null)
             {
@@ -58,12 +58,12 @@ public class DefaultConcreteMixerCraftingProvider extends CustomRecipeProvider
             final List<ItemStorage> customInput = new ArrayList<>(input);
             customInput.add(new ItemStorage(new ItemStack(dye)));
 
-            CustomRecipeBuilder.create(ModJobs.CONCRETE_ID.getPath(),  MODULE_CUSTOM, ForgeRegistries.ITEMS.getKey(powder).getPath())
+            CustomRecipeBuilder.create(ModJobs.CONCRETE_ID.getPath(),  MODULE_CUSTOM, FabricRegistries.ITEMS.getKey(powder).getPath())
                     .inputs(customInput)
                     .result(new ItemStack(powder, 8))
                     .build(consumer);
 
-            CustomRecipeBuilder.create(ModJobs.CONCRETE_ID.getPath(), MODULE_CUSTOM, ForgeRegistries.ITEMS.getKey(concrete).getPath())
+            CustomRecipeBuilder.create(ModJobs.CONCRETE_ID.getPath(), MODULE_CUSTOM, FabricRegistries.ITEMS.getKey(concrete).getPath())
                     .inputs(Collections.singletonList(new ItemStorage(new ItemStack(powder))))
                     .result(new ItemStack(concrete))
                     //.intermediate(Blocks.WATER)

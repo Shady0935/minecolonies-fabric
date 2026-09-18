@@ -51,12 +51,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.common.util.FakePlayer;
+import com.minecolonies.fabric.common.util.FakePlayerFactory;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -760,7 +760,7 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
             final BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof TileEntityRack && ((TileEntityRack) entity).hasItemStack(is, 1, false))
             {
-                entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null)
+                com.minecolonies.fabric.capability.CapabilityHooks.getCapability(entity, ForgeCapabilities.ITEM_HANDLER, null)
                       .ifPresent((handler) ->  InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(handler, (stack) -> ItemStackUtils.compareItemStacksIgnoreStackSize(is, stack), getInventory()));
                 return true;
             }
@@ -987,7 +987,7 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
 
                     if (((TileEntityRack) entity).hasItemStack(toolPredicate))
                     {
-                        if (InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElseGet(null), toolPredicate, worker.getInventoryCitizen()))
+                        if (InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(com.minecolonies.fabric.capability.CapabilityHooks.getCapability(entity, ForgeCapabilities.ITEM_HANDLER, null).orElseGet(null), toolPredicate, worker.getInventoryCitizen()))
                         {
                             return true;
                         }

@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.inventory.InvWrapper;
+import com.minecolonies.fabric.network.NetworkEvent;
 
 /**
  * Issues the upgrade of the warehouse pos level 5.
@@ -51,7 +51,7 @@ public class UpgradeWarehouseMessage extends AbstractBuildingServerMessage<Build
             return;
         }
 
-        building.upgradeContainers(player.level);
+        building.upgradeContainers(player.level());
 
         final boolean isCreative = player.isCreative();
         if (!isCreative)

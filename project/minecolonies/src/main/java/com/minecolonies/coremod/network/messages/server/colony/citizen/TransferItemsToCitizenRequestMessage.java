@@ -13,8 +13,8 @@ import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMess
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

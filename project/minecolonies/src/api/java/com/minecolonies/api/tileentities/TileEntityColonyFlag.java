@@ -18,8 +18,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 
 import java.util.List;
 
@@ -78,7 +78,6 @@ public class TileEntityColonyFlag extends BlockEntity
     @Override
     public CompoundTag getUpdateTag() { return this.saveWithId(); }
 
-    @Override
     public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket packet)
     {
         final CompoundTag compound = packet.getTag();
@@ -123,7 +122,7 @@ public class TileEntityColonyFlag extends BlockEntity
         for (Pair<Holder<BannerPattern>, DyeColor> pair : list)
         {
             CompoundTag pairNBT = new CompoundTag();
-            pairNBT.putString(TAG_SINGLE_PATTERN, pair.getFirst().get().getHashname());
+            pairNBT.putString(TAG_SINGLE_PATTERN, pair.getFirst().value().getHashname());
             pairNBT.putInt(TAG_PATTERN_COLOR, pair.getSecond().getId());
             nbt.add(pairNBT);
         }

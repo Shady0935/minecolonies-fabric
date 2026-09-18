@@ -38,7 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -193,7 +193,6 @@ public class ItemBannerRallyGuards extends AbstractItemMinecolonies
         return InteractionResultHolder.success(banner);
     }
 
-    @Override
     public boolean onDroppedByPlayer(final ItemStack item, final Player player)
     {
         if (!player.getCommandSenderWorld().isClientSide())
@@ -203,7 +202,7 @@ public class ItemBannerRallyGuards extends AbstractItemMinecolonies
             broadcastPlayerToRally(item, player.getCommandSenderWorld(), null);
         }
 
-        return super.onDroppedByPlayer(item, player);
+        return true;
     }
 
     /**
@@ -267,7 +266,7 @@ public class ItemBannerRallyGuards extends AbstractItemMinecolonies
         {
             compound.putBoolean(TAG_IS_ACTIVE, true);
 
-           final IColony colony = getColony(compound, playerIn.level);
+           final IColony colony = getColony(compound, playerIn.level());
            if (colony != null && colony.getPermissions().hasPermission(playerIn, Action.RALLY_GUARDS))
            {
                final int numGuards = broadcastPlayerToRally(banner, playerIn.getCommandSenderWorld(), playerIn == null ? null : new EntityLocation(playerIn.getUUID()));

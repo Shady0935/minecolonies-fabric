@@ -1,7 +1,7 @@
 package com.minecolonies.api.colony.managers.events;
 
 import com.minecolonies.api.colony.IColonyManager;
-import net.minecraftforge.eventbus.api.Event;
+import com.minecolonies.fabric.event.Event;
 import org.jetbrains.annotations.NotNull;
 
 /**

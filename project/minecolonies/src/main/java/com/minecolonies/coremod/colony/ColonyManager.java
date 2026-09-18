@@ -16,12 +16,10 @@ import com.minecolonies.api.util.DamageSourceKeys;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.Network;
-import com.minecolonies.coremod.client.gui.WindowReactivateBuilding;
 import com.minecolonies.coremod.colony.requestsystem.management.manager.StandardRecipeManager;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveMessage;
 import com.minecolonies.coremod.util.BackUpHelper;
 import com.minecolonies.coremod.util.ChunkDataHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -30,8 +28,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.event.TickEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +44,7 @@ import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_UUID;
 import static com.minecolonies.coremod.MineColonies.COLONY_MANAGER_CAP;
 import static com.minecolonies.coremod.MineColonies.getConfig;
 
-import net.minecraftforge.event.TickEvent.LevelTickEvent;
+import com.minecolonies.fabric.event.TickEvent.LevelTickEvent;
 
 /**
  * Singleton class that links colonies to minecraft.
@@ -88,7 +86,7 @@ public final class ColonyManager implements IColonyManager
     @Override
     public IColony createColony(@NotNull final Level w, final BlockPos pos, @NotNull final Player player, @NotNull final String colonyName, @NotNull final String pack)
     {
-        final IColonyManagerCapability cap = w.getCapability(COLONY_MANAGER_CAP, null).resolve().orElse(null);
+        final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(w, COLONY_MANAGER_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             Log.getLogger().warn(MISSING_WORLD_CAP_MESSAGE);
@@ -196,7 +194,7 @@ public final class ColonyManager implements IColonyManager
 
             Log.getLogger().info("Deleting colony: " + colony.getID());
 
-            final IColonyManagerCapability cap = world.getCapability(COLONY_MANAGER_CAP, null).resolve().orElse(null);
+            final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).resolve().orElse(null);
             if (cap == null)
             {
                 Log.getLogger().warn(MISSING_WORLD_CAP_MESSAGE);
@@ -228,7 +226,7 @@ public final class ColonyManager implements IColonyManager
     @Nullable
     public IColony getColonyByWorld(final int id, final Level world)
     {
-        final IColonyManagerCapability cap = world.getCapability(COLONY_MANAGER_CAP, null).resolve().orElse(null);
+            final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             Log.getLogger().warn(MISSING_WORLD_CAP_MESSAGE);
@@ -246,7 +244,7 @@ public final class ColonyManager implements IColonyManager
         {
             return null;
         }
-        final IColonyManagerCapability cap = world.getCapability(COLONY_MANAGER_CAP, null).resolve().orElse(null);
+            final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             Log.getLogger().warn(MISSING_WORLD_CAP_MESSAGE);
@@ -289,7 +287,7 @@ public final class ColonyManager implements IColonyManager
             return null;
         }
         final LevelChunk centralChunk = w.getChunkAt(pos);
-        final int id = centralChunk.getCapability(CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
+        final int id = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(centralChunk, CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
         if (id == 0)
         {
             return null;
@@ -323,7 +321,7 @@ public final class ColonyManager implements IColonyManager
     @NotNull
     public List<IColony> getColonies(@NotNull final Level w)
     {
-        final IColonyManagerCapability cap = w.getCapability(COLONY_MANAGER_CAP, null).resolve().orElse(null);
+        final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(w, COLONY_MANAGER_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             Log.getLogger().warn(MISSING_WORLD_CAP_MESSAGE);
@@ -339,7 +337,7 @@ public final class ColonyManager implements IColonyManager
         final List<IColony> allColonies = new ArrayList<>();
         for (final Level world : net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().getAllLevels())
         {
-            world.getCapability(COLONY_MANAGER_CAP, null).ifPresent(c -> allColonies.addAll(c.getColonies()));
+            com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).ifPresent(c -> allColonies.addAll(c.getColonies()));
         }
         return allColonies;
     }
@@ -389,7 +387,7 @@ public final class ColonyManager implements IColonyManager
     @Override
     public void openReactivationWindow(final BlockPos pos)
     {
-        new WindowReactivateBuilding(pos).open();
+        com.minecolonies.fabric.compat.FabricClientHooks.openReactivationWindow(pos);
     }
 
     /**
@@ -403,7 +401,7 @@ public final class ColonyManager implements IColonyManager
     {
         final LevelChunk centralChunk = w.getChunkAt(pos);
 
-        final int id = centralChunk.getCapability(CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
+        final int id = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(centralChunk, CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0);
         if (id == 0)
         {
             return null;
@@ -428,7 +426,7 @@ public final class ColonyManager implements IColonyManager
         }
 
         final LevelChunk chunk = w.getChunkAt(pos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             return null;
@@ -485,7 +483,7 @@ public final class ColonyManager implements IColonyManager
     public IColony getClosestColony(@NotNull final Level w, @NotNull final BlockPos pos)
     {
         final LevelChunk chunk = w.getChunkAt(pos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             return null;
@@ -651,7 +649,7 @@ public final class ColonyManager implements IColonyManager
     @Override
     public void onClientTick(@NotNull final TickEvent.ClientTickEvent event)
     {
-        if (event.phase == TickEvent.Phase.END && Minecraft.getInstance().level == null && !colonyViews.isEmpty())
+        if (event.phase == TickEvent.Phase.END && com.minecolonies.fabric.compat.FabricClientHooks.isClientWorldEmpty() && !colonyViews.isEmpty())
         {
             //  Player has left the game, clear the Colony View cache
             colonyViews.clear();
@@ -868,7 +866,7 @@ public final class ColonyManager implements IColonyManager
     public boolean isCoordinateInAnyColony(@NotNull final Level world, final BlockPos pos)
     {
         final LevelChunk centralChunk = world.getChunkAt(pos);
-        return centralChunk.getCapability(CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0) != 0;
+        return com.minecolonies.fabric.capability.CapabilityHooks.getCapability(centralChunk, CLOSE_COLONY_CAP, null).map(IColonyTagCapability::getOwningColony).orElse(0) != 0;
     }
 
     @Override
@@ -889,7 +887,7 @@ public final class ColonyManager implements IColonyManager
         int top = 0;
         for (final Level world : ServerLifecycleHooks.getCurrentServer().getAllLevels())
         {
-            final int tempTop = world.getCapability(COLONY_MANAGER_CAP, null).map(IColonyManagerCapability::getTopID).orElse(0);
+            final int tempTop = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).map(IColonyManagerCapability::getTopID).orElse(0);
             if (tempTop > top)
             {
                 top = tempTop;

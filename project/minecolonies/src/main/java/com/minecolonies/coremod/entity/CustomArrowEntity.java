@@ -13,7 +13,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
+import com.minecolonies.fabric.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
@@ -83,11 +83,11 @@ public class CustomArrowEntity extends Arrow
                 DamageSource source;
                 if (shooter == null)
                 {
-                    source = level.damageSources().arrow(this, this);
+                    source = level().damageSources().arrow(this, this);
                 }
                 else
                 {
-                    source = level.damageSources().arrow(this, shooter);
+                    source = level().damageSources().arrow(this, shooter);
                 }
                 player.hurt(source, (float) getBaseDamage());
                 setBaseDamage(0);
@@ -122,13 +122,12 @@ public class CustomArrowEntity extends Arrow
         armorPiercePlayer = true;
     }
 
-    @Override
     public boolean shouldFall()
     {
         if (this.inGround)
         {
             final AABB aabb = (new AABB(this.position(), this.position())).inflate(0.06D);
-            for(VoxelShape voxelshape : this.level.getBlockCollisions(null, aabb)) {
+            for(VoxelShape voxelshape : this.level().getBlockCollisions(null, aabb)) {
                 if (!voxelshape.isEmpty())
                 {
                     return false;

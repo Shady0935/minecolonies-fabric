@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -94,7 +94,7 @@ public class AnimalHerdingModule extends AbstractBuildingModule
     @NotNull
     public List<IGenericRecipe> getRecipesForDisplayPurposesOnly(@NotNull final Animal animal)
     {
-        return Collections.singletonList(new GenericRecipe(ForgeRegistries.ENTITY_TYPES.getKey(animal.getType()),
+        return Collections.singletonList(new GenericRecipe(FabricRegistries.ENTITY_TYPES.getKey(animal.getType()),
                 ItemStack.EMPTY,
                 Collections.emptyList(),
                 Collections.emptyList(),

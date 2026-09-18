@@ -54,7 +54,7 @@ public class ItemMilkyBread extends AbstractItemMinecolonies
         
         if (!worldIn.isClientSide)
         {
-            entityLiving.curePotionEffects(new ItemStack(Items.MILK_BUCKET));
+            entityLiving.removeAllEffects();
         }
 
         return super.finishUsingItem(stack, worldIn, entityLiving);

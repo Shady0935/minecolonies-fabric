@@ -40,7 +40,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
@@ -803,12 +803,12 @@ public abstract class AbstractEntityAIGuard<J extends AbstractJobGuard<J>, B ext
      */
     public static boolean isAttackableTarget(final AbstractEntityCitizen user, final LivingEntity entity)
     {
-        if (IColonyManager.getInstance().getCompatibilityManager().getAllMonsters().contains(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType())) && !user.getCitizenData()
+        if (IColonyManager.getInstance().getCompatibilityManager().getAllMonsters().contains(FabricRegistries.ENTITY_TYPES.getKey(entity.getType())) && !user.getCitizenData()
           .getWorkBuilding()
           .getModuleMatching(
             EntityListModule.class,
             m -> m.getId().equals(HOSTILE_LIST))
-          .isEntityInList(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType())))
+          .isEntityInList(FabricRegistries.ENTITY_TYPES.getKey(entity.getType())))
         {
             return true;
         }

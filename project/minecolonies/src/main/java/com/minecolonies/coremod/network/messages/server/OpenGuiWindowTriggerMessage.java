@@ -4,8 +4,8 @@ import com.minecolonies.api.advancements.AdvancementTriggers;
 import com.minecolonies.api.network.IMessage;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 public class OpenGuiWindowTriggerMessage implements IMessage

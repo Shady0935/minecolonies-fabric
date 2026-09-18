@@ -11,13 +11,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.SlotItemHandler;
+import com.minecolonies.fabric.common.brewing.BrewingRecipeRegistry;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandlerModifiable;
+import com.minecolonies.fabric.inventory.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.api.util.constant.InventoryConstants.*;
 
@@ -79,7 +79,7 @@ public class ContainerCraftingBrewingstand extends AbstractContainerMenu
             ItemStack potion = ItemStack.EMPTY;
 
             @Override
-            public void setStackInSlot(final int slot, @Nonnull final ItemStack stack)
+            public void setStackInSlot(final int slot, @NotNull final ItemStack stack)
             {
                 if (!isItemValid(slot, stack) && !ItemStackUtils.isEmpty(stack))
                 {
@@ -104,7 +104,7 @@ public class ContainerCraftingBrewingstand extends AbstractContainerMenu
                 return 4;
             }
 
-            @Nonnull
+            @NotNull
             @Override
             public ItemStack getStackInSlot(final int slot)
             {
@@ -118,9 +118,9 @@ public class ContainerCraftingBrewingstand extends AbstractContainerMenu
                 }
             }
 
-            @Nonnull
+            @NotNull
             @Override
-            public ItemStack insertItem(final int slot, @Nonnull final ItemStack stack, final boolean simulate)
+            public ItemStack insertItem(final int slot, @NotNull final ItemStack stack, final boolean simulate)
             {
                 if (!isItemValid(slot, stack) && !ItemStackUtils.isEmpty(stack))
                 {
@@ -140,7 +140,7 @@ public class ContainerCraftingBrewingstand extends AbstractContainerMenu
                 return stack;
             }
 
-            @Nonnull
+            @NotNull
             @Override
             public ItemStack extractItem(final int slot, final int amount, final boolean simulate)
             {
@@ -154,15 +154,15 @@ public class ContainerCraftingBrewingstand extends AbstractContainerMenu
             }
 
             @Override
-            public boolean isItemValid(final int slot, @Nonnull final ItemStack stack)
+            public boolean isItemValid(final int slot, @NotNull final ItemStack stack)
             {
                 if (slot == 3)
                 {
-                    return net.minecraftforge.common.brewing.BrewingRecipeRegistry.isValidIngredient(stack);
+                    return com.minecolonies.fabric.common.brewing.BrewingRecipeRegistry.isValidIngredient(stack);
                 }
                 else if (slot >= 0 && slot < 3)
                 {
-                    return net.minecraftforge.common.brewing.BrewingRecipeRegistry.isValidInput(stack);
+                    return com.minecolonies.fabric.common.brewing.BrewingRecipeRegistry.isValidInput(stack);
                 }
                 else
                 {

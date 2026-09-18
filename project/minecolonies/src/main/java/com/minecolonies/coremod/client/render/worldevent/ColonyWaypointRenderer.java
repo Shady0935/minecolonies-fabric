@@ -70,7 +70,7 @@ public class ColonyWaypointRenderer
             }
 
             BlueprintHandler.getInstance().drawAtListOfPositions(RenderingCache.getOrCreateBlueprintPreviewData("blueprint").getBlueprint().hashCode() == wayPointTemplate.hashCode() ? RenderingCache.getOrCreateBlueprintPreviewData("blueprint")
-              : wayPointTemplate, new ArrayList<>(ctx.nearestColony.getWayPoints().keySet()), ctx.stageEvent);
+              : wayPointTemplate, new ArrayList<>(ctx.nearestColony.getWayPoints().keySet()), ctx.renderContext);
         }
     }
 }

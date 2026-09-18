@@ -21,7 +21,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,7 +95,7 @@ public class CraftingTagAuditor
     {
         final ICompatibilityManager compatibility = IColonyManager.getInstance().getCompatibilityManager();
         final List<ItemStack> items = new ArrayList<>(compatibility.getListOfAllItems());
-        items.sort(Comparator.comparing(stack -> ForgeRegistries.ITEMS.getKey(stack.getItem()).toString()));
+        items.sort(Comparator.comparing(stack -> FabricRegistries.ITEMS.getKey(stack.getItem()).toString()));
         return items;
     }
 
@@ -135,14 +135,14 @@ public class CraftingTagAuditor
         writer.write("block,name,tags...");
         writer.newLine();
 
-        for (final Map.Entry<ResourceKey<Block>, Block> entry : ForgeRegistries.BLOCKS.getEntries())
+        for (final Map.Entry<ResourceKey<Block>, Block> entry : FabricRegistries.BLOCKS.getEntries())
         {
             writer.write(entry.getKey().location().toString());
             writer.write(',');
             writer.write('"');
             writer.write(Component.translatable(entry.getValue().getDescriptionId()).getString().replace("\"", "\"\""));
             writer.write('"');
-            ForgeRegistries.BLOCKS.tags().getReverseTag(entry.getValue()).ifPresent(tags ->
+            FabricRegistries.BLOCKS.tags().getReverseTag(entry.getValue()).ifPresent(tags ->
             {
                 tags.getTagKeys()
                         .map(t -> t.location().toString())
@@ -237,7 +237,7 @@ public class CraftingTagAuditor
                                      @NotNull final MinecraftServer server) throws IOException
     {
         final List<IGenericRecipe> cutterRecipes = new ArrayList<>(ModCraftingTypes.ARCHITECTS_CUTTER.get().findRecipes(server.getRecipeManager(), server.overworld()));
-        cutterRecipes.sort(Comparator.comparing(r -> ForgeRegistries.ITEMS.getKey(r.getPrimaryOutput().getItem()).toString()));
+        cutterRecipes.sort(Comparator.comparing(r -> FabricRegistries.ITEMS.getKey(r.getPrimaryOutput().getItem()).toString()));
         final List<ICraftingBuildingModule> crafters = getCraftingModules()
                 .stream()
                 .filter(m -> m.canLearn(ModCraftingTypes.ARCHITECTS_CUTTER.get()))
@@ -260,7 +260,7 @@ public class CraftingTagAuditor
                     .flatMap(Collection::stream)
                     .map(ItemStorage::new)
                     .distinct()
-                    .sorted(Comparator.comparing(s -> ForgeRegistries.ITEMS.getKey(s.getItem()).toString()))
+                    .sorted(Comparator.comparing(s -> FabricRegistries.ITEMS.getKey(s.getItem()).toString()))
                     .map(ItemStorage::getItemStack)
                     .toList();
             for (final ItemStack skin : allSkins)
@@ -337,7 +337,7 @@ public class CraftingTagAuditor
                                        @NotNull final ItemStack stack) throws IOException
     {
         writer.write('"');
-        writer.write(ForgeRegistries.ITEMS.getKey(stack.getItem()).toString());
+        writer.write(FabricRegistries.ITEMS.getKey(stack.getItem()).toString());
         if (stack.hasTag() && !stack.isDamageableItem())
         {
             writer.write(stack.getTag().toString().replace("\"", "\"\""));

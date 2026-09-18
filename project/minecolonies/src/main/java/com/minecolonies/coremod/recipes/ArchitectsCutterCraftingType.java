@@ -16,7 +16,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +41,7 @@ public class ArchitectsCutterCraftingType extends RecipeCraftingType<Container, 
         for (final ArchitectsCutterRecipe recipe : recipeManager.getAllRecipesFor(ModRecipeTypes.ARCHITECTS_CUTTER.get()))
         {
             // cutter recipes don't implement getIngredients(), so we have to work around it
-            final Block generatedBlock = ForgeRegistries.BLOCKS.getValue(recipe.getBlockName());
+            final Block generatedBlock = FabricRegistries.BLOCKS.getValue(recipe.getBlockName());
 
             if (!(generatedBlock instanceof final IMateriallyTexturedBlock materiallyTexturedBlock))
                 continue;
@@ -49,7 +49,7 @@ public class ArchitectsCutterCraftingType extends RecipeCraftingType<Container, 
             final List<List<ItemStack>> inputs = new ArrayList<>();
             for (final IMateriallyTexturedBlockComponent component : materiallyTexturedBlock.getComponents())
             {
-                final List<Block> blocks = ForgeRegistries.BLOCKS.tags().getTag(component.getValidSkins()).stream()
+                final List<Block> blocks = FabricRegistries.BLOCKS.tags().getTag(component.getValidSkins()).stream()
                         .collect(Collectors.toCollection(ArrayList::new));
                 Collections.shuffle(blocks, rnd);
                 inputs.add(blocks.stream().map(ItemStack::new).collect(Collectors.toList()));

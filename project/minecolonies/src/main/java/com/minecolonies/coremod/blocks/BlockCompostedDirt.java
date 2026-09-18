@@ -15,17 +15,17 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraftforge.common.IPlantable;
+import com.minecolonies.fabric.common.IPlantable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 /**
  * Block that if activated with BoneMeal or Compost by an AI will produce flowers by intervals until it deactivates
  */
-public class BlockCompostedDirt extends AbstractBlockMinecolonies<BlockCompostedDirt> implements ITickableBlockMinecolonies
+public class BlockCompostedDirt extends AbstractBlockMinecolonies<BlockCompostedDirt> implements ITickableBlockMinecolonies, IPlantable
 {
     private static final String     BLOCK_NAME     = "composted_dirt";
     private static final float      BLOCK_HARDNESS = 5f;
@@ -60,7 +60,6 @@ public class BlockCompostedDirt extends AbstractBlockMinecolonies<BlockComposted
         return SHAPE;
     }
 
-    @Override
     public boolean canSustainPlant(
       @NotNull final BlockState state,
       @NotNull final BlockGetter world,

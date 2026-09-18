@@ -314,7 +314,6 @@ public class TileEntityPlantationField extends AbstractTileEntityPlantationField
         this.mirror = mirror != Mirror.NONE;
     }
 
-    @Override
     public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket packet)
     {
         final CompoundTag compound = packet.getTag();

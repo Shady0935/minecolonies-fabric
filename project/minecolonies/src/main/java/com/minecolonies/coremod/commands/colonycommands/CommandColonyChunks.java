@@ -46,7 +46,8 @@ public class CommandColonyChunks implements IMCColonyOfficerCommand
 
         for (final Long chunkLong : colony.getLoadedChunks())
         {
-            final SortedArraySet<Ticket<?>> tickets = context.getSource().getLevel().getChunkSource().chunkMap.getDistanceManager().tickets.get((long) chunkLong);
+            final SortedArraySet<Ticket<?>> tickets = com.minecolonies.fabric.compat.FabricVanillaCompat.getTickets(
+              context.getSource().getLevel().getChunkSource().chunkMap.getDistanceManager(), (long) chunkLong);
             if (tickets != null)
             {
                 for (final Ticket<?> ticket : tickets)

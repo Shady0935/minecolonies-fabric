@@ -3,9 +3,8 @@ package com.minecolonies.api.util;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.Item;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
 
 /**
  * Class for specific minecraft tag utilities.
@@ -24,7 +23,7 @@ public final class TagUtils
      */
     public static TagKey<Item> getItem(final ResourceLocation resourceLocation)
     {
-        return ItemTags.create(resourceLocation);
+        return TagKey.create(Registries.ITEM, resourceLocation);
     }
 
     /**
@@ -34,6 +33,6 @@ public final class TagUtils
      */
     public static TagKey<Block> getBlock(final ResourceLocation resourceLocation)
     {
-        return BlockTags.create(resourceLocation);
+        return TagKey.create(Registries.BLOCK, resourceLocation);
     }
 }

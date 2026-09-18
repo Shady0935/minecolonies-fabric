@@ -15,7 +15,7 @@ import com.minecolonies.coremod.colony.requestsystem.resolvers.PrivateWorkerCraf
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 public class PrivateWorkerCraftingProductionResolverFactory implements IRequestResolverFactory<PrivateWorkerCraftingProductionResolver>
@@ -78,7 +78,7 @@ public class PrivateWorkerCraftingProductionResolverFactory implements IRequestR
     {
         controller.serialize(packetBuffer, input.getId());
         controller.serialize(packetBuffer, input.getLocation());
-        packetBuffer.writeRegistryId(IMinecoloniesAPI.getInstance().getJobRegistry(), input.getJobEntry());
+        com.minecolonies.fabric.network.FabricBufUtils.writeRegistryId(packetBuffer, IMinecoloniesAPI.getInstance().getJobRegistry(), input.getJobEntry());
     }
 
     @Override
@@ -86,7 +86,7 @@ public class PrivateWorkerCraftingProductionResolverFactory implements IRequestR
     {
         final IToken<?> token = controller.deserialize(buffer);
         final ILocation location = controller.deserialize(buffer);
-        final JobEntry entry = buffer.readRegistryId();
+        final JobEntry entry = com.minecolonies.fabric.network.FabricBufUtils.readRegistryId(buffer, IMinecoloniesAPI.getInstance().getJobRegistry());
 
         return new PrivateWorkerCraftingProductionResolver(location, token, entry);
     }

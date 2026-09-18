@@ -5,10 +5,10 @@ import com.minecolonies.coremod.client.render.worldevent.PathfindingDebugRendere
 import com.minecolonies.coremod.entity.pathfinding.MNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;

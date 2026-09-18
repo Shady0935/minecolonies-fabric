@@ -14,7 +14,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;

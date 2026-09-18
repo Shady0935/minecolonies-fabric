@@ -28,7 +28,6 @@ import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessa
 import com.minecolonies.coremod.network.messages.client.OpenPlantationFieldBuildWindowMessage;
 import com.minecolonies.coremod.util.AdvancementUtils;
 import com.minecolonies.coremod.util.ColonyUtils;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -40,12 +39,12 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.BlockSnapshot;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.common.util.BlockSnapshot;
+import com.minecolonies.fabric.event.level.BlockEvent;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -75,7 +74,7 @@ public class SurvivalHandler implements ISurvivalBlueprintHandler
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public boolean canHandle(final Blueprint blueprint, final ClientLevel clientLevel, final Player player, final BlockPos blockPos, final PlacementSettings placementSettings)
+    public boolean canHandle(final Blueprint blueprint, final Level clientLevel, final Player player, final BlockPos blockPos, final PlacementSettings placementSettings)
     {
         if (IMinecoloniesAPI.getInstance().getConfig().getServer().blueprintBuildMode.get())
         {
@@ -208,7 +207,7 @@ public class SurvivalHandler implements ISurvivalBlueprintHandler
                         String newBlueprintPath = blueprintPath;
                         newBlueprintPath = newBlueprintPath.substring(0, newBlueprintPath.length() - 1);
                         newBlueprintPath += level;
-                        CreativeBuildingStructureHandler.loadAndPlaceStructureWithRotation(player.level, StructurePacks.getBlueprintFuture(packName, newBlueprintPath),
+                        CreativeBuildingStructureHandler.loadAndPlaceStructureWithRotation(player.level(), StructurePacks.getBlueprintFuture(packName, newBlueprintPath),
                           blockPos, placementSettings.getRotation(), placementSettings.getMirror() != Mirror.NONE ? Mirror.FRONT_BACK : Mirror.NONE, true, (ServerPlayer) player);
                         finishedUpgrade = true;
                     }
@@ -317,7 +316,7 @@ public class SurvivalHandler implements ISurvivalBlueprintHandler
                 final int chunkZ = z >> 4;
                 final ChunkPos pos = new ChunkPos(chunkX, chunkZ);
 
-                final IColonyTagCapability colonyCap = world.getChunk(pos.x, pos.z).getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+                final IColonyTagCapability colonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world.getChunk(pos.x, pos.z), CLOSE_COLONY_CAP, null).orElseGet(null);
                 if (colonyCap == null || colonyCap.getOwningColony() != colony.getID())
                 {
                     return false;

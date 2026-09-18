@@ -16,7 +16,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -162,7 +162,7 @@ public class CustomRecipeFactory implements IFactory<FactoryVoidInput, CustomRec
             compound.put(RECIPE_ALTERNATE_PROP, altOutputs);
         }
 
-        compound.putString(RECIPE_INTERMEDIATE_PROP, ForgeRegistries.BLOCKS.getKey(recipe.getIntermediate()).toString());
+        compound.putString(RECIPE_INTERMEDIATE_PROP, FabricRegistries.BLOCKS.getKey(recipe.getIntermediate()).toString());
 
         return compound;
     }
@@ -248,7 +248,7 @@ public class CustomRecipeFactory implements IFactory<FactoryVoidInput, CustomRec
             }
         }
 
-        final Block intermediate = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(nbt.get(RECIPE_INTERMEDIATE_PROP).getAsString()));
+        final Block intermediate = FabricRegistries.BLOCKS.getValue(new ResourceLocation(nbt.get(RECIPE_INTERMEDIATE_PROP).getAsString()));
 
         return getNewInstance(crafter, minBldgLevel, maxBldgLevel, mustExist, showTooltip, recipeId, researchReq, researchExclude, lootTable, requiredTool, inputs, primaryOutput, secondaryOutput, altOutputs, intermediate);
     }
@@ -296,7 +296,7 @@ public class CustomRecipeFactory implements IFactory<FactoryVoidInput, CustomRec
         {
             packetBuffer.writeItem(alts);
         }
-        packetBuffer.writeResourceLocation(ForgeRegistries.BLOCKS.getKey(recipe.getIntermediate()));
+        packetBuffer.writeResourceLocation(FabricRegistries.BLOCKS.getKey(recipe.getIntermediate()));
     }
 
     @NotNull
@@ -354,7 +354,7 @@ public class CustomRecipeFactory implements IFactory<FactoryVoidInput, CustomRec
             altOutputs.add(buffer.readItem());
         }
         
-        final Block intermediate = ForgeRegistries.BLOCKS.getValue(buffer.readResourceLocation());
+        final Block intermediate = FabricRegistries.BLOCKS.getValue(buffer.readResourceLocation());
 
         return getNewInstance(crafter, minBldgLevel, maxBldgLevel, mustExist, showTooltip, recipeId, researchReq, researchExclude, lootTable, requiredTool, inputs, primaryOutput, secondaryOutput, altOutputs, intermediate);
     }

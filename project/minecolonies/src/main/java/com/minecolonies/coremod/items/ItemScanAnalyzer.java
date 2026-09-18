@@ -58,7 +58,7 @@ public class ItemScanAnalyzer extends AbstractItemWithPosSelector
       @NotNull final String name,
       final Item.Properties properties)
     {
-        super(properties.durability(0).setNoRepair().rarity(Rarity.UNCOMMON));
+        super(properties.durability(0).rarity(Rarity.UNCOMMON));
     }
 
     /**

@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.*;
-import net.minecraftforge.common.ToolActions;
+import com.minecolonies.fabric.common.ToolActions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -77,7 +77,7 @@ public class Tool implements IDeliverable
         compound.putString(NBT_TYPE, tool.getToolClass().getName());
         compound.putInt(NBT_MIN_LEVEL, tool.getMinLevel());
         compound.putInt(NBT_MAX_LEVEL, tool.getMaxLevel());
-        compound.put(NBT_RESULT, tool.getResult().serializeNBT());
+        compound.put(NBT_RESULT, tool.getResult().save(new net.minecraft.nbt.CompoundTag()));
 
         return compound;
     }
@@ -213,37 +213,37 @@ public class Tool implements IDeliverable
             return set;
         }
 
-        if (stack.canPerformAction(ToolActions.AXE_DIG))
+        if (ToolActions.canPerformAction(stack, ToolActions.AXE_DIG))
         {
             set.add(ToolType.AXE.getName());
         }
 
-        if (stack.canPerformAction(ToolActions.PICKAXE_DIG))
+        if (ToolActions.canPerformAction(stack, ToolActions.PICKAXE_DIG))
         {
             set.add(ToolType.PICKAXE.getName());
         }
 
-        if (stack.canPerformAction(ToolActions.SHOVEL_DIG))
+        if (ToolActions.canPerformAction(stack, ToolActions.SHOVEL_DIG))
         {
             set.add(ToolType.SHOVEL.getName());
         }
 
-        if (stack.canPerformAction(ToolActions.HOE_DIG))
+        if (ToolActions.canPerformAction(stack, ToolActions.HOE_DIG))
         {
             set.add(ToolType.HOE.getName());
         }
 
-        if (stack.canPerformAction(ToolActions.SWORD_SWEEP))
+        if (ToolActions.canPerformAction(stack, ToolActions.SWORD_SWEEP))
         {
             set.add(ToolType.SWORD.getName());
         }
 
-        if (stack.canPerformAction(ToolActions.SHEARS_DIG))
+        if (ToolActions.canPerformAction(stack, ToolActions.SHEARS_DIG))
         {
             set.add(ToolType.SHEARS.getName());
         }
 
-        if (stack.canPerformAction(ToolActions.FISHING_ROD_CAST))
+        if (ToolActions.canPerformAction(stack, ToolActions.FISHING_ROD_CAST))
         {
             set.add(ToolType.FISHINGROD.getName());
         }

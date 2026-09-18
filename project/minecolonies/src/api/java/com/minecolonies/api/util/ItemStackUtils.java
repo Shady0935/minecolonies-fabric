@@ -29,9 +29,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.common.ToolAction;
+import com.minecolonies.fabric.common.ToolActions;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,7 +101,7 @@ public final class ItemStackUtils
     public static final Predicate<ItemStack> ISFOOD =
       stack ->
       {
-          final FoodProperties foodProperties = stack.isEdible() ? stack.getFoodProperties(null) : null;
+          final FoodProperties foodProperties = stack.isEdible() ? stack.getItem().getFoodProperties() : null;
           return ItemStackUtils.isNotEmpty(stack) && foodProperties != null && foodProperties.getNutrition() > 0
                      && foodProperties.getSaturationModifier() > 0;
       };
@@ -234,7 +234,7 @@ public final class ItemStackUtils
             }
             else if (entity instanceof ArmorStand)
             {
-                request.add(new ItemStorage(entity.getPickedResult(new EntityHitResult(placer))));
+                request.add(new ItemStorage(entity.getPickResult()));
                 entity.getArmorSlots().forEach(item -> request.add(new ItemStorage(item)));
                 entity.getHandSlots().forEach(item -> request.add(new ItemStorage(item)));
             }
@@ -280,6 +280,17 @@ public final class ItemStackUtils
     public static boolean isEmpty(@Nullable final ItemStack stack)
     {
         return stack == null || stack.isEmpty();
+    }
+
+    /** Fabric/vanilla 1.20.1 equivalent of Forge's ItemStack container helper. */
+    @NotNull
+    public static ItemStack getCraftingRemainingItem(@Nullable final ItemStack stack)
+    {
+        if (isEmpty(stack) || !stack.getItem().hasCraftingRemainingItem())
+        {
+            return ItemStack.EMPTY;
+        }
+        return new ItemStack(stack.getItem().getCraftingRemainingItem());
     }
 
     public static boolean isNotEmpty(@Nullable final ItemStack stack)
@@ -382,17 +393,17 @@ public final class ItemStackUtils
             return false;
         }
 
-        if (ToolType.AXE.equals(toolType) && itemStack.canPerformAction(ToolActions.AXE_DIG))
+        if (ToolType.AXE.equals(toolType) && ToolActions.canPerformAction(itemStack, ToolActions.AXE_DIG))
         {
             return true;
         }
 
-        if (ToolType.SHOVEL.equals(toolType) && itemStack.canPerformAction(ToolActions.SHOVEL_DIG))
+        if (ToolType.SHOVEL.equals(toolType) && ToolActions.canPerformAction(itemStack, ToolActions.SHOVEL_DIG))
         {
             return true;
         }
 
-        if (ToolType.PICKAXE.equals(toolType) && itemStack.canPerformAction(ToolActions.PICKAXE_DIG))
+        if (ToolType.PICKAXE.equals(toolType) && ToolActions.canPerformAction(itemStack, ToolActions.PICKAXE_DIG))
         {
             return true;
         }
@@ -401,7 +412,7 @@ public final class ItemStackUtils
         {
             for (final ToolAction action : ToolActions.DEFAULT_HOE_ACTIONS)
             {
-                if (!itemStack.canPerformAction(action))
+                if (!ToolActions.canPerformAction(itemStack, action))
                 {
                     return false;
                 }
@@ -414,13 +425,13 @@ public final class ItemStackUtils
         }
         if (ToolType.SWORD.equals(toolType))
         {
-            return itemStack.canPerformAction(ToolActions.SWORD_SWEEP) || Compatibility.isTinkersWeapon(itemStack);
+            return ToolActions.canPerformAction(itemStack, ToolActions.SWORD_SWEEP) || Compatibility.isTinkersWeapon(itemStack);
         }
-        if (ToolType.FISHINGROD.equals(toolType) && itemStack.canPerformAction(ToolActions.FISHING_ROD_CAST))
+        if (ToolType.FISHINGROD.equals(toolType) && ToolActions.canPerformAction(itemStack, ToolActions.FISHING_ROD_CAST))
         {
             return true;
         }
-        if (ToolType.SHEARS.equals(toolType) && itemStack.canPerformAction(ToolActions.SHEARS_DIG) && itemStack.canPerformAction(ToolActions.SHEARS_HARVEST))
+        if (ToolType.SHEARS.equals(toolType) && ToolActions.canPerformAction(itemStack, ToolActions.SHEARS_DIG) && ToolActions.canPerformAction(itemStack, ToolActions.SHEARS_HARVEST))
         {
             return true;
         }
@@ -1018,7 +1029,7 @@ public final class ItemStackUtils
                 Log.getLogger().error("Unable to parse item definition: " + itemData);
             }
         }
-        final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(split[0], split[1]));
+        final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(split[0], split[1]));
         final ItemStack stack = new ItemStack(item);
         if (tag != null)
         {
@@ -1074,7 +1085,7 @@ public final class ItemStackUtils
             return baseItemId.getPath();
         });
 
-        return new Tuple<>(ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemId)),
+        return new Tuple<>(FabricRegistries.ITEMS.containsKey(new ResourceLocation(itemId)),
                 itemId + (nbtIndex >= 0 ? value.substring(nbtIndex) : ""));
     }
 

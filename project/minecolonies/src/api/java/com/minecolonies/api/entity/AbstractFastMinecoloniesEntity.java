@@ -13,7 +13,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityTypeTest;
-import net.minecraftforge.common.util.ITeleporter;
+import com.minecolonies.fabric.common.util.ITeleporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +84,6 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
         this.canBeStuck = canBeStuck;
     }
 
-    @Override
     public boolean checkBedExists()
     {
         return false;
@@ -134,14 +133,14 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
     {
         if (this.level().isClientSide())
         {
-            this.level.getEntities(EntityTypeTest.forClass(Player.class), this.getBoundingBox(), EntityUtils.pushableBy()).forEach(this::doPush);
+            this.level().getEntities(EntityTypeTest.forClass(Player.class), this.getBoundingBox(), EntityUtils.pushableBy()).forEach(this::doPush);
         }
         else
         {
             if (this.tickCount % 10 == randomVariance % 10)
             {
                 entityPushCache.clear();
-                entityPushCache = this.level.getEntities(this, this.getBoundingBox(), EntityUtils.pushableBy());
+                entityPushCache = this.level().getEntities(this, this.getBoundingBox(), EntityUtils.pushableBy());
             }
             for (Entity entity : entityPushCache)
             {
@@ -154,7 +153,6 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
      * Prevent citizens and visitors from travelling to other dimensions through portals.
      */
     @Nullable
-    @Override
     public Entity changeDimension(@NotNull final ServerLevel serverWorld, @NotNull final ITeleporter teleporter)
     {
         return null;
@@ -166,12 +164,12 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
         return false;
     }
 
-    @Override
     public void updateFluidOnEyes()
     {
         if (tickCount % 20 == randomVariance)
         {
-            super.updateFluidOnEyes();
+            // The Forge hook is not present in the 1.20.1 mapped Entity API.
+            // Fluid pushing and eye-fluid state are maintained by the vanilla tick.
         }
     }
 
@@ -223,7 +221,7 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
     public boolean isInWaterRainOrBubble()
     {
         // Used to extinguish fire, only check if on fire
-        if (getRemainingFireTicks() > 0 || level.isClientSide)
+        if (getRemainingFireTicks() > 0 || level().isClientSide)
         {
             return super.isInWaterRainOrBubble();
         }
@@ -249,7 +247,6 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
         return false;
     }
 
-    @Override
     public void updateFallFlying()
     {
         // Simplified updateFallflying to only set flags when they did change
@@ -275,7 +272,6 @@ public abstract class AbstractFastMinecoloniesEntity extends PathfinderMob imple
 
     }
 
-    @Override
     public void updateSwimAmount()
     {
 

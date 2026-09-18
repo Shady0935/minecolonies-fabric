@@ -12,10 +12,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.Capability;
+import com.minecolonies.fabric.capability.Capability;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 

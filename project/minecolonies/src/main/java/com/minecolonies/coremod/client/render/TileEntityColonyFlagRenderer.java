@@ -31,7 +31,7 @@ import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 import net.minecraft.world.level.GameType;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**

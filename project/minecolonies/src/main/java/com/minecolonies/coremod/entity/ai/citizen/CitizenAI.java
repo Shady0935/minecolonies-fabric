@@ -227,7 +227,7 @@ public class CitizenAI implements IStateAI
         }
 
         // Raining
-        if (CompatibilityUtils.getWorldFromCitizen(citizen).isRaining() && !shouldWorkWhileRaining() && !WorldUtil.isNetherType(citizen.level))
+        if (CompatibilityUtils.getWorldFromCitizen(citizen).isRaining() && !shouldWorkWhileRaining() && !WorldUtil.isNetherType(citizen.level()))
         {
             citizen.setVisibleStatusIfNone(BAD_WEATHER);
             if (!citizen.getCitizenData().getColony().getRaiderManager().isRaided()
@@ -239,7 +239,7 @@ public class CitizenAI implements IStateAI
         }
 
         // Work
-        if (citizen.isBaby() && citizen.getCitizenJobHandler().getColonyJob() instanceof JobPupil && citizen.level.getDayTime() % 24000 > NOON)
+        if (citizen.isBaby() && citizen.getCitizenJobHandler().getColonyJob() instanceof JobPupil && citizen.level().getDayTime() % 24000 > NOON)
         {
             citizen.setVisibleStatusIfNone(HOUSE);
             return CitizenAIState.IDLE;

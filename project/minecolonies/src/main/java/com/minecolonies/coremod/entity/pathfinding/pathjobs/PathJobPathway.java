@@ -50,7 +50,7 @@ public class PathJobPathway extends AbstractPathJob
     {
         final LevelChunk chunk = (LevelChunk) world.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
 
-        final IColonyTagCapability colonyCap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability colonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (colonyCap != null && colonyCap.getOwningColony() == colonyid)
         {
             return Math.sqrt(end.distSqr(pos)) / (colonyCap.getAllClaimingBuildings().size() + 1);

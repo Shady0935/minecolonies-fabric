@@ -4,12 +4,13 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.client.particles.SleepingParticle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.client.event.RegisterParticleProvidersEvent;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 
 /**
@@ -20,7 +21,7 @@ public class ModParticleTypesInitializer
     /**
      * Particle type
      */
-    public static final SimpleParticleType SLEEPINGPARTICLE_TYPE = new SimpleParticleType(true);
+    public static final SimpleParticleType SLEEPINGPARTICLE_TYPE = FabricParticleTypes.simple(true);
     public static final ResourceLocation  SLEEPING_TEXTURE      = new ResourceLocation(Constants.MOD_ID, "particle/sleeping");
 
     /**
@@ -32,9 +33,9 @@ public class ModParticleTypesInitializer
         @SubscribeEvent
         public static void registerParticles(final RegisterEvent event)
         {
-            if (event.getRegistryKey().equals(ForgeRegistries.Keys.PARTICLE_TYPES))
+            if (event.getRegistryKey().equals(FabricRegistries.Keys.PARTICLE_TYPES))
             {
-                event.getForgeRegistry().register(SLEEPING_TEXTURE, SLEEPINGPARTICLE_TYPE);
+                event.getFabricRegistry().register(SLEEPING_TEXTURE, SLEEPINGPARTICLE_TYPE);
             }
         }
     }
@@ -48,7 +49,7 @@ public class ModParticleTypesInitializer
         @SubscribeEvent
         public static void registerParticleFactories(RegisterParticleProvidersEvent event)
         {
-            Minecraft.getInstance().particleEngine.register(SLEEPINGPARTICLE_TYPE, SleepingParticle.Factory::new);
+            event.register(SLEEPINGPARTICLE_TYPE, SleepingParticle.Factory::new);
         }
     }
 }

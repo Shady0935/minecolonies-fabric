@@ -90,11 +90,11 @@ public final class ShipBasedRaiderUtils
         world.setBlockAndUpdate(location, Blocks.SPAWNER.defaultBlockState());
         final SpawnerBlockEntity spawner = new SpawnerBlockEntity(location, Blocks.SPAWNER.defaultBlockState());
 
-        spawner.getSpawner().requiredPlayerRange = SPAWNER_DISTANCE;
+        com.minecolonies.fabric.compat.FabricVanillaCompat.setSpawnerRequiredPlayerRange(spawner.getSpawner(), SPAWNER_DISTANCE);
         spawner.getSpawner().setEntityId(mob, world, world.getRandom(), location);
         // Sets nbt for mobs to spawn, assumes colony in same dimension as mob.
-        spawner.getSpawner().nextSpawnData.getEntityToSpawn().putInt(TAG_EVENT_ID, event.getID());
-        spawner.getSpawner().nextSpawnData.getEntityToSpawn().putInt(TAG_COLONY_ID, colonyId);
+        com.minecolonies.fabric.compat.FabricVanillaCompat.getSpawnerEntityTag(spawner.getSpawner()).putInt(TAG_EVENT_ID, event.getID());
+        com.minecolonies.fabric.compat.FabricVanillaCompat.getSpawnerEntityTag(spawner.getSpawner()).putInt(TAG_COLONY_ID, colonyId);
 
         event.addSpawner(location);
         world.setBlockEntity(spawner);

@@ -15,7 +15,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -110,7 +110,7 @@ public final class RecipeAnalyzer
     {
         final List<Animal> animals = new ArrayList<>();
 
-        for (final EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES.getValues())
+        for (final EntityType<?> entityType : FabricRegistries.ENTITY_TYPES.getValues())
         {
             if (entityType.getCategory() != MobCategory.CREATURE) { continue; }
 

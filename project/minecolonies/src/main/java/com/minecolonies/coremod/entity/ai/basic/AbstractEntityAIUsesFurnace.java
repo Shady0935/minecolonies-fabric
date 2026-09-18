@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public abstract class AbstractEntityAIUsesFurnace<J extends AbstractJob<?, J>, B
                 final int countInResultSlot = ItemStackUtils.isEmpty(furnace.getItem(RESULT_SLOT)) ? 0 : furnace.getItem(RESULT_SLOT).getCount();
                 final int countInInputSlot = ItemStackUtils.isEmpty(furnace.getItem(SMELTABLE_SLOT)) ? 0 : furnace.getItem(SMELTABLE_SLOT).getCount();
 
-                if ((!furnace.isLit() && countInResultSlot > 0)
+                if ((!com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace) && countInResultSlot > 0)
                       || countInResultSlot > RETRIEVE_SMELTABLE_IF_MORE_THAN
                       || (countInResultSlot > 0 && countInInputSlot == 0))
                 {
@@ -292,7 +292,7 @@ public abstract class AbstractEntityAIUsesFurnace<J extends AbstractJob<?, J>, B
                     final FurnaceBlockEntity furnace = (FurnaceBlockEntity) entity;
                     for(int i = 0; i < accelerationTicks; i++)
                     {
-                        if (furnace.isLit()) 
+                        if (com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace))
                         {
                             furnace.serverTick(world, pos, world.getBlockState(pos), furnace);
                         }

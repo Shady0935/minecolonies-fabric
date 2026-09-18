@@ -16,7 +16,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.level.NoteBlockEvent.Note;
+import com.minecolonies.fabric.event.NoteBlockEvent.Note;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,7 +205,7 @@ public final class SoundUtils
         }
         else
         {
-            player.playNotifySound(SoundEvents.NOTE_BLOCK_BELL.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
+            player.playNotifySound(SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.NEUTRAL, 1.0f, 1.0f);
         }
     }
 
@@ -229,7 +229,7 @@ public final class SoundUtils
         }
         else
         {
-            player.playNotifySound(SoundEvents.NOTE_BLOCK_DIDGERIDOO.get(), SoundSource.NEUTRAL, 1.0f, 0.3f);
+            player.playNotifySound(SoundEvents.NOTE_BLOCK_DIDGERIDOO.value(), SoundSource.NEUTRAL, 1.0f, 0.3f);
         }
     }
 

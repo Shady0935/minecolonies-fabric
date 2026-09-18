@@ -19,8 +19,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -142,14 +142,14 @@ public class QuestDialogueInteraction extends StandardInteraction
             final IQuestDialogueAnswer result = this.currentElement.getOptionResult(responseId);
             if (result instanceof IFinalQuestDialogueAnswer)
             {
-                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level.dimension(), Component.literal(questId.toString()), responseId));
+                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level().dimension(), Component.literal(questId.toString()), responseId));
                 this.currentElement = this.startElement;
                 finished = true;
                 return true;
             }
             else if (result instanceof DialogueObjectiveTemplateTemplate.DialogueElement)
             {
-                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level.dimension(), Component.literal(questId.toString()), responseId));
+                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level().dimension(), Component.literal(questId.toString()), responseId));
                 this.currentElement = (DialogueObjectiveTemplateTemplate.DialogueElement) result;
                 return false;
             }

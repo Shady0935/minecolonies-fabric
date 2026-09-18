@@ -14,9 +14,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.inventory.SlotItemHandler;
+import com.minecolonies.fabric.inventory.CombinedInvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.api.util.constant.InventoryConstants.*;

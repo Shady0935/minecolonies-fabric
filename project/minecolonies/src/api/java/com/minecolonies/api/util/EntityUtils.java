@@ -19,7 +19,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.common.util.FakePlayer;
+import com.minecolonies.fabric.common.util.FakePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -354,7 +354,7 @@ public final class EntityUtils
             }
             else
             {
-                return !localEntity.level.isClientSide || localEntity instanceof Player && ((Player) localEntity).isLocalPlayer();
+                return !localEntity.level().isClientSide || localEntity instanceof Player && ((Player) localEntity).isLocalPlayer();
             }
         });
     }

@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -78,7 +78,7 @@ public class BreakBlockObjectiveTemplate extends DialogueObjectiveTemplateTempla
         JsonObject details = jsonObject.getAsJsonObject(DETAILS_KEY);
         final int target = details.get(TARGET_KEY).getAsInt();
         final int quantity = details.get(QUANTITY_KEY).getAsInt();
-        final Block block = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(details.get(BLOCK_KEY).getAsString())).get().get();
+        final Block block = FabricRegistries.BLOCKS.getHolder(new ResourceLocation(details.get(BLOCK_KEY).getAsString())).get().value();
         final int nextObj = details.has(NEXT_OBJ_KEY) ? details.get(NEXT_OBJ_KEY).getAsInt() : -1;
 
         return new BreakBlockObjectiveTemplate(target, quantity, block, nextObj, parseRewards(jsonObject));

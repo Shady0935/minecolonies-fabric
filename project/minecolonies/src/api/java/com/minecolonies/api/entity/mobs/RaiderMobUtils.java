@@ -23,9 +23,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistries;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 
 import java.util.List;
 import java.util.Random;
@@ -43,12 +43,12 @@ public final class RaiderMobUtils
      */
     public static       double                                MOB_SPAWN_DEVIATION_STEPS = 0.3;
 
-    public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, Constants.MOD_ID);
+    public static final FabricDeferredRegister<Attribute> ATTRIBUTES = FabricDeferredRegister.create(FabricRegistries.ATTRIBUTES, Constants.MOD_ID);
 
     /**
      * Mob attribute, used for custom attack damage
      */
-    public final static RegistryObject<Attribute> MOB_ATTACK_DAMAGE = ATTRIBUTES.register("mc_mob_damage", () -> new RangedAttribute( "mc_mob_damage", 2.0, 1.0, 20));
+    public final static FabricRegistryObject<Attribute> MOB_ATTACK_DAMAGE = ATTRIBUTES.register("mc_mob_damage", () -> new RangedAttribute( "mc_mob_damage", 2.0, 1.0, 20));
 
     /**
      * Damage increased by 1 for every 200 raid level difficulty

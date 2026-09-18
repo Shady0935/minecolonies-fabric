@@ -45,7 +45,7 @@ public class ItemPharaoScepter extends BowItem
     {
         ItemStack itemstack = playerIn.getItemInHand(handIn);
 
-        InteractionResultHolder<ItemStack> ret = net.minecraftforge.event.ForgeEventFactory.onArrowNock(itemstack, worldIn, playerIn, handIn, true);
+        InteractionResultHolder<ItemStack> ret = com.minecolonies.fabric.event.ForgeEventFactory.onArrowNock(itemstack, worldIn, playerIn, handIn, true);
         if (ret != null)
         {
             return ret;
@@ -63,7 +63,7 @@ public class ItemPharaoScepter extends BowItem
             Player playerentity = (Player) entityLiving;
 
             int useDuration = this.getUseDuration(stack) - timeLeft;
-            useDuration = net.minecraftforge.event.ForgeEventFactory.onArrowLoose(stack, worldIn, playerentity, useDuration, true);
+            useDuration = com.minecolonies.fabric.event.ForgeEventFactory.onArrowLoose(stack, worldIn, playerentity, useDuration, true);
             if (useDuration < 0)
             {
                 return;
@@ -134,10 +134,9 @@ public class ItemPharaoScepter extends BowItem
     }
 
     @NotNull
-    @Override
     public AbstractArrow customArrow(@NotNull AbstractArrow arrow)
     {
-        AbstractArrow entity = ((ArrowItem) ModItems.firearrow).createArrow(arrow.level, new ItemStack(ModItems.firearrow, 1), (LivingEntity) arrow.getOwner());
+        AbstractArrow entity = ((ArrowItem) ModItems.firearrow).createArrow(arrow.level(), new ItemStack(ModItems.firearrow, 1), (LivingEntity) arrow.getOwner());
         entity.pickup = AbstractArrow.Pickup.DISALLOWED;
         entity.setSecondsOnFire(3);
 

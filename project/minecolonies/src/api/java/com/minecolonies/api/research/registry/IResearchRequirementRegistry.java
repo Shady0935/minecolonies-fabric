@@ -1,12 +1,12 @@
 package com.minecolonies.api.research.registry;
 
 import com.minecolonies.api.IMinecoloniesAPI;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 
 public interface IResearchRequirementRegistry
 {
 
-    static IForgeRegistry<ResearchRequirementEntry> getInstance()
+    static FabricRegistry<ResearchRequirementEntry> getInstance()
     {
         return IMinecoloniesAPI.getInstance().getResearchRequirementRegistry();
     }

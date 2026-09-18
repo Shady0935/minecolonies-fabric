@@ -7,21 +7,25 @@ import com.minecolonies.api.colony.requestsystem.requestable.IDeliverable;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.util.ItemStackUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import com.minecolonies.fabric.inventory.IItemHandlerModifiable;
+import com.minecolonies.fabric.inventory.ItemStackHandler;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.function.Predicate;
 
 import static com.minecolonies.api.util.constant.Constants.DEFAULT_SIZE;
 
-public abstract class AbstractTileEntityRack extends BlockEntity implements MenuProvider
+public abstract class AbstractTileEntityRack extends BlockEntity implements MenuProvider, ICapabilityProvider
 {
     /**
      * whether this rack is in a warehouse or not. defaults to not set by the warehouse building upon being built
@@ -37,6 +41,17 @@ public abstract class AbstractTileEntityRack extends BlockEntity implements Menu
      * The inventory of the tileEntity.
      */
     protected ItemStackHandler inventory;
+
+    /**
+     * Fabric has no universal Forge capability method on vanilla block entities.
+     * Rack subclasses override this for their inventory; the base implementation
+     * keeps the provider contract available to building and inventory helpers.
+     */
+    @Override
+    public <T> LazyOptional<T> getCapability(final Capability<T> capability, final Direction side)
+    {
+        return LazyOptional.empty();
+    }
 
     /**
      * Create a new rack.
@@ -81,11 +96,14 @@ public abstract class AbstractTileEntityRack extends BlockEntity implements Menu
         }
 
         @Override
-        public void setStackInSlot(final int slot, final @Nonnull ItemStack stack)
+        public void setStackInSlot(final int slot, final @NotNull ItemStack stack)
         {
-            validateSlotIndex(slot);
-            final boolean changed = !ItemStack.matches(stack, this.stacks.get(slot));
-            this.stacks.set(slot, stack);
+            if (slot < 0 || slot >= getSlots())
+            {
+                return;
+            }
+            final boolean changed = !ItemStack.matches(stack, this.stacks[slot]);
+            this.stacks[slot] = stack.copy();
             if (changed)
             {
                 onContentsChanged(slot);
@@ -93,9 +111,9 @@ public abstract class AbstractTileEntityRack extends BlockEntity implements Menu
             updateWarehouseIfAvailable(stack);
         }
 
-        @Nonnull
+        @NotNull
         @Override
-        public ItemStack insertItem(final int slot, @Nonnull final ItemStack stack, final boolean simulate)
+        public ItemStack insertItem(final int slot, @NotNull final ItemStack stack, final boolean simulate)
         {
             final ItemStack result = super.insertItem(slot, stack, simulate);
             if ((result.isEmpty() || result.getCount() < stack.getCount()) && !simulate)

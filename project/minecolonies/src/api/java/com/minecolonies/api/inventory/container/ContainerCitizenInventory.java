@@ -18,7 +18,7 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.items.SlotItemHandler;
+import com.minecolonies.fabric.inventory.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -107,7 +107,7 @@ public class ContainerCitizenInventory extends AbstractContainerMenu
         if (inv.player.level().isClientSide)
         {
             final ICitizenDataView data = ((IColonyView) colony).getCitizen(citizenId);
-            this.entity = Optional.of(inv.player.level.getEntity(data.getEntityId()));
+            this.entity = Optional.of(inv.player.level().getEntity(data.getEntityId()));
             this.citizenData = data;
             inventory = data.getInventory();
             this.displayName = data.getName();
@@ -200,7 +200,7 @@ public class ContainerCitizenInventory extends AbstractContainerMenu
                           @Override
                           public void set(@NotNull final ItemStack stack)
                           {
-                              if (workBuilding != null && !playerInventory.player.level.isClientSide && !ItemStackUtils.isEmpty(stack))
+                              if (workBuilding != null && !playerInventory.player.level().isClientSide && !ItemStackUtils.isEmpty(stack))
                               {
                                   final IBuilding building = colony.getBuildingManager().getBuilding(workBuilding);
                                   final ICitizenData citizenData = colony.getCitizenManager().getCivilian(citizenId);

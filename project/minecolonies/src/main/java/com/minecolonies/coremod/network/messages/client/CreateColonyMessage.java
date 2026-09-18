@@ -16,9 +16,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -101,7 +101,7 @@ public class CreateColonyMessage implements IMessage
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
     {
         final ServerPlayer sender = ctxIn.getSender();
-        final Level world = ctxIn.getSender().level;
+        final Level world = ctxIn.getSender().level();
 
         if (sender == null)
         {

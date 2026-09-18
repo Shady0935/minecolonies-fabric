@@ -164,7 +164,7 @@ public class ColonyBorderMapping
 
     private static int getOwningColonyForChunk(@NotNull final LevelChunk chunk)
     {
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap == null || cap.getOwningColony() < 1)
         {
             return 0;

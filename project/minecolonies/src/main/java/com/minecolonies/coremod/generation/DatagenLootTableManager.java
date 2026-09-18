@@ -10,8 +10,8 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.storage.loot.Deserializers;
 import net.minecraft.world.level.storage.loot.LootDataManager;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import com.minecolonies.fabric.common.ForgeHooks;
+import com.minecolonies.fabric.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;

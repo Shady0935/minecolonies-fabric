@@ -338,7 +338,7 @@ public class WorkManager implements IWorkManager
                 if (!chunks.contains(pos))
                 {
                     chunks.add(pos);
-                    final IColonyTagCapability colonyCap = world.getChunk(pos.x, pos.z).getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+                    final IColonyTagCapability colonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world.getChunk(pos.x, pos.z), CLOSE_COLONY_CAP, null).orElseGet(null);
                     if (colonyCap == null || colonyCap.getOwningColony() != colony.getID())
                     {
                         return false;

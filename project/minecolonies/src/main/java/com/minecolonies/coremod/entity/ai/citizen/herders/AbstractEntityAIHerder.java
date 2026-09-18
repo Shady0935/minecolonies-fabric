@@ -682,7 +682,7 @@ public abstract class AbstractEntityAIHerder<J extends AbstractJob<?, J>, B exte
         if (animal != null && !walkingToAnimal(animal) && !ItemStackUtils.isEmpty(worker.getMainHandItem()))
         {
             worker.swing(InteractionHand.MAIN_HAND);
-            final DamageSource ds = animal.level.damageSources().playerAttack(getFakePlayer());
+            final DamageSource ds = animal.level().damageSources().playerAttack(getFakePlayer());
             animal.hurt(ds, (float) getButcheringAttackDamage());
             worker.getCitizenItemHandler().damageItemInHand(InteractionHand.MAIN_HAND, 1);
         }

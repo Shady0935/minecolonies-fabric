@@ -40,10 +40,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -142,8 +142,6 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
     {
         super(type, world);
 
-        this.goalSelector = new CustomGoalSelector(this.goalSelector);
-        this.targetSelector = new CustomGoalSelector(this.targetSelector);
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new EntityMercenaryAI(this));
         this.goalSelector.addGoal(4, new EntityAIInteractToggleAble(this, FENCE_TOGGLE, TRAP_TOGGLE, DOOR_TOGGLE));
@@ -200,7 +198,7 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
      */
     private boolean shouldDespawn()
     {
-        if (level == null || level.getGameTime() - worldTimeAtSpawn > TICKS_FOURTY_MIN || colony == null || this.isInvisible())
+        if (level() == null || level().getGameTime() - worldTimeAtSpawn > TICKS_FOURTY_MIN || colony == null || this.isInvisible())
         {
             this.remove(RemovalReason.DISCARDED);
             return true;
@@ -217,10 +215,10 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
     {
         if (worldTimeAtSpawn == 0)
         {
-            worldTimeAtSpawn = level.getGameTime();
+            worldTimeAtSpawn = level().getGameTime();
         }
 
-        return level != null && colony != null && isAlive() && !isInvisible();
+        return level() != null && colony != null && isAlive() && !isInvisible();
     }
 
     /**
@@ -341,7 +339,7 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
             final int colonyId = compound.getInt(TAG_COLONY_ID);
             if (colonyId != 0)
             {
-                setColony(IColonyManager.getInstance().getColonyByWorld(colonyId, level));
+                setColony(IColonyManager.getInstance().getColonyByWorld(colonyId, level()));
             }
         }
         super.readAdditionalSaveData(compound);
@@ -406,7 +404,7 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
         if (slapTimer == 0 && entityIn instanceof Player)
         {
             slapTimer = SLAP_INTERVAL;
-            entityIn.hurt(entityIn.level.damageSources().source(DamageSourceKeys.SLAP, this), 1.0f);
+            entityIn.hurt(entityIn.level().damageSources().source(DamageSourceKeys.SLAP, this), 1.0f);
             this.swing(InteractionHand.OFF_HAND);
         }
 
@@ -443,7 +441,7 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
     {
         if (this.newNavigator == null)
         {
-            this.newNavigator = new MinecoloniesAdvancedPathNavigate(this, level);
+            this.newNavigator = new MinecoloniesAdvancedPathNavigate(this, level());
             this.navigation = newNavigator;
             this.newNavigator.setCanFloat(true);
             this.newNavigator.getNodeEvaluator().setCanOpenDoors(true);
@@ -454,7 +452,7 @@ public class EntityMercenary extends AbstractFastMinecoloniesEntity implements N
     @Override
     public void aiStep()
     {
-        if (level != null && !level.isClientSide)
+        if (level() != null && !level().isClientSide)
         {
             stateMachine.tick();
         }

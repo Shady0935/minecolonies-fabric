@@ -5,13 +5,13 @@ import com.minecolonies.api.research.effects.registry.ResearchEffectEntry;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.research.GlobalResearchEffect;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 import static com.minecolonies.api.research.effects.ModResearchEffects.GLOBAL_EFFECT_ID;
 
 public class ModResearchEffectInitializer
 {
-    public final static DeferredRegister<ResearchEffectEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "researcheffecttypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<ResearchEffectEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "researcheffecttypes"), Constants.MOD_ID);
 
     private ModResearchEffectInitializer()
     {

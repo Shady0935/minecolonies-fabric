@@ -15,8 +15,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkHooks;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -152,7 +152,7 @@ public class OpenInventoryMessage extends AbstractColonyServerMessage
 
     private void doHutInventory(final ServerPlayer player, final IColony colony)
     {
-        final BlockEntity tileEntity = BlockPosUtil.getTileEntity(player.level, tePos);
+        final BlockEntity tileEntity = BlockPosUtil.getTileEntity(player.level(), tePos);
 
         if(tileEntity instanceof TileEntityRack || tileEntity instanceof TileEntityGrave)
         {

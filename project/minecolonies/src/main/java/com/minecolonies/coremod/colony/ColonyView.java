@@ -55,8 +55,8 @@ import net.minecraft.world.level.block.entity.BannerPatterns;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.event.TickEvent;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -306,7 +306,7 @@ public final class ColonyView implements IColonyView
         buf.writeInt(freeBlocks.size());
         for (final Block block : freeBlocks)
         {
-            buf.writeUtf(ForgeRegistries.BLOCKS.getKey(block).toString());
+            buf.writeUtf(FabricRegistries.BLOCKS.getKey(block).toString());
         }
 
         buf.writeInt(freePos.size());
@@ -831,7 +831,7 @@ public final class ColonyView implements IColonyView
         final int blockListSize = buf.readInt();
         for (int i = 0; i < blockListSize; i++)
         {
-            freeBlocks.add(ForgeRegistries.BLOCKS.getValue(new ResourceLocation((buf.readUtf(32767)))));
+            freeBlocks.add(FabricRegistries.BLOCKS.getValue(new ResourceLocation((buf.readUtf(32767)))));
         }
 
         final int posListSize = buf.readInt();
@@ -1214,7 +1214,7 @@ public final class ColonyView implements IColonyView
     public boolean isCoordInColony(@NotNull final Level w, @NotNull final BlockPos pos)
     {
         final LevelChunk chunk = w.getChunkAt(pos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).orElseGet(null);
         return cap.getOwningColony() == this.getID();
     }
 

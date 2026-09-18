@@ -76,7 +76,7 @@ public class PrivateWorkerCraftingRequestResolverFactory implements IRequestReso
     {
         controller.serialize(packetBuffer, input.getId());
         controller.serialize(packetBuffer, input.getLocation());
-        packetBuffer.writeRegistryId(IMinecoloniesAPI.getInstance().getJobRegistry(), input.getJobEntry());
+        com.minecolonies.fabric.network.FabricBufUtils.writeRegistryId(packetBuffer, IMinecoloniesAPI.getInstance().getJobRegistry(), input.getJobEntry());
     }
 
     @Override
@@ -84,7 +84,7 @@ public class PrivateWorkerCraftingRequestResolverFactory implements IRequestReso
     {
         final IToken<?> token = controller.deserialize(buffer);
         final ILocation location = controller.deserialize(buffer);
-        final JobEntry entry = buffer.readRegistryId();
+        final JobEntry entry = com.minecolonies.fabric.network.FabricBufUtils.readRegistryId(buffer, IMinecoloniesAPI.getInstance().getJobRegistry());
 
         return new PrivateWorkerCraftingRequestResolver(location, token, entry);
     }

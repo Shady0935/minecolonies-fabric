@@ -7,12 +7,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface IBuildingContainer extends ISchematicProvider, ICapabilityProvider
@@ -91,7 +91,7 @@ public interface IBuildingContainer extends ISchematicProvider, ICapabilityProvi
      */
     void setTileEntity(AbstractTileEntityColonyBuilding te);
 
-    @Nonnull
+    @NotNull
     @Override
-    <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, final Direction direction);
+    <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, final Direction direction);
 }

@@ -7,10 +7,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraftforge.common.capabilities.Capability;
+import com.minecolonies.fabric.capability.Capability;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

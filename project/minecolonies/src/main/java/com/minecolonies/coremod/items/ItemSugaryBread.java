@@ -35,7 +35,7 @@ public class ItemSugaryBread extends AbstractItemMinecolonies
     private static FoodProperties sweetBread = (new FoodProperties.Builder())
                                         .nutrition(6)
                                         .saturationMod(0.7F)
-                                        .effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 600), 1.0F)
+                                        .effect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 600), 1.0F)
                                         .build(); 
 
     /**

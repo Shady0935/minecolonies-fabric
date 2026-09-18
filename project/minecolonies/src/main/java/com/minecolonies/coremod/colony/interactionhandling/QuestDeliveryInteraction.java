@@ -14,8 +14,8 @@ import com.minecolonies.coremod.quests.objectives.DialogueObjectiveTemplateTempl
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 
 import static com.minecolonies.api.colony.interactionhandling.ModInteractionResponseHandlers.QUEST_ACTION;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
@@ -98,13 +98,13 @@ public class QuestDeliveryInteraction extends QuestDialogueInteraction
             final IQuestDialogueAnswer result = this.currentElement.getOptionResult(responseId);
             if (result instanceof IFinalQuestDialogueAnswer)
             {
-                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level.dimension(), Component.literal(colonyQuest.getId().toString()), responseId));
+                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level().dimension(), Component.literal(colonyQuest.getId().toString()), responseId));
                 this.currentElement = this.startElement;
                 return true;
             }
             else if (result instanceof DialogueObjectiveTemplateTemplate.DialogueElement)
             {
-                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level.dimension(), Component.literal(colonyQuest.getId().toString()), responseId));
+                Network.getNetwork().sendToServer(new InteractionResponse(data.getColonyId(), data.getId(), player.level().dimension(), Component.literal(colonyQuest.getId().toString()), responseId));
                 this.currentElement = (DialogueObjectiveTemplateTemplate.DialogueElement) result;
                 return false;
             }

@@ -193,7 +193,7 @@ public class EntityAISickTask implements IStateAI
             {
                 for (final BlockPos pos : ((BuildingHospital) hospital).getBedList())
                 {
-                    final Level world = citizen.level;
+                    final Level world = citizen.level();
                     BlockState state = world.getBlockState(pos);
                     if (state.is(BlockTags.BEDS)
                           && !state.getValue(BedBlock.OCCUPIED)
@@ -250,7 +250,7 @@ public class EntityAISickTask implements IStateAI
 
 
         citizen.swing(InteractionHand.MAIN_HAND);
-        citizen.playSound(SoundEvents.NOTE_BLOCK_HARP.get(), (float) BASIC_VOLUME, (float) SoundUtils.getRandomPentatonic(citizen.getRandom()));
+        citizen.playSound(SoundEvents.NOTE_BLOCK_HARP.value(), (float) BASIC_VOLUME, (float) SoundUtils.getRandomPentatonic(citizen.getRandom()));
         Network.getNetwork().sendToTrackingEntity(
           new CircleParticleEffectMessage(
             citizen.position().add(0, 2, 0),

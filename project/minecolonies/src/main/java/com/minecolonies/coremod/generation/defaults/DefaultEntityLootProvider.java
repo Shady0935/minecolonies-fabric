@@ -16,7 +16,7 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -143,7 +143,7 @@ public class DefaultEntityLootProvider extends SimpleLootTableProvider
                               @NotNull final EntityType<?> entity,
                               @NotNull final Consumer<LootPool.Builder> builder)
     {
-        final ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity);
+        final ResourceLocation entityId = FabricRegistries.ENTITY_TYPES.getKey(entity);
         final ResourceLocation lootName = new ResourceLocation(entityId.getNamespace(), "entities/" + entityId.getPath());
 
         final LootPool.Builder pool = LootPool.lootPool()

@@ -33,9 +33,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -339,7 +339,7 @@ public class GenericRecipeCategory extends JobBasedRecipeCategory<IGenericRecipe
 
         return recipes.stream()
                 .sorted(Comparator.comparing(IGenericRecipe::getLevelSort)
-                    .thenComparing(r -> ForgeRegistries.ITEMS.getKey(r.getPrimaryOutput().getItem())))
+                    .thenComparing(r -> FabricRegistries.ITEMS.getKey(r.getPrimaryOutput().getItem())))
                 .collect(Collectors.toList());
     }
 }

@@ -30,22 +30,19 @@ import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.research.GlobalResearchTreeMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.fml.LogicalSide;
+import com.minecolonies.fabric.LogicalSide;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.network.NetworkRegistry;
+import com.minecolonies.fabric.network.PacketDistributor;
+import com.minecolonies.fabric.network.simple.SimpleChannel;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -256,6 +253,18 @@ public class NetworkChannel
         registerMessage(++idx, ResourceScrollSaveWarehouseSnapshotMessage.class, ResourceScrollSaveWarehouseSnapshotMessage::new);
     }
 
+    /** Register the Fabric play receiver after common message registration. */
+    public void registerServerReceiver()
+    {
+        rawChannel.registerServerReceiver();
+    }
+
+    /** Expose the transport only to the client bootstrap bridge. */
+    public SimpleChannel getRawChannel()
+    {
+        return rawChannel;
+    }
+
     private void setupInternalMessages()
     {
         rawChannel.registerMessage(0, SplitPacketMessage.class, IMessage::toBytes, (buf) -> {
@@ -263,7 +272,7 @@ public class NetworkChannel
             msg.fromBytes(buf);
             return msg;
         }, (msg, ctxIn) -> {
-            final net.minecraftforge.network.NetworkEvent.Context ctx = ctxIn.get();
+            final com.minecolonies.fabric.network.NetworkEvent.Context ctx = ctxIn.get();
             final LogicalSide packetOrigin = ctx.getDirection().getOriginationSide();
             ctx.setPacketHandled(true);
             msg.onExecute(ctx, packetOrigin.equals(LogicalSide.CLIENT));
@@ -332,7 +341,7 @@ public class NetworkChannel
      */
     public void sendToDimension(final IMessage msg, final ResourceLocation dim)
     {
-        rawChannel.send(PacketDistributor.DIMENSION.with(() -> ResourceKey.create(Registries.DIMENSION, dim)), msg);
+        handleSplitting(msg, s -> rawChannel.send(PacketDistributor.DIMENSION.with(() -> ResourceKey.create(Registries.DIMENSION, dim)), s));
     }
 
     /**
@@ -342,7 +351,7 @@ public class NetworkChannel
      * @param pos target position and radius
      * @see PacketDistributor.TargetPoint
      */
-    public void sendToPosition(final IMessage msg, final net.minecraftforge.network.PacketDistributor.TargetPoint pos)
+    public void sendToPosition(final IMessage msg, final com.minecolonies.fabric.network.PacketDistributor.TargetPoint pos)
     {
         handleSplitting(msg, s -> rawChannel.send(PacketDistributor.NEAR.with(() -> pos), s));
     }
@@ -421,7 +430,8 @@ public class NetworkChannel
         final ByteBuf buffer = Unpooled.buffer();
         final FriendlyByteBuf innerFriendlyByteBuf = new FriendlyByteBuf(buffer);
         msg.toBytes(innerFriendlyByteBuf);
-        final byte[] data = buffer.array();
+        final byte[] data = new byte[buffer.readableBytes()];
+        buffer.getBytes(buffer.readerIndex(), data);
         buffer.release();
 
         //Some tracking variables.
@@ -433,6 +443,14 @@ public class NetworkChannel
         int packetIndex = 0;
         //The communication id.
         final int comId = messageCounter.getAndIncrement();
+
+        // Even an empty message needs an envelope so the receiver can finish
+        // the reassembly transaction and invoke its handler.
+        if (data.length == 0)
+        {
+            splitMessageConsumer.accept(new SplitPacketMessage(comId, 0, true, messageId, new byte[0]));
+            return;
+        }
 
         //Loop while data is available.
         while (currentIndex < data.length)

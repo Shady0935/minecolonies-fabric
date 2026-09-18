@@ -207,7 +207,7 @@ public class WindowTownHallColonyManage extends AbstractWindowSkeleton
                 final int chunkX = startX + x;
                 final int chunkZ = startZ + z;
                 final LevelChunk chunk = world.getChunk(chunkX, chunkZ);
-                final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+                final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).orElseGet(null);
                 if (cap != null)
                 {
                     if (cap.getOwningColony() != 0)

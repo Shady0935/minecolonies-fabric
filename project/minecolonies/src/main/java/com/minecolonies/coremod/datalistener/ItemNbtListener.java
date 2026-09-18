@@ -4,12 +4,11 @@ import com.google.gson.*;
 import com.minecolonies.api.items.CheckedNbtKey;
 import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Log;
-import com.minecolonies.coremod.generation.ItemNbtCalculator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -61,14 +60,14 @@ public class ItemNbtListener extends SimpleJsonResourceReloadListener
                     final JsonArray jsonArray = jsonObj.getAsJsonArray("checkednbtkeys");
                     for (final JsonElement subElement : jsonArray)
                     {
-                        set.add(ItemNbtCalculator.deserializeKeyFromJson(subElement.getAsJsonObject()));
+                        set.add(deserializeKeyFromJson(subElement.getAsJsonObject()));
                     }
 
-                    ItemStackUtils.CHECKED_NBT_KEYS.put(ForgeRegistries.ITEMS.getValue(itemLoc), set);
+                    ItemStackUtils.CHECKED_NBT_KEYS.put(FabricRegistries.ITEMS.getValue(itemLoc), set);
                 }
                 else
                 {
-                    ItemStackUtils.CHECKED_NBT_KEYS.put(ForgeRegistries.ITEMS.getValue(itemLoc), new HashSet<>());
+                    ItemStackUtils.CHECKED_NBT_KEYS.put(FabricRegistries.ITEMS.getValue(itemLoc), new HashSet<>());
                 }
             }
             catch (Exception e)
@@ -77,5 +76,21 @@ public class ItemNbtListener extends SimpleJsonResourceReloadListener
             }
         }
         Log.getLogger().warn("Read " + ItemStackUtils.CHECKED_NBT_KEYS.size() + " items with their nbt keys for compatibility.");
+    }
+
+    private static CheckedNbtKey deserializeKeyFromJson(final JsonObject jsonObject)
+    {
+        final String key = jsonObject.get("key").getAsString();
+        if (!jsonObject.has("children"))
+        {
+            return new CheckedNbtKey(key, Collections.emptySet());
+        }
+
+        final Set<CheckedNbtKey> children = new HashSet<>();
+        for (final JsonElement child : jsonObject.getAsJsonArray("children"))
+        {
+            children.add(deserializeKeyFromJson(child.getAsJsonObject()));
+        }
+        return new CheckedNbtKey(key, children);
     }
 }

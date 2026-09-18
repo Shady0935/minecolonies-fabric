@@ -42,7 +42,7 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.ToolActions;
+import com.minecolonies.fabric.common.ToolActions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -395,7 +395,7 @@ public class EntityAIQuarrier extends AbstractEntityAIStructureWithWorkOrder<Job
         if (result.getBlockResult().getResult() == BlockPlacementResult.Result.BREAK_BLOCK)
         {
             final BlockPos currentWorldPos = result.getBlockResult().getWorldPos();
-            if (currentWorldPos.getY() < worker.level.getMinBuildHeight() + 5)
+            if (currentWorldPos.getY() < worker.level().getMinBuildHeight() + 5)
             {
                 building.setProgressPos(null, null);
                 return COMPLETE_BUILD;
@@ -605,11 +605,11 @@ public class EntityAIQuarrier extends AbstractEntityAIStructureWithWorkOrder<Job
             {
                 renderData.append(RENDER_META_STONE);
             }
-            else if (stack.canPerformAction(ToolActions.PICKAXE_DIG) && renderData.indexOf(RENDER_META_PICKAXE) == -1)
+            else if (ToolActions.canPerformAction(stack, ToolActions.PICKAXE_DIG) && renderData.indexOf(RENDER_META_PICKAXE) == -1)
             {
                 renderData.append(RENDER_META_PICKAXE);
             }
-            else if (stack.canPerformAction(ToolActions.SHOVEL_DIG) && renderData.indexOf(RENDER_META_SHOVEL) == -1)
+            else if (ToolActions.canPerformAction(stack, ToolActions.SHOVEL_DIG) && renderData.indexOf(RENDER_META_SHOVEL) == -1)
             {
                 renderData.append(RENDER_META_SHOVEL);
             }

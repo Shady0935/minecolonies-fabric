@@ -29,8 +29,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.common.ToolActions;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -260,7 +260,6 @@ public class BuildingStructureHandler<J extends AbstractJobStructure<?, J>, B ex
         return AbstractEntityAIStructure.hasListOfResInInvOrRequest(structureAI, itemList, itemList.size() > 1) == AbstractEntityAIStructure.ItemCheckResult.SUCCESS;
     }
 
-    @Override
     public void consume(final List<ItemStack> requiredItems)
     {
         if (this.getInventory() != null)

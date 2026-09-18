@@ -3,7 +3,7 @@ package com.minecolonies.api.colony.interactionhandling;
 import com.minecolonies.api.colony.interactionhandling.registry.InteractionResponseHandlerEntry;
 import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 
 /**
  * List of mod interaction handlers.
@@ -24,13 +24,13 @@ public final class ModInteractionResponseHandlers
     /**
      * List of entries.
      */
-    public static RegistryObject<InteractionResponseHandlerEntry> standard;
-    public static RegistryObject<InteractionResponseHandlerEntry> simpleNotification;
-    public static RegistryObject<InteractionResponseHandlerEntry> pos;
-    public static RegistryObject<InteractionResponseHandlerEntry> request;
-    public static RegistryObject<InteractionResponseHandlerEntry> recruitment;
-    public static RegistryObject<InteractionResponseHandlerEntry> quest;
-    public static RegistryObject<InteractionResponseHandlerEntry> questAction;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> standard;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> simpleNotification;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> pos;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> request;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> recruitment;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> quest;
+    public static FabricRegistryObject<InteractionResponseHandlerEntry> questAction;
 
     private ModInteractionResponseHandlers()
     {

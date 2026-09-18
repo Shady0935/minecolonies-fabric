@@ -13,8 +13,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.inventory.InvWrapper;
 
 import static com.minecolonies.api.util.constant.TranslationConstants.DESCRIPTION_BARRACKS_HIRE_SPIES;
 

@@ -20,8 +20,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector3f;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 /**

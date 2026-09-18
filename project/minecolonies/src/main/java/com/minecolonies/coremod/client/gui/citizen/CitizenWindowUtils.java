@@ -31,8 +31,6 @@ import static com.minecolonies.api.util.constant.WindowConstants.*;
 import static com.minecolonies.coremod.client.gui.modules.WindowBuilderResModule.BLACK;
 import static com.minecolonies.coremod.entity.citizen.citizenhandlers.CitizenExperienceHandler.PRIMARY_DEPENDENCY_SHARE;
 import static com.minecolonies.coremod.entity.citizen.citizenhandlers.CitizenExperienceHandler.SECONDARY_DEPENDENCY_SHARE;
-import static net.minecraft.client.gui.Gui.GUI_ICONS_LOCATION;
-
 import net.minecraft.network.chat.Component;
 
 /**
@@ -41,6 +39,7 @@ import net.minecraft.network.chat.Component;
 public class CitizenWindowUtils
 {
     public static final ResourceLocation HAPPINESS_ICONS_LOCATION = new ResourceLocation(Constants.MOD_ID, "textures/gui/citizen/icons.png");
+    private static final ResourceLocation GUI_ICONS_LOCATION = new ResourceLocation("textures/gui/icons.png");
 
     /**
      * Private con to hide public.

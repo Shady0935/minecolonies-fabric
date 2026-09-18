@@ -353,7 +353,7 @@ public abstract class AbstractEntityAIInteract<J extends AbstractJob<?, J>, B ex
         items = world.getEntitiesOfClass(ItemEntity.class, boundingBox)
                   .stream()
                   .filter(item -> item != null && item.isAlive() &&
-                                    (!item.getPersistentData().contains("PreventRemoteMovement") || !item.getPersistentData().getBoolean("PreventRemoteMovement")) &&
+                                    (!com.minecolonies.fabric.compat.EntityDataHooks.getPersistentData(item).contains("PreventRemoteMovement") || !com.minecolonies.fabric.compat.EntityDataHooks.getPersistentData(item).getBoolean("PreventRemoteMovement")) &&
                           isItemWorthPickingUp(item.getItem()))
                   .map(BlockPosUtil::fromEntity)
                   .collect(Collectors.toList());

@@ -17,8 +17,8 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkHooks;
+import com.minecolonies.fabric.network.NetworkEvent;
+import com.minecolonies.fabric.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -113,7 +113,7 @@ public class OpenCraftingGUIMessage extends AbstractBuildingServerMessage<IBuild
             }
             else
             {
-                net.minecraftforge.network.NetworkHooks.openScreen(player,
+                com.minecolonies.fabric.network.NetworkHooks.openScreen(player,
                   new MenuProvider()
                   {
                       @NotNull

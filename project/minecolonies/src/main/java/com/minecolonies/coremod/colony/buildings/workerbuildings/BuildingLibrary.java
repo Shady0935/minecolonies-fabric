@@ -15,8 +15,8 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.common.Tags;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class BuildingLibrary extends AbstractBuilding
                     Log.getLogger().info("Minecolonies: Parsing config for study items for Library failed for entry:" + entry);
                     continue;
                 }
-                final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(entries[0]));
+                final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(entries[0]));
                 final int skillChance = Integer.parseInt(entries[1]);
                 final int breakChance = Integer.parseInt(entries[2]);
 

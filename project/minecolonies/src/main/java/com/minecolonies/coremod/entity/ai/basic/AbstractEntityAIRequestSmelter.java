@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FurnaceBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -160,9 +160,9 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                 if (entity instanceof FurnaceBlockEntity)
                 {
                     final FurnaceBlockEntity furnace = (FurnaceBlockEntity) entity;
-                    if (furnace.isLit() || !isEmpty(furnace.getItem(RESULT_SLOT)) || !isEmpty(furnace.getItem(SMELTABLE_SLOT)))
+                    if (com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace) || !isEmpty(furnace.getItem(RESULT_SLOT)) || !isEmpty(furnace.getItem(SMELTABLE_SLOT)))
                     {
-                        if (furnace.isLit())
+                        if (com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace))
                         {
                             setDelay(TICKS_20);
                         }
@@ -201,7 +201,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                 if (entity instanceof FurnaceBlockEntity)
                 {
                     final FurnaceBlockEntity furnace = (FurnaceBlockEntity) entity;
-                    if (furnace.isLit()) 
+                    if (com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace))
                     {
                         count += 1;
                     }
@@ -228,7 +228,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                     final FurnaceBlockEntity furnace = (FurnaceBlockEntity) entity;
                     for(int i = 0; i < accelerationTicks; i++)
                     {
-                        if (furnace.isLit()) 
+                        if (com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace))
                         {
                             FurnaceBlockEntity.serverTick(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), furnace);
                         }
@@ -280,7 +280,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                     continue;
                 }
                 final FurnaceBlockEntity furnace = (FurnaceBlockEntity) entity;
-                if (!furnace.isLit() && (hasSmeltableInFurnaceAndNoFuel(furnace) || hasNeitherFuelNorSmeltAble(furnace)) && currentRecipeStorage != null && currentRecipeStorage.getIntermediate() == Blocks.FURNACE) 
+                if (!com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace) && (hasSmeltableInFurnaceAndNoFuel(furnace) || hasNeitherFuelNorSmeltAble(furnace)) && currentRecipeStorage != null && currentRecipeStorage.getIntermediate() == Blocks.FURNACE)
                 {
                     //We only want to return true if we're not already gathering materials.
                     return getState() != GATHERING_REQUIRED_MATERIALS;
@@ -322,7 +322,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                 if (entity instanceof FurnaceBlockEntity)
                 {
                     final FurnaceBlockEntity furnace = (FurnaceBlockEntity) entity;
-                    if (!furnace.isLit() && (hasSmeltableInFurnaceAndNoFuel(furnace) || hasNeitherFuelNorSmeltAble(furnace)) && currentRecipeStorage != null && currentRecipeStorage.getIntermediate() == Blocks.FURNACE) 
+                if (!com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace) && (hasSmeltableInFurnaceAndNoFuel(furnace) || hasNeitherFuelNorSmeltAble(furnace)) && currentRecipeStorage != null && currentRecipeStorage.getIntermediate() == Blocks.FURNACE)
                     {
                         if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(),  isCorrectFuel(possibleFuels)))
                         {
@@ -433,7 +433,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                     fullResult = countInResultSlot >= furnace.getItem(RESULT_SLOT).getMaxStackSize();
                 }
 
-                if (fullResult || (!furnace.isLit() && countInResultSlot > 0 && isEmpty(furnace.getItem(SMELTABLE_SLOT))))
+                if (fullResult || (!com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace) && countInResultSlot > 0 && isEmpty(furnace.getItem(SMELTABLE_SLOT))))
                 {
                     return pos;
                 }

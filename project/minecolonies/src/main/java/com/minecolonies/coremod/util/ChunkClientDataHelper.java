@@ -3,7 +3,7 @@ package com.minecolonies.coremod.util;
 import com.minecolonies.api.colony.IColonyTagCapability;
 import com.minecolonies.api.colony.event.ClientChunkUpdatedEvent;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.common.MinecraftForge;
+import com.minecolonies.fabric.common.MinecraftForge;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -64,7 +64,7 @@ public class ChunkClientDataHelper
      */
     public static void applyCap(final ChunkCapData chunkCapData, final LevelChunk chunk)
     {
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).orElseGet(null);
         if (cap != null)
         {
             cap.setOwningColony(chunkCapData.owningColony, chunk);

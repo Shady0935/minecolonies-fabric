@@ -121,7 +121,7 @@ public class CompostRecipe implements Recipe<Container>
     public NonNullList<Ingredient> getIngredients()
     {
         final NonNullList<Ingredient> ingredients = NonNullList.create();
-        ingredients.add(new CountedIngredient(this.input, calculateIngredientCount()));
+        ingredients.add(CountedIngredient.of(this.input, calculateIngredientCount()));
         return ingredients;
     }
 

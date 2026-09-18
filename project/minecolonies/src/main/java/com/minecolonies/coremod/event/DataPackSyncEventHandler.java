@@ -14,10 +14,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.client.event.RecipesUpdatedEvent;
-import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.client.event.RecipesUpdatedEvent;
+import com.minecolonies.fabric.event.OnDatapackSyncEvent;
+import com.minecolonies.fabric.event.server.ServerStartedEvent;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -76,7 +76,7 @@ public class DataPackSyncEventHandler
          * joins the server (with getPlayer() != null), and also on datapack reload (with null).
          * Note that at this point the client has not yet received the recipes/tags.
          *
-         * @param event {@link net.minecraftforge.event.OnDatapackSyncEvent}
+         * @param event {@link com.minecolonies.fabric.event.OnDatapackSyncEvent}
          */
         @SubscribeEvent
         public static void onDataPackSync(final OnDatapackSyncEvent event)

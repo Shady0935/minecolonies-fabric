@@ -32,16 +32,16 @@ import com.minecolonies.coremod.proxy.CommonProxy;
 import com.minecolonies.coremod.proxy.IProxy;
 import com.minecolonies.coremod.proxy.ServerProxy;
 import com.minecolonies.coremod.structures.MineColoniesStructures;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.event.TagsUpdatedEvent;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.CapabilityManager;
+import com.minecolonies.fabric.capability.CapabilityToken;
+import com.minecolonies.fabric.capability.RegisterCapabilitiesEvent;
+import com.minecolonies.fabric.event.TagsUpdatedEvent;
+import com.minecolonies.fabric.event.entity.EntityAttributeCreationEvent;
+import com.minecolonies.fabric.event.IEventBus;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -68,13 +68,13 @@ public class MineColonies
     /**
      * The proxy.
      */
-    public static final IProxy proxy = DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
+    public static final IProxy proxy = DistExecutor.<IProxy>unsafeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
 
     public MineColonies()
     {
         TileEntityInitializer.BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModEnchants.ENCHANTMENTS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        ModContainerInitializers.CONTAINERS.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ModContainerRegistry.CONTAINERS.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModBuildingsInitializer.DEFERRED_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModFieldsInitializer.DEFERRED_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModGuardTypesInitializer.DEFERRED_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -91,7 +91,7 @@ public class MineColonies
         ModInteractionsInitializer.DEFERRED_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModResearchEffectInitializer.DEFERRED_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModLootConditions.DEFERRED_REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
-        SupplyLoot.GLM.register(FMLJavaModLoadingContext.get().getModEventBus());
+        SupplyLoot.register();
         ModBannerPatterns.BANNER_PATTERNS.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         ModQuestInitializer.DEFERRED_REGISTER_OBJECTIVE.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -108,21 +108,29 @@ public class MineColonies
         LanguageHandler.loadLangPath("assets/minecolonies/lang/%s.json"); // hotfix config comments, it's ugly bcs it's gonna be replaced
         config = new Configuration();
 
-        Consumer<TagsUpdatedEvent> onTagsLoaded = (event) -> ModTags.tagsLoaded = true;
+        Consumer<Object> onTagsLoaded = (event) ->
+        {
+            if (event instanceof TagsUpdatedEvent)
+            {
+                ModTags.tagsLoaded = true;
+            }
+        };
         MinecraftForge.EVENT_BUS.addListener(onTagsLoaded);
 
         Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(EventHandler.class);
         Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(FMLEventHandler.class);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(ClientEventHandler.class));
+        Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(QuestObjectiveEventHandler.class);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> { Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(ClientEventHandler.class); });
         Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(DataPackSyncEventHandler.ServerEvents.class);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(DataPackSyncEventHandler.ClientEvents.class));
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> { Mod.EventBusSubscriber.Bus.FORGE.bus().get().register(DataPackSyncEventHandler.ClientEvents.class); });
 
         Mod.EventBusSubscriber.Bus.MOD.bus().get().register(CommonProxy.class);
 
         Mod.EventBusSubscriber.Bus.MOD.bus().get().addListener(GatherDataHandler::dataGeneratorSetup);
 
         Mod.EventBusSubscriber.Bus.MOD.bus().get().register(this.getClass());
-        Mod.EventBusSubscriber.Bus.MOD.bus().get().register(ClientRegistryHandler.class);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+          Mod.EventBusSubscriber.Bus.MOD.bus().get().register(ClientRegistryHandler.class));
         Mod.EventBusSubscriber.Bus.MOD.bus().get().register(ModCreativeTabs.class);
 
         InteractionValidatorInitializer.init();

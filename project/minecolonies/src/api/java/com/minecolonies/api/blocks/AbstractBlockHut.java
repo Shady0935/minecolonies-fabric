@@ -25,8 +25,6 @@ import com.minecolonies.api.util.*;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.TranslationConstants;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -54,10 +52,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.inventory.InvWrapper;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -216,7 +214,7 @@ public abstract class AbstractBlockHut<B extends AbstractBlockHut<B>> extends Ab
 
             @Nullable final IBuildingView building = IColonyManager.getInstance().getBuildingView(worldIn.dimension(), pos);
 
-            final IColonyTagCapability cap = worldIn.getChunkAt(pos).getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+            final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(worldIn.getChunkAt(pos), CLOSE_COLONY_CAP, null).resolve().orElse(null);
             final BlockEntity entity = worldIn.getBlockEntity(pos);
             if (entity instanceof final TileEntityColonyBuilding te && te.getPositionedTags().containsKey(BlockPos.ZERO) && te.getPositionedTags().get(BlockPos.ZERO).contains(DEACTIVATED))
             {
@@ -352,7 +350,7 @@ public abstract class AbstractBlockHut<B extends AbstractBlockHut<B>> extends Ab
     }
 
     @Override
-    public B registerBlock(final IForgeRegistry<Block> registry)
+    public B registerBlock(final FabricRegistry<Block> registry)
     {
         registry.register(getRegistryName(), this);
         return (B) this;
@@ -367,7 +365,7 @@ public abstract class AbstractBlockHut<B extends AbstractBlockHut<B>> extends Ab
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public List<MutableComponent> getRequirements(final ClientLevel level, final BlockPos pos, final LocalPlayer player)
+    public List<MutableComponent> getRequirements(final Level level, final BlockPos pos, final Player player)
     {
         final List<MutableComponent> requirements = new ArrayList<>();
         final IColonyView colonyView = IColonyManager.getInstance().getClosestColonyView(level, pos);
@@ -400,7 +398,7 @@ public abstract class AbstractBlockHut<B extends AbstractBlockHut<B>> extends Ab
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public boolean areRequirementsMet(final ClientLevel level, final BlockPos pos, final LocalPlayer player)
+    public boolean areRequirementsMet(final Level level, final BlockPos pos, final Player player)
     {
         if (player.isCreative())
         {
@@ -585,7 +583,7 @@ public abstract class AbstractBlockHut<B extends AbstractBlockHut<B>> extends Ab
     }
 
     @Override
-    public void registerBlockItem(final IForgeRegistry<Item> registry, final Item.Properties properties)
+    public void registerBlockItem(final FabricRegistry<Item> registry, final Item.Properties properties)
     {
         registry.register(getRegistryName(), new ItemBlockHut(this, properties));
     }

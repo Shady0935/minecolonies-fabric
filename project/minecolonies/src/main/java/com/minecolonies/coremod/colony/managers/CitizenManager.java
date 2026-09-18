@@ -36,7 +36,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.MinecraftForge;
+import com.minecolonies.fabric.common.MinecraftForge;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,13 +123,13 @@ public class CitizenManager implements ICitizenManager
         if (!existingCitizen.isPresent())
         {
             data.setEntity(entity);
-            entity.level.getScoreboard().addPlayerToTeam(entity.getScoreboardName(), colony.getTeam());
+            entity.level().getScoreboard().addPlayerToTeam(entity.getScoreboardName(), colony.getTeam());
             return;
         }
 
         if (existingCitizen.get() == entity)
         {
-            entity.level.getScoreboard().addPlayerToTeam(entity.getScoreboardName(), colony.getTeam());
+            entity.level().getScoreboard().addPlayerToTeam(entity.getScoreboardName(), colony.getTeam());
             return;
         }
 
@@ -138,7 +138,7 @@ public class CitizenManager implements ICitizenManager
             existingCitizen.get().remove(Entity.RemovalReason.DISCARDED);
             data.setEntity(entity);
             entity.setCivilianData(data);
-            entity.level.getScoreboard().addPlayerToTeam(entity.getScoreboardName(), colony.getTeam());
+            entity.level().getScoreboard().addPlayerToTeam(entity.getScoreboardName(), colony.getTeam());
             return;
         }
 

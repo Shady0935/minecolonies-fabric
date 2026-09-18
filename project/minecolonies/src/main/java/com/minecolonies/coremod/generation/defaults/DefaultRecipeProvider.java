@@ -18,8 +18,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.common.Tags;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -54,7 +54,7 @@ public class DefaultRecipeProvider extends RecipeProvider
                 .save(consumer, TagConstants.COMPOSTABLES_POOR);
         CompostRecipeBuilder.strength(4)
                 .input(new FoodIngredient.Builder().minSaturation(0.5f).maxSaturation(1.0f).build())
-                .input(PlantIngredient.getInstance())
+                .input(PlantIngredient.of())
                 .input(Ingredient.of(ModTags.compostables))
                 .save(consumer, TagConstants.COMPOSTABLES);
         CompostRecipeBuilder.strength(8)
@@ -239,7 +239,7 @@ public class DefaultRecipeProvider extends RecipeProvider
     private static ResourceLocation append(@NotNull final ItemLike item,
                                            @NotNull final String text)
     {
-        return append(ForgeRegistries.ITEMS.getKey(item.asItem()), "", text);
+        return append(FabricRegistries.ITEMS.getKey(item.asItem()), "", text);
     }
 
     /**

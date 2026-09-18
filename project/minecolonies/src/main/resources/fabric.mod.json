@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "minecolonies",
+  "version": "${version}",
+  "name": "MineColonies Fabric 1.20.1",
+  "description": "Fabric 1.20.1 port of MineColonies based on the official 1.20.1 gameplay source.",
+  "authors": ["LDT Team", "Destiny port contributors"],
+  "license": "GPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.minecolonies.coremod.MineColoniesFabric"],
+    "client": ["com.minecolonies.coremod.MineColoniesClientFabric"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric-api": "*",
+    "minecraft": "1.20.1",
+    "java": ">=17",
+    "blockui": "*",
+    "domum_ornamentum": "*",
+    "structurize": "*"
+  }
+}

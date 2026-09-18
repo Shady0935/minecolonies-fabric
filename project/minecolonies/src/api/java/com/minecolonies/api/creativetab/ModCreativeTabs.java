@@ -9,8 +9,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 
 /**
  * Class used to handle the creativeTab of minecolonies.
@@ -18,9 +18,9 @@ import net.minecraftforge.registries.RegistryObject;
 @Mod.EventBusSubscriber
 public final class ModCreativeTabs
 {
-    public static final DeferredRegister<CreativeModeTab> TAB_REG = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Constants.MOD_ID);
+    public static final FabricDeferredRegister<CreativeModeTab> TAB_REG = FabricDeferredRegister.create(Registries.CREATIVE_MODE_TAB, Constants.MOD_ID);
 
-    public static final RegistryObject<CreativeModeTab> GENERAL = TAB_REG.register("general", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP, 1)
+    public static final FabricRegistryObject<CreativeModeTab> GENERAL = TAB_REG.register("general", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP, 1)
                                                                                                       .icon(() -> new ItemStack(ModBlocks.blockHutTownHall))
                                                                                                       .title(Component.literal("Minecolonies")).displayItems((config, output) -> {
           for (final AbstractBlockHut<?> hut : ModBlocks.getHuts())

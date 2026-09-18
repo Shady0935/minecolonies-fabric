@@ -6,13 +6,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import com.minecolonies.fabric.util.INBTSerializable;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 
 import static com.minecolonies.api.util.constant.Suppression.UNCHECKED;
@@ -86,7 +86,7 @@ public class CombinedItemHandler implements IItemHandlerModifiable, INBTSerializ
             if (handlerModifiable instanceof INBTSerializable)
             {
                 final INBTSerializable<?> serializable = (INBTSerializable<?>) handlerModifiable;
-                handlerList.add(serializable.serializeNBT());
+                handlerList.add((Tag) serializable.serializeNBT());
                 indexList.add(IntTag.valueOf(index));
             }
 
@@ -302,7 +302,7 @@ public class CombinedItemHandler implements IItemHandlerModifiable, INBTSerializ
     }
 
     @Override
-    public boolean isItemValid(int slot, @Nonnull ItemStack stack)
+    public boolean isItemValid(int slot, @NotNull ItemStack stack)
     {
         int slotIndex = slot;
         for (final IItemHandlerModifiable modifiable : handlers)

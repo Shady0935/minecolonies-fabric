@@ -5,11 +5,11 @@ import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.event.ColonyDeletedEvent;
 import com.minecolonies.api.network.IMessage;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.common.MinecraftForge;
+import com.minecolonies.fabric.common.MinecraftForge;
 import net.minecraft.network.FriendlyByteBuf;
 import com.minecolonies.api.util.MessageUtils;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 import static com.minecolonies.api.util.constant.TranslationConstants.*;
@@ -47,7 +47,7 @@ public class ColonyDeleteOwnMessage implements IMessage
             return;
         }
 
-        final IColony colony = IColonyManager.getInstance().getIColonyByOwner(player.level, player);
+        final IColony colony = IColonyManager.getInstance().getIColonyByOwner(player.level(), player);
         if (colony != null)
         {
             IColonyManager.getInstance().deleteColonyByDimension(colony.getID(), false, colony.getDimension());

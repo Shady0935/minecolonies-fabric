@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.ToolActions;
+import com.minecolonies.fabric.common.ToolActions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -211,11 +211,11 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
             {
                 renderData.append(RENDER_META_STONE);
             }
-            else if (stack.canPerformAction(ToolActions.PICKAXE_DIG) && renderData.indexOf(RENDER_META_PICKAXE) == -1)
+            else if (ToolActions.canPerformAction(stack, ToolActions.PICKAXE_DIG) && renderData.indexOf(RENDER_META_PICKAXE) == -1)
             {
                 renderData.append(RENDER_META_PICKAXE);
             }
-            else if (stack.canPerformAction(ToolActions.SHOVEL_DIG) && renderData.indexOf(RENDER_META_SHOVEL) == -1)
+            else if (ToolActions.canPerformAction(stack, ToolActions.SHOVEL_DIG) && renderData.indexOf(RENDER_META_SHOVEL) == -1)
             {
                 renderData.append(RENDER_META_SHOVEL);
             }
@@ -334,7 +334,7 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
             return getState();
         }
 
-        if (!world.getBlockState(nextLadder).isLadder(world, nextLadder, worker) && !world.getBlockState(nextLadder).canOcclude())
+        if (!com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(world.getBlockState(nextLadder), world, nextLadder, worker) && !world.getBlockState(nextLadder).canOcclude())
         {
             if (!checkIfRequestForItemExistOrCreate(new ItemStack(Blocks.LADDER), LADDER_REQUEST_BATCHES, 1))
             {
@@ -829,7 +829,7 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
 
     private int getFirstLadder(@NotNull BlockPos pos)
     {
-        while (world.getBlockState(pos).isLadder(world, pos, worker))
+        while (com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(world.getBlockState(pos), world, pos, worker))
         {
             pos = pos.above();
         }
@@ -1002,6 +1002,6 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
         @NotNull final BlockPos nextLadder =
           new BlockPos(building.getLadderLocation().getX(), getLastLadder(building.getLadderLocation(), world) - 1, building.getLadderLocation().getZ());
 
-        return !world.getBlockState(nextLadder).isLadder(world, nextLadder, worker) && !world.getBlockState(nextLadder).canOcclude();
+        return !com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(world.getBlockState(nextLadder), world, nextLadder, worker) && !world.getBlockState(nextLadder).canOcclude();
     }
 }

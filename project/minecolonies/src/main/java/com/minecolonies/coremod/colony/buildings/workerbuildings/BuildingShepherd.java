@@ -18,7 +18,7 @@ import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -106,7 +106,7 @@ public class BuildingShepherd extends AbstractBuilding
             final List<IGenericRecipe> recipes = new ArrayList<>(super.getRecipesForDisplayPurposesOnly(animal));
 
             recipes.add(new GenericRecipe(null, ItemStack.EMPTY,
-                    ForgeRegistries.ITEMS.tags().getTag(ItemTags.WOOL).stream().map(ItemStack::new).toList(),
+                    FabricRegistries.ITEMS.tags().getTag(ItemTags.WOOL).stream().map(ItemStack::new).toList(),
                     Collections.emptyList(), Collections.emptyList(),
                     0, Blocks.AIR, null, ToolType.SHEARS, animal, Collections.emptyList(), 0));
 

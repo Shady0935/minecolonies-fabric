@@ -16,8 +16,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.inventory.InvWrapper;
+import com.minecolonies.fabric.registry.FabricRegistries;
 
 import java.util.List;
 
@@ -99,7 +99,7 @@ public class DeliveryObjectiveTemplateTemplate extends DialogueObjectiveTemplate
         JsonObject details = jsonObject.getAsJsonObject(DETAILS_KEY);
         final int target = details.get(TARGET_KEY).getAsInt();
         final int quantity = details.get(QUANTITY_KEY).getAsInt();
-        final ItemStack item = new ItemStack(ForgeRegistries.ITEMS.getHolder(new ResourceLocation(details.get(ITEM_KEY).getAsString())).get().get());
+        final ItemStack item = new ItemStack(FabricRegistries.ITEMS.getHolder(new ResourceLocation(details.get(ITEM_KEY).getAsString())).get().value());
         if (details.has(NBT_KEY))
         {
             try

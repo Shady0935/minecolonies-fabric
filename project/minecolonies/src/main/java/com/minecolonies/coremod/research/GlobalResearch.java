@@ -19,8 +19,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -723,7 +723,7 @@ public class GlobalResearch implements IGlobalResearch
             outputString[0] = iconParts[0];
             outputString[1] = iconParts[1];
         }
-        final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(outputString[0], outputString[1]));
+        final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(outputString[0], outputString[1]));
         if(item.equals(Items.AIR))
         {
             return ItemStack.EMPTY;

@@ -119,7 +119,7 @@ public class ColonyBlueprintRenderer
             final BlockPos position = entry.getKey();
             if (buildingData.blueprint != null && buildingData.blueprint.getBlueprint() != null)
             {
-                BlueprintHandler.getInstance().draw(buildingData.blueprint, position, ctx.stageEvent);
+                BlueprintHandler.getInstance().draw(buildingData.blueprint, position, ctx.renderContext);
             }
         }
     }

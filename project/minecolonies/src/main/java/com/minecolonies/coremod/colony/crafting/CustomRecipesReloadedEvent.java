@@ -1,6 +1,6 @@
 package com.minecolonies.coremod.colony.crafting;
 
-import net.minecraftforge.eventbus.api.Event;
+import com.minecolonies.fabric.event.Event;
 
 /**
  * This event is fired on the client side whenever the CustomRecipeManager has been

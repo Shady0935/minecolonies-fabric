@@ -27,8 +27,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -149,7 +149,7 @@ public class EntityAIWorkCook extends AbstractEntityAIUsesFurnace<JobCook, Build
             return true;
         }
         final int buildingLimit = Math.max(1, building.getBuildingLevel() * building.getBuildingLevel()) * SLOT_PER_LINE;
-        return InventoryUtils.getCountFromBuildingWithLimit(building, ItemStackUtils.CAN_EAT.and(stack -> stack.getItem().getFoodProperties(stack, worker).getNutrition() >= building.getBuildingLevel() - 1), stack -> stack.getMaxStackSize() * 6) > buildingLimit;
+        return InventoryUtils.getCountFromBuildingWithLimit(building, ItemStackUtils.CAN_EAT.and(stack -> stack.getItem().getFoodProperties().getNutrition() >= building.getBuildingLevel() - 1), stack -> stack.getMaxStackSize() * 6) > buildingLimit;
     }
 
     @Override
@@ -208,7 +208,7 @@ public class EntityAIWorkCook extends AbstractEntityAIUsesFurnace<JobCook, Build
                     final ItemStack stack = worker.getInventoryCitizen().extractItem(foodSlot, 1, false);
                     if (stack.isEdible())
                     {
-                        citizenToServe.get(0).getCitizenData().increaseSaturation(stack.getItem().getFoodProperties(stack, worker).getNutrition() / 2.0);
+                        citizenToServe.get(0).getCitizenData().increaseSaturation(stack.getItem().getFoodProperties().getNutrition() / 2.0);
                     }
                     worker.getCitizenColonyHandler().getColony().getStatisticsManager().increment(FOOD_SERVED);
                 }
@@ -400,7 +400,7 @@ public class EntityAIWorkCook extends AbstractEntityAIUsesFurnace<JobCook, Build
             }
         }
 
-        blockedItems.removeIf(item -> item.getItem().getFoodProperties(item.getItemStack(), worker) == null || item.getItem().getFoodProperties(item.getItemStack(), worker).getNutrition() < building.getBuildingLevel() - 1);
+        blockedItems.removeIf(item -> item.getItem().getFoodProperties() == null || item.getItem().getFoodProperties().getNutrition() < building.getBuildingLevel() - 1);
         if (!blockedItems.isEmpty())
         {
             if (IColonyManager.getInstance().getCompatibilityManager().getEdibles(building.getBuildingLevel() - 1).size() <= blockedItems.size())

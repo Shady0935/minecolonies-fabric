@@ -30,7 +30,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -484,7 +484,7 @@ public abstract class AbstractBlockGate extends DoorBlock
      * @param registry the registry to use.
      * @return the block itself.
      */
-    public AbstractBlockGate registerBlock(final IForgeRegistry<Block> registry)
+    public AbstractBlockGate registerBlock(final FabricRegistry<Block> registry)
     {
         registry.register(new ResourceLocation(Constants.MOD_ID, this.name), this);
         return this;
@@ -496,7 +496,7 @@ public abstract class AbstractBlockGate extends DoorBlock
      * @param registry   the registry to use.
      * @param properties the item properties.
      */
-    public void registerBlockItem(final IForgeRegistry<Item> registry, final Item.Properties properties)
+    public void registerBlockItem(final FabricRegistry<Item> registry, final Item.Properties properties)
     {
         registry.register(new ResourceLocation(Constants.MOD_ID, this.name), new BlockItem(this, properties));
     }

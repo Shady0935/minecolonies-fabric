@@ -19,8 +19,8 @@ import com.minecolonies.coremod.colony.buildings.moduleviews.CraftingModuleView;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;

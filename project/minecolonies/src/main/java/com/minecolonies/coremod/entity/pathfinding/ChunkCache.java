@@ -28,11 +28,11 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ChunkCache implements LevelReader
@@ -75,7 +75,8 @@ public class ChunkCache implements LevelReader
             {
                 if (WorldUtil.isEntityChunkLoaded(world, new ChunkPos(k, l)) && worldIn.getChunkSource() instanceof ServerChunkCache serverChunkCache)
                 {
-                    final ChunkHolder holder = serverChunkCache.chunkMap.visibleChunkMap.get(ChunkPos.asLong(k, l));
+                    final ChunkHolder holder = com.minecolonies.fabric.compat.FabricVanillaCompat.getVisibleChunk(
+                      serverChunkCache, ChunkPos.asLong(k, l));
                     if (holder != null)
                     {
                         this.chunkArray[k - this.chunkX][l - this.chunkZ] = holder.getFullChunkFuture().getNow(ChunkHolder.UNLOADED_LEVEL_CHUNK).left().orElse(null);

@@ -24,7 +24,7 @@ import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -206,7 +206,7 @@ public class DefaultNetherWorkerLootProvider extends CustomRecipeAndLootTablePro
     private LootPoolSingletonContainer.Builder<?> createAdventureToken(@NotNull final EntityType<?> mob, final int damage_done, final int xp_gained)
     {
         final CompoundTag nbt = new CompoundTag();
-        nbt.putString(TAG_ENTITY_TYPE, ForgeRegistries.ENTITY_TYPES.getKey(mob).toString());
+        nbt.putString(TAG_ENTITY_TYPE, FabricRegistries.ENTITY_TYPES.getKey(mob).toString());
         nbt.putInt(TAG_DAMAGE, damage_done);
         nbt.putInt(TAG_XP_DROPPED, xp_gained);
 

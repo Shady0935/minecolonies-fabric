@@ -5,11 +5,11 @@ import com.minecolonies.api.colony.interactionhandling.registry.InteractionRespo
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.colony.interactionhandling.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 public final class ModInteractionsInitializer
 {
-    public final static DeferredRegister<InteractionResponseHandlerEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "interactionresponsehandlers"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<InteractionResponseHandlerEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "interactionresponsehandlers"), Constants.MOD_ID);
 
     private ModInteractionsInitializer()
     {

@@ -3,7 +3,6 @@ package com.minecolonies.api.entity.citizen;
 import com.minecolonies.api.colony.ICivilianData;
 import com.minecolonies.api.entity.AbstractFastMinecoloniesEntity;
 import com.minecolonies.api.sounds.SoundManager;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.*;
@@ -45,7 +44,7 @@ public abstract class AbstractCivilianEntity extends AbstractFastMinecoloniesEnt
         super(type, worldIn);
         if (worldIn.isClientSide)
         {
-            soundManager = new SoundManager((ClientLevel) worldIn);
+            soundManager = new SoundManager(worldIn);
         }
     }
 
@@ -88,7 +87,10 @@ public abstract class AbstractCivilianEntity extends AbstractFastMinecoloniesEnt
         super.tick();
         if (level().isClientSide)
         {
-            soundManager.tick();
+            if (soundManager != null)
+            {
+                soundManager.tick();
+            }
         }
     }
 
@@ -103,8 +105,8 @@ public abstract class AbstractCivilianEntity extends AbstractFastMinecoloniesEnt
         if (getSleepingPos().isPresent())
         {
             final BlockPos pos = getSleepingPos().get();
-            final BlockState state = level.getBlockState(getSleepingPos().get());
-            return state.getBlock().isBed(state,level,pos,this);
+            final BlockState state = level().getBlockState(getSleepingPos().get());
+            return com.minecolonies.fabric.compat.FabricVanillaCompat.isBed(state, level(), pos, this);
         }
 
         return false;
@@ -133,7 +135,7 @@ public abstract class AbstractCivilianEntity extends AbstractFastMinecoloniesEnt
             getNavigation().stop();
             getLookControl().setLookAt(player);
 
-            playSoundAtCitizenWith(level, blockPosition(), GREETING, getCivilianData());
+            playSoundAtCitizenWith(level(), blockPosition(), GREETING, getCivilianData());
         }
     }
 

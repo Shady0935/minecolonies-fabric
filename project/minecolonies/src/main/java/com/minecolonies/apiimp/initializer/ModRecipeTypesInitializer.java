@@ -6,11 +6,11 @@ import com.minecolonies.api.crafting.MultiOutputRecipe;
 import com.minecolonies.api.crafting.registry.RecipeTypeEntry;
 import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 public final class ModRecipeTypesInitializer
 {
-    public final static DeferredRegister<RecipeTypeEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "recipetypeentries"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<RecipeTypeEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "recipetypeentries"), Constants.MOD_ID);
 
     private ModRecipeTypesInitializer()
     {

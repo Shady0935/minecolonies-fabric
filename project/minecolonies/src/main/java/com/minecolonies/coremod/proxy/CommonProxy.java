@@ -16,10 +16,11 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.stats.RecipeBook;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.common.crafting.CraftingHelper;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.*;
+import net.minecraftforge.registries.NewRegistryEvent;
+import com.minecolonies.fabric.registry.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -92,11 +93,11 @@ public abstract class CommonProxy implements IProxy
     @SubscribeEvent
     public static void registerRecipeSerializers(final RegisterEvent event)
     {
-        if (event.getRegistryKey().equals(ForgeRegistries.Keys.RECIPE_SERIALIZERS))
+        if (event.getRegistryKey().equals(FabricRegistries.Keys.RECIPE_SERIALIZERS))
         {
-            CraftingHelper.register(CountedIngredient.ID, CountedIngredient.Serializer.getInstance());
-            CraftingHelper.register(FoodIngredient.ID, FoodIngredient.Serializer.getInstance());
-            CraftingHelper.register(PlantIngredient.ID, PlantIngredient.Serializer.getInstance());
+            CraftingHelper.register(CountedIngredient.ID, CountedIngredient.SERIALIZER);
+            CraftingHelper.register(FoodIngredient.ID, FoodIngredient.SERIALIZER);
+            CraftingHelper.register(PlantIngredient.ID, PlantIngredient.SERIALIZER);
         }
     }
 

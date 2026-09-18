@@ -58,9 +58,9 @@ import net.minecraft.world.level.block.entity.BannerPatterns;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.event.TickEvent;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -795,7 +795,7 @@ public class Colony implements IColony
         final ListTag freeBlockTagList = compound.getList(TAG_FREE_BLOCKS, Tag.TAG_STRING);
         for (int i = 0; i < freeBlockTagList.size(); ++i)
         {
-            tempFreeBlocks.add(ForgeRegistries.BLOCKS.getValue(new ResourceLocation(freeBlockTagList.getString(i))));
+            tempFreeBlocks.add(FabricRegistries.BLOCKS.getValue(new ResourceLocation(freeBlockTagList.getString(i))));
         }
         freeBlocks = ImmutableSet.copyOf(tempFreeBlocks);
 
@@ -947,7 +947,7 @@ public class Colony implements IColony
         @NotNull final ListTag freeBlocksTagList = new ListTag();
         for (@NotNull final Block block : freeBlocks)
         {
-            freeBlocksTagList.add(StringTag.valueOf(ForgeRegistries.BLOCKS.getKey(block).toString()));
+            freeBlocksTagList.add(StringTag.valueOf(FabricRegistries.BLOCKS.getKey(block).toString()));
         }
         compound.put(TAG_FREE_BLOCKS, freeBlocksTagList);
 
@@ -1263,7 +1263,7 @@ public class Colony implements IColony
         }
 
         final LevelChunk chunk = w.getChunkAt(pos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         return cap != null && cap.getOwningColony() == this.getID();
     }
 

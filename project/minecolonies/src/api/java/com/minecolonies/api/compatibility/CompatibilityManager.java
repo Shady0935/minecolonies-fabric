@@ -16,7 +16,6 @@ import com.minecolonies.api.crafting.registry.ModRecipeSerializer;
 import com.minecolonies.api.items.ModTags;
 import com.minecolonies.api.util.*;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -39,12 +38,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.Tags;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.common.Tags;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistries;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -240,14 +239,14 @@ public class CompatibilityManager implements ICompatibilityManager
         serializeItemStorageList(buf, food);
         serializeItemStorageList(buf, edibles);
         serializeItemStorageList(buf, fuel);
-        serializeRegistryIds(buf, ForgeRegistries.ENTITY_TYPES, monsters);
+        serializeRegistryIds(buf, FabricRegistries.ENTITY_TYPES, monsters);
 
         serializeCompostRecipes(buf, compostRecipes);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void deserialize(@NotNull final FriendlyByteBuf buf, final ClientLevel level)
+    public void deserialize(@NotNull final FriendlyByteBuf buf, final Level level)
     {
         clear();
         discoverAllItems(level);
@@ -261,7 +260,7 @@ public class CompatibilityManager implements ICompatibilityManager
         food.addAll(deserializeItemStorageList(buf));
         edibles.addAll(deserializeItemStorageList(buf));
         fuel.addAll(deserializeItemStorageList(buf));
-        monsters = ImmutableSet.copyOf(deserializeRegistryIds(buf, ForgeRegistries.ENTITY_TYPES));
+        monsters = ImmutableSet.copyOf(deserializeRegistryIds(buf, FabricRegistries.ENTITY_TYPES));
 
         Log.getLogger().info("Synchronized {} saplings", saplings.size());
         Log.getLogger().info("Synchronized {} ore blocks with {} smeltable ores", oreBlocks.size(), smeltableOres.size());
@@ -311,20 +310,18 @@ public class CompatibilityManager implements ICompatibilityManager
     }
 
     private static void serializeRegistryIds(@NotNull final FriendlyByteBuf buf,
-                                             @NotNull final IForgeRegistry<?> registry,
+                                             @NotNull final FabricRegistry<?> registry,
                                              @NotNull final Collection<ResourceLocation> ids)
     {
-        buf.writeCollection(ids, (b, id) -> b.writeRegistryIdUnsafe(registry, id));
+        buf.writeCollection(ids, FriendlyByteBuf::writeResourceLocation);
     }
 
     @NotNull
     private static <T> List<ResourceLocation>
             deserializeRegistryIds(@NotNull final FriendlyByteBuf buf,
-                                   @NotNull final IForgeRegistry<T> registry)
+                                   @NotNull final FabricRegistry<T> registry)
     {
-        return buf.readList(b -> b.readRegistryIdUnsafe(registry)).stream()
-                .flatMap(item -> Stream.ofNullable(registry.getKey(item)))
-                .toList();
+        return buf.readList(FriendlyByteBuf::readResourceLocation);
     }
 
     private static void serializeCompostRecipes(@NotNull final FriendlyByteBuf buf,
@@ -413,7 +410,7 @@ public class CompatibilityManager implements ICompatibilityManager
         final Set<ItemStorage> filteredEdibles = new HashSet<>();
         for (final ItemStorage storage : edibles)
         {
-            if ((storage.getItemStack().getFoodProperties(null) != null && storage.getItemStack().getFoodProperties(null).getNutrition() >= minNutrition))
+            if ((storage.getItemStack().getItem().getFoodProperties() != null && storage.getItemStack().getItem().getFoodProperties().getNutrition() >= minNutrition))
             {
                 filteredEdibles.add(storage);
             }
@@ -598,7 +595,7 @@ public class CompatibilityManager implements ICompatibilityManager
     {
         Set<ResourceLocation> monsterSet = new HashSet<>();
 
-        for (final Map.Entry<ResourceKey<EntityType<?>>, EntityType<?>> entry : ForgeRegistries.ENTITY_TYPES.getEntries())
+        for (final Map.Entry<ResourceKey<EntityType<?>>, EntityType<?>> entry : FabricRegistries.ENTITY_TYPES.getEntries())
         {
             if (entry.getValue().getCategory() == MobCategory.MONSTER)
             {
@@ -713,7 +710,7 @@ public class CompatibilityManager implements ICompatibilityManager
     {
         if (compostRecipes.isEmpty())
         {
-            discoverCompostRecipes(recipeManager.byType(ModRecipeSerializer.CompostRecipeType.get()).values().stream()
+            discoverCompostRecipes(recipeManager.getAllRecipesFor(ModRecipeSerializer.CompostRecipeType.get()).stream()
                     .map(r -> (CompostRecipe) r).toList());
             Log.getLogger().info("Finished discovering compostables " + compostRecipes.size());
         }
@@ -788,7 +785,7 @@ public class CompatibilityManager implements ICompatibilityManager
                     continue;
                 }
 
-                final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(split[0]));
+                final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(split[0]));
                 if (item == null || item == Items.AIR)
                 {
                     Log.getLogger().warn("Invalid lucky block: " + ore);
@@ -856,7 +853,7 @@ public class CompatibilityManager implements ICompatibilityManager
                     continue;
                 }
 
-                final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(split[0]));
+                final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(split[0]));
                 if (item == null || item == Items.AIR)
                 {
                     Log.getLogger().warn("Invalid recruitment item: " + item);
@@ -903,7 +900,7 @@ public class CompatibilityManager implements ICompatibilityManager
                     for (int i = 2; i < split.length; i++)
                     {
                         final String[] theItem = split[i].split(":");
-                        final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(theItem[0], theItem[1]));
+                        final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(theItem[0], theItem[1]));
                         if (item == null || item == Items.AIR)
                         {
                             Log.getLogger().warn("Invalid cure item: " + disease);
@@ -949,7 +946,7 @@ public class CompatibilityManager implements ICompatibilityManager
         {
             try
             {
-                final Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(s));
+                final Block block = FabricRegistries.BLOCKS.getValue(new ResourceLocation(s));
                 if (block != null && !(block instanceof AirBlock))
                 {
                     freeBlocks.add(block);

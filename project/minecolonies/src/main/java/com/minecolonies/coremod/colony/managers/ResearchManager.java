@@ -24,7 +24,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -133,7 +133,7 @@ public class ResearchManager implements IResearchManager
     @Override
     public ResourceLocation getResearchEffectIdFrom(Block block)
     {
-        return new ResourceLocation(ForgeRegistries.BLOCKS.getKey(block).getNamespace(), "effects/" + ForgeRegistries.BLOCKS.getKey(block).getPath());
+        return new ResourceLocation(FabricRegistries.BLOCKS.getKey(block).getNamespace(), "effects/" + FabricRegistries.BLOCKS.getKey(block).getPath());
     }
 
     @Override

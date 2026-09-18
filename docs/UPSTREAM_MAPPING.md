@@ -61,14 +61,14 @@ out for comparison:
 | MultiPiston | `ldtteam/Piston-Unlimited`, `version/1.20` | `7dc3db066977760dd3c722380002b83f72df2c23` | `release/1.21.1` | `34ab47124a4329dafa92cb0d21017ca811b4daef` |
 
 MultiPiston is not a repository named `MultiPiston`; the upstream GitHub
-project is `Piston-Unlimited`. It remains a separate required mod in the
-official 1.20.1 dependency metadata. Whether the final Fabric port needs to
-port it, replace its functionality, or remove the dependency will be decided
-from source/build evidence rather than assumed.
+project is `Piston-Unlimited`. It remains a separate mod in the official 1.20.1
+dependency metadata, but the target MineColonies main source has no direct
+runtime reference after the source-set audit. The current Fabric target does
+not include it; any supported MultiPiston feature should be ported as a
+separate Fabric module rather than represented by a no-op.
 
 ## Target
 
 The target is a new Fabric 1.20.1 implementation under `project/`, with the
 1.20.1 Forge source as the gameplay/content baseline and the modern NeoForge →
 Fabric source comparison as the API migration dictionary.
-

@@ -28,7 +28,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -65,7 +65,8 @@ public class WorldUtil
     {
         if (world.getChunkSource() instanceof ServerChunkCache)
         {
-            final ChunkHolder holder = ((ServerChunkCache) world.getChunkSource()).chunkMap.visibleChunkMap.get(ChunkPos.asLong(x, z));
+            final ChunkHolder holder = com.minecolonies.fabric.compat.FabricVanillaCompat.getVisibleChunk(
+              (ServerChunkCache) world.getChunkSource(), ChunkPos.asLong(x, z));
             if (holder != null)
             {
                 return holder.getFullChunkFuture().getNow(ChunkHolder.UNLOADED_LEVEL_CHUNK).left().isPresent();
@@ -283,10 +284,10 @@ public class WorldUtil
 
         if ((flags & 2) != 0)
         {
-            final Set<Mob> navigators = ((ServerLevel) world).navigatingMobs;
-            ((ServerLevel) world).navigatingMobs.clear();
+            final Set<Mob> navigators = new java.util.HashSet<>(com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world));
+            com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world).clear();
             final boolean result = world.setBlock(pos, state, flags);
-            ((ServerLevel) world).navigatingMobs.addAll(navigators);
+            com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world).addAll(navigators);
             return result;
         }
         else
@@ -384,7 +385,7 @@ public class WorldUtil
     @Nullable
     public static Player getNearestPlayer(Mob livingEntity, final int x, final int y, final int z, final double lookDistance)
     {
-        return getNearestEntity(livingEntity.level.players(), livingEntity, x, y, z, lookDistance);
+        return getNearestEntity(livingEntity.level().players(), livingEntity, x, y, z, lookDistance);
     }
 
     /**

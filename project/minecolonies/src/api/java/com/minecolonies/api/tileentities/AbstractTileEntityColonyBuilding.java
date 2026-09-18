@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +67,12 @@ public abstract class AbstractTileEntityColonyBuilding extends TileEntityRack im
      * @return true if found the stack.
      */
     public static boolean isInTileEntity(final ICapabilityProvider entity, @NotNull final Predicate<ItemStack> itemStackSelectionPredicate)
+    {
+        return InventoryFunctions.matchFirstInProvider(entity, itemStackSelectionPredicate);
+    }
+
+    /** Fabric bridge for vanilla block entities, which do not implement Forge's provider interface. */
+    public static boolean isInTileEntity(final Object entity, @NotNull final Predicate<ItemStack> itemStackSelectionPredicate)
     {
         return InventoryFunctions.matchFirstInProvider(entity, itemStackSelectionPredicate);
     }

@@ -39,14 +39,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.*;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.common.util.FakePlayer;
+import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
+import com.minecolonies.fabric.event.entity.living.LivingHurtEvent;
+import com.minecolonies.fabric.event.entity.player.*;
+import com.minecolonies.fabric.event.level.BlockEvent;
+import com.minecolonies.fabric.event.level.ExplosionEvent;
+import com.minecolonies.fabric.event.Event;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,8 +119,8 @@ public class ColonyPermissionEventHandler
     {
         if (entity instanceof Player)
         {
-            @NotNull final Player player = EntityUtils.getPlayerOfFakePlayer((Player) entity, entity.level);
-            if (colony.isCoordInColony(entity.level, posIn))
+            @NotNull final Player player = EntityUtils.getPlayerOfFakePlayer((Player) entity, entity.level());
+            if (colony.isCoordInColony(entity.level(), posIn))
             {
                 if (blockState.getBlock() instanceof AbstractBlockHut
                       && colony.getPermissions().hasPermission(player, action))
@@ -173,7 +173,7 @@ public class ColonyPermissionEventHandler
                 return;
             }
 
-            final long worldTime = entity.level.getGameTime();
+            final long worldTime = entity.level().getGameTime();
             if (!lastPlayerNotificationTick.containsKey(entity.getUUID())
                   || lastPlayerNotificationTick.get(entity.getUUID()) + (Constants.TICKS_SECOND * MineColonies.getConfig().getServer().secondsBetweenPermissionMessages.get())
                        < worldTime)
@@ -200,7 +200,7 @@ public class ColonyPermissionEventHandler
 
         if (event.getState().getBlock() instanceof AbstractBlockHut)
         {
-            @Nullable final IBuilding building = IColonyManager.getInstance().getBuilding(event.getPlayer().level, event.getPos());
+            @Nullable final IBuilding building = IColonyManager.getInstance().getBuilding(event.getPlayer().level(), event.getPos());
             if (building == null)
             {
                 return;
@@ -230,7 +230,7 @@ public class ColonyPermissionEventHandler
 
             if (MineColonies.getConfig().getServer().pvp_mode.get() && event.getState().getBlock() == ModBlocks.blockHutTownHall)
             {
-                IColonyManager.getInstance().deleteColonyByWorld(building.getColony().getID(), false, event.getPlayer().level);
+                IColonyManager.getInstance().deleteColonyByWorld(building.getColony().getID(), false, event.getPlayer().level());
             }
         }
         else if (event.getState().getBlock() instanceof BlockDecorationController)
@@ -297,9 +297,9 @@ public class ColonyPermissionEventHandler
     {
         if (MineColonies.getConfig().getServer().enableColonyProtection.get()
               && MineColonies.getConfig().getServer().turnOffExplosionsInColonies.get() == Explosions.DAMAGE_NOTHING
-              && colony.isCoordInColony(event.getLevel(), BlockPos.containing(event.getExplosion().getPosition())))
+              && colony.isCoordInColony(event.getLevel(), BlockPos.containing(com.minecolonies.fabric.compat.FabricVanillaCompat.getExplosionPosition(event.getExplosion()))))
         {
-            cancelEvent(event, null, colony, Action.EXPLODE, BlockPos.containing(event.getExplosion().getPosition()));
+            cancelEvent(event, null, colony, Action.EXPLODE, BlockPos.containing(com.minecolonies.fabric.compat.FabricVanillaCompat.getExplosionPosition(event.getExplosion())));
         }
     }
 

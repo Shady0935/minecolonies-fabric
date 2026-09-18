@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
+import com.minecolonies.fabric.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,14 +70,13 @@ public class DruidPotionEntity extends ThrownPotion
         this.entitySelectionPredicate = entitySelectionPredicate;
     }
 
-    @Override
     public void applySplash(List<MobEffectInstance> effects, @Nullable Entity entity)
     {
         final AbstractEntityCitizen citizen = this.getOwner();
         if (citizen != null && citizen.getCitizenData() != null && citizen.getCitizenData().getJob() instanceof JobDruid)
         {
             final AABB axisalignedbb = this.getBoundingBox().inflate(SPLASH_SIZE, SPLASH_HEIGTH, SPLASH_SIZE);
-            final List<LivingEntity> list = this.level.getEntitiesOfClass(LivingEntity.class, axisalignedbb);
+            final List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, axisalignedbb);
             if (!list.isEmpty())
             {
                 for (final LivingEntity livingentity : list)
@@ -154,7 +153,7 @@ public class DruidPotionEntity extends ThrownPotion
         potionentity.setItem(potionStack);
         potionentity.setPos(thrower.getX(), thrower.getY() + 1, thrower.getZ());
 
-        thrower.level.playSound(null, thrower.getX(), thrower.getY(), thrower.getZ(), SoundEvents.WITCH_THROW, thrower.getSoundSource(), 1.0F, 0.8F + thrower.getRandom().nextFloat() * 0.4F);
+        thrower.level().playSound(null, thrower.getX(), thrower.getY(), thrower.getZ(), SoundEvents.WITCH_THROW, thrower.getSoundSource(), 1.0F, 0.8F + thrower.getRandom().nextFloat() * 0.4F);
 
         Vec3 movement = target.getDeltaMovement();
 

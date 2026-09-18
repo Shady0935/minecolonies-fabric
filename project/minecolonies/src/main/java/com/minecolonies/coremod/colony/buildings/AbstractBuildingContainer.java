@@ -22,13 +22,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -219,9 +219,9 @@ public abstract class AbstractBuildingContainer extends AbstractSchematicProvide
 
     //------------------------- !Start! Capabilities handling for minecolonies buildings -------------------------//
 
-    @Nonnull
+    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> cap, @Nullable final Direction side)
+    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> cap, @Nullable final Direction side)
     {
         if (cap == ForgeCapabilities.ITEM_HANDLER && getTileEntity() != null)
         {

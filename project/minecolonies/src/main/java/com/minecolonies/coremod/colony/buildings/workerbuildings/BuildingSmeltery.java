@@ -25,7 +25,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -172,7 +172,7 @@ public class BuildingSmeltery extends AbstractBuilding
             final List<ResourceLocation> lootTables = new ArrayList<>(super.getAdditionalLootTables());
 
             //noinspection ConstantConditions
-            for (final Item input : ForgeRegistries.ITEMS.tags().getTag(ModTags.breakable_ore))
+            for (final Item input : FabricRegistries.ITEMS.tags().getTag(ModTags.breakable_ore))
             {
                 lootTables.add(getLootTable(input));
             }
@@ -198,7 +198,7 @@ public class BuildingSmeltery extends AbstractBuilding
             final List<IGenericRecipe> recipes = new ArrayList<>(super.getAdditionalRecipesForDisplayPurposesOnly(world));
 
             //noinspection ConstantConditions
-            for (final Item input : ForgeRegistries.ITEMS.tags().getTag(ModTags.breakable_ore))
+            for (final Item input : FabricRegistries.ITEMS.tags().getTag(ModTags.breakable_ore))
             {
                 recipes.add(new GenericRecipe(
                         null,                    //recipe
@@ -221,7 +221,7 @@ public class BuildingSmeltery extends AbstractBuilding
         {
             super.checkForWorkerSpecificRecipes();
 
-            for (final Item input : ForgeRegistries.ITEMS.tags().getTag(ModTags.breakable_ore))
+            for (final Item input : FabricRegistries.ITEMS.tags().getTag(ModTags.breakable_ore))
             {
                 Block b = Block.byItem(input);
                 List<ItemStack> drops = Block.getDrops(b.defaultBlockState(), (ServerLevel) building.getColony().getWorld(), building.getID(), null);

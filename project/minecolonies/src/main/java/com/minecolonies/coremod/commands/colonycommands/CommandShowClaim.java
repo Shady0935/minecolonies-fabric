@@ -47,7 +47,7 @@ public class CommandShowClaim implements IMCOPCommand
         }
 
         final LevelChunk chunk = (LevelChunk) level.getChunk(pos);
-        final IColonyTagCapability cap = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap == null)
         {
             context.getSource().sendFailure(Component.literal("No capability for chunk found!"));

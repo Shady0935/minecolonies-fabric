@@ -25,7 +25,7 @@ import com.minecolonies.api.quests.registries.QuestRegistries;
 import com.minecolonies.api.research.IGlobalResearchTree;
 import com.minecolonies.api.research.effects.registry.ResearchEffectEntry;
 import com.minecolonies.api.research.registry.ResearchRequirementEntry;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 
 public interface IMinecoloniesAPI
 {
@@ -45,19 +45,19 @@ public interface IMinecoloniesAPI
 
     IBuildingDataManager getBuildingDataManager();
 
-    IForgeRegistry<BuildingEntry> getBuildingRegistry();
+    FabricRegistry<BuildingEntry> getBuildingRegistry();
 
-    IForgeRegistry<FieldRegistries.FieldEntry> getFieldRegistry();
+    FabricRegistry<FieldRegistries.FieldEntry> getFieldRegistry();
 
     IJobDataManager getJobDataManager();
 
-    IForgeRegistry<JobEntry> getJobRegistry();
+    FabricRegistry<JobEntry> getJobRegistry();
 
-    IForgeRegistry<InteractionResponseHandlerEntry> getInteractionResponseHandlerRegistry();
+    FabricRegistry<InteractionResponseHandlerEntry> getInteractionResponseHandlerRegistry();
 
     IGuardTypeDataManager getGuardTypeDataManager();
 
-    IForgeRegistry<GuardType> getGuardTypeRegistry();
+    FabricRegistry<GuardType> getGuardTypeRegistry();
 
     IModelTypeRegistry getModelTypeRegistry();
 
@@ -69,27 +69,27 @@ public interface IMinecoloniesAPI
 
     IGlobalResearchTree getGlobalResearchTree();
 
-    IForgeRegistry<ResearchRequirementEntry> getResearchRequirementRegistry();
+    FabricRegistry<ResearchRequirementEntry> getResearchRequirementRegistry();
 
-    IForgeRegistry<ResearchEffectEntry> getResearchEffectRegistry();
+    FabricRegistry<ResearchEffectEntry> getResearchEffectRegistry();
 
-    IForgeRegistry<ColonyEventTypeRegistryEntry> getColonyEventRegistry();
+    FabricRegistry<ColonyEventTypeRegistryEntry> getColonyEventRegistry();
 
-    IForgeRegistry<ColonyEventDescriptionTypeRegistryEntry> getColonyEventDescriptionRegistry();
+    FabricRegistry<ColonyEventDescriptionTypeRegistryEntry> getColonyEventDescriptionRegistry();
 
-    IForgeRegistry<RecipeTypeEntry> getRecipeTypeRegistry();
+    FabricRegistry<RecipeTypeEntry> getRecipeTypeRegistry();
 
-    IForgeRegistry<CraftingType> getCraftingTypeRegistry();
+    FabricRegistry<CraftingType> getCraftingTypeRegistry();
 
-    IForgeRegistry<QuestRegistries.RewardEntry> getQuestRewardRegistry();
+    FabricRegistry<QuestRegistries.RewardEntry> getQuestRewardRegistry();
 
-    IForgeRegistry<QuestRegistries.ObjectiveEntry> getQuestObjectiveRegistry();
+    FabricRegistry<QuestRegistries.ObjectiveEntry> getQuestObjectiveRegistry();
 
-    IForgeRegistry<QuestRegistries.TriggerEntry> getQuestTriggerRegistry();
+    FabricRegistry<QuestRegistries.TriggerEntry> getQuestTriggerRegistry();
 
-    IForgeRegistry<QuestRegistries.DialogueAnswerEntry> getQuestDialogueAnswerRegistry();
+    FabricRegistry<QuestRegistries.DialogueAnswerEntry> getQuestDialogueAnswerRegistry();
 
-    IForgeRegistry<HappinessRegistry.HappinessFactorTypeEntry> getHappinessTypeRegistry();
+    FabricRegistry<HappinessRegistry.HappinessFactorTypeEntry> getHappinessTypeRegistry();
 
-    IForgeRegistry<HappinessRegistry.HappinessFunctionEntry> getHappinessFunctionRegistry();
+    FabricRegistry<HappinessRegistry.HappinessFunctionEntry> getHappinessFunctionRegistry();
 }

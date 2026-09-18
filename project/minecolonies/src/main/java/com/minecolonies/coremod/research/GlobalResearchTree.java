@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -314,7 +314,7 @@ public class GlobalResearchTree implements IGlobalResearchTree
                     Log.getLogger().error("Unable to parse Research Reset Cost definition: " + itemId);
                 }
             }
-            final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(split[0], split[1]));
+            final Item item = FabricRegistries.ITEMS.getValue(new ResourceLocation(split[0], split[1]));
             final ItemStack stack = new ItemStack(item);
             if (stack.isEmpty())
             {

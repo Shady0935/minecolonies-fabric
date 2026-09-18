@@ -1,130 +1,117 @@
 package com.minecolonies.api.crafting;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.minecolonies.api.util.constant.Constants;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
-import net.minecraft.world.item.crafting.Ingredient.ItemValue;
 /**
- * An ingredient that can be used in a vanilla recipe to require more than one item in a particular input slot.
- *
- * {
- *     "type": "minecolonies:counted",
- *     "item": {
- *         "item": "minecraft:cobblestone"  // could be a tag or something else
- *     },
- *     "count": 16
- * }
+ * Fabric custom ingredient that keeps the required item count for recipe
+ * displays while deliberately matching a single stack independently of its
+ * count. The compost barrel consumes across multiple inventory slots.
  */
-public class CountedIngredient extends Ingredient
+public final class CountedIngredient implements CustomIngredient
 {
     public static final ResourceLocation ID = new ResourceLocation(Constants.MOD_ID, "counted");
+    public static final CustomIngredientSerializer<CountedIngredient> SERIALIZER = new Serializer();
 
     @NotNull
     private final Ingredient child;
     private final int count;
-    private ItemStack[] array = null;
 
     public CountedIngredient(@NotNull final Ingredient child, final int count)
     {
-        super(Arrays.stream(child.getItems()).map(ItemValue::new));
-
+        if (child.isEmpty() || count <= 0)
+        {
+            throw new IllegalArgumentException("Counted ingredient must have a non-empty child and positive count");
+        }
         this.child = child;
         this.count = count;
     }
 
-    /** The underlying ingredient. */
     @NotNull
-    public Ingredient getChild() { return this.child; }
-
-    /** The number of items required. */
-    public int getCount() { return this.count; }
-
-    @NotNull
-    @Override
-    public ItemStack[] getItems()
+    public Ingredient getChild()
     {
-        if (this.array == null)
-        {
-            final List<ItemStack> matchingStacks = Arrays.stream(this.child.getItems())
-                    .map(ItemStack::copy).collect(Collectors.toList());
-            matchingStacks.forEach(s -> s.setCount(this.count));
-            this.array = matchingStacks.toArray(new ItemStack[matchingStacks.size()]);
-        }
-        return this.array;
+        return child;
     }
 
-    @NotNull
-    @Override
-    public JsonElement toJson()
+    public int getCount()
     {
-        JsonObject json = new JsonObject();
-        Serializer.getInstance().write(json, this);
-        return json;
+        return count;
     }
 
-    @NotNull
-    @Override
-    public IIngredientSerializer<? extends Ingredient> getSerializer()
+    public static Ingredient of(@NotNull final Ingredient child, final int count)
     {
-        return Serializer.getInstance();
+        return count == 1 ? child : new CountedIngredient(child, count).toVanilla();
     }
 
-    public static class Serializer implements IIngredientSerializer<CountedIngredient>
+    @Override
+    public boolean test(final ItemStack stack)
     {
-        private static final Serializer INSTANCE = new Serializer();
+        return stack != null && child.test(stack);
+    }
 
-        public static Serializer getInstance() { return INSTANCE; }
+    @Override
+    public List<ItemStack> getMatchingStacks()
+    {
+        return Arrays.stream(child.getItems()).map(ItemStack::copy).peek(stack -> stack.setCount(count)).toList();
+    }
 
-        private Serializer() { }
+    @Override
+    public boolean requiresTesting()
+    {
+        return false;
+    }
 
-        @NotNull
+    @Override
+    public CustomIngredientSerializer<?> getSerializer()
+    {
+        return SERIALIZER;
+    }
+
+    public static final class Serializer implements CustomIngredientSerializer<CountedIngredient>
+    {
         @Override
-        public CountedIngredient parse(@NotNull final JsonObject json)
+        public ResourceLocation getIdentifier()
         {
-            final Ingredient child = Ingredient.fromJson(json.get("item"));
-            final int count = GsonHelper.getAsInt(json, "count", 1);
-            return new CountedIngredient(child, count);
+            return ID;
         }
 
-        public void write(@NotNull final JsonObject json, @NotNull final CountedIngredient ingredient)
+        @Override
+        public CountedIngredient read(final JsonObject json)
         {
-            json.addProperty("type", (Objects.requireNonNull(CraftingHelper.getID(this))).toString());
+            return new CountedIngredient(Ingredient.fromJson(json.get("item")), GsonHelper.getAsInt(json, "count", 1));
+        }
 
+        @Override
+        public void write(final JsonObject json, final CountedIngredient ingredient)
+        {
+            json.addProperty("fabric:type", ID.toString());
             json.add("item", ingredient.child.toJson());
-            if (ingredient.getCount() > 1)
-            {
-                json.addProperty("count", ingredient.getCount());
-            }
+            if (ingredient.count > 1) json.addProperty("count", ingredient.count);
         }
 
-        @NotNull
         @Override
-        public CountedIngredient parse(@NotNull final FriendlyByteBuf buffer)
+        public CountedIngredient read(final FriendlyByteBuf buffer)
         {
             final int count = buffer.readVarInt();
-            final Ingredient child = Ingredient.fromNetwork(buffer);
-            return new CountedIngredient(child, count);
+            return new CountedIngredient(Ingredient.fromNetwork(buffer), count);
         }
 
         @Override
-        public void write(@NotNull final FriendlyByteBuf buffer, @NotNull final CountedIngredient ingredient)
+        public void write(final FriendlyByteBuf buffer, final CountedIngredient ingredient)
         {
-            buffer.writeVarInt(ingredient.getCount());
-            CraftingHelper.write(buffer, ingredient.getChild());
+            buffer.writeVarInt(ingredient.count);
+            ingredient.child.toNetwork(buffer);
         }
     }
 }

@@ -16,7 +16,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.InvWrapper;
 
 import java.util.*;
 

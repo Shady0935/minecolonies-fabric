@@ -21,7 +21,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -68,7 +68,7 @@ public class GlobalResearchFactory implements IGlobalResearchFactory
         compound.putInt(TAG_RESEARCH_SORT, research.getSortOrder());
         compound.putBoolean(TAG_ONLY_CHILD, research.hasOnlyChild());
         compound.putString(TAG_ICON_TEXTURE, research.getIconTextureResourceLocation().toString());
-        compound.putString(TAG_ICON_ITEM_STACK, ForgeRegistries.ITEMS.getKey(research.getIconItemStack().getItem()) + ":" + research.getIconItemStack().getCount());
+        compound.putString(TAG_ICON_ITEM_STACK, FabricRegistries.ITEMS.getKey(research.getIconItemStack().getItem()) + ":" + research.getIconItemStack().getCount());
         compound.putString(TAG_SUBTITLE_NAME, research.getSubtitle().getKey());
         compound.putBoolean(TAG_INSTANT, research.isInstant());
         compound.putBoolean(TAG_AUTOSTART, research.isAutostart());
@@ -77,7 +77,7 @@ public class GlobalResearchFactory implements IGlobalResearchFactory
         @NotNull final ListTag costTagList = research.getCostList().stream().map(is ->
         {
             final CompoundTag costCompound = new CompoundTag();
-            costCompound.putString(TAG_COST_ITEM, ForgeRegistries.ITEMS.getKey(Objects.requireNonNull(is.getItem())).toString() + ":" + is.getItemStack().getCount());
+            costCompound.putString(TAG_COST_ITEM, FabricRegistries.ITEMS.getKey(Objects.requireNonNull(is.getItem())).toString() + ":" + is.getItemStack().getCount());
             if(is.getItemStack().getTag() != null)
             {
                 costCompound.put(TAG_COST_NBT, is.getItemStack().getTag());
@@ -128,7 +128,7 @@ public class GlobalResearchFactory implements IGlobalResearchFactory
         final boolean onlyChild = nbt.getBoolean(TAG_ONLY_CHILD);
         final ResourceLocation iconTexture = new ResourceLocation(nbt.getString(TAG_ICON_TEXTURE));
         final String[] iconStackParts =  nbt.getString(TAG_ICON_ITEM_STACK).split(":");
-        final ItemStack iconStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(iconStackParts[0], iconStackParts[1])));
+        final ItemStack iconStack = new ItemStack(FabricRegistries.ITEMS.getValue(new ResourceLocation(iconStackParts[0], iconStackParts[1])));
         iconStack.setCount(Integer.parseInt(iconStackParts[2]));
         final TranslatableContents subtitle = new TranslatableContents(nbt.getString(TAG_SUBTITLE_NAME), null, TranslatableContents.NO_ARGS);
         final boolean instant = nbt.getBoolean(TAG_INSTANT);
@@ -143,7 +143,7 @@ public class GlobalResearchFactory implements IGlobalResearchFactory
             String[] costParts = compound.getString(TAG_COST_ITEM).split(":");
             if(costParts.length == 3)
             {
-                final ItemStack is = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(costParts[0], costParts[1])));
+                final ItemStack is = new ItemStack(FabricRegistries.ITEMS.getValue(new ResourceLocation(costParts[0], costParts[1])));
                 is.setCount(Integer.parseInt(costParts[2]));
                 if (compound.contains(TAG_COST_NBT))
                 {

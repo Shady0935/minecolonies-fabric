@@ -23,8 +23,8 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -188,7 +188,7 @@ public class BuildingDyer extends AbstractBuilding
         {
             if (woolItems == null)
             {
-                woolItems = ForgeRegistries.ITEMS.tags().getTag(ItemTags.WOOL).stream()
+                woolItems = FabricRegistries.ITEMS.tags().getTag(ItemTags.WOOL).stream()
                   .filter(item -> !item.equals(Items.WHITE_WOOL))
                   .map(i -> new ItemStorage(new ItemStack(i))).collect(Collectors.toList());
             }

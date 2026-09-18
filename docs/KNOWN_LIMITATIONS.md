@@ -1,6 +1,47 @@
 # Known limitations
 
-No confirmed runtime limitations have been established for the target port
-yet. Incomplete work belongs in `PORTING_STATUS.md` and `NEXT_STEPS.md`, not in
-this file.
+These are confirmed observations, not guesses. Incomplete gameplay coverage
+is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
+## Confirmed technical limitations
+
+- MineColonies entity types currently have no registered Minecraft DataFixer
+  schemas. Client startup reports `No data fixer registered for
+  minecolonies:<entity>` for the custom entities. Existing saves that require
+  entity-version migration are therefore not covered yet.
+- No Fabric datagen task is exposed by the target Gradle project. The upstream
+  generation tree is excluded and the current resources are carried/converted
+  explicitly. Datagen providers must be ported before claiming generated
+  resource parity.
+- JEI and JourneyMap integrations are excluded from the target source set.
+- The standalone MultiPiston Forge dependency is not included in the Fabric
+  runtime. The current MineColonies main source has no direct runtime reference
+  to it, but its independent block/content remains unported.
+
+## Validation still pending
+
+- Town Hall placement, colony creation, permissions, BlockUI screens, builder
+  placement, citizen work cycles, logistics, research and raids still need a
+  real in-game interaction pass.
+- Client-to-server gameplay packets have not been driven through every GUI or
+  block interaction. The transport itself has a login/server-to-client smoke
+  pass, including `ServerUUIDMessage`.
+- A valid authenticated profile was not available in the development client;
+  the network smoke test consequently used a temporary offline server setting.
+  The checked-in/test workspace configuration was restored to
+  `online-mode=true` and `enforce-secure-profile=true`.
+
+## Non-blocking warnings observed
+
+- Vanilla goat-horn sound events still warn as missing in the development
+  asset set.
+- A small number of non-power-of-two textures reduce their mip level, and one
+  vanilla emissive shader reports an unused sampler. Neither caused the client
+  bootstrap to fail.
+
+## Intentional compatibility residues
+
+The source still contains a narrow Forge-shaped compatibility layer because
+the 1.20.1 gameplay code uses those types. The `forge` worldgen tag namespace
+is also intentional and backed by Fabric-loaded tag files. These are tracked
+bridges, not evidence that the runtime still depends on Forge.

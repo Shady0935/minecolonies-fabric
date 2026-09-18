@@ -43,7 +43,7 @@ public class FurnaceRecipes implements IFurnaceRecipes
         recipes.clear();
         reverseRecipes.clear();
         loadUtilityPredicates();
-        recipeManager.byType(RecipeType.SMELTING).values().forEach(recipe -> {
+        recipeManager.getAllRecipesFor(RecipeType.SMELTING).forEach(recipe -> {
             final NonNullList<Ingredient> list = recipe.getIngredients();
             if (list.size() == 1)
             {

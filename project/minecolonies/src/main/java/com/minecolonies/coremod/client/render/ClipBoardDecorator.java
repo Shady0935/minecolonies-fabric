@@ -14,7 +14,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.IItemDecorator;
+import com.minecolonies.fabric.client.IItemDecorator;
 
 import java.util.HashSet;
 import java.util.Set;

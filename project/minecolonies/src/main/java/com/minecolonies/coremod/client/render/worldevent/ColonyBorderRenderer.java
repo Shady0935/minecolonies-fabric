@@ -65,7 +65,7 @@ public class ColonyBorderRenderer
                     if (chunk.isEmpty()) { continue; }
                     final ChunkPos chunkPos = chunk.getPos();
 
-                    chunk.getCapability(CLOSE_COLONY_CAP, null).ifPresent(cap -> coloniesMap.put(chunkPos, cap.getOwningColony()));
+                    com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).ifPresent(cap -> coloniesMap.put(chunkPos, cap.getOwningColony()));
                     if (ctx.nearestColony.getTicketedChunks().contains(chunkPos.toLong()))
                     {
                         chunkticketsMap.put(chunkPos, nearestColonyId);

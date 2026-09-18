@@ -127,14 +127,14 @@ public class TileEntityBarrel extends AbstractTileEntityBarrel implements ITicka
             ItemStack compostStack = new ItemStack(ModItems.compost, 6);
             if (hitFace != null) // Spawn all as ItemEntity
             {
-                playerIn.level.addFreshEntity(new ItemEntity(playerIn.level, worldPosition.getX() + 0.5, worldPosition.getY() + 1.75, worldPosition.getZ() + 0.5, compostStack, hitFace.getStepX() / 5f, hitFace.getStepY() / 5f + 0.2f, hitFace.getStepZ() / 5f));
+                playerIn.level().addFreshEntity(new ItemEntity(playerIn.level(), worldPosition.getX() + 0.5, worldPosition.getY() + 1.75, worldPosition.getZ() + 0.5, compostStack, hitFace.getStepX() / 5f, hitFace.getStepY() / 5f + 0.2f, hitFace.getStepZ() / 5f));
                 this.level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1, 1);
             }
             else // Insert directly into inventory, spawning overflow as ItemEntity
             {
                 if(!playerIn.getInventory().add(compostStack))
                 {
-                    playerIn.level.addFreshEntity(new ItemEntity(playerIn.level, worldPosition.getX() + 0.5, worldPosition.getY() + 1.75, worldPosition.getZ() + 0.5, compostStack, 0, 0.2f, 0));
+                    playerIn.level().addFreshEntity(new ItemEntity(playerIn.level(), worldPosition.getX() + 0.5, worldPosition.getY() + 1.75, worldPosition.getZ() + 0.5, compostStack, 0, 0.2f, 0));
                 }
                 this.level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1, 1);
             }
@@ -235,7 +235,6 @@ public class TileEntityBarrel extends AbstractTileEntityBarrel implements ITicka
         return saveWithId();
     }
 
-    @Override
     public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket packet)
     {
         final CompoundTag compound = packet.getTag();
@@ -252,7 +251,6 @@ public class TileEntityBarrel extends AbstractTileEntityBarrel implements ITicka
         }
     }
 
-    @Override
     public final void handleUpdateTag(final CompoundTag tag)
     {
         this.items = tag.getInt("items");

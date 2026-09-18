@@ -383,7 +383,8 @@ public class EntityAIWorkBeekeeper extends AbstractEntityAIInteract<JobBeekeeper
         final int dex = getPrimarySkillLevel();
         if ((50 - (dex / 99. * 50.)) / 100 > worker.getRandom().nextDouble())
         {
-            final List<Entity> bees = ((BeehiveBlockEntity) world.getBlockEntity(hive)).releaseAllOccupants(world.getBlockState(hive), BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
+            final List<Entity> bees = com.minecolonies.fabric.compat.FabricVanillaCompat.releaseAllOccupants(
+              (BeehiveBlockEntity) world.getBlockEntity(hive), world.getBlockState(hive), BeehiveBlockEntity.BeeReleaseStatus.EMERGENCY);
             bees.stream()
               .filter(entity -> entity instanceof Bee)
               .map(entity -> (Bee) entity)

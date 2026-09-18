@@ -11,7 +11,7 @@ import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,7 +70,7 @@ public class AssignUnassignMessage extends AbstractBuildingServerMessage<Default
         citizenID = buf.readInt();
         if (buf.readBoolean())
         {
-            jobEntry = buf.readRegistryId();
+            jobEntry = com.minecolonies.fabric.network.FabricBufUtils.readRegistryId(buf, com.minecolonies.api.colony.jobs.registry.IJobRegistry.getInstance());
         }
     }
 
@@ -91,7 +91,7 @@ public class AssignUnassignMessage extends AbstractBuildingServerMessage<Default
         else
         {
             buf.writeBoolean(true);
-            buf.writeRegistryId(IMinecoloniesAPI.getInstance().getJobRegistry(), jobEntry);
+            com.minecolonies.fabric.network.FabricBufUtils.writeRegistryId(buf, IMinecoloniesAPI.getInstance().getJobRegistry(), jobEntry);
         }
     }
 

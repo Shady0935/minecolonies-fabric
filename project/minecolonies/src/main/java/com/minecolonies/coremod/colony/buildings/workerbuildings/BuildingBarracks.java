@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

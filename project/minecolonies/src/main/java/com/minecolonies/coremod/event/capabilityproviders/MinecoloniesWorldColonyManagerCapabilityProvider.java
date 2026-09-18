@@ -3,11 +3,11 @@ package com.minecolonies.coremod.event.capabilityproviders;
 import com.minecolonies.coremod.colony.IColonyManagerCapability;
 import net.minecraft.nbt.Tag;
 import net.minecraft.core.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ICapabilitySerializable;
+import com.minecolonies.fabric.util.LazyOptional;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.coremod.MineColonies.COLONY_MANAGER_CAP;
 
@@ -47,9 +47,9 @@ public class MinecoloniesWorldColonyManagerCapabilityProvider implements ICapabi
         IColonyManagerCapability.Storage.readNBT(COLONY_MANAGER_CAP, colonyManager, null, nbt);
     }
 
-    @Nonnull
+    @NotNull
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull final Capability<T> cap, final Direction dir)
+    public <T> LazyOptional<T> getCapability(@NotNull final Capability<T> cap, final Direction dir)
     {
         return cap == COLONY_MANAGER_CAP ? colonyManagerOptional.cast() : LazyOptional.empty();
     }

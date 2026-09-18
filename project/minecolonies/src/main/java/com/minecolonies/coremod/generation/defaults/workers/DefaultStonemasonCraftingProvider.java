@@ -9,7 +9,7 @@ import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -58,7 +58,7 @@ public class DefaultStonemasonCraftingProvider extends CustomRecipeProvider
                          @NotNull final ItemLike output)
     {
         CustomRecipeBuilder.create(STONEMASON, MODULE_CRAFTING,
-                        ForgeRegistries.ITEMS.getKey(output.asItem()).getPath())
+                        FabricRegistries.ITEMS.getKey(output.asItem()).getPath())
                 .inputs(List.of(new ItemStorage(new ItemStack(input1)), new ItemStorage(new ItemStack(input2))))
                 .result(new ItemStack(output))
                 .build(consumer);

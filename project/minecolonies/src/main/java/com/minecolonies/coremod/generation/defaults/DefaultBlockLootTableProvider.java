@@ -17,7 +17,7 @@ import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -104,7 +104,7 @@ public class DefaultBlockLootTableProvider extends SimpleLootTableProvider
 
     private void saveBlock(@NotNull final Block block, @NotNull final LootTableRegistrar registrar)
     {
-        final ResourceLocation location = ForgeRegistries.BLOCKS.getKey(block);
+        final ResourceLocation location = FabricRegistries.BLOCKS.getKey(block);
         if (location != null)
         {
             final ResourceLocation id = new ResourceLocation(location.getNamespace(),
@@ -126,7 +126,7 @@ public class DefaultBlockLootTableProvider extends SimpleLootTableProvider
 
     private void saveBannerBlock(@NotNull final Block block, @NotNull final LootTableRegistrar registrar)
     {
-        final ResourceLocation location = ForgeRegistries.BLOCKS.getKey(block);
+        final ResourceLocation location = FabricRegistries.BLOCKS.getKey(block);
         if (location != null)
         {
             registrar.register(new ResourceLocation(location.getNamespace(), "blocks/" + location.getPath()), LootContextParamSets.BLOCK,

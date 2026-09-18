@@ -138,7 +138,7 @@ public abstract class AbstractPlantationModule extends AbstractFieldModule imple
     @Override
     public void applyBonemeal(AbstractEntityCitizen worker, BlockPos workPosition, ItemStack stackInSlot, Player fakePlayer)
     {
-        BoneMealItem.applyBonemeal(stackInSlot, worker.level(), workPosition, fakePlayer);
+        BoneMealItem.growCrop(stackInSlot, worker.level(), workPosition);
         BoneMealItem.addGrowthParticles(worker.level(), workPosition, 1);
     }
 

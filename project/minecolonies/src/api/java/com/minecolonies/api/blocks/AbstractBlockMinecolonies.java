@@ -4,7 +4,7 @@ import com.minecolonies.api.blocks.interfaces.IBlockMinecolonies;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
@@ -16,13 +16,13 @@ public abstract class AbstractBlockMinecolonies<B extends AbstractBlockMinecolon
     }
 
     @Override
-    public void registerBlockItem(final IForgeRegistry<Item> registry, final Item.Properties properties)
+    public void registerBlockItem(final FabricRegistry<Item> registry, final Item.Properties properties)
     {
         registry.register(getRegistryName(), new BlockItem(this, properties));
     }
 
     @Override
-    public B registerBlock(final IForgeRegistry<Block> registry)
+    public B registerBlock(final FabricRegistry<Block> registry)
     {
         registry.register(getRegistryName(), this);
         return (B) this;

@@ -21,8 +21,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.inventory.IItemHandler;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static com.minecolonies.api.util.constant.TranslationConstants.MESSAGE_INFO_PLAYER_INVENTORY_FULL_HOTBAR_INSERT;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
 
 /**
  * Utility methods for the inventories.
@@ -2991,7 +2991,7 @@ public class InventoryUtils
                 if (!ItemStackUtils.isEmpty(stack) && foodPredicate.test(stack))
                 {
                     // Found food
-                    final FoodProperties itemFood = stack.getItem().getFoodProperties(stack, null);
+                    final FoodProperties itemFood = stack.getItem().getFoodProperties();
                     if (itemFood == null)
                     {
                         continue;
@@ -3198,5 +3198,100 @@ public class InventoryUtils
             }
         }
         return allInInv;
+    }
+
+    /*
+     * Vanilla objects do not implement Forge's capability interface.  Keep the
+     * original provider overloads above and add object-shaped adapters at the
+     * boundary so existing gameplay code can continue to use the same helpers.
+     */
+    public static Set<IItemHandler> getItemHandlersFromProvider(final Object provider)
+    {
+        return getItemHandlersFromProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider));
+    }
+
+    public static int findFirstSlotInProviderNotEmptyWith(final Object provider, final Predicate<ItemStack> predicate)
+    {
+        return findFirstSlotInProviderNotEmptyWith(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), predicate);
+    }
+
+    public static int findFirstSlotInProviderNotEmptyWith(final Object provider, final List<Predicate<ItemStack>> predicates)
+    {
+        return findFirstSlotInProviderNotEmptyWith(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), predicates);
+    }
+
+    public static int getItemCountInProvider(final Object provider, final Block block)
+    {
+        return getItemCountInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), block);
+    }
+
+    public static int getItemCountInProvider(final Object provider, final Item item)
+    {
+        return getItemCountInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), item);
+    }
+
+    public static int getItemCountInProvider(final Object provider, final Predicate<ItemStack> predicate)
+    {
+        return getItemCountInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), predicate);
+    }
+
+    public static boolean hasItemInProvider(final Object provider, final Block block)
+    {
+        return hasItemInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), block);
+    }
+
+    public static boolean hasItemInProvider(final Object provider, final Item item)
+    {
+        return hasItemInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), item);
+    }
+
+    public static boolean hasItemInProvider(final Object provider, final Predicate<ItemStack> predicate)
+    {
+        return hasItemInProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), predicate);
+    }
+
+    public static boolean isProviderFull(final Object provider)
+    {
+        return isProviderFull(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider));
+    }
+
+    public static boolean addItemStackToProvider(final Object provider, final ItemStack stack)
+    {
+        return addItemStackToProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), stack);
+    }
+
+    public static ItemStack addItemStackToProviderWithResult(final Object provider, final ItemStack stack)
+    {
+        return addItemStackToProviderWithResult(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), stack);
+    }
+
+    public static ItemStack forceItemStackToProvider(final Object provider, final ItemStack stack, final Predicate<ItemStack> keep)
+    {
+        return forceItemStackToProvider(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), stack, keep);
+    }
+
+    public static int transferXOfFirstSlotInProviderWithIntoNextFreeSlotInItemHandlerWithResult(
+      final Object provider, final Item item, final int amount, final IItemHandler target)
+    {
+        return transferXOfFirstSlotInProviderWithIntoNextFreeSlotInItemHandlerWithResult(
+          com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), item, amount, target);
+    }
+
+    /** Fabric bridge for callers that select a source stack with a predicate. */
+    public static int transferXOfFirstSlotInProviderWithIntoNextFreeSlotInItemHandlerWithResult(
+      final Object provider, final Predicate<ItemStack> predicate, final int amount, final IItemHandler target)
+    {
+        return transferXOfFirstSlotInProviderWithIntoNextFreeSlotInItemHandlerWithResult(
+          com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), predicate, amount, target);
+    }
+
+    public static Map<ItemStorage, ItemStorage> getAllItemsForProviders(final Object provider, final IItemHandler... handlers)
+    {
+        return getAllItemsForProviders(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(provider), handlers);
+    }
+
+    public static int transferFoodUpToSaturation(final Object source, final IItemHandler target, final int requiredSaturation, final Predicate<ItemStack> foodPredicate)
+    {
+        return transferFoodUpToSaturation(com.minecolonies.fabric.capability.CapabilityHooks.asProvider(source), target, requiredSaturation, foodPredicate);
     }
 }

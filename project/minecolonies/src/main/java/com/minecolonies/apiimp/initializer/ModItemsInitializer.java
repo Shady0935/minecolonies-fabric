@@ -8,11 +8,11 @@ import com.minecolonies.coremod.items.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.common.ForgeSpawnEggItem;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistries;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import net.minecraftforge.registries.RegisterEvent;
 
 import static com.minecolonies.api.blocks.decorative.AbstractBlockGate.IRON_GATE;
@@ -43,9 +43,9 @@ public final class ModItemsInitializer
     @SubscribeEvent
     public static void registerItems(RegisterEvent event)
     {
-        if (event.getRegistryKey().equals(ForgeRegistries.Keys.ITEMS))
+        if (event.getRegistryKey().equals(FabricRegistries.Keys.ITEMS))
         {
-            ModItemsInitializer.init(event.getForgeRegistry());
+            ModItemsInitializer.init(event.getFabricRegistry());
         }
     }
 
@@ -55,7 +55,7 @@ public final class ModItemsInitializer
      * @param registry the registry.
      */
     @SuppressWarnings("PMD.ExcessiveMethodLength")
-    public static void init(final IForgeRegistry<Item> registry)
+    public static void init(final FabricRegistry<Item> registry)
     {
         ModItems.scepterLumberjack = new ItemScepterLumberjack(new Item.Properties());
         ModItems.supplyChest = new ItemSupplyChestDeployer(new Item.Properties());
@@ -123,10 +123,10 @@ public final class ModItemsInitializer
         ModItems.plateArmorLegs = new ItemPlateArmor("plate_armor_legs", ItemPlateArmor.PLATE_ARMOR, ArmorItem.Type.LEGGINGS, new Item.Properties());
         ModItems.plateArmorBoots = new ItemPlateArmor("plate_armor_boots", ItemPlateArmor.PLATE_ARMOR, ArmorItem.Type.BOOTS, new Item.Properties());
 
-        ModItems.sifterMeshString = new ItemSifterMesh("sifter_mesh_string", new Item.Properties().durability(500).setNoRepair());
-        ModItems.sifterMeshFlint = new ItemSifterMesh("sifter_mesh_flint", new Item.Properties().durability(1000).setNoRepair());
-        ModItems.sifterMeshIron = new ItemSifterMesh("sifter_mesh_iron", new Item.Properties().durability(1500).setNoRepair());
-        ModItems.sifterMeshDiamond = new ItemSifterMesh("sifter_mesh_diamond", new Item.Properties().durability(2000).setNoRepair());
+        ModItems.sifterMeshString = new ItemSifterMesh("sifter_mesh_string", new Item.Properties().durability(500));
+        ModItems.sifterMeshFlint = new ItemSifterMesh("sifter_mesh_flint", new Item.Properties().durability(1000));
+        ModItems.sifterMeshIron = new ItemSifterMesh("sifter_mesh_iron", new Item.Properties().durability(1500));
+        ModItems.sifterMeshDiamond = new ItemSifterMesh("sifter_mesh_diamond", new Item.Properties().durability(2000));
 
         ModItems.magicpotion = new ItemMagicPotion("magicpotion", new Item.Properties());
         ModItems.buildGoggles = new ItemBuildGoggles("build_goggles", new Item.Properties());

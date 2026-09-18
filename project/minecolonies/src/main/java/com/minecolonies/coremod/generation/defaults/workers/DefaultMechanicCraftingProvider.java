@@ -10,7 +10,7 @@ import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -87,7 +87,7 @@ public class DefaultMechanicCraftingProvider extends CustomRecipeProvider
                            @NotNull final Item input,
                            @NotNull final Item output)
     {
-        CustomRecipeBuilder.create(MECHANIC, MODULE_CRAFTING, "deoxidize_" + ForgeRegistries.ITEMS.getKey(input).getPath())
+        CustomRecipeBuilder.create(MECHANIC, MODULE_CRAFTING, "deoxidize_" + FabricRegistries.ITEMS.getKey(input).getPath())
                 .inputs(List.of(new ItemStorage(new ItemStack(input))))
                 .result(new ItemStack(output))
                 .requiredTool(ToolType.AXE)

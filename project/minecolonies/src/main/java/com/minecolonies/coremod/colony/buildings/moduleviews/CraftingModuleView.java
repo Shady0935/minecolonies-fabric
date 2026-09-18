@@ -19,8 +19,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +75,7 @@ public class CraftingModuleView extends AbstractBuildingModuleView
     {
         if (buf.readBoolean())
         {
-            this.jobEntry = buf.readRegistryIdSafe(JobEntry.class);
+            this.jobEntry = com.minecolonies.fabric.network.FabricBufUtils.readRegistryIdSafe(buf, com.minecolonies.api.colony.jobs.registry.IJobRegistry.getInstance());
         }
         else
         {
@@ -86,7 +86,7 @@ public class CraftingModuleView extends AbstractBuildingModuleView
         final int size = buf.readVarInt();
         for (int i = 0; i < size; ++i)
         {
-            final CraftingType type = buf.readRegistryIdUnsafe(MinecoloniesAPIProxy.getInstance().getCraftingTypeRegistry());
+            final CraftingType type = com.minecolonies.fabric.network.FabricBufUtils.readRegistryIdUnsafe(buf, MinecoloniesAPIProxy.getInstance().getCraftingTypeRegistry());
             if (type != null)
             {
                 recipeTypeSet.add(type);

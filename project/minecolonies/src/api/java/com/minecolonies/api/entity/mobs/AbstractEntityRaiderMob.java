@@ -42,10 +42,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraftforge.common.util.ITeleporter;
+import com.minecolonies.fabric.common.util.ITeleporter;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import static com.minecolonies.api.colony.IColony.CLOSE_COLONY_CAP;
 import static com.minecolonies.api.entity.mobs.RaiderMobUtils.MOB_ATTACK_DAMAGE;
@@ -55,8 +58,25 @@ import static com.minecolonies.api.util.constant.RaiderConstants.*;
 /**
  * Abstract for all raider entities.
  */
-public abstract class AbstractEntityRaiderMob extends AbstractFastMinecoloniesEntity implements IThreatTableEntity, Enemy
+public abstract class AbstractEntityRaiderMob extends AbstractFastMinecoloniesEntity implements IThreatTableEntity, Enemy, ICapabilityProvider
 {
+    @Override
+    public <T> LazyOptional<T> getCapability(final Capability<T> capability, final net.minecraft.core.Direction side)
+    {
+        return LazyOptional.empty();
+    }
+
+    /** Compatibility no-op for the former Forge capability-serialization contract. */
+    public CompoundTag serializeNBT()
+    {
+        return new CompoundTag();
+    }
+
+    /** Compatibility no-op for the former Forge capability-serialization contract. */
+    public void deserializeNBT(final CompoundTag tag)
+    {
+        // Entity state is persisted by the vanilla save/load hooks in this port.
+    }
     /**
      * Difficulty at which raiders team up
      */
@@ -199,8 +219,8 @@ public abstract class AbstractEntityRaiderMob extends AbstractFastMinecoloniesEn
         super(type, world);
         worldTimeAtSpawn = world.getGameTime();
         this.setPersistenceRequired();
-        this.goalSelector = new CustomGoalSelector(this.goalSelector);
-        this.targetSelector = new CustomGoalSelector(this.targetSelector);
+        // Vanilla 1.20.1 exposes these selectors as final fields; configure
+        // the inherited selectors in place instead of replacing them.
         this.xpReward = BARBARIAN_EXP_DROP;
         IMinecoloniesAPI.getInstance().getMobAIRegistry().applyToMob(this);
         this.setInvulnerable(true);
@@ -256,7 +276,7 @@ public abstract class AbstractEntityRaiderMob extends AbstractFastMinecoloniesEn
     @Override
     public boolean removeWhenFarAway(final double distanceToClosestPlayer)
     {
-        return shouldDespawn() || (level() != null && level().isAreaLoaded(this.blockPosition(), 3) && getColony() == null);
+        return shouldDespawn() || (level() != null && level().hasChunkAt(this.blockPosition()) && getColony() == null);
     }
 
     /**
@@ -511,10 +531,10 @@ public abstract class AbstractEntityRaiderMob extends AbstractFastMinecoloniesEn
     private void onEnterChunk(final ChunkPos newChunkPos)
     {
         final LevelChunk chunk = colony.getWorld().getChunk(newChunkPos.x, newChunkPos.z);
-        final IColonyTagCapability chunkCapability = chunk.getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability chunkCapability = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (chunkCapability != null && chunkCapability.getOwningColony() != 0 && colony.getID() != chunkCapability.getOwningColony())
         {
-            final IColony tempColony = IColonyManager.getInstance().getColonyByWorld(chunkCapability.getOwningColony(), level);
+            final IColony tempColony = IColonyManager.getInstance().getColonyByWorld(chunkCapability.getOwningColony(), level());
             tempColony.getRaiderManager().setPassThroughRaid();
         }
     }

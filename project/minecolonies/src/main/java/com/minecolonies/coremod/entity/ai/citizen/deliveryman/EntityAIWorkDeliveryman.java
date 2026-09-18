@@ -34,8 +34,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -564,7 +564,7 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
         if ((entity instanceof TileEntityColonyBuilding && InventoryUtils.hasBuildingEnoughElseCount(((TileEntityColonyBuilding) entity).getBuilding(), new ItemStorage(is), is.getCount()) >= is.getCount()) ||
               (entity instanceof TileEntityRack && ((TileEntityRack) entity).getCount(new ItemStorage(is)) >= is.getCount()))
         {
-            final IItemHandler handler = entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
+            final IItemHandler handler = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(entity, ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
             if (handler != null)
             {
                 return InventoryUtils.transferItemStackIntoNextFreeSlotFromItemHandler(handler,

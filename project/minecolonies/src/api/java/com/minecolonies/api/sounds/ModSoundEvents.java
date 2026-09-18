@@ -7,7 +7,7 @@ import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.*;
+import com.minecolonies.fabric.registry.*;
 
 import java.util.*;
 
@@ -21,7 +21,7 @@ public final class ModSoundEvents
      */
     public static final String CITIZEN_SOUND_EVENT_PREFIX = "citizen.";
 
-    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, Constants.MOD_ID);
+    public static final FabricDeferredRegister<SoundEvent> SOUND_EVENTS = FabricDeferredRegister.create(Registries.SOUND_EVENT, Constants.MOD_ID);
 
     /**
      * Map of sound events.
@@ -54,7 +54,6 @@ public final class ModSoundEvents
         mainTypes.remove(ModJobs.placeHolder.getId());
         mainTypes.add(new ResourceLocation(Constants.MOD_ID, "unemployed"));
         mainTypes.add(new ResourceLocation(Constants.MOD_ID, "visitor"));
-        mainTypes.add(new ResourceLocation(Constants.MOD_ID, "child"));
 
         for (final ResourceLocation job : mainTypes)
         {
@@ -77,6 +76,28 @@ public final class ModSoundEvents
             }
             CITIZEN_SOUND_EVENTS.put(job.getPath(), map);
         }
+
+        // Child sounds are selected through the same citizen sound map, but the
+        // child events are intentionally not registry entries.  This mirrors
+        // the Fabric implementation and avoids advertising sound ids that are
+        // not present in the 1.20.1 sounds.json.
+        final Map<EventType, List<Tuple<SoundEvent, SoundEvent>>> childSounds = new HashMap<>();
+        for (final EventType event : EventType.values())
+        {
+            final List<Tuple<SoundEvent, SoundEvent>> individualSounds = new ArrayList<>();
+            for (int i = 1; i <= 2; i++)
+            {
+                final SoundEvent maleSoundEvent =
+                  ModSoundEvents.getSoundID(CITIZEN_SOUND_EVENT_PREFIX + "child.male" + i + "." + event.getId());
+                final SoundEvent femaleSoundEvent =
+                  ModSoundEvents.getSoundID(CITIZEN_SOUND_EVENT_PREFIX + "child.female" + i + "." + event.getId());
+
+                individualSounds.add(new Tuple<>(maleSoundEvent, femaleSoundEvent));
+                individualSounds.add(new Tuple<>(maleSoundEvent, femaleSoundEvent));
+            }
+            childSounds.put(event, individualSounds);
+        }
+        CITIZEN_SOUND_EVENTS.put("child", childSounds);
 
         SOUND_EVENTS.register(TavernSounds.tavernTheme.getLocation().getPath(), () -> TavernSounds.tavernTheme);
 

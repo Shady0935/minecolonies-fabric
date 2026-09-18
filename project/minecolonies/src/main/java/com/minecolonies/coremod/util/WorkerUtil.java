@@ -25,6 +25,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.ItemStack;
@@ -39,9 +40,9 @@ import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.IForgeShearable;
-import net.minecraftforge.common.TierSortingRegistry;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.common.IForgeShearable;
+import com.minecolonies.fabric.common.TierSortingRegistry;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -213,15 +214,11 @@ public final class WorkerUtil
     public static int getCorrectHarvestLevelForBlock(final BlockState target)
     {
         int required = 0;
-        final List<Tier> tiers = TierSortingRegistry.getSortedTiers();
-        for (final Tier tier : tiers) {
-            TagKey<Block> tag = tier.getTag();
-            if (tag != null && target.is(tag))
-            {
-                required = tiers.indexOf(tier);
-                break;
-            }
-        }
+        // Fabric/vanilla does not expose Forge's Tier#getTag extension. Keep
+        // the same ordered harvest-level intent using the standard mining tags.
+        if (target.is(BlockTags.NEEDS_DIAMOND_TOOL)) required = 3;
+        else if (target.is(BlockTags.NEEDS_IRON_TOOL)) required = 2;
+        else if (target.is(BlockTags.NEEDS_STONE_TOOL)) required = 1;
 
         if (required < 0
               || target.getBlock() instanceof GlazedTerracottaBlock)
@@ -282,7 +279,7 @@ public final class WorkerUtil
                     {
                         final CompoundTag teData = te.getTileEntityData();
                         final ResourceLocation teId = teData == null ? null : ResourceLocation.tryParse(teData.getString("id"));
-                        final BlockEntityType<?> teType = teId == null ? null : ForgeRegistries.BLOCK_ENTITY_TYPES.getValue(teId);
+                        final BlockEntityType<?> teType = teId == null ? null : FabricRegistries.BLOCK_ENTITY_TYPES.getValue(teId);
                         if (teType == BlockEntityType.SIGN || teType == BlockEntityType.HANGING_SIGN)
                         {
                             if (BlockEntity.loadStatic(te.getPos(), te.getState(), te.getTileEntityData()) instanceof SignBlockEntity sign)
@@ -373,7 +370,7 @@ public final class WorkerUtil
      */
     public static int getLastLadder(@NotNull final BlockPos pos, final Level world)
     {
-        if (world.getBlockState(pos).getBlock().isLadder(world.getBlockState(pos), world, pos, null))
+        if (com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(world.getBlockState(pos), world, pos, null))
         {
             return getLastLadder(pos.below(), world);
         }

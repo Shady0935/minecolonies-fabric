@@ -11,9 +11,9 @@ import com.minecolonies.coremod.client.gui.modules.EntityListModuleWindow;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableEntityMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -113,7 +113,7 @@ public class EntityListModuleView extends AbstractBuildingModuleView implements 
 
         for (int j = 0; j < size; j++)
         {
-            listOfEntities.add(ForgeRegistries.ENTITY_TYPES.getKey(buf.readRegistryIdUnsafe(ForgeRegistries.ENTITY_TYPES)));
+            listOfEntities.add(FabricRegistries.ENTITY_TYPES.getKey(com.minecolonies.fabric.network.FabricBufUtils.readRegistryIdUnsafe(buf, FabricRegistries.ENTITY_TYPES)));
         }
     }
 

@@ -78,14 +78,7 @@ public class WindowSchematicAnalyzer extends AbstractWindowSkeleton
         registerButton(BUTTON_SELECT_SCHEMATIC, b -> {
             new WindowExtendedBuildTool(
               BlockPos.containing(Minecraft.getInstance().player.position().add(Minecraft.getInstance().player.getLookAngle().multiply(10, 10, 10))),
-              1,
-              (window, blueprint) -> {
-                  Minecraft.getInstance().setScreen(this.getScreen());
-                  final SchemAnalyzerUtil.SchematicAnalyzationResult result = analyzationResults.computeIfAbsent(blueprint, SchemAnalyzerUtil::analyzeSchematic);
-                  sortAnalyzationResults();
-                  switchSelectionTo(getBoxForSide(b), result);
-              },
-              (a) -> true
+              1
             ).open();
         });
 

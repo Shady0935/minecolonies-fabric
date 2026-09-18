@@ -11,13 +11,13 @@ import com.minecolonies.coremod.colony.buildings.modules.TavernBuildingModule;
 import com.minecolonies.coremod.colony.buildings.views.EmptyView;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 import static com.minecolonies.coremod.colony.buildings.modules.BuildingModules.*;
 
 public final class ModBuildingsInitializer
 {
-    public final static DeferredRegister<BuildingEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "buildings"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<BuildingEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "buildings"), Constants.MOD_ID);
 
     private ModBuildingsInitializer()
     {

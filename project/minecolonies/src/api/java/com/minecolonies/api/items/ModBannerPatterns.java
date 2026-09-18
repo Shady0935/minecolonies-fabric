@@ -4,14 +4,14 @@ import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.block.entity.BannerPattern;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 /**
  * Registering of sound events for our colony.
  */
 public final class ModBannerPatterns
 {
-    public static final DeferredRegister<BannerPattern> BANNER_PATTERNS = DeferredRegister.create(Registries.BANNER_PATTERN, Constants.MOD_ID);
+    public static final FabricDeferredRegister<BannerPattern> BANNER_PATTERNS = FabricDeferredRegister.create(Registries.BANNER_PATTERN, Constants.MOD_ID);
 
     /**
      * Private constructor to hide the implicit public one.

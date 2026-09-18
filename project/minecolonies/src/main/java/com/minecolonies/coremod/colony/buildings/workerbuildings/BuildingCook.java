@@ -28,8 +28,8 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +100,7 @@ public class BuildingCook extends AbstractBuilding
     {
         super(c, l);
         keepX.put(this::isAllowedFood, new Tuple<>(STACKSIZE, true));
-        keepX.put(stack -> !ItemStackUtils.isEmpty(stack.getCraftingRemainingItem()) && !stack.getCraftingRemainingItem().getItem().equals(Items.BUCKET), new Tuple<>(STACKSIZE, false));
+        keepX.put(stack -> !ItemStackUtils.isEmpty(ItemStackUtils.getCraftingRemainingItem(stack)) && !ItemStackUtils.getCraftingRemainingItem(stack).getItem().equals(Items.BUCKET), new Tuple<>(STACKSIZE, false));
     }
 
     /**
@@ -144,7 +144,7 @@ public class BuildingCook extends AbstractBuilding
     public static void onResetFoodExclusionList(final ItemListModule listModule)
     {
         listModule.clearItems();
-        for (final Item item : ForgeRegistries.ITEMS.tags().getTag(ModTags.excludedFood))
+        for (final Item item : FabricRegistries.ITEMS.tags().getTag(ModTags.excludedFood))
         {
             listModule.addItem(new ItemStorage(new ItemStack(item)));
         }

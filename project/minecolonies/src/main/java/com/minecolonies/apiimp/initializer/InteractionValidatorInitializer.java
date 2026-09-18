@@ -19,8 +19,8 @@ import com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIBasic;
 import com.minecolonies.coremod.util.WorkerUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.inventory.IItemHandler;
 
 import java.util.List;
 
@@ -80,7 +80,7 @@ public class InteractionValidatorInitializer
                       final IBuilding building = colony.getBuildingManager().getBuilding(pos);
                       if (building != null)
                       {
-                          final IItemHandler inv = building.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
+                          final IItemHandler inv = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(building, ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
                           if (inv != null)
                           {
                               return InventoryUtils.openSlotCount(inv) <= 0;

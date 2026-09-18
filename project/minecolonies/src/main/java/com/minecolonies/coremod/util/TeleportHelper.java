@@ -94,7 +94,7 @@ public final class TeleportHelper
     public static void surfaceTeleport(@NotNull final ServerPlayer player)
     {
         BlockPos position = BlockPos.containing(player.getX(), 250, player.getZ()); //start at current position
-        final ServerLevel world = (ServerLevel) player.level;
+        final ServerLevel world = (ServerLevel) player.level();
 
         position = BlockPosUtil.findLand(position, world);
 

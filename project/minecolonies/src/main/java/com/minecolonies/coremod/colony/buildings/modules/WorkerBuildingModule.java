@@ -172,7 +172,7 @@ public class WorkerBuildingModule extends AbstractAssignedCitizenModule
     public void serializeToView(@NotNull final FriendlyByteBuf buf)
     {
         super.serializeToView(buf);
-        buf.writeRegistryId(IMinecoloniesAPI.getInstance().getJobRegistry(), jobEntry);
+        com.minecolonies.fabric.network.FabricBufUtils.writeRegistryId(buf, IMinecoloniesAPI.getInstance().getJobRegistry(), jobEntry);
         buf.writeInt(getPrimarySkill().ordinal());
         buf.writeInt(getSecondarySkill().ordinal());
     }

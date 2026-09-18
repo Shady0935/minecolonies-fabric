@@ -1,8 +1,9 @@
 # Porting status
 
-This is the initial implementation checkpoint. A checked item means it has
-been verified in the target workspace, not merely observed in an upstream
-reference.
+Checkpoint: 2026-09-18. A checked item is verified in the target workspace;
+it is not inferred only from an upstream reference. This is a functional
+runtime checkpoint, not a claim that every gameplay path has been manually
+completed.
 
 ## Workspace and references
 
@@ -10,32 +11,38 @@ reference.
 - [x] Upstream references cloned and kept isolated
 - [x] Exact branches and checkout commits recorded
 - [x] Usable modern Fabric architectural reference identified
-- [ ] Root implementation repository baseline committed
+- [x] Root implementation repository baseline committed as the current runtime
+  checkpoint; further gameplay work remains on top of it
 
-## Build
+## Build and dependencies
 
-- [ ] Fabric Loom bootstrap for Minecraft 1.20.1
-- [ ] Fabric Loader and Fabric API versions selected and pinned
-- [ ] BlockUI Fabric 1.20.1
-- [ ] Domum Ornamentum Fabric 1.20.1
-- [ ] Structurize Fabric 1.20.1
-- [ ] MultiPiston decision and implementation
-- [ ] MineColonies Fabric 1.20.1
-- [ ] Clean reproducible build
+- [x] Fabric Loom bootstrap for Minecraft 1.20.1
+- [x] Fabric Loader/API and Java 17 pinned
+- [x] BlockUI Fabric development dependency resolved
+- [x] Domum Ornamentum Fabric development dependency built and loaded
+- [x] Structurize Fabric development dependency built and loaded
+- [x] MultiPiston decision recorded: no runtime MineColonies source usage was
+  found, so the Forge-only standalone mod is not included in this target yet
+- [x] MineColonies Fabric 1.20.1 source compiles and packages
+- [x] Clean reproducible `build` checkpoint
 
 ## Runtime
 
-- [ ] Datagen
-- [ ] Dedicated server startup
-- [ ] Dedicated server save/stop/restart
-- [ ] Client bootstrap
-- [ ] Client/server classloading audit
+- [ ] Datagen task/provider set (not available in this checkpoint; the upstream
+  generation tree remains excluded until its Fabric providers are ported)
+- [x] Dedicated server startup reaches `Done`
+- [x] Dedicated server `save-all`/`stop` and same-world restart verified
+- [x] Client bootstrap reaches OpenAL and all texture atlases
+- [x] Client/server classloading audit completed without a startup crash
+- [x] Fabric play networking registered in both directions
+- [x] Offline local client/server login smoke test reaches the world and sends
+  the MineColonies server UUID packet
 
 ## Gameplay systems
 
-- [ ] Registries and content
-- [ ] Colony saved data and permissions
-- [ ] Citizens and entities
+- [x] Core registries, recipes, tags, sounds, particles and content bootstrap
+- [ ] Colony saved data and permissions exercised through gameplay
+- [ ] Citizens and custom entities exercised in-world
 - [ ] Town Hall and colony creation
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
@@ -44,13 +51,14 @@ reference.
 - [ ] Research
 - [ ] Guards and raids
 - [ ] Structurize blueprints and placement
-- [ ] BlockUI screens and networking
+- [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
 
+- [x] Automated Java compilation and package build
 - [ ] Automated serialization coverage
-- [ ] Automated packet/registry coverage
-- [ ] Fabric GameTest feasibility checked
-- [ ] Core runtime tests
-- [ ] Manual validation list prepared
-
+- [x] Network transport smoke coverage for login/server-to-client packet path
+- [x] Fabric GameTest feasibility checked; no port-specific GameTest suite is
+  included yet
+- [ ] Core gameplay runtime tests
+- [x] Manual validation list and remaining limitations documented

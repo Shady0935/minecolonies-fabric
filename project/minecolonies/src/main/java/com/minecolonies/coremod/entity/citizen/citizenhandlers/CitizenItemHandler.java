@@ -23,7 +23,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.network.PacketDistributor;
+import com.minecolonies.fabric.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -195,14 +195,14 @@ public class CitizenItemHandler implements ICitizenItemHandler
                 Network.getNetwork().sendToPosition(
                   new BlockParticleEffectMessage(blockPos, CompatibilityUtils.getWorldFromCitizen(citizen).getBlockState(blockPos), BlockParticleEffectMessage.BREAK_BLOCK),
                   new PacketDistributor.TargetPoint(
-                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), BLOCK_BREAK_SOUND_RANGE, citizen.level.dimension()));
+                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), BLOCK_BREAK_SOUND_RANGE, citizen.level().dimension()));
             }
             CompatibilityUtils.getWorldFromCitizen(citizen).playSound(null,
               blockPos,
-              block.getSoundType(blockState, CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, citizen).getBreakSound(),
+              blockState.getSoundType().getBreakSound(),
               SoundSource.BLOCKS,
-              block.getSoundType(blockState, CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, citizen).getVolume(),
-              block.getSoundType(blockState, CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, citizen).getPitch());
+              blockState.getSoundType().getVolume(),
+              blockState.getSoundType().getPitch());
             WorldUtil.removeBlock(CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, false);
 
             damageItemInHand(citizen.getUsedItemHand(), 1);
@@ -217,14 +217,14 @@ public class CitizenItemHandler implements ICitizenItemHandler
                 Network.getNetwork().sendToPosition(
                   new BlockParticleEffectMessage(blockPos, CompatibilityUtils.getWorldFromCitizen(citizen).getBlockState(blockPos), facing.ordinal()),
                   new PacketDistributor.TargetPoint(blockPos.getX(),
-                    blockPos.getY(), blockPos.getZ(), BLOCK_BREAK_PARTICLE_RANGE, citizen.level.dimension()));
+                    blockPos.getY(), blockPos.getZ(), BLOCK_BREAK_PARTICLE_RANGE, citizen.level().dimension()));
             }
             CompatibilityUtils.getWorldFromCitizen(citizen).playSound(null,
               blockPos,
-              block.getSoundType(blockState, CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, citizen).getBreakSound(),
+              blockState.getSoundType().getBreakSound(),
               SoundSource.BLOCKS,
-              block.getSoundType(blockState, CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, citizen).getVolume(),
-              block.getSoundType(blockState, CompatibilityUtils.getWorldFromCitizen(citizen), blockPos, citizen).getPitch());
+              blockState.getSoundType().getVolume(),
+              blockState.getSoundType().getPitch());
         }
     }
 

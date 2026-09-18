@@ -22,7 +22,7 @@ import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -254,7 +254,7 @@ public class DefaultSifterCraftingProvider extends CustomRecipeAndLootTableProvi
 
         public SifterMeshDetails(@NotNull final Item mesh, final int minBuildingLevel, @NotNull final LootTable.Builder lootTable)
         {
-            this.name = ForgeRegistries.ITEMS.getKey(mesh).getPath().replace("sifter_mesh_", "");
+            this.name = FabricRegistries.ITEMS.getKey(mesh).getPath().replace("sifter_mesh_", "");
             this.mesh = mesh;
             this.minBuildingLevel = minBuildingLevel;
             this.lootTable = lootTable;
@@ -279,7 +279,7 @@ public class DefaultSifterCraftingProvider extends CustomRecipeAndLootTableProvi
         {
             for (final SifterMeshDetails mesh : inputEntry.getValue())
             {
-                final String name = mesh.getName() + "/" + ForgeRegistries.ITEMS.getKey(inputEntry.getKey()).getPath();
+                final String name = mesh.getName() + "/" + FabricRegistries.ITEMS.getKey(inputEntry.getKey()).getPath();
 
                 final List<LootTableAnalyzer.LootDrop> drops = LootTableAnalyzer.toDrops(lootTableManager, mesh.getLootTable().build());
                 final Stream<Item> loot = drops.stream().flatMap(drop -> drop.getItemStacks().stream()
@@ -314,7 +314,7 @@ public class DefaultSifterCraftingProvider extends CustomRecipeAndLootTableProvi
                       @NotNull final ResourceLocation research)
     {
         CustomRecipeProvider.CustomRecipeBuilder.create(job.getPath(), MODULE_CRAFTING,
-                        ForgeRegistries.ITEMS.getKey(output.asItem()).getPath())
+                        FabricRegistries.ITEMS.getKey(output.asItem()).getPath())
                 .inputs(List.of(new ItemStorage(new ItemStack(input))))
                 .result(new ItemStack(output))
                 .minResearchId(research)
@@ -329,7 +329,7 @@ public class DefaultSifterCraftingProvider extends CustomRecipeAndLootTableProvi
         {
             for (final SifterMeshDetails mesh : inputEntry.getValue())
             {
-                final String name = mesh.getName() + "/" + ForgeRegistries.ITEMS.getKey(inputEntry.getKey()).getPath();
+                final String name = mesh.getName() + "/" + FabricRegistries.ITEMS.getKey(inputEntry.getKey()).getPath();
 
                 registrar.register(new ResourceLocation(MOD_ID, "recipes/" + name), LootContextParamSets.ALL_PARAMS, mesh.getLootTable());
             }

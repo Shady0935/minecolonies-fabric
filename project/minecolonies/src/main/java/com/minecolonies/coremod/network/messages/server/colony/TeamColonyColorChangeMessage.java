@@ -6,8 +6,8 @@ import com.minecolonies.api.colony.event.ColonyInformationChangedEvent;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.ChatFormatting;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.network.NetworkEvent;
+import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**

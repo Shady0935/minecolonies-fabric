@@ -32,7 +32,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -454,7 +454,7 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
             {
                 if (index < freeBlocks.size())
                 {
-                    rowPane.findPaneOfTypeByID(NAME_LABEL, Text.class).setText(Component.literal(ForgeRegistries.BLOCKS.getKey(freeBlocks.get(index)).toString()));
+                    rowPane.findPaneOfTypeByID(NAME_LABEL, Text.class).setText(Component.literal(FabricRegistries.BLOCKS.getKey(freeBlocks.get(index)).toString()));
                 }
                 else
                 {
@@ -475,7 +475,7 @@ public class WindowPermissionsPage extends AbstractWindowTownHall
 
         try
         {
-            final Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(inputText));
+            final Block block = FabricRegistries.BLOCKS.getValue(new ResourceLocation(inputText));
 
             if (block != null)
             {

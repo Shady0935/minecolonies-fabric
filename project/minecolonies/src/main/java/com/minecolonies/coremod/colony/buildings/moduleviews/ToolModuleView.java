@@ -6,8 +6,8 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.client.gui.modules.ToolModuleWindow;
 import net.minecraft.world.item.Item;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -12,7 +12,6 @@ import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.SoundUtils;
 import com.minecolonies.coremod.MineColonies;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,9 +20,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Mirror;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.inventory.InvWrapper;
 
 import java.util.function.Predicate;
 
@@ -50,7 +49,7 @@ public class SuppliesHandler implements ISurvivalBlueprintHandler
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public boolean canHandle(final Blueprint blueprint, final ClientLevel clientLevel, final Player player, final BlockPos blockPos, final PlacementSettings placementSettings)
+    public boolean canHandle(final Blueprint blueprint, final Level clientLevel, final Player player, final BlockPos blockPos, final PlacementSettings placementSettings)
     {
         return false;
     }
@@ -115,7 +114,7 @@ public class SuppliesHandler implements ISurvivalBlueprintHandler
 
             SoundUtils.playSuccessSound(player, player.blockPosition());
 
-            StructurePlacementUtils.loadAndPlaceStructureWithRotation(player.level, blueprint,
+            StructurePlacementUtils.loadAndPlaceStructureWithRotation(player.level(), blueprint,
                     blockPos, placementSettings.getRotation(), placementSettings.getMirror() != Mirror.NONE ? Mirror.FRONT_BACK : Mirror.NONE, true, player);
         }
         else

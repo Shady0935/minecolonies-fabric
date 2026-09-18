@@ -1033,7 +1033,7 @@ public class Tree
             return false;
         }
 
-        final IColonyTagCapability cap = ((LevelChunk) chunk).getCapability(CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        final IColonyTagCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability((LevelChunk) chunk, CLOSE_COLONY_CAP, null).resolve().orElse(null);
         if (cap != null && cap.getOwningColony() != colony.getID())
         {
             return false;

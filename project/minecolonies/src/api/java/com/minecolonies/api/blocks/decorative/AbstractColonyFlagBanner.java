@@ -4,7 +4,6 @@ import com.minecolonies.api.blocks.interfaces.IBlockMinecolonies;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.tileentities.TileEntityColonyFlag;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -15,10 +14,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.level.block.AbstractBannerBlock;
 import net.minecraft.world.level.block.Block;
@@ -78,7 +77,7 @@ public abstract class AbstractColonyFlagBanner<B extends AbstractColonyFlagBanne
         BlockEntity tileentity = worldIn.getBlockEntity(pos);
         if (tileentity instanceof TileEntityColonyFlag)
         {
-            if (worldIn instanceof ClientLevel)
+            if (worldIn instanceof Level level && level.isClientSide)
             {
                 ((TileEntityColonyFlag)tileentity).getItemClient();
             }
@@ -91,14 +90,14 @@ public abstract class AbstractColonyFlagBanner<B extends AbstractColonyFlagBanne
     }
 
     @Override
-    public AbstractColonyFlagBanner<B> registerBlock(final IForgeRegistry<Block> registry)
+    public AbstractColonyFlagBanner<B> registerBlock(final FabricRegistry<Block> registry)
     {
         registry.register(getRegistryName(), this);
         return this;
     }
 
     @Override
-    public void registerBlockItem(final IForgeRegistry<Item> registry, final Item.Properties properties)
+    public void registerBlockItem(final FabricRegistry<Item> registry, final Item.Properties properties)
     {
         // Occurs in ModItems.
     }

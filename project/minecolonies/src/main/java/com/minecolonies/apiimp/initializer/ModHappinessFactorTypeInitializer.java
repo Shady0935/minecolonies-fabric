@@ -9,7 +9,7 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.colony.jobs.AbstractJobGuard;
 import com.minecolonies.coremod.colony.jobs.JobPupil;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 import static com.minecolonies.api.entity.citizen.happiness.HappinessRegistry.*;
 import static com.minecolonies.api.util.constant.HappinessConstants.*;
@@ -20,8 +20,8 @@ import static com.minecolonies.coremod.entity.citizen.citizenhandlers.CitizenHap
  */
 public final class ModHappinessFactorTypeInitializer
 {
-    public final static DeferredRegister<HappinessFactorTypeEntry> DEFERRED_REGISTER_HAPPINESS_FACTOR = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "happinessfactortypes"), Constants.MOD_ID);
-    public final static DeferredRegister<HappinessFunctionEntry> DEFERRED_REGISTER_HAPPINESS_FUNCTION = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "happinessfunction"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<HappinessFactorTypeEntry> DEFERRED_REGISTER_HAPPINESS_FACTOR = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "happinessfactortypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<HappinessFunctionEntry> DEFERRED_REGISTER_HAPPINESS_FUNCTION = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "happinessfunction"), Constants.MOD_ID);
 
     private ModHappinessFactorTypeInitializer()
     {

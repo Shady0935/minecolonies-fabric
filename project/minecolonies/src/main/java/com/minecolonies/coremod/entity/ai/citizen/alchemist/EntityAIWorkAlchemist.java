@@ -37,7 +37,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -254,10 +254,10 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
             worker.swing(InteractionHand.MAIN_HAND);
             world.playSound(null,
               walkTo,
-              state.getSoundType(world, walkTo, worker).getBreakSound(),
+              state.getSoundType().getBreakSound(),
               SoundSource.BLOCKS,
-              state.getSoundType(world, walkTo, worker).getVolume(),
-              state.getSoundType(world, walkTo, worker).getPitch());
+              state.getSoundType().getVolume(),
+              state.getSoundType().getPitch());
             Network.getNetwork().sendToTrackingEntity(new BlockParticleEffectMessage(walkTo, state, worker.getRandom().nextInt(7)-1), worker);
 
             if (worker.getRandom().nextInt(120) < 1)
@@ -394,7 +394,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                 if (entity instanceof BrewingStandBlockEntity)
                 {
                     final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
-                    if (brewingStand.brewTime > 0 || !isEmpty(brewingStand.getItem(INGREDIENT_SLOT)))
+                    if (com.minecolonies.fabric.compat.FabricVanillaCompat.getBrewingTime(brewingStand) > 0 || !isEmpty(brewingStand.getItem(INGREDIENT_SLOT)))
                     {
                         return CRAFT;
                     }
@@ -424,7 +424,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                 if (entity instanceof BrewingStandBlockEntity)
                 {
                     final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
-                    if (brewingStand.brewTime > 0)
+                if (com.minecolonies.fabric.compat.FabricVanillaCompat.getBrewingTime(brewingStand) > 0)
                     {
                         count += 1;
                     }
@@ -455,7 +455,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                     final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
                     for(int i = 0; i < accelerationTicks; i++)
                     {
-                        if (brewingStand.brewTime > 0)
+                if (com.minecolonies.fabric.compat.FabricVanillaCompat.getBrewingTime(brewingStand) > 0)
                         {
                             BrewingStandBlockEntity.serverTick(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), brewingStand);
                         }
@@ -487,7 +487,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                     continue;
                 }
                 final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
-                if (brewingStand.brewTime <= 0 && (hasBrewableAndNoFuel(brewingStand) || hasNeitherFuelNorBrewable(brewingStand)))
+                if (com.minecolonies.fabric.compat.FabricVanillaCompat.getBrewingTime(brewingStand) <= 0 && (hasBrewableAndNoFuel(brewingStand) || hasNeitherFuelNorBrewable(brewingStand)))
                 {
                     //We only want to return true if we're not already gathering materials.
                     return getState() != GATHERING_REQUIRED_MATERIALS;
@@ -525,7 +525,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                 if (entity instanceof BrewingStandBlockEntity)
                 {
                     final BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) entity;
-                    if (brewingStand.brewTime <= 0 && (hasBrewableAndNoFuel(brewingStand) || hasNeitherFuelNorBrewable(brewingStand)))
+                if (com.minecolonies.fabric.compat.FabricVanillaCompat.getBrewingTime(brewingStand) <= 0 && (hasBrewableAndNoFuel(brewingStand) || hasNeitherFuelNorBrewable(brewingStand)))
                     {
                         if (!InventoryUtils.hasItemInItemHandler(worker.getInventoryCitizen(), Items.BLAZE_POWDER))
                         {
@@ -646,7 +646,7 @@ public class EntityAIWorkAlchemist extends AbstractEntityAICrafting<JobAlchemist
                     }
                 }
 
-                if (brewingStand.brewTime <= 0 && countInResultSlot > 0 && isEmpty(brewingStand.getItem(INGREDIENT_SLOT)))
+                if (com.minecolonies.fabric.compat.FabricVanillaCompat.getBrewingTime(brewingStand) <= 0 && countInResultSlot > 0 && isEmpty(brewingStand.getItem(INGREDIENT_SLOT)))
                 {
                     return pos;
                 }

@@ -5,8 +5,8 @@ import com.minecolonies.api.IMinecoloniesAPI;
 import com.minecolonies.api.quests.*;
 import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricRegistry;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 import java.util.function.Function;
 
 /**
@@ -18,7 +18,7 @@ public class QuestRegistries
      * Get the reward registry.
      * @return the reward registry.
      */
-    static IForgeRegistry<RewardEntry> getQuestRewardsRegistry()
+    static FabricRegistry<RewardEntry> getQuestRewardsRegistry()
     {
         return IMinecoloniesAPI.getInstance().getQuestRewardRegistry();
     }
@@ -27,7 +27,7 @@ public class QuestRegistries
      * Get the objective registry.
      * @return the reward registry.
      */
-    static IForgeRegistry<ObjectiveEntry> getQuestObjectiveRegistry()
+    static FabricRegistry<ObjectiveEntry> getQuestObjectiveRegistry()
     {
         return IMinecoloniesAPI.getInstance().getQuestObjectiveRegistry();
     }
@@ -36,7 +36,7 @@ public class QuestRegistries
      * Get the trigger registry.
      * @return the reward registry.
      */
-    static IForgeRegistry<TriggerEntry> getQuestTriggerRegistry()
+    static FabricRegistry<TriggerEntry> getQuestTriggerRegistry()
     {
         return IMinecoloniesAPI.getInstance().getQuestTriggerRegistry();
     }
@@ -45,7 +45,7 @@ public class QuestRegistries
      * Get the dialogue answer result registry.
      * @return the reward registry.
      */
-    static IForgeRegistry<DialogueAnswerEntry> getDialogueAnswerResultRegistry()
+    static FabricRegistry<DialogueAnswerEntry> getDialogueAnswerResultRegistry()
     {
         return IMinecoloniesAPI.getInstance().getQuestDialogueAnswerRegistry();
     }
@@ -172,31 +172,31 @@ public class QuestRegistries
     public static ResourceLocation GOTO_ANSWER_ID     = new ResourceLocation(Constants.MOD_ID, "advanceobjective");
 
 
-    public static RegistryObject<RewardEntry>  itemReward;
-    public static RegistryObject <RewardEntry> skillReward;
-    public static RegistryObject <RewardEntry> researchReward;
-    public static RegistryObject <RewardEntry> raidReward;
-    public static RegistryObject <RewardEntry> relationshipReward;
-    public static RegistryObject <RewardEntry> happinessReward;
-    public static RegistryObject <RewardEntry> unlockQuestReward;
-    public static RegistryObject <RewardEntry> questReputationReward;
+    public static FabricRegistryObject<RewardEntry>  itemReward;
+    public static FabricRegistryObject <RewardEntry> skillReward;
+    public static FabricRegistryObject <RewardEntry> researchReward;
+    public static FabricRegistryObject <RewardEntry> raidReward;
+    public static FabricRegistryObject <RewardEntry> relationshipReward;
+    public static FabricRegistryObject <RewardEntry> happinessReward;
+    public static FabricRegistryObject <RewardEntry> unlockQuestReward;
+    public static FabricRegistryObject <RewardEntry> questReputationReward;
 
-    public static RegistryObject <ObjectiveEntry> dialogueObjective;
-    public static RegistryObject <ObjectiveEntry> breakBlockObjective;
-    public static RegistryObject <ObjectiveEntry> deliveryObjective;
-    public static RegistryObject <ObjectiveEntry> killEntityObjective;
-    public static RegistryObject <ObjectiveEntry> placeBlockObjective;
-    public static RegistryObject <ObjectiveEntry> buildBuildingObjective;
+    public static FabricRegistryObject <ObjectiveEntry> dialogueObjective;
+    public static FabricRegistryObject <ObjectiveEntry> breakBlockObjective;
+    public static FabricRegistryObject <ObjectiveEntry> deliveryObjective;
+    public static FabricRegistryObject <ObjectiveEntry> killEntityObjective;
+    public static FabricRegistryObject <ObjectiveEntry> placeBlockObjective;
+    public static FabricRegistryObject <ObjectiveEntry> buildBuildingObjective;
 
-    public static RegistryObject <TriggerEntry> stateTrigger;
-    public static RegistryObject <TriggerEntry> randomTrigger;
-    public static RegistryObject <TriggerEntry> citizenTrigger;
-    public static RegistryObject <TriggerEntry> unlockTrigger;
-    public static RegistryObject <TriggerEntry> questReputationTrigger;
+    public static FabricRegistryObject <TriggerEntry> stateTrigger;
+    public static FabricRegistryObject <TriggerEntry> randomTrigger;
+    public static FabricRegistryObject <TriggerEntry> citizenTrigger;
+    public static FabricRegistryObject <TriggerEntry> unlockTrigger;
+    public static FabricRegistryObject <TriggerEntry> questReputationTrigger;
 
-    public static RegistryObject <DialogueAnswerEntry> dialogueAnswerResult;
-    public static RegistryObject <DialogueAnswerEntry> returnAnswerResult;
-    public static RegistryObject <DialogueAnswerEntry> cancelAnswerResult;
-    public static RegistryObject <DialogueAnswerEntry> gotoAnswerResult;
+    public static FabricRegistryObject <DialogueAnswerEntry> dialogueAnswerResult;
+    public static FabricRegistryObject <DialogueAnswerEntry> returnAnswerResult;
+    public static FabricRegistryObject <DialogueAnswerEntry> cancelAnswerResult;
+    public static FabricRegistryObject <DialogueAnswerEntry> gotoAnswerResult;
 
 }

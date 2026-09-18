@@ -11,7 +11,8 @@ import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
-import net.minecraftforge.client.event.RenderLevelStageEvent;
+import com.minecolonies.fabric.client.event.RenderLevelStageEvent;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -28,6 +29,7 @@ public class WorldEventContext
     }
 
     public RenderLevelStageEvent stageEvent;
+    public WorldRenderContext renderContext;
     public BufferSource bufferSource;
     public PoseStack poseStack;
     public float partialTicks;
@@ -45,6 +47,7 @@ public class WorldEventContext
     public void renderWorldLastEvent(final RenderLevelStageEvent event)
     {
         stageEvent = event;
+        renderContext = event.getWorldRenderContext();
         bufferSource = WorldRenderMacros.getBufferSource();
         poseStack = event.getPoseStack();
         partialTicks = event.getPartialTick();

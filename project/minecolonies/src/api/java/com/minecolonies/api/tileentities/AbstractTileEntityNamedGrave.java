@@ -91,13 +91,11 @@ public class AbstractTileEntityNamedGrave extends BlockEntity
         return this.saveWithId();
     }
 
-    @Override
     public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket packet)
     {
         this.load(packet.getTag());
     }
 
-    @Override
     public void handleUpdateTag(final CompoundTag tag)
     {
         this.load(tag);

@@ -26,7 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -303,7 +303,7 @@ public class BuildingNetherWorker extends AbstractBuilding
     public static void onResetFoodExclusionList(final ItemListModule listModule)
     {
         listModule.clearItems();
-        for (final Item item : ForgeRegistries.ITEMS.tags().getTag(ModTags.excludedFood))
+        for (final Item item : FabricRegistries.ITEMS.tags().getTag(ModTags.excludedFood))
         {
             listModule.addItem(new ItemStorage(new ItemStack(item)));
         }

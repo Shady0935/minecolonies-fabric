@@ -8,18 +8,18 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistries;
 
 public final class ModRecipeSerializerInitializer
 {
-    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZER = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, Constants.MOD_ID);
-    public static final DeferredRegister<RecipeType<?>>       RECIPE_TYPES      = DeferredRegister.create(Registries.RECIPE_TYPE, Constants.MOD_ID);
+    public static final FabricDeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZER = FabricDeferredRegister.create(FabricRegistries.RECIPE_SERIALIZERS, Constants.MOD_ID);
+    public static final FabricDeferredRegister<RecipeType<?>>       RECIPE_TYPES      = FabricDeferredRegister.create(Registries.RECIPE_TYPE, Constants.MOD_ID);
 
     static
     {
         ModRecipeSerializer.CompostRecipeSerializer = RECIPE_SERIALIZER.register("composting", CompostRecipe.Serializer::new);
-        ModRecipeSerializer.CompostRecipeType = RECIPE_TYPES.register("composting", () -> RecipeType.simple(new ResourceLocation(Constants.MOD_ID, "composting")));
+        ModRecipeSerializer.CompostRecipeType = RECIPE_TYPES.register("composting", () -> new RecipeType<CompostRecipe>() { });
     }
 
     private ModRecipeSerializerInitializer()

@@ -783,7 +783,7 @@ public class Permissions implements IPermissions
                     // Check claim
                     final LevelChunk chunk = world.getChunk(playerEntity.chunkPosition().x, playerEntity.chunkPosition().z);
 
-                    final IColonyTagCapability colonyCap = chunk.getCapability(CLOSE_COLONY_CAP, null).orElseGet(null);
+                    final IColonyTagCapability colonyCap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(chunk, CLOSE_COLONY_CAP, null).orElseGet(null);
                     if (colonyCap != null)
                     {
                         if (colonyCap.getOwningColony() == colony.getID() && world.dimension() == colony.getDimension())

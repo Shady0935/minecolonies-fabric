@@ -1,11 +1,11 @@
 package com.minecolonies.api.colony.jobs.registry;
 
 import com.minecolonies.api.IMinecoloniesAPI;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistry;
 
 public interface IJobRegistry
 {
-    static IForgeRegistry<JobEntry> getInstance()
+    static FabricRegistry<JobEntry> getInstance()
     {
         return IMinecoloniesAPI.getInstance().getJobRegistry();
     }

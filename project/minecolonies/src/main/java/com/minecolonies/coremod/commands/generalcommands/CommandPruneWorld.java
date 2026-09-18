@@ -83,7 +83,7 @@ public class CommandPruneWorld implements IMCOPCommand
 
         // Colony list for this world
         List<IColony> colonies = new ArrayList<>();
-        final IColonyManagerCapability cap = world.getCapability(COLONY_MANAGER_CAP, null).orElseGet(null);
+        final IColonyManagerCapability cap = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null).orElseGet(null);
         if (cap != null)
         {
             colonies = cap.getColonies();

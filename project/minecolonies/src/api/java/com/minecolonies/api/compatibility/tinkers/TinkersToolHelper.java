@@ -5,7 +5,7 @@ import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.constant.IToolType;
 import com.minecolonies.api.util.constant.ToolType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.ToolActions;
+import com.minecolonies.fabric.common.ToolActions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 /*import slimeknights.tconstruct.common.TinkerTags;
@@ -121,24 +121,24 @@ public final class TinkersToolHelper extends TinkersToolProxy
             return false;
         }
 
-        if (ToolType.AXE.equals(toolType) && stack.canPerformAction(ToolActions.AXE_DIG))
+        if (ToolType.AXE.equals(toolType) && ToolActions.canPerformAction(stack, ToolActions.AXE_DIG))
         {
             return true;
         }
 
-        if (ToolType.SHOVEL.equals(toolType) && stack.canPerformAction(ToolActions.SHOVEL_DIG))
+        if (ToolType.SHOVEL.equals(toolType) && ToolActions.canPerformAction(stack, ToolActions.SHOVEL_DIG))
         {
             return true;
         }
 
-        if (ToolType.PICKAXE.equals(toolType) && stack.canPerformAction(ToolActions.PICKAXE_DIG))
+        if (ToolType.PICKAXE.equals(toolType) && ToolActions.canPerformAction(stack, ToolActions.PICKAXE_DIG))
         {
             return true;
         }
 
         if (ToolType.HOE.equals(toolType))
         {
-            return stack.canPerformAction(ToolActions.HOE_DIG);
+            return ToolActions.canPerformAction(stack, ToolActions.HOE_DIG);
         }
 
         return stack.is(TinkerTags.Items.HARVEST);*/

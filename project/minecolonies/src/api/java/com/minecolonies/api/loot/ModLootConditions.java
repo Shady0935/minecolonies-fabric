@@ -4,21 +4,21 @@ import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistryObject;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
 /** Container class for registering custom loot conditions */
 public final class ModLootConditions
 {
-    public final static DeferredRegister<LootItemConditionType> DEFERRED_REGISTER = DeferredRegister.create(Registries.LOOT_CONDITION_TYPE, Constants.MOD_ID);
+    public final static FabricDeferredRegister<LootItemConditionType> DEFERRED_REGISTER = FabricDeferredRegister.create(Registries.LOOT_CONDITION_TYPE, Constants.MOD_ID);
 
     public static final ResourceLocation ENTITY_IN_BIOME_TAG_ID = new ResourceLocation(MOD_ID, "entity_in_biome_tag");
     public static final ResourceLocation RESEARCH_UNLOCKED_ID = new ResourceLocation(MOD_ID, "research_unlocked");
 
-    public static final RegistryObject<LootItemConditionType> entityInBiomeTag;
-    public static final RegistryObject<LootItemConditionType> researchUnlocked;
+    public static final FabricRegistryObject<LootItemConditionType> entityInBiomeTag;
+    public static final FabricRegistryObject<LootItemConditionType> researchUnlocked;
 
     public static void init()
     {

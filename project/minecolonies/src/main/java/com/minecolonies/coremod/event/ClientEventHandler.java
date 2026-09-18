@@ -37,19 +37,19 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.sound.PlaySoundEvent;
-import net.minecraftforge.common.util.Lazy;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.client.event.ClientPlayerNetworkEvent;
+import com.minecolonies.fabric.client.event.CustomizeGuiOverlayEvent;
+import com.minecolonies.fabric.client.event.RenderLevelStageEvent;
+import com.minecolonies.fabric.client.event.sound.PlaySoundEvent;
+import com.minecolonies.fabric.util.Lazy;
+import com.minecolonies.fabric.event.entity.player.ItemTooltipEvent;
+import com.minecolonies.fabric.event.entity.player.PlayerInteractEvent;
+import com.minecolonies.fabric.event.EventPriority;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,10 +117,10 @@ public class ClientEventHandler
         {
             return;
         }
-        IColony colony = IMinecoloniesAPI.getInstance().getColonyManager().getIColony(event.getEntity().level, event.getEntity().blockPosition());
+        IColony colony = IMinecoloniesAPI.getInstance().getColonyManager().getIColony(event.getEntity().level(), event.getEntity().blockPosition());
         if (colony == null)
         {
-            colony = IMinecoloniesAPI.getInstance().getColonyManager().getIColonyByOwner(event.getEntity().level, event.getEntity());
+            colony = IMinecoloniesAPI.getInstance().getColonyManager().getIColonyByOwner(event.getEntity().level(), event.getEntity());
         }
         handleCrafterRecipeTooltips(colony, event.getToolTip(), event.getItemStack().getItem());
         if (event.getItemStack().getItem() instanceof BlockItem)

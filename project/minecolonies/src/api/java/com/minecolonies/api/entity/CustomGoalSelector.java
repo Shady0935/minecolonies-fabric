@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.util.profiling.InactiveProfiler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -73,10 +74,9 @@ public class CustomGoalSelector extends GoalSelector
      */
     public CustomGoalSelector(@NotNull final GoalSelector old)
     {
-        super(old.profiler);
+        super(() -> InactiveProfiler.INSTANCE);
+        this.profiler = () -> InactiveProfiler.INSTANCE;
         importFrom(old);
-        super.availableGoals = this.availableGoals;
-        super.profiler = this.profiler;
     }
 
     /**
@@ -88,8 +88,6 @@ public class CustomGoalSelector extends GoalSelector
     {
         super(profiler);
         this.profiler = profiler;
-        super.availableGoals = this.availableGoals;
-        super.profiler = this.profiler;
         for (Goal.Flag flag : Goal.Flag.values())
         {
             flagGoalsArray[flag.ordinal()] = DUMMY;
@@ -108,21 +106,10 @@ public class CustomGoalSelector extends GoalSelector
             return;
         }
 
-        // import current goals for flags
+        availableGoals.addAll(selector.getAvailableGoals());
         for (Goal.Flag flag : Goal.Flag.values())
         {
-            flagGoalsArray[flag.ordinal()] = selector.lockedFlags.getOrDefault(flag, DUMMY);
-        }
-
-        // Set goal list reference to existing
-        availableGoals = selector.availableGoals;
-        // Set profiler reference
-        profiler = selector.profiler;
-
-        // Set which flags are disabled
-        for (Goal.Flag flag : selector.disabledFlags)
-        {
-            disabledFlagsArray[flag.ordinal()] = true;
+            flagGoalsArray[flag.ordinal()] = DUMMY;
         }
     }
 

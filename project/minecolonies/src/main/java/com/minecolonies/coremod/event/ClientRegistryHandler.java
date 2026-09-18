@@ -31,19 +31,19 @@ import com.minecolonies.coremod.client.render.projectile.RendererSpear;
 import net.minecraft.client.RecipeBookCategories;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.renderer.entity.TippableArrowRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterItemDecorationsEvent;
-import net.minecraftforge.client.event.RegisterRecipeBookCategoriesEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.minecolonies.fabric.dist.Dist;
+import com.minecolonies.fabric.dist.OnlyIn;
+import com.minecolonies.fabric.client.event.EntityRenderersEvent;
+import com.minecolonies.fabric.client.event.RegisterItemDecorationsEvent;
+import com.minecolonies.fabric.client.event.RegisterRecipeBookCategoriesEvent;
+import com.minecolonies.fabric.event.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -304,13 +304,13 @@ public class ClientRegistryHandler
         event.registerBlockEntityRenderer(MinecoloniesTileEntities.DECO_CONTROLLER.get(), TileEntityDecoControllerRenderer::new);
 
         Arrays.stream(ModBlocks.getHuts())
-          .forEach(hut -> ItemBlockRenderTypes.setRenderLayer(hut, renderType -> renderType.equals(RenderType.cutout()) || renderType.equals(RenderType.solid())));
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockScarecrow, RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockRack, RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockDecorationPlaceholder, RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockCompostedDirt, RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockBarrel, RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.blockWayPoint, RenderType.cutout());
+          .forEach(hut -> BlockRenderLayerMap.INSTANCE.putBlock(hut, RenderType.cutout()));
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.blockScarecrow, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.blockRack, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.blockDecorationPlaceholder, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.blockCompostedDirt, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.blockBarrel, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.blockWayPoint, RenderType.cutout());
 
         ItemProperties.register(ModItems.spear, new ResourceLocation("throwing"), (item, world, entity, light) ->
                                                                            (entity != null && entity.isUsingItem() && entity.getUseItem() == item) ? 1.0F : 0.0F);

@@ -1,7 +1,6 @@
 package com.minecolonies.coremod.colony.crafting;
 
 import com.minecolonies.api.util.constant.ToolType;
-import com.minecolonies.coremod.compatibility.jei.ToolRecipeCategory;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 

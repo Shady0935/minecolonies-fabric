@@ -10,14 +10,14 @@ import com.minecolonies.coremod.colony.colonyEvents.raidEvents.norsemenevent.Nor
 import com.minecolonies.coremod.colony.colonyEvents.raidEvents.pirateEvent.PirateGroundRaidEvent;
 import com.minecolonies.coremod.colony.colonyEvents.raidEvents.pirateEvent.PirateRaidEvent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
 
 /**
  * Initializer for colony event types, register new event types here.
  */
 public final class ModColonyEventTypeInitializer
 {
-    public final static DeferredRegister<ColonyEventTypeRegistryEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "colonyeventtypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<ColonyEventTypeRegistryEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "colonyeventtypes"), Constants.MOD_ID);
 
     private ModColonyEventTypeInitializer()
     {

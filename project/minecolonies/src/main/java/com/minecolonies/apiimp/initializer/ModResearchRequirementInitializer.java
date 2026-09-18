@@ -8,15 +8,15 @@ import com.minecolonies.coremod.research.AlternateBuildingResearchRequirement;
 import com.minecolonies.coremod.research.BuildingResearchRequirement;
 import com.minecolonies.coremod.research.ResearchResearchRequirement;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import net.minecraftforge.registries.RegisterEvent;
 
 import static com.minecolonies.api.research.ModResearchRequirements.*;
 
 public class ModResearchRequirementInitializer
 {
-    public final static DeferredRegister<ResearchRequirementEntry> DEFERRED_REGISTER = DeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "researchrequirementtypes"), Constants.MOD_ID);
+    public final static FabricDeferredRegister<ResearchRequirementEntry> DEFERRED_REGISTER = FabricDeferredRegister.create(new ResourceLocation(Constants.MOD_ID, "researchrequirementtypes"), Constants.MOD_ID);
 
     private ModResearchRequirementInitializer()
     {

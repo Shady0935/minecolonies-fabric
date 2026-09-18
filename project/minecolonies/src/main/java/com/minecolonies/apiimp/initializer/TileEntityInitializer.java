@@ -5,12 +5,12 @@ import com.minecolonies.api.tileentities.*;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.tileentities.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricDeferredRegister;
+import com.minecolonies.fabric.registry.FabricRegistries;
 
 public class TileEntityInitializer
 {
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, Constants.MOD_ID);
+    public static final FabricDeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = FabricDeferredRegister.create(FabricRegistries.BLOCK_ENTITY_TYPES, Constants.MOD_ID);
 
     static
     {

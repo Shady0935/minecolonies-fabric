@@ -71,7 +71,7 @@ public final class FieldDataManager
      */
     public static IField bufferToField(final @NotNull FriendlyByteBuf buf)
     {
-        final FieldRegistries.FieldEntry fieldType = buf.readRegistryIdSafe(FieldRegistries.FieldEntry.class);
+        final FieldRegistries.FieldEntry fieldType = com.minecolonies.fabric.network.FabricBufUtils.readRegistryIdSafe(buf, FieldRegistries.getFieldRegistry());
         final BlockPos position = buf.readBlockPos();
         final IField field = fieldType.produceField(position);
         field.deserialize(buf);
@@ -87,7 +87,7 @@ public final class FieldDataManager
     public static FriendlyByteBuf fieldToBuffer(final @NotNull IField field)
     {
         final FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        buf.writeRegistryId(FieldRegistries.getFieldRegistry(), field.getFieldType());
+        com.minecolonies.fabric.network.FabricBufUtils.writeRegistryId(buf, FieldRegistries.getFieldRegistry(), field.getFieldType());
         buf.writeBlockPos(field.getPosition());
         field.serialize(buf);
         return buf;

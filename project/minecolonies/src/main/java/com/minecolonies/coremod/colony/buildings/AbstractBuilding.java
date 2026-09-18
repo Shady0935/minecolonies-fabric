@@ -74,10 +74,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.util.LazyOptional;
+import com.minecolonies.fabric.inventory.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1153,7 +1153,7 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     @Override
     public boolean canEat(final ItemStack stack)
     {
-        return stack.getItem().getFoodProperties(stack, null).getNutrition() >= getBuildingLevel();
+        return stack.getItem().getFoodProperties().getNutrition() >= getBuildingLevel();
     }
 
     @Override
@@ -1179,7 +1179,7 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
         final BlockEntity entity = colony.getWorld().getBlockEntity(getID());
         if (entity != null)
         {
-            final LazyOptional<IItemHandler> handler = entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null);
+            final LazyOptional<IItemHandler> handler = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(entity, ForgeCapabilities.ITEM_HANDLER, null);
             handler.ifPresent(handlers::add);
         }
 
@@ -1257,7 +1257,7 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     }
 
     @Nullable
-    private ItemStack forceItemStackToProvider(@NotNull final ICapabilityProvider provider, @NotNull final ItemStack itemStack)
+    private ItemStack forceItemStackToProvider(@NotNull final Object provider, @NotNull final ItemStack itemStack)
     {
         final List<ItemStorage> localAlreadyKept = new ArrayList<>();
         return InventoryUtils.forceItemStackToProvider(provider,

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "domum_ornamentum",
+  "version": "${version}",
+  "name": "Domum Ornamentum",
+  "description": "Fabric 1.20.1 port of Domum Ornamentum.",
+  "authors": ["LDTTeam", "Destiny port contributors"],
+  "license": "GPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.ldtteam.domumornamentum.fabric.DomumOrnamentumFabric"],
+    "client": ["com.ldtteam.domumornamentum.fabric.DomumOrnamentumClientFabric"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric-api": "*",
+    "minecraft": "1.20.1",
+    "java": ">=17"
+  }
+}

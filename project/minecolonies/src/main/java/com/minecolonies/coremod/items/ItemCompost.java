@@ -4,10 +4,10 @@ import com.minecolonies.api.creativetab.ModCreativeTabs;
 import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 
-import static net.minecraft.world.item.BoneMealItem.applyBonemeal;
 
 /**
  * Class used to handle the compost item.
@@ -28,7 +28,7 @@ public class ItemCompost extends AbstractItemMinecolonies
     public InteractionResult useOn(final UseOnContext ctx)
     {
         final ItemStack itemstack = ctx.getPlayer().getItemInHand(ctx.getHand());
-        if (applyBonemeal(itemstack, ctx.getLevel(), ctx.getClickedPos(), ctx.getPlayer()))
+        if (BoneMealItem.growCrop(itemstack, ctx.getLevel(), ctx.getClickedPos()))
         {
             if (!ctx.getLevel().isClientSide)
             {

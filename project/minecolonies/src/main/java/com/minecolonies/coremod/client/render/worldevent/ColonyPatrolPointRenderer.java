@@ -79,7 +79,7 @@ public class ColonyPatrolPointRenderer
 
         if (guardTowerView instanceof AbstractBuildingGuards.View guardTower)
         {
-            BlueprintHandler.getInstance().drawAtListOfPositions(partolPointTemplate, guardTower.getPatrolTargets(), ctx.stageEvent);
+            BlueprintHandler.getInstance().drawAtListOfPositions(partolPointTemplate, guardTower.getPatrolTargets(), ctx.renderContext);
         }
     }
 }

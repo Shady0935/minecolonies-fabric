@@ -23,8 +23,8 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.IForgeRegistry;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.registry.FabricRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -155,7 +155,7 @@ public class RecipeStorage implements IRecipeStorage
         this.intermediate = intermediate == null ? Blocks.AIR : intermediate;
         this.token = token;
         this.recipeSource = source;
-        IForgeRegistry<RecipeTypeEntry> recipeTypes = MinecoloniesAPIProxy.getInstance().getRecipeTypeRegistry();
+        FabricRegistry<RecipeTypeEntry> recipeTypes = MinecoloniesAPIProxy.getInstance().getRecipeTypeRegistry();
         if(type != null && recipeTypes.containsKey(type))
         {
             this.recipeType = recipeTypes.getValue(type).getHandlerProducer().apply(this);
@@ -238,7 +238,7 @@ public class RecipeStorage implements IRecipeStorage
                 continue;
             }
 
-            final ItemStack container = inputItem.getItemStack().getCraftingRemainingItem();
+            final ItemStack container = ItemStackUtils.getCraftingRemainingItem(inputItem.getItemStack());
             if (!ItemStackUtils.isEmpty(container))
             {
                 container.setCount(inputItem.getAmount());
@@ -353,7 +353,7 @@ public class RecipeStorage implements IRecipeStorage
         }
         else
         {
-            final ItemStack container = stack.getCraftingRemainingItem();
+            final ItemStack container = ItemStackUtils.getCraftingRemainingItem(stack);
             if(ItemStackUtils.isEmpty(container) || !ItemStackUtils.compareItemStacksIgnoreStackSize(stack, container, false, !storage.ignoreNBT()))
             {
                 neededCount = storage.getAmount() * qty;
@@ -488,7 +488,7 @@ public class RecipeStorage implements IRecipeStorage
         {
             for (final ItemStorage stack : input)
             {
-                final ItemStack container = stack.getItemStack().getCraftingRemainingItem();
+            final ItemStack container = ItemStackUtils.getCraftingRemainingItem(stack.getItemStack());
                 if (!ItemStackUtils.isEmpty(container))
                 {
                     container.setCount(stack.getAmount());
@@ -552,7 +552,7 @@ public class RecipeStorage implements IRecipeStorage
                         {
                             // The 4 parameter inner call from forge is for adding a callback to alter the damage caused,
                             // but unlike its description does not actually damage the item(despite the same function name). So used to just calculate the damage.
-                            toDamage.hurtAndBreak(toDamage.getItem().damageItem(stack, 1, citizen, item -> item.broadcastBreakEvent(InteractionHand.MAIN_HAND)), citizen, item -> item.broadcastBreakEvent(InteractionHand.MAIN_HAND));
+                            toDamage.hurtAndBreak(1, citizen, item -> item.broadcastBreakEvent(InteractionHand.MAIN_HAND));
                         }
                         if (!ItemStackUtils.isEmpty(toDamage))
                         {

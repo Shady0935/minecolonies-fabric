@@ -12,7 +12,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -60,7 +60,7 @@ public class EntityListModule extends AbstractBuildingModule implements IEntityL
         for (int i = 0; i < filterableList.size(); ++i)
         {
             final ResourceLocation res = new ResourceLocation(filterableList.getString(i));
-            if (ForgeRegistries.ENTITY_TYPES.containsKey(res))
+            if (FabricRegistries.ENTITY_TYPES.containsKey(res))
             {
                 mobsAllowed.add(res);
             }
@@ -116,7 +116,7 @@ public class EntityListModule extends AbstractBuildingModule implements IEntityL
         buf.writeInt(mobsAllowed.size());
         for (final ResourceLocation entity : mobsAllowed)
         {
-            buf.writeRegistryIdUnsafe(ForgeRegistries.ENTITY_TYPES, entity);
+            buf.writeResourceLocation(entity);
         }
     }
 

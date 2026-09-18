@@ -1,7 +1,7 @@
 package com.minecolonies.coremod.entity.ai.minimal;
 
 import java.util.EnumSet;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import com.minecolonies.api.util.WorldUtil;
 import net.minecraft.world.entity.Entity;
@@ -62,7 +62,7 @@ public class LookAtEntityGoal extends Goal
             }
             else
             {
-                this.lookAt = WorldUtil.getNearestEntity(this.mob.level.getEntitiesOfClass(this.lookAtType,
+                this.lookAt = WorldUtil.getNearestEntity(this.mob.level().getEntitiesOfClass(this.lookAtType,
                   this.mob.getBoundingBox().inflate(this.lookDistance, 3.0D,  this.lookDistance),
                   (entity) -> true), this.mob, this.mob.getBlockX(), this.mob.getBlockY() + 1, this.mob.getBlockZ(), lookDistance);
             }

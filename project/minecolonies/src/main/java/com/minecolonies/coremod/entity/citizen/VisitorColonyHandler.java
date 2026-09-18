@@ -38,7 +38,7 @@ public class VisitorColonyHandler extends CitizenColonyHandler
             return;
         }
 
-        final IColony colony = IColonyManager.getInstance().getColonyByWorld(colonyId, citizen.level);
+        final IColony colony = IColonyManager.getInstance().getColonyByWorld(colonyId, citizen.level());
 
         if (colony == null)
         {

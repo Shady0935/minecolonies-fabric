@@ -1,27 +1,25 @@
 # Next steps
 
-1. Bootstrap `project/` from the official MineColonies `release/1.20` source
-   without copying its nested Git metadata.
-   - Keep `references/minecolonies-1.20.1-forge` untouched.
-   - Preserve upstream license headers and resources.
+The next work should follow this order so that the port moves from a bootable
+runtime checkpoint to a gameplay-complete release candidate:
 
-2. Replace the Forge-only root build with a pinned Fabric Loom 1.20.1 build.
-   - Start from the smallest common Fabric module.
-   - Keep the original source available while the first compile error classes
-     are measured.
-
-3. Establish a dependency strategy for BlockUI and Structurize before changing
-   MineColonies gameplay code.
-   - Compare registries, networking, lifecycle and client entrypoints with
-     `references/minecolonies-fabric-port-26.2`.
-   - Decide whether each library is a local Fabric subproject or a separately
-     built dependency.
-
-4. Build an initial Forge-to-Fabric inventory from the 1.20.1 source.
-   - Group residual APIs by registry, event, config, networking, capability,
-     rendering and data generation.
-   - Use reduction of error classes as the progress metric.
-
-5. Add the first clean build checkpoint and update the test matrix with the
-   actual Gradle command and first failure cause.
-
+1. Run a real gameplay pass with an authenticated client or a repeatable
+   offline test profile: place the supply camp/Town Hall, create a colony,
+   open each BlockUI screen, and exercise a builder, citizen, warehouse and
+   research cycle.
+2. Add Fabric GameTest or focused integration fixtures for registry contents,
+   packet encode/decode, split-packet reassembly, colony persistence and the
+   supply-loot target table set.
+3. Port the entity DataFixer registrations or document a deliberate migration
+   policy for existing MineColonies 1.20.1 saves.
+4. Restore data generation as a Fabric entrypoint/task and compare generated
+   tags, recipes, loot, models and structures against the preserved upstream
+   resources.
+5. Decide whether the standalone MultiPiston feature belongs in the supported
+   Fabric distribution; if it does, port it as its own Fabric module rather
+   than hiding its Forge implementation behind compatibility stubs.
+6. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
+   using explicit Fabric APIs and keeping them optional.
+7. Create the first clean implementation commit, then package and test a
+   dedicated-server distribution with secure authentication and a fresh
+   client/server pair.

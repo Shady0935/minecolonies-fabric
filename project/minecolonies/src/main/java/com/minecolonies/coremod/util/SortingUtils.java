@@ -9,8 +9,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistry;
+import com.minecolonies.fabric.registry.FabricRegistries;
+import com.minecolonies.fabric.registry.FabricRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -168,7 +168,7 @@ public final class SortingUtils
      */
     private static int getId(final Item item)
     {
-        return ((ForgeRegistry<Item>) ForgeRegistries.ITEMS).getID(item);
+        return ((FabricRegistry<Item>) FabricRegistries.ITEMS).getID(item);
     }
 
     /**

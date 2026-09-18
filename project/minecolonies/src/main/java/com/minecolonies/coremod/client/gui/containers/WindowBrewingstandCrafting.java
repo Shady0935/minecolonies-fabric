@@ -79,7 +79,7 @@ public class WindowBrewingstandCrafting extends AbstractContainerScreen<Containe
     {
         super(container, playerInventory, iTextComponent);
         this.container = container;
-        this.building = (AbstractBuildingView) IColonyManager.getInstance().getBuildingView(playerInventory.player.level.dimension(), container.getPos());
+        this.building = (AbstractBuildingView) IColonyManager.getInstance().getBuildingView(playerInventory.player.level().dimension(), container.getPos());
         this.module = (CraftingModuleView) building.getModuleView(container.getModuleId());
     }
 
@@ -119,7 +119,7 @@ public class WindowBrewingstandCrafting extends AbstractContainerScreen<Containe
                 input.add(new ItemStorage(container.slots.get(3).getItem()));
 
                 final ItemStack
-                  primaryOutput = net.minecraftforge.common.brewing.BrewingRecipeRegistry.getOutput(container.slots.get(3).getItem(), container.slots.get(0).getItem()).copy();
+                  primaryOutput = com.minecolonies.fabric.common.brewing.BrewingRecipeRegistry.getOutput(container.slots.get(3).getItem(), container.slots.get(0).getItem()).copy();
                 primaryOutput.setCount(3);
 
                 if (!ItemStackUtils.isEmpty(primaryOutput))

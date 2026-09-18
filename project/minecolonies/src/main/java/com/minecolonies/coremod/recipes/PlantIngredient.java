@@ -1,101 +1,108 @@
 package com.minecolonies.coremod.recipes;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.minecolonies.api.util.constant.Constants;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.StemBlock;
+import com.minecolonies.fabric.registry.FabricRegistries;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.common.util.Lazy;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.StemBlock;
 
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.List;
 
-import net.minecraft.world.item.crafting.Ingredient.Value;
-import net.minecraft.world.item.crafting.Ingredient.ItemValue;
-/**
- * An ingredient that can be used in a vanilla recipe to match plantable items.
- *
- * // any plant item
- * {
- *     "type": "minecolonies:plant"
- * }
- */
-public class PlantIngredient extends Ingredient
+/** Custom ingredient matching all registered crop and stem block items. */
+public final class PlantIngredient implements CustomIngredient
 {
     public static final ResourceLocation ID = new ResourceLocation(Constants.MOD_ID, "plant");
+    public static final CustomIngredientSerializer<PlantIngredient> SERIALIZER = new Serializer();
 
-    private static final Lazy<PlantIngredient> INSTANCE
-            = Lazy.of(() -> new PlantIngredient(ForgeRegistries.ITEMS.getValues().stream()
-                    .filter(item -> item instanceof BlockItem &&
-                        (((BlockItem) item).getBlock() instanceof CropBlock ||
-                         ((BlockItem) item).getBlock() instanceof StemBlock))
-                    .map(item -> new ItemValue(new ItemStack(item)))));
+    private static volatile PlantIngredient instance;
+    private final List<ItemStack> matchingStacks;
 
-    protected PlantIngredient(final Stream<? extends Value> itemLists)
+    private PlantIngredient()
     {
-        super(itemLists);
+        matchingStacks = FabricRegistries.ITEMS.getValues().stream()
+          .filter(item -> item instanceof BlockItem blockItem
+            && (blockItem.getBlock() instanceof CropBlock || blockItem.getBlock() instanceof StemBlock))
+          .map(ItemStack::new)
+          .toList();
     }
 
-    @NotNull
     public static PlantIngredient getInstance()
     {
-        return INSTANCE.get();
+        PlantIngredient result = instance;
+        if (result == null)
+        {
+            synchronized (PlantIngredient.class)
+            {
+                result = instance;
+                if (result == null) instance = result = new PlantIngredient();
+            }
+        }
+        return result;
     }
 
-    @NotNull
+    public static Ingredient of()
+    {
+        return getInstance().toVanilla();
+    }
+
     @Override
-    public JsonElement toJson()
+    public boolean test(final ItemStack stack)
     {
-        JsonObject json = new JsonObject();
-        Serializer.getInstance().write(json, this);
-        return json;
+        return stack != null && matchingStacks.stream().anyMatch(candidate -> candidate.getItem() == stack.getItem());
     }
 
-    @NotNull
     @Override
-    public IIngredientSerializer<? extends Ingredient> getSerializer()
+    public List<ItemStack> getMatchingStacks()
     {
-        return Serializer.getInstance();
+        return matchingStacks.stream().map(ItemStack::copy).toList();
     }
 
-    public static class Serializer implements IIngredientSerializer<PlantIngredient>
+    @Override
+    public boolean requiresTesting()
     {
-        private static final Serializer INSTANCE = new Serializer();
+        return false;
+    }
 
-        public static Serializer getInstance() { return INSTANCE; }
+    @Override
+    public CustomIngredientSerializer<?> getSerializer()
+    {
+        return SERIALIZER;
+    }
 
-        private Serializer() { }
-
-        @NotNull
+    public static final class Serializer implements CustomIngredientSerializer<PlantIngredient>
+    {
         @Override
-        public PlantIngredient parse(@NotNull final JsonObject json)
+        public ResourceLocation getIdentifier()
         {
-            return PlantIngredient.getInstance();
-        }
-
-        public void write(@NotNull final JsonObject json, @NotNull final PlantIngredient ingredient)
-        {
-            json.addProperty("type", (Objects.requireNonNull(CraftingHelper.getID(this))).toString());
-        }
-
-        @NotNull
-        @Override
-        public PlantIngredient parse(@NotNull final FriendlyByteBuf buffer)
-        {
-            return PlantIngredient.getInstance();
+            return ID;
         }
 
         @Override
-        public void write(@NotNull final FriendlyByteBuf buffer, @NotNull final PlantIngredient ingredient)
+        public PlantIngredient read(final com.google.gson.JsonObject json)
+        {
+            return getInstance();
+        }
+
+        @Override
+        public void write(final com.google.gson.JsonObject json, final PlantIngredient ingredient)
+        {
+            json.addProperty("fabric:type", ID.toString());
+        }
+
+        @Override
+        public PlantIngredient read(final FriendlyByteBuf buffer)
+        {
+            return getInstance();
+        }
+
+        @Override
+        public void write(final FriendlyByteBuf buffer, final PlantIngredient ingredient)
         {
         }
     }

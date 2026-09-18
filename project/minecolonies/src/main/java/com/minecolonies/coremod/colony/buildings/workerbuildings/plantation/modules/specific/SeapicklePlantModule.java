@@ -110,7 +110,7 @@ public class SeapicklePlantModule extends BoneMealedPlantModule
     @Override
     public void applyBonemeal(final AbstractEntityCitizen worker, final BlockPos workPosition, final ItemStack stackInSlot, final Player fakePlayer)
     {
-        BoneMealItem.applyBonemeal(stackInSlot, worker.level(), workPosition.above(), fakePlayer);
+        BoneMealItem.growCrop(stackInSlot, worker.level(), workPosition.above());
         BoneMealItem.addGrowthParticles(worker.level(), workPosition.above(), 1);
     }
 }

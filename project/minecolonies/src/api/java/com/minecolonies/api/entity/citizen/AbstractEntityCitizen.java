@@ -46,7 +46,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.items.IItemHandler;
+import com.minecolonies.fabric.inventory.IItemHandler;
+import com.minecolonies.fabric.capability.Capability;
+import com.minecolonies.fabric.capability.ICapabilityProvider;
+import com.minecolonies.fabric.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -57,8 +60,13 @@ import static com.minecolonies.api.util.constant.CitizenConstants.*;
  * The abstract citizen entity.
  */
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CouplingBetweenObjects"})
-public abstract class AbstractEntityCitizen extends AbstractCivilianEntity implements MenuProvider
+public abstract class AbstractEntityCitizen extends AbstractCivilianEntity implements MenuProvider, ICapabilityProvider
 {
+    @Override
+    public <T> LazyOptional<T> getCapability(final Capability<T> capability, final net.minecraft.core.Direction side)
+    {
+        return LazyOptional.empty();
+    }
     /**
      * Citizens swim speed factor
      */
@@ -374,7 +382,7 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
             return;
         }
 
-        if (this.vehicle instanceof MinecoloniesMinecart)
+        if (this.getVehicle() instanceof MinecoloniesMinecart)
         {
             return;
         }
@@ -405,7 +413,7 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
     @Override
     public boolean isPushable()
     {
-        if (this.vehicle instanceof MinecoloniesMinecart)
+        if (this.getVehicle() instanceof MinecoloniesMinecart)
         {
             return false;
         }
@@ -681,7 +689,6 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
      */
     public abstract void callForHelp(final Entity attacker, final int guardHelpRange);
 
-    @Override
     public void detectEquipmentUpdates()
     {
         if (this.isEquipmentDirty && tickCount % 20 == randomVariance)
@@ -695,14 +702,14 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
             list.add(new Pair<>(EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS)));
             list.add(new Pair<>(EquipmentSlot.OFFHAND, getItemBySlot(EquipmentSlot.OFFHAND)));
             list.add(new Pair<>(EquipmentSlot.MAINHAND, getItemBySlot(EquipmentSlot.MAINHAND)));
-            ((ServerLevel) this.level).getChunkSource().broadcast(this, new ClientboundSetEquipmentPacket(this.getId(), list));
+            ((ServerLevel) this.level()).getChunkSource().broadcast(this, new ClientboundSetEquipmentPacket(this.getId(), list));
         }
     }
 
     @Override
     public void setItemSlot(final EquipmentSlot slot, @NotNull final ItemStack newItem)
     {
-        if (!level.isClientSide)
+        if (!level().isClientSide)
         {
             final ItemStack previous = getItemBySlot(slot);
             if (!ItemStackUtils.compareItemStacksIgnoreStackSize(previous, newItem, false, true))

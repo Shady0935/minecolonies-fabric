@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -331,7 +331,7 @@ public abstract class AbstractResearchProvider implements DataProvider
             {
                 json.remove("icon");
             }
-            this.json.addProperty("icon", ForgeRegistries.ITEMS.getKey(item.getItem()).toString() + ":" + item.getCount());
+            this.json.addProperty("icon", FabricRegistries.ITEMS.getKey(item.getItem()).toString() + ":" + item.getCount());
             return this;
         }
 
@@ -346,7 +346,7 @@ public abstract class AbstractResearchProvider implements DataProvider
             {
                 json.remove("icon");
             }
-            this.json.addProperty("icon", ForgeRegistries.ITEMS.getKey(item).toString());
+            this.json.addProperty("icon", FabricRegistries.ITEMS.getKey(item).toString());
             return this;
         }
 
@@ -362,7 +362,7 @@ public abstract class AbstractResearchProvider implements DataProvider
             {
                 json.remove("icon");
             }
-            this.json.addProperty("icon", ForgeRegistries.ITEMS.getKey(item).toString() + ":" + count);
+            this.json.addProperty("icon", FabricRegistries.ITEMS.getKey(item).toString() + ":" + count);
             return this;
         }
 
@@ -550,7 +550,7 @@ public abstract class AbstractResearchProvider implements DataProvider
                 reqArray = new JsonArray();
             }
             JsonObject req = new JsonObject();
-            req.addProperty("item", ForgeRegistries.ITEMS.getKey(item.getItem()).toString());
+            req.addProperty("item", FabricRegistries.ITEMS.getKey(item.getItem()).toString());
             req.addProperty("quantity", item.getCount());
             reqArray.add(req);
             this.json.add("requirements", reqArray);
@@ -577,7 +577,7 @@ public abstract class AbstractResearchProvider implements DataProvider
                 reqArray = new JsonArray();
             }
             JsonObject req = new JsonObject();
-            req.addProperty("item", ForgeRegistries.ITEMS.getKey(item).toString());
+            req.addProperty("item", FabricRegistries.ITEMS.getKey(item).toString());
             req.addProperty("quantity", count);
             reqArray.add(req);
             this.json.add("requirements", reqArray);
@@ -635,7 +635,7 @@ public abstract class AbstractResearchProvider implements DataProvider
             {
                 effects = new JsonArray();
             }
-            final ResourceLocation registryName = ForgeRegistries.BLOCKS.getKey(buildingBlock);
+            final ResourceLocation registryName = FabricRegistries.BLOCKS.getKey(buildingBlock);
             JsonObject eff = new JsonObject();
             eff.addProperty(registryName.getNamespace() + ":effects/" + registryName.getPath(), level);
             effects.add(eff);
@@ -729,7 +729,7 @@ public abstract class AbstractResearchProvider implements DataProvider
          */
         public ResearchEffect(final AbstractBlockHut<?> buildingBlock)
         {
-            final ResourceLocation registryName = ForgeRegistries.BLOCKS.getKey(buildingBlock);
+            final ResourceLocation registryName = FabricRegistries.BLOCKS.getKey(buildingBlock);
             this.id = new ResourceLocation(registryName.getNamespace(), "effects/" + registryName.getPath());
             this.json.addProperty("effect", true);
         }
