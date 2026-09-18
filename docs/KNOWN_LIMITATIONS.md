@@ -34,10 +34,14 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   restart, or DataFixer migration for old entity data. The dedicated restart
   smoke test does restore the populated colony records.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
-  event points: farmland trampling, pre-conversion, explosion start/detonate,
-  item toss/pickup, bucket fill, arrow loose and mob-spawn position checks.
+  event points: farmland trampling, explosion start/detonate, item toss/pickup,
+  bucket fill, arrow loose and mob-spawn position checks.
   Those paths remain explicit coverage gaps; they are not hidden behind broad
   no-op adapters.
+- Mob conversion now has a real bridge through Fabric's pre-spawn
+  `MOB_CONVERSION` callback. The automated fixture verifies event dispatch and
+  leaves an unrelated conversion intact, but it does not yet construct a
+  populated tavern and assert the complete visitor replacement in-game.
 - The retained block-place event is emitted as a pre-vanilla placement
   preflight because Fabric has no matching post-placement event. The bridge
   validates `BlockPlaceContext` and prevents placement when the retained event
@@ -46,11 +50,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Validation still pending
 
-- BlockUI screens, builder placement, citizen work cycles, logistics, research
-  and raids still need a real in-game interaction pass. Server-side Town Hall,
-  colony creation and colony-backed citizen registration have automated
-  GameTest fixtures; the dedicated restart smoke test restores the populated
-  colony records but does not yet assert citizen-entity reappearance.
+- BlockUI screens, builder placement, citizen work cycles, logistics, research,
+  raids and the populated-tavern visitor conversion still need a real in-game
+  interaction pass. Server-side Town Hall, colony creation and colony-backed
+  citizen registration have automated GameTest fixtures; the dedicated restart
+  smoke test restores the populated colony records but does not yet assert
+  citizen-entity reappearance.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. The common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,

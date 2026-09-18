@@ -65,9 +65,15 @@ research recipes, quests and 1,455 item-NBT compatibility rules.
 `FabricGameplayHooks` connects the retained permission and quest handlers to
 Fabric's real 1.20.1 callbacks: right-click block/item/entity, entity attack,
 block-break preflight, player dimension changes, living-entity damage and
-living-entity death. Block placement uses `BlockPlaceContext.canPlace()` and
-the resolved placement position to raise the retained `EntityPlaceEvent` before
-vanilla performs the placement; cancelling that event prevents the placement.
+living-entity death and `ServerLivingEntityEvents.MOB_CONVERSION`. The
+conversion callback posts the retained `LivingConversionEvent.Pre` before the
+candidate entity is spawned; if the MineColonies handler replaces a vanilla
+conversion with a tavern visitor, the Fabric candidate is discarded. The
+retained `canLivingConvert` check is permissive because the Fabric callback is
+the cancellation gate in this port. Block placement uses
+`BlockPlaceContext.canPlace()` and the resolved placement position to raise the
+retained `EntityPlaceEvent` before vanilla performs the placement; cancelling
+that event prevents the placement.
 
 The client entrypoint also forwards item tooltip and play-connection disconnect
 callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
@@ -82,10 +88,11 @@ a real Town Hall block entity, creates a colony through `IColonyManager`,
 attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
 spawns an `EntityCitizen` through `CitizenManager`, round-trips colony and
 citizen NBT, and drives the Fabric Town Hall protection callback for both an
-outsider and the colony owner. The passing batch is recorded in
-`logs/minecolonies-gametest-protection.log`. The same batch also verifies the
-Fabric loot-table modifier against dungeon and shipwreck targets, preserving
-the supply items' instant-placement NBT, and
+outsider and the colony owner. It also dispatches the Fabric mob-conversion
+callback into the retained `LivingConversionEvent.Pre` event. The passing
+seven-test batch is recorded in `logs/minecolonies-gametest-conversion-2.log`.
+The same batch also verifies the Fabric loot-table modifier against dungeon and
+shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
 reassembly for the login UUID packet, including cache cleanup.
 

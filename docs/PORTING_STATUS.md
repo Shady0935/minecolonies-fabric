@@ -43,7 +43,8 @@ completed.
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
   lifecycle, commands, login/logout and datapack reload callbacks
 - [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,
-  pre-break, pre-place, dimension-change, damage and death callbacks; client
+  pre-break, pre-place, dimension-change, damage, death and mob-conversion
+  callbacks; client
   tooltip and disconnect callbacks are also connected
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
@@ -61,6 +62,8 @@ completed.
 - [x] Town Hall and colony creation exercised server-side by Fabric GameTest
 - [x] Colony protection callback denies unauthorized Town Hall access and
   accepts the colony owner through Fabric's interaction event
+- [x] Mob conversion callback dispatches the retained `LivingConversionEvent.Pre`
+  and preserves the tavern visitor conversion gate
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
 - [ ] Warehouse and courier logistics
@@ -80,7 +83,7 @@ completed.
   Town Hall registration, colony creation, permissions, NBT round-trip and
   representative network codec/split-envelope behavior, plus citizen entity
   registration and serialization, supply-loot target tables and Town Hall
-  protection callbacks
+  protection callbacks and mob-conversion event dispatch
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending
