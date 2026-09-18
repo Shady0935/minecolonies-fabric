@@ -3,6 +3,8 @@ package com.minecolonies.fabric.gametest;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
@@ -10,6 +12,7 @@ import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.colony.Colony;
+import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
@@ -27,6 +30,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import com.minecolonies.fabric.LogicalSide;
@@ -111,6 +115,56 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Colony center changed during NBT round-trip");
         helper.assertTrue(loaded.getName().equals(colony.getName()),
           "Colony name changed during NBT round-trip");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void citizenSpawnRegistersAndSerializesEntityData(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        for (int x = 0; x < 5; x++)
+        {
+            for (int z = 0; z < 5; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final BlockEntity blockEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "Citizen fixture Town Hall did not create a colony-building block entity");
+
+        final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        final IColony created = IColonyManager.getInstance().createColony(
+          level, townHall, player, "Fabric Citizen GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(created != null, "Citizen fixture colony was not created");
+
+        final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
+        hut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        hut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        created.getBuildingManager().addNewBuilding(hut, level);
+
+        final ICitizenData citizenData = created.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizenData != null, "Citizen manager did not create citizen data");
+        helper.assertTrue(citizenData.getEntity().isPresent(), "Citizen data did not register a live entity");
+        final AbstractEntityCitizen entity = citizenData.getEntity().orElse(null);
+        helper.assertTrue(entity instanceof EntityCitizen, "Citizen data registered the wrong entity type");
+        helper.assertTrue(entity.getCivilianID() == citizenData.getId(), "Citizen entity/data ids diverged");
+        helper.assertTrue(entity.getCitizenData() == citizenData, "Citizen entity did not retain its data object");
+
+        final CompoundTag citizenNBT = citizenData.serializeNBT();
+        helper.assertTrue(citizenNBT.contains("id") && citizenNBT.contains("pos"),
+          "Citizen data did not serialize identity and position");
+        final CompoundTag colonyNBT = created.getColonyTag();
+        final Colony loaded = Colony.loadColony(colonyNBT.copy(), level);
+        final ICitizenData loadedCitizen = loaded.getCitizenManager().getCivilian(citizenData.getId());
+        helper.assertTrue(loadedCitizen != null, "Colony NBT round-trip lost citizen data");
+        helper.assertTrue(loadedCitizen.getName().equals(citizenData.getName()),
+          "Colony NBT round-trip changed citizen name");
         helper.succeed();
     }
 
