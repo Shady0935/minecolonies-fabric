@@ -9,10 +9,15 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   schemas. Client startup reports `No data fixer registered for
   minecolonies:<entity>` for the custom entities. Existing saves that require
   entity-version migration are therefore not covered yet.
-- No Fabric datagen task is exposed by the target Gradle project. The upstream
-  generation tree is excluded and the current resources are carried/converted
-  explicitly. Datagen providers must be ported before claiming generated
-  resource parity.
+- Fabric datagen is available and reproducible for the portable provider set:
+  27 providers generated 764 JSON resources. Eight upstream providers remain
+  explicitly excluded because they still depend on Forge-only APIs:
+  `DefaultAdvancementsProvider`, `DefaultBlockTagsProvider`,
+  `DefaultDamageTagsProvider`, `DefaultDamageTypeProvider`,
+  `DefaultEntityIconProvider`, `DefaultEntityTypeTagsProvider`,
+  `DefaultItemTagsProvider` and `QuestTranslationProvider`. Their exact parity
+  is not claimed until those providers are ported or replaced with Fabric
+  implementations.
 - JEI and JourneyMap integrations are excluded from the target source set.
 - The standalone MultiPiston Forge dependency is not included in the Fabric
   runtime. The current MineColonies main source has no direct runtime reference

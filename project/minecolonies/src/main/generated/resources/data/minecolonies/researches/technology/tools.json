@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/blockplacespeedmultiplier": 3
+    }
+  ],
+  "icon": "minecraft:redstone_lamp",
+  "parentResearch": "minecolonies:technology/skills",
+  "requirements": [
+    {
+      "building": "blacksmith",
+      "level": 4
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "quantity": 256
+    }
+  ],
+  "researchLevel": 4,
+  "subtitle": "com.minecolonies.research.technology.tools.subtitle"
+}

@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/blockhutdyer": 1
+    }
+  ],
+  "icon": "minecolonies:blockhutcomposter",
+  "parentResearch": "minecolonies:technology/flowerpower",
+  "requirements": [
+    {
+      "building": "florist",
+      "level": 3
+    },
+    {
+      "item": "minecraft:poppy",
+      "quantity": 64
+    }
+  ],
+  "researchLevel": 3,
+  "subtitle": "com.minecolonies.research.technology.rainbowheaven.subtitle"
+}

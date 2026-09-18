@@ -1,0 +1,23 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/resurrectchanceaddition": 2
+    }
+  ],
+  "icon": "minecolonies:blockhutgraveyard",
+  "parentResearch": "minecolonies:civilian/resurrectchance1",
+  "requirements": [
+    {
+      "building": "graveyard",
+      "level": 5
+    },
+    {
+      "item": "minecraft:chorus_fruit",
+      "quantity": 16
+    }
+  ],
+  "researchLevel": 3,
+  "sortOrder": 1,
+  "subtitle": "com.minecolonies.research.civilian.resurrectchance2.subtitle"
+}

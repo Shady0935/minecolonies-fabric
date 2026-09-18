@@ -1,0 +1,23 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/blockhutconcretemixer": 1
+    }
+  ],
+  "icon": "minecolonies:blockhutconcretemixer",
+  "parentResearch": "minecolonies:technology/rockingroll",
+  "requirements": [
+    {
+      "building": "crusher",
+      "level": 1
+    },
+    {
+      "item": "minecraft:white_concrete",
+      "quantity": 32
+    }
+  ],
+  "researchLevel": 3,
+  "sortOrder": 2,
+  "subtitle": "com.minecolonies.research.technology.pavetheroad.subtitle"
+}

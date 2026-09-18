@@ -94,7 +94,7 @@ public class ItemNbtCalculator implements DataProvider
             {
                 keys.add("Enchantments");
             }
-            if (stack.isRepairable())
+            if (stack.isDamageableItem())
             {
                 keys.add("RepairCost");
             }

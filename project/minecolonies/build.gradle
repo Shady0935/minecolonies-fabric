@@ -14,13 +14,29 @@ repositories {
     mavenCentral()
 }
 
+fabricApi {
+    configureDataGeneration {
+        modId = project.mod_id
+        outputDirectory = file('src/main/generated/resources')
+    }
+}
+
 sourceSets {
     main {
         java {
             srcDirs = ['src/main/java', 'src/api/java']
-            // Datagen and optional integrations stay in the upstream tree and
-            // are restored explicitly as each Fabric equivalent is implemented.
-            exclude '**/generation/**'
+            // Optional integrations stay out of the Fabric runtime. Datagen is
+            // compiled again so the Fabric entrypoint can reuse the portable
+            // 1.20.1 providers; the remaining Forge-only adapters are listed
+            // explicitly until their Fabric implementations replace them.
+            exclude '**/generation/defaults/DefaultAdvancementsProvider.java'
+            exclude '**/generation/defaults/DefaultBlockTagsProvider.java'
+            exclude '**/generation/defaults/DefaultDamageTagsProvider.java'
+            exclude '**/generation/defaults/DefaultDamageTypeProvider.java'
+            exclude '**/generation/defaults/DefaultEntityIconProvider.java'
+            exclude '**/generation/defaults/DefaultEntityTypeTagsProvider.java'
+            exclude '**/generation/defaults/DefaultItemTagsProvider.java'
+            exclude '**/generation/defaults/QuestTranslationProvider.java'
             exclude '**/compatibility/jei/**'
             exclude '**/compatibility/journeymap/**'
         }
@@ -48,6 +64,7 @@ processResources {
     }
     exclude 'META-INF/mods.toml'
     exclude 'META-INF/accesstransformer.cfg'
+    exclude '**/.cache/**'
 }
 
 tasks.withType(JavaCompile).configureEach {

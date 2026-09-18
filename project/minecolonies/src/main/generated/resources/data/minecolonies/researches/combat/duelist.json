@@ -1,0 +1,21 @@
+{
+  "branch": "minecolonies:combat",
+  "effects": [
+    {
+      "minecolonies:effects/meleearmormultiplier": 3
+    }
+  ],
+  "icon": "minecraft:chainmail_chestplate",
+  "parentResearch": "minecolonies:combat/riposte",
+  "requirements": [
+    {
+      "building": "smeltery",
+      "level": 3
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "quantity": 64
+    }
+  ],
+  "researchLevel": 4
+}

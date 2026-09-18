@@ -28,8 +28,9 @@ completed.
 
 ## Runtime
 
-- [ ] Datagen task/provider set (not available in this checkpoint; the upstream
-  generation tree remains excluded until its Fabric providers are ported)
+- [x] Fabric datagen task and portable provider set; `runDatagen` registered 27
+  providers and generated 764 JSON resources. The eight remaining Forge-only
+  providers are explicitly excluded and tracked in the limitations.
 - [x] Dedicated server startup reaches `Done`
 - [x] Dedicated server `save-all`/`stop` and same-world restart verified
 - [x] Client bootstrap reaches OpenAL and all texture atlases
@@ -56,7 +57,8 @@ completed.
 ## Validation
 
 - [x] Automated Java compilation and package build
-- [ ] Automated serialization coverage
+- [x] Automated resource serialization coverage: datagen completed and a
+  recursive JSON parse covered 1,258 source plus generated JSON files
 - [x] Network transport smoke coverage for login/server-to-client packet path
 - [x] Fabric GameTest feasibility checked; no port-specific GameTest suite is
   included yet

@@ -1,0 +1,21 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/tooldurabilitymultiplier": 4
+    }
+  ],
+  "icon": "minecraft:golden_pickaxe",
+  "parentResearch": "minecolonies:technology/reinforced",
+  "requirements": [
+    {
+      "building": "blacksmith",
+      "level": 5
+    },
+    {
+      "item": "minecraft:diamond",
+      "quantity": 64
+    }
+  ],
+  "researchLevel": 5
+}

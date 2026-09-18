@@ -30,6 +30,10 @@ are declared in `fabric.mod.json` for common and client initialization.
   events while retaining the upstream registry order.
 - Forge-shaped compatibility types provide the narrow APIs still used by the
   1.20.1 source. They are bridges, not blanket no-op replacements.
+- The Fabric common entrypoint explicitly registers MineColonies' custom
+  ingredient serializers before the first resource reload. The retained
+  Forge-shaped registry event performs the same idempotent registration as a
+  compatibility bridge.
 - Capability-like data is bridged through explicit provider hooks and weak
   identity maps where Fabric 1.20.1 has no direct Forge capability equivalent.
 - Supply loot uses `LootTableEvents.MODIFY` and the exact upstream target table
@@ -40,6 +44,29 @@ are declared in `fabric.mod.json` for common and client initialization.
 - Forge worldgen tag names such as `forge:is_plains` and `forge:is_peak` are
   retained as explicit Fabric-compatible tag namespaces because the upstream
   structure data references them.
+
+## Fabric datagen
+
+The target exposes Fabric Loom's `runDatagen` task through the
+`fabric-datagen` entrypoint. `MineColoniesDataGenerator` registers the
+portable 1.20.1 recipe, research, loot and worker-crafting providers and
+explicitly registers the three custom ingredient serializers before provider
+execution. This makes datagen independent of runtime event ordering.
+
+The verified run registered 27 providers, generated 764 JSON resources and
+completed with 2,399 cached writes. Generated resources live under
+`project/minecolonies/src/main/generated/resources` and are part of the main
+resource source set; the Fabric datagen cache is ignored and excluded from
+the packaged resources.
+
+Custom ingredient arrays are converted to Fabric's `fabric:any` custom
+ingredient rather than being placed inside a vanilla `Ingredient` array. This
+preserves the upstream alternative-input semantics on Fabric 1.20.1.
+
+The eight Forge-only generation providers remain excluded explicitly: default
+advancements, block tags, damage tags, damage types, entity icons, entity type
+tags, item tags and quest translations. This is a tracked parity gap, not a
+silent no-op.
 
 ## Networking
 

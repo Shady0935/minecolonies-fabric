@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/happinessmultiplier": 1
+    }
+  ],
+  "icon": "minecolonies:textures/icons/research/happy1.png",
+  "parentResearch": "minecolonies:civilian/firstaid",
+  "requirements": [
+    {
+      "building": "cook",
+      "level": 2
+    },
+    {
+      "item": "minecraft:cake",
+      "quantity": 1
+    }
+  ],
+  "researchLevel": 2,
+  "sortOrder": 2
+}

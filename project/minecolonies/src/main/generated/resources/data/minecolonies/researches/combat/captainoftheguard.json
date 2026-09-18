@@ -1,0 +1,17 @@
+{
+  "branch": "minecolonies:combat",
+  "effects": [
+    {
+      "minecolonies:effects/blockattacksmultiplier": 4
+    }
+  ],
+  "icon": "minecraft:iron_block",
+  "parentResearch": "minecolonies:combat/captaintraining",
+  "requirements": [
+    {
+      "item": "minecraft:shield",
+      "quantity": 27
+    }
+  ],
+  "researchLevel": 6
+}

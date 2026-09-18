@@ -1,0 +1,22 @@
+{
+  "branch": "minecolonies:technology",
+  "effects": [
+    {
+      "minecolonies:effects/podzolchancemultiplier": 1
+    }
+  ],
+  "icon": "minecraft:podzol",
+  "parentResearch": "minecolonies:technology/biodegradable",
+  "requirements": [
+    {
+      "building": "composter",
+      "level": 2
+    },
+    {
+      "item": "minecraft:podzol",
+      "quantity": 8
+    }
+  ],
+  "researchLevel": 2,
+  "subtitle": "com.minecolonies.research.technology.podzolchance.subtitle"
+}

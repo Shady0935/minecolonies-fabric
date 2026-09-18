@@ -1,0 +1,21 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/regenerationmultiplier": 3
+    }
+  ],
+  "icon": "minecolonies:textures/icons/research/regeneration3.png",
+  "parentResearch": "minecolonies:civilian/healingcream",
+  "requirements": [
+    {
+      "building": "library",
+      "level": 4
+    },
+    {
+      "item": "minecraft:golden_carrot",
+      "quantity": 16
+    }
+  ],
+  "researchLevel": 4
+}

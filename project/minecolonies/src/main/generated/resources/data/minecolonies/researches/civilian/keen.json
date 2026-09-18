@@ -1,0 +1,21 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/blockhutlibrary": 1
+    }
+  ],
+  "icon": "minecolonies:blockhutlibrary",
+  "requirements": [
+    {
+      "building": "residence",
+      "level": 3
+    },
+    {
+      "item": "minecraft:book",
+      "quantity": 3
+    }
+  ],
+  "researchLevel": 1,
+  "sortOrder": 2
+}

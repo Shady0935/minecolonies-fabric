@@ -1,13 +1,17 @@
 package com.minecolonies.coremod;
 
+import com.minecolonies.api.crafting.CountedIngredient;
 import com.minecolonies.apiimp.initializer.EntityInitializer;
 import com.minecolonies.apiimp.initializer.ModBlocksInitializer;
 import com.minecolonies.apiimp.initializer.ModItemsInitializer;
 import com.minecolonies.apiimp.initializer.ModParticleTypesInitializer;
+import com.minecolonies.coremod.recipes.FoodIngredient;
+import com.minecolonies.coremod.recipes.PlantIngredient;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.fabric.capability.RegisterCapabilitiesEvent;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.compat.FabricVanillaCompat;
+import com.minecolonies.fabric.common.crafting.CraftingHelper;
 import com.minecolonies.fabric.event.entity.EntityAttributeCreationEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.api.ModInitializer;
@@ -50,6 +54,14 @@ public final class MineColoniesFabric implements ModInitializer
         // Deferred values that depend on blocks, entities or items are created
         // by the upstream-shaped constructor only after those values exist.
         new MineColonies();
+
+        // Fabric reloads recipes after mod initialization. Register these
+        // serializers explicitly here so generated custom ingredients are
+        // available before the first server or client recipe reload; the
+        // retained Forge-shaped RegisterEvent remains an idempotent bridge.
+        CraftingHelper.register(CountedIngredient.ID, CountedIngredient.SERIALIZER);
+        CraftingHelper.register(FoodIngredient.ID, FoodIngredient.SERIALIZER);
+        CraftingHelper.register(PlantIngredient.ID, PlantIngredient.SERIALIZER);
 
         MinecraftForge.EVENT_BUS.post(new NewRegistryEvent());
         postRegister(FabricRegistries.Keys.RECIPE_SERIALIZERS, FabricRegistries.RECIPE_SERIALIZERS);

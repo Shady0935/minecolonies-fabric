@@ -1,9 +1,9 @@
 package com.minecolonies.coremod.generation;
 
-import com.mojang.datafixers.util.Pair;
+import com.google.gson.Gson;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.data.loot.LootTableSubProvider;
+import net.minecraft.data.CachedOutput;
+import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -18,56 +18,46 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Wrapper around the vanilla loot table provider which makes it easier to use.
  * Just override getName and registerTables
  */
-public abstract class SimpleLootTableProvider extends LootTableProvider
+public abstract class SimpleLootTableProvider implements DataProvider
 {
+    private static final Gson GSON = net.minecraft.world.level.storage.loot.Deserializers.createLootTableSerializer().create();
+    private final PackOutput packOutput;
+
     protected SimpleLootTableProvider(PackOutput output)
     {
-        super(output, new HashSet<>(), new ArrayList<>());
+        this.packOutput = output;
     }
 
     protected abstract void registerTables(@NotNull final LootTableRegistrar registrar);
 
     @NotNull
     @Override
-    public final List<SubProviderEntry> getTables()
+    public final CompletableFuture<?> run(@NotNull final CachedOutput cache)
     {
-        final Map<ResourceLocation, Pair<LootContextParamSet, LootTable.Builder>> tables = new HashMap<>();
+        final Map<ResourceLocation, LootTable.Builder> tables = new HashMap<>();
 
-        registerTables((id, type, table) -> tables.put(id, Pair.of(type, table)));
+        registerTables((id, type, table) -> tables.put(id, table));
 
-        return tables.entrySet().stream()
-                .map(w -> new SubProviderEntry(() -> new LootTableSubProvider() {
-                    @Override
-                    public void generate(final @NotNull BiConsumer<ResourceLocation, LootTable.Builder> builder)
-                    {
-                        builder.accept(w.getKey(), w.getValue().getSecond());
-                    }
-                }, w.getValue().getFirst()))
-                .collect(Collectors.toList());
+        final PackOutput.PathProvider pathProvider = packOutput.createPathProvider(PackOutput.Target.DATA_PACK, "loot_tables");
+        final List<CompletableFuture<?>> futures = new ArrayList<>();
+        tables.forEach((id, builder) -> futures.add(DataProvider.saveStable(
+                cache,
+                GSON.toJsonTree(builder.build()),
+                pathProvider.json(id))));
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
-    private static Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>
-        make(@NotNull final ResourceLocation id,
-             @NotNull final LootContextParamSet type,
-             @NotNull final LootTable.Builder table)
+    protected void validate(@NotNull final Map<ResourceLocation, LootTable> tables,
+                            @NotNull final ValidationContext validationContext)
     {
-        return Pair.of(() -> (BiConsumer<ResourceLocation, LootTable.Builder> register) -> register.accept(id, table), type);
-    }
-
-    @Override
-    protected void validate(@NotNull final Map<ResourceLocation, LootTable> map,
-                            @NotNull final ValidationContext validationtracker)
-    {
-        map.forEach((id, table) -> table.validate(validationtracker));
+        tables.forEach((id, table) -> table.validate(validationContext));
     }
 
     @FunctionalInterface

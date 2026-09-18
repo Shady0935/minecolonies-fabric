@@ -1,0 +1,21 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/saturationmultiplier": 4
+    }
+  ],
+  "icon": "minecolonies:textures/icons/research/saturation4.png",
+  "parentResearch": "minecolonies:civilian/stuffer",
+  "requirements": [
+    {
+      "building": "cook",
+      "level": 5
+    },
+    {
+      "item": "minecraft:cookie",
+      "quantity": 256
+    }
+  ],
+  "researchLevel": 5
+}

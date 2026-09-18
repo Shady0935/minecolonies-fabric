@@ -1,0 +1,21 @@
+{
+  "branch": "minecolonies:civilian",
+  "effects": [
+    {
+      "minecolonies:effects/citizencapaddition": 3
+    }
+  ],
+  "icon": "minecolonies:blockhutcitizen:75",
+  "parentResearch": "minecolonies:civilian/outpost",
+  "requirements": [
+    {
+      "building": "residence",
+      "level": 5
+    },
+    {
+      "item": "minecraft:cooked_beef",
+      "quantity": 128
+    }
+  ],
+  "researchLevel": 3
+}

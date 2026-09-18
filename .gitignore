@@ -9,6 +9,7 @@
 /project/**/libs/*.jar
 /test-instance/
 /logs/
+/project/**/src/main/generated/resources/.cache/
 
 # IDE and local machine files.
 .idea/
@@ -16,4 +17,3 @@
 .vscode/
 *.log
 hs_err_pid*.log
-

@@ -40,7 +40,7 @@ public class DefaultRecipeProvider extends RecipeProvider
     }
 
     @Override
-    protected void buildRecipes(@NotNull final Consumer<FinishedRecipe> consumer)
+    public void buildRecipes(@NotNull final Consumer<FinishedRecipe> consumer)
     {
         buildHutRecipes(consumer);
         buildOtherBlocks(consumer);

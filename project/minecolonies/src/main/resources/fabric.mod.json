@@ -9,7 +9,8 @@
   "environment": "*",
   "entrypoints": {
     "main": ["com.minecolonies.coremod.MineColoniesFabric"],
-    "client": ["com.minecolonies.coremod.MineColoniesClientFabric"]
+    "client": ["com.minecolonies.coremod.MineColoniesClientFabric"],
+    "fabric-datagen": ["com.minecolonies.coremod.generation.MineColoniesDataGenerator"]
   },
   "depends": {
     "fabricloader": ">=0.15.11",
