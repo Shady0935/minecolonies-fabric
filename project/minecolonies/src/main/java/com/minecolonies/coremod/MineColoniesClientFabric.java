@@ -2,6 +2,7 @@ package com.minecolonies.coremod;
 
 import com.minecolonies.apiimp.initializer.ModContainerInitializers;
 import com.minecolonies.apiimp.initializer.ModParticleTypesInitializer;
+import com.minecolonies.api.items.ModItems;
 import com.minecolonies.fabric.client.network.ClientNetworkHooks;
 import com.minecolonies.fabric.client.event.EntityRenderersEvent;
 import com.minecolonies.fabric.client.event.RegisterClientReloadListenersEvent;
@@ -14,12 +15,14 @@ import com.minecolonies.fabric.event.TickEvent;
 import com.minecolonies.fabric.client.event.ClientPlayerNetworkEvent;
 import com.minecolonies.fabric.event.entity.player.ItemTooltipEvent;
 import com.minecolonies.fabric.client.event.RenderLevelStageEvent;
+import com.minecolonies.coremod.client.render.SpearItemTileEntityRenderer;
 import com.minecolonies.api.util.constant.Constants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
@@ -40,6 +43,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -70,6 +74,7 @@ public final class MineColoniesClientFabric implements ClientModInitializer
 
         registerModelLayers();
         registerRenderers();
+        registerBuiltinItemRenderers();
         registerParticles();
         registerReloadListeners();
 
@@ -117,6 +122,28 @@ public final class MineColoniesClientFabric implements ClientModInitializer
         {
             BlockEntityRendererRegistry.INSTANCE.register((BlockEntityType) entry.getKey(), (net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider) entry.getValue());
         }
+    }
+
+    private static void registerBuiltinItemRenderers()
+    {
+        if (ModItems.spear == null)
+        {
+            return;
+        }
+
+        // Minecraft has not finished constructing its EntityModelSet while
+        // the client entrypoint is running.  Defer the renderer construction
+        // until the built-in renderer is actually asked to draw an item.
+        final SpearItemTileEntityRenderer[] renderer = new SpearItemTileEntityRenderer[1];
+        BuiltinItemRendererRegistry.INSTANCE.register(ModItems.spear,
+          (stack, poseStack, buffer, light, overlay) ->
+          {
+              if (renderer[0] == null)
+              {
+                  renderer[0] = new SpearItemTileEntityRenderer();
+              }
+              renderer[0].renderByItem(stack, ItemDisplayContext.GUI, poseStack, buffer, light, overlay);
+          });
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
