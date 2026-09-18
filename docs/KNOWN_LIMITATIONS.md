@@ -67,6 +67,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   but their visual/client behavior still needs an in-game interaction pass.
   The transport itself has a login/server-to-client smoke pass, including
   `ServerUUIDMessage`.
+- The MineColonies spear now has a lifecycle-safe Fabric built-in renderer
+  registration, and client bootstrap reaches resource reload and OpenAL without
+  the previous `EntityModelSet` initialization crash. No automated screenshot
+  or in-game inventory/GUI assertion currently verifies the rendered appearance.
 - The new interaction/combat callback bridge has been loaded by dedicated
   server and client bootstrap. The focused fixture now drives the server-side
   Town Hall protection callback for an owner and an unauthorized player;

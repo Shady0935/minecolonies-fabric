@@ -186,8 +186,14 @@ records restoration of colonies 1–5 and a clean save/stop.
 
 The port includes the missing English language resource, Fabric-compatible
 block/entity tags, upstream sounds, vanilla spear model overrides, lowercase
-resource paths, and flattened blockhut composite models. Client bootstrap now
-reaches OpenAL and all atlases; remaining warnings are listed separately.
+resource paths, and flattened blockhut composite models. The custom spear item
+renderer is registered through Fabric's `BuiltinItemRendererRegistry`; its
+construction is lazy because the client entrypoint runs before Minecraft has
+finished constructing `EntityModelSet`. The fixed bootstrap reaches resource
+reload, OpenAL and all atlases without the earlier initialization crash; the
+actual inventory/GUI appearance still needs a manual visual pass. Evidence is
+in `logs/minecolonies-client-spear-renderer-fixed.log` and remaining warnings
+are listed separately.
 
 ## Status vocabulary
 

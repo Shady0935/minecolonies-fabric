@@ -34,6 +34,9 @@ completed.
 - [x] Dedicated server startup reaches `Done`
 - [x] Dedicated server `save-all`/`stop` and same-world restart verified
 - [x] Client bootstrap reaches OpenAL and all texture atlases
+- [x] Fabric built-in renderer registration for the MineColonies spear is
+  lifecycle-safe; renderer construction is deferred until `EntityModelSet` is
+  available (visual item rendering still needs a manual pass)
 - [x] Client/server classloading audit completed without a startup crash
 - [x] Fabric play networking registered in both directions
 - [x] Client-bound message codecs are server-loadable; visual execution is
@@ -80,6 +83,8 @@ completed.
 ## Validation
 
 - [x] Automated Java compilation and package build
+- [x] Client bootstrap reaches resource reload and OpenAL after the spear
+  renderer registration fix; the visual result remains manual-validation work
 - [x] Automated resource serialization coverage: datagen completed and a
   recursive JSON parse covered 1,258 source plus generated JSON files
 - [x] Network transport smoke coverage for login/server-to-client packet path
