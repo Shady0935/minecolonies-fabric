@@ -117,11 +117,15 @@ posts the retained `ExplosionEvent.Start` before vanilla computes the blast;
 when the colony handler cancels it, both blast computation and finalization are
 skipped. The adapter also reads vanilla's actual `x/y/z` fields, not the
 nonexistent Forge `getPosition()` method. Fabric 1.20.1 still exposes no
-generic detonate callback, so affected-block filtering at the detonate phase,
-non-living blast victims and mutable affected-entity lists remain open rather
-than being approximated by a global no-op. The start-cancellation and living
-damage paths are covered by the 12-test GameTest batch in
-`logs/minecolonies-gametest-explosion-start.log`.
+generic detonate callback, so a second narrow interception at the head of
+vanilla finalization publishes `ExplosionEvent.Detonate` with the live
+affected-block list. The retained handler can remove protected colony blocks
+before vanilla destroys them. That interception deliberately supplies an empty
+affected-entity list because vanilla has already applied entity damage there;
+non-living blast victims and mutable affected-entity lists remain explicit
+limitations rather than being approximated by a global no-op. Start
+cancellation, living damage and detonate block filtering are covered by the
+12-test GameTest batch in `logs/minecolonies-gametest-explosion-start.log`.
 
 The client entrypoint also forwards item tooltip and play-connection disconnect
 callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not

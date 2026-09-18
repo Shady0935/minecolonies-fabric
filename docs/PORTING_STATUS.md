@@ -77,10 +77,10 @@ completed.
   that a `DENY` result blocks a hostile candidate without touching spawner or
   MineColonies-owned spawn paths
 - [x] Fabric's living-damage callback applies the retained colony explosion
-  policy to living entities, and the retained `ExplosionEvent.Start` phase is
-  cancellable before vanilla computes/finalizes the blast; detonate-phase
-  block-list filtering and non-living blast victims remain documented
-  limitations
+  policy to living entities, the retained `ExplosionEvent.Start` phase is
+  cancellable before vanilla computes/finalizes the blast, and the finalize
+  bridge filters protected blocks through `ExplosionEvent.Detonate`; non-living
+  blast victims and mutable affected-entity lists remain documented limitations
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
