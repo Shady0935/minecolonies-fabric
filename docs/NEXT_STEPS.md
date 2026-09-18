@@ -12,9 +12,9 @@ following work remains, in order:
    open each BlockUI screen, and exercise a builder, citizen, warehouse and
    research cycle.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
-   representative network coverage to every client-bound family, then add a
-   populated-colony stop/restart, citizen persistence and the supply-loot
-   target table set.
+   representative network and citizen coverage to every client-bound family,
+   then turn the populated-colony stop/restart smoke test into an explicit
+   citizen-persistence assertion and add the supply-loot target table set.
 3. Cover the remaining Forge event points that have no direct Fabric callback
    only where a narrow mixin or server hook can preserve semantics; keep the
    unsupported paths documented when that is not technically safe.

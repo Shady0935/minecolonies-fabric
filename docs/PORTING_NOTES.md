@@ -80,8 +80,9 @@ Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
 `fabric.mod.json`. `MineColoniesGameTests` verifies common registries, creates
 a real Town Hall block entity, creates a colony through `IColonyManager`,
 attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
-and round-trips the persisted colony NBT. The passing batch is recorded in
-`logs/minecolonies-gametest-network-codec.log`. The same batch now also
+spawns an `EntityCitizen` through `CitizenManager`, and round-trips colony and
+citizen NBT. The passing batch is recorded in
+`logs/minecolonies-gametest-citizen.log`. The same batch also
 round-trips a build-window packet and exercises out-of-order split-envelope
 reassembly for the login UUID packet, including cache cleanup.
 
@@ -149,7 +150,8 @@ server-safe dispatch only; `ClientMessageBridge` resolves the client hook by
 reflection after the Fabric client entrypoint is present. `NetworkChannel`
 registers these classes on both logical environments without shifting the
 upstream numeric IDs. The dedicated server was started, asked to save and stop,
-then restarted on the same world after this change.
+then restarted on the same world after this change; `logs/minecolonies-runserver-citizen-restart.log`
+records restoration of colonies 1–5 and a clean save/stop.
 
 ## Resource and startup fixes
 

@@ -27,9 +27,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
   next load, so this does not validate colony-backed citizen persistence.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
-  ownership permissions, blueprint lookup and colony NBT round-trip. It does
-  not yet cover a client opening the Town Hall GUI, a populated colony across
-  a real server restart, or DataFixer migration for old entity data.
+  ownership permissions, blueprint lookup, colony NBT round-trip and a
+  colony-backed `EntityCitizen`/`CitizenData` round-trip. It does not yet
+  cover a client opening the Town Hall GUI, citizen rendering/work AI, an
+  explicit assertion that citizen entities reappear after a real server
+  restart, or DataFixer migration for old entity data. The dedicated restart
+  smoke test does restore the populated colony records.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points: farmland trampling, pre-conversion, explosion start/detonate,
   item toss/pickup, bucket fill, arrow loose and mob-spawn position checks.
@@ -44,8 +47,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 ## Validation still pending
 
 - BlockUI screens, builder placement, citizen work cycles, logistics, research
-  and raids still need a real in-game interaction pass. The server-side Town
-  Hall/colony creation path has an automated GameTest fixture.
+  and raids still need a real in-game interaction pass. Server-side Town Hall,
+  colony creation and colony-backed citizen registration have automated
+  GameTest fixtures; the dedicated restart smoke test restores the populated
+  colony records but does not yet assert citizen-entity reappearance.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. The common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,

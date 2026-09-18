@@ -53,7 +53,9 @@ completed.
 
 - [x] Core registries, recipes, tags, sounds, particles and content bootstrap
 - [x] Colony saved data, ownership permissions and NBT round-trip exercised by Fabric GameTest
-- [ ] Citizens and custom entities exercised in-world
+- [x] Citizen entity creation, colony registration and citizen-data NBT
+  round-trip exercised by Fabric GameTest
+- [ ] Citizen rendering/work cycle and hostile custom entities exercised
 - [x] Town Hall and colony creation exercised server-side by Fabric GameTest
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
@@ -72,7 +74,8 @@ completed.
 - [x] Network transport smoke coverage for login/server-to-client packet path
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
   Town Hall registration, colony creation, permissions, NBT round-trip and
-  representative network codec/split-envelope behavior
+  representative network codec/split-envelope behavior, plus citizen entity
+  registration and serialization
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending
