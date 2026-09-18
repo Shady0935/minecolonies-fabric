@@ -34,6 +34,10 @@ public final class ForgeEventFactory
 
     public static boolean canLivingConvert(final LivingEntity entity, final EntityType<?> targetType, final Object reason)
     {
-        return false;
+        // Fabric's MOB_CONVERSION callback is dispatched before the candidate
+        // entity is spawned.  No second cancellation gate is needed here; a
+        // false default would permanently disable MineColonies' tavern visitor
+        // conversion path.
+        return true;
     }
 }

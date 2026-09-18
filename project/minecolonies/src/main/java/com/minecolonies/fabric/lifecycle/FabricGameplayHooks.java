@@ -5,6 +5,7 @@ import com.minecolonies.fabric.common.util.BlockSnapshot;
 import com.minecolonies.fabric.event.Event;
 import com.minecolonies.fabric.event.entity.living.LivingDeathEvent;
 import com.minecolonies.fabric.event.entity.living.LivingHurtEvent;
+import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
 import com.minecolonies.fabric.event.entity.player.AttackEntityEvent;
 import com.minecolonies.fabric.event.entity.player.PlayerInteractEvent;
 import com.minecolonies.fabric.event.entity.player.PlayerEvent;
@@ -63,6 +64,7 @@ public final class FabricGameplayHooks
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(FabricGameplayHooks::onPlayerChangedDimension);
         ServerLivingEntityEvents.ALLOW_DAMAGE.register(FabricGameplayHooks::onLivingHurt);
         ServerLivingEntityEvents.AFTER_DEATH.register(FabricGameplayHooks::onLivingDeath);
+        ServerLivingEntityEvents.MOB_CONVERSION.register(FabricGameplayHooks::onMobConversion);
     }
 
     private static InteractionResult onUseBlock(final Player player, final Level level, final InteractionHand hand, final BlockHitResult hit)
@@ -168,6 +170,23 @@ public final class FabricGameplayHooks
     private static void onLivingDeath(final LivingEntity entity, final net.minecraft.world.damagesource.DamageSource source)
     {
         MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity));
+    }
+
+    /**
+     * Fabric calls this immediately before the converted mob is spawned.  That
+     * is the closest 1.20.1 equivalent to Forge's conversion pre-event: post
+     * the retained event first, then discard Fabric's candidate if the
+     * MineColonies handler replaced the conversion with a visitor.
+     */
+    private static void onMobConversion(final net.minecraft.world.entity.Mob previous,
+      final net.minecraft.world.entity.Mob converted, final boolean keepEquipment)
+    {
+        final LivingConversionEvent.Pre event = new LivingConversionEvent.Pre(previous, converted.getType());
+        MinecraftForge.EVENT_BUS.post(event);
+        if (event.isCanceled() && !converted.isRemoved())
+        {
+            converted.remove(Entity.RemovalReason.DISCARDED);
+        }
     }
 
     private static InteractionResult interactionResult(final com.minecolonies.fabric.event.entity.player.PlayerInteractEvent event)

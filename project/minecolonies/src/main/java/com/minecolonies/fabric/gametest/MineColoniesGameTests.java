@@ -21,7 +21,9 @@ import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
+import com.minecolonies.fabric.common.MinecraftForge;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,6 +37,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
@@ -53,6 +57,7 @@ import io.netty.buffer.Unpooled;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Focused server-side fixtures for the Fabric port.
@@ -236,8 +241,11 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        // Keep this fixture outside the compact area reused by previous
+        // GameTest runs; old colony protection listeners must not overlap it.
+        final BlockPos relativeTownHall = new BlockPos(96, 1, 96);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        level.getChunkAt(townHall);
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         final BlockEntity blockEntity = level.getBlockEntity(townHall);
         helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
@@ -263,6 +271,27 @@ public final class MineColoniesGameTests implements FabricGameTest
           owner, level, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(allowed != InteractionResult.FAIL,
           "Colony owner was incorrectly denied by the Fabric protection callback");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void mobConversionCallbackDispatchesRetainedEvent(final GameTestHelper helper)
+    {
+        final AtomicBoolean eventSeen = new AtomicBoolean();
+        MinecraftForge.EVENT_BUS.addListener(event ->
+        {
+            if (event instanceof com.minecolonies.fabric.event.entity.living.LivingConversionEvent.Pre)
+            {
+                eventSeen.set(true);
+            }
+        });
+
+        final Mob previous = EntityType.ZOMBIE_VILLAGER.create(helper.getLevel());
+        final Mob converted = EntityType.VILLAGER.create(helper.getLevel());
+        helper.assertTrue(previous != null && converted != null, "Vanilla conversion fixtures could not be created");
+        ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
+        helper.assertTrue(eventSeen.get(), "Fabric mob-conversion callback did not dispatch the retained event");
+        helper.assertTrue(!converted.isRemoved(), "Unrelated conversion was canceled by the retained bridge");
         helper.succeed();
     }
 
