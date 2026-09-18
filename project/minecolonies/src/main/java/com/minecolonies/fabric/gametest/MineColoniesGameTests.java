@@ -593,6 +593,18 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(level.getBlockState(filteredBlock).is(Blocks.STONE),
               "ExplosionEvent.Detonate did not filter a colony block under DAMAGE_ENTITIES");
 
+            final BlockPos relativeProtectedItem = new BlockPos(8, 1, 2);
+            final BlockPos protectedItemPos = helper.absolutePos(relativeProtectedItem);
+            final ItemEntity protectedItem = new ItemEntity(level, protectedItemPos.getX() + 0.5D,
+              protectedItemPos.getY(), protectedItemPos.getZ() + 0.5D,
+              new ItemStack(Blocks.DIRT));
+            level.addFreshEntity(protectedItem);
+            MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(Explosions.DAMAGE_PLAYERS);
+            level.explode(null, protectedItemPos.getX() + 0.5D, protectedItemPos.getY() + 0.5D,
+              protectedItemPos.getZ() + 0.5D, 2.0F, net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
+            helper.assertTrue(!protectedItem.isRemoved(),
+              "ExplosionEvent.Detonate did not filter a non-living colony entity under DAMAGE_PLAYERS");
+
             final BlockPos relativeProtectedBlock = new BlockPos(6, 1, 2);
             final BlockPos protectedBlock = helper.absolutePos(relativeProtectedBlock);
             helper.setBlock(relativeProtectedBlock, Blocks.STONE);
