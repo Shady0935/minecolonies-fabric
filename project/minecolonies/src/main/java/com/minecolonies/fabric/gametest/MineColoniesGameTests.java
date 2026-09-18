@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
@@ -26,13 +27,20 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import io.netty.buffer.Unpooled;
@@ -165,6 +173,56 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(loadedCitizen != null, "Colony NBT round-trip lost citizen data");
         helper.assertTrue(loadedCitizen.getName().equals(citizenData.getName()),
           "Colony NBT round-trip changed citizen name");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void supplyLootModifierAddsCampAndShipEntries(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos origin = helper.absolutePos(new BlockPos(1, 1, 1));
+        final LootParams params = new LootParams.Builder(level)
+          .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(origin))
+          .create(LootContextParamSets.CHEST);
+        final LootTable campTarget = level.getServer().getLootData().getLootTable(
+          new ResourceLocation("minecraft", "chests/simple_dungeon"));
+        final LootTable shipTarget = level.getServer().getLootData().getLootTable(
+          new ResourceLocation("minecraft", "chests/shipwreck_supply"));
+        helper.assertTrue(campTarget != null, "Vanilla camp target loot table was not loaded");
+        helper.assertTrue(shipTarget != null, "Vanilla ship target loot table was not loaded");
+
+        boolean campFound = false;
+        boolean shipFound = false;
+        for (int attempt = 0; attempt < 256 && (!campFound || !shipFound); attempt++)
+        {
+            if (!campFound)
+            {
+                for (final ItemStack stack : campTarget.getRandomItems(params))
+                {
+                    if (stack.is(ModItems.supplyCamp))
+                    {
+                        campFound = true;
+                        helper.assertTrue(stack.hasTag() && "instant".equals(stack.getTag().getString("Placement")),
+                          "Supply camp loot lost its instant-placement NBT");
+                    }
+                }
+            }
+            if (!shipFound)
+            {
+                for (final ItemStack stack : shipTarget.getRandomItems(params))
+                {
+                    if (stack.is(ModItems.supplyChest))
+                    {
+                        shipFound = true;
+                        helper.assertTrue(stack.hasTag() && "instant".equals(stack.getTag().getString("Placement")),
+                          "Supply ship loot lost its instant-placement NBT");
+                    }
+                }
+            }
+        }
+
+        helper.assertTrue(campFound, "Supply camp loot was not added to a configured vanilla chest table");
+        helper.assertTrue(shipFound, "Supply ship loot was not added to a configured vanilla chest table");
         helper.succeed();
     }
 
