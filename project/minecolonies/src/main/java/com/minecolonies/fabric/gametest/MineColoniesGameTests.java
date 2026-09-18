@@ -30,7 +30,10 @@ import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.common.extensions.IForgeMenuType;
 import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
+import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
+import com.minecolonies.fabric.event.entity.player.EntityItemPickupEvent;
+import com.minecolonies.fabric.event.level.BlockEvent;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
@@ -50,12 +53,14 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -486,6 +491,40 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void gameplayMixinsPreserveCancellableForgeEvents(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        final CancellableGameplayEventsProbe probe = new CancellableGameplayEventsProbe();
+        MinecraftForge.EVENT_BUS.register(probe);
+        try
+        {
+            final ItemEntity pickedUp = new ItemEntity(level, player.getX(), player.getY(), player.getZ(),
+              new ItemStack(net.minecraft.world.item.Items.DIRT));
+            pickedUp.playerTouch(player);
+            helper.assertTrue(probe.pickup, "ItemEntity.playerTouch did not dispatch EntityItemPickupEvent");
+            helper.assertTrue(!pickedUp.isRemoved(), "Canceled item pickup removed the item entity");
+
+            final ItemEntity tossed = player.drop(new ItemStack(net.minecraft.world.item.Items.DIRT), false, false);
+            helper.assertTrue(probe.toss, "Player.drop did not dispatch ItemTossEvent");
+            helper.assertTrue(tossed == null || tossed.isRemoved(),
+              "Canceled item toss left a spawned item entity in the world");
+
+            final BlockPos farmland = helper.absolutePos(new BlockPos(1, 1, 1));
+            helper.setBlock(new BlockPos(1, 1, 1), Blocks.FARMLAND);
+            ((FarmBlock) Blocks.FARMLAND).fallOn(level, level.getBlockState(farmland), farmland, player, 10.0F);
+            helper.assertTrue(probe.trample, "FarmBlock.fallOn did not dispatch FarmlandTrampleEvent");
+            helper.assertTrue(level.getBlockState(farmland).is(Blocks.FARMLAND),
+              "Canceled farmland trample still converted farmland to dirt");
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(probe);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void networkCodecsAndSplitEnvelopeRoundTrip(final GameTestHelper helper)
     {
         final NetworkChannel channel = Network.getNetwork();
@@ -568,6 +607,34 @@ public final class MineColoniesGameTests implements FabricGameTest
         finally
         {
             buffer.release();
+        }
+    }
+
+    private static final class CancellableGameplayEventsProbe
+    {
+        private boolean pickup;
+        private boolean toss;
+        private boolean trample;
+
+        @SubscribeEvent
+        public void onPickup(final EntityItemPickupEvent event)
+        {
+            pickup = true;
+            event.setCanceled(true);
+        }
+
+        @SubscribeEvent
+        public void onToss(final ItemTossEvent event)
+        {
+            toss = true;
+            event.setCanceled(true);
+        }
+
+        @SubscribeEvent
+        public void onTrample(final BlockEvent.FarmlandTrampleEvent event)
+        {
+            trample = true;
+            event.setCanceled(true);
         }
     }
 

@@ -7,6 +7,7 @@ import com.minecolonies.fabric.event.entity.living.LivingDeathEvent;
 import com.minecolonies.fabric.event.entity.living.LivingHurtEvent;
 import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
 import com.minecolonies.fabric.event.entity.player.AttackEntityEvent;
+import com.minecolonies.fabric.event.entity.player.FillBucketEvent;
 import com.minecolonies.fabric.event.entity.player.PlayerInteractEvent;
 import com.minecolonies.fabric.event.entity.player.PlayerEvent;
 import com.minecolonies.fabric.event.level.BlockEvent;
@@ -25,12 +26,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 
 /**
  * Adapts Fabric's real gameplay callbacks to the retained MineColonies event
@@ -116,6 +119,16 @@ public final class FabricGameplayHooks
         final InteractionResult result = interactionResult(event);
         if (result == InteractionResult.PASS)
         {
+            if (stack.getItem() instanceof BucketItem)
+            {
+                final HitResult target = player.pick(5.0D, 0.0F, false);
+                final FillBucketEvent fillBucketEvent = new FillBucketEvent(player, target);
+                MinecraftForge.EVENT_BUS.post(fillBucketEvent);
+                if (fillBucketEvent.isCanceled() || fillBucketEvent.getResult() == Event.Result.DENY)
+                {
+                    return InteractionResultHolder.fail(stack);
+                }
+            }
             return InteractionResultHolder.pass(stack);
         }
         if (result == InteractionResult.SUCCESS || result == InteractionResult.CONSUME || result == InteractionResult.CONSUME_PARTIAL)
