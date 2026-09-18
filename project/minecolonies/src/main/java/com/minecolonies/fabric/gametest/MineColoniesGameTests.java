@@ -21,8 +21,10 @@ import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -30,6 +32,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -40,6 +44,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
@@ -223,6 +228,41 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         helper.assertTrue(campFound, "Supply camp loot was not added to a configured vanilla chest table");
         helper.assertTrue(shipFound, "Supply ship loot was not added to a configured vanilla chest table");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void colonyProtectionCallbackDeniesUnauthorizedTownHallAccess(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final BlockEntity blockEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "Protection fixture Town Hall did not create a colony-building block entity");
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Protection GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Protection fixture colony was not created");
+        final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
+        hut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        hut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        colony.getBuildingManager().addNewBuilding(hut, level);
+
+        final ServerPlayer stranger = helper.makeMockServerPlayerInLevel();
+        final BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(townHall), Direction.UP, townHall, false);
+        final InteractionResult denied = UseBlockCallback.EVENT.invoker().interact(
+          stranger, level, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(denied == InteractionResult.FAIL,
+          "Unauthorized Town Hall interaction was not denied by the Fabric protection callback: " + denied);
+
+        final InteractionResult allowed = UseBlockCallback.EVENT.invoker().interact(
+          owner, level, InteractionHand.MAIN_HAND, hit);
+        helper.assertTrue(allowed != InteractionResult.FAIL,
+          "Colony owner was incorrectly denied by the Fabric protection callback");
         helper.succeed();
     }
 
