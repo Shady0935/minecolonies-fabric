@@ -26,6 +26,9 @@ import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.event.ForgeEventFactory;
+import com.minecolonies.fabric.event.SubscribeEvent;
+import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
@@ -40,6 +43,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -394,6 +398,43 @@ public final class MineColoniesGameTests implements FabricGameTest
               "Tavern conversion did not spawn a VisitorCitizen entity");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void pharaoScepterUseAndArrowLooseBridgePreserveForgeSemantics(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        final ItemStack scepter = new ItemStack(ModItems.pharaoscepter);
+        player.setItemInHand(InteractionHand.MAIN_HAND, scepter);
+
+        final InteractionResultHolder<ItemStack> use = ModItems.pharaoscepter.use(level, player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(use.getResult() == InteractionResult.CONSUME,
+          "Pharao scepter use did not return CONSUME: " + use.getResult());
+        helper.assertTrue(player.isUsingItem(),
+          "Pharao scepter use was short-circuited before startUsingItem");
+        player.stopUsingItem();
+
+        final Object cancelListener = new Object()
+        {
+            @SubscribeEvent
+            public void cancelArrowLoose(final ArrowLooseEvent event)
+            {
+                event.setCanceled(true);
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(cancelListener);
+        try
+        {
+            final int charge = ForgeEventFactory.onArrowLoose(scepter, level, player, 20, true);
+            helper.assertTrue(charge == -1,
+              "Canceled ArrowLooseEvent did not stop the scepter shot: " + charge);
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(cancelListener);
+        }
+        helper.succeed();
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
