@@ -87,16 +87,10 @@ public final class FabricVanillaCompat
 
     public static Vec3 getExplosionPosition(final Explosion explosion)
     {
-        try
-        {
-            final var method = Explosion.class.getDeclaredMethod("getPosition");
-            method.setAccessible(true);
-            return (Vec3) method.invoke(explosion);
-        }
-        catch (ReflectiveOperationException ignored)
-        {
-            return Vec3.ZERO;
-        }
+        final Double x = readField(explosion, "x", Double.class);
+        final Double y = readField(explosion, "y", Double.class);
+        final Double z = readField(explosion, "z", Double.class);
+        return x == null || y == null || z == null ? Vec3.ZERO : new Vec3(x, y, z);
     }
 
     public static void setSpawnerRequiredPlayerRange(final BaseSpawner spawner, final int range)

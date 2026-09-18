@@ -544,7 +544,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
-    public void explosionDamagePolicyUsesLivingDamageBridge(final GameTestHelper helper)
+    public void explosionProtectionPoliciesPreserveStartAndDamageSemantics(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -583,6 +583,15 @@ public final class MineColoniesGameTests implements FabricGameTest
               .allowDamage(victim, explosionSource, 4.0F);
             helper.assertTrue(allowedVictim,
               "DAMAGE_ENTITIES policy incorrectly blocked explosion damage to a colony entity");
+
+            final BlockPos relativeProtectedBlock = new BlockPos(4, 1, 2);
+            final BlockPos protectedBlock = helper.absolutePos(relativeProtectedBlock);
+            helper.setBlock(relativeProtectedBlock, Blocks.STONE);
+            MineColonies.getConfig().getServer().turnOffExplosionsInColonies.set(Explosions.DAMAGE_NOTHING);
+            level.explode(null, protectedBlock.getX() + 0.5D, protectedBlock.getY() + 0.5D,
+              protectedBlock.getZ() + 0.5D, 2.0F, net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
+            helper.assertTrue(level.getBlockState(protectedBlock).is(Blocks.STONE),
+              "Canceled ExplosionEvent.Start still allowed a colony block explosion");
         }
         finally
         {
