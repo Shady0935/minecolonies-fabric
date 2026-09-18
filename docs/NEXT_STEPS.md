@@ -4,13 +4,14 @@ The datagen, lifecycle, gameplay-callback, mob-conversion and first server-side
 colony fixture checkpoints are now complete: `runDatagen` is reproducible, the
 portable providers are wired to the Fabric entrypoint, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
-through Fabric server lifecycle, and generated JSON is included in the
-resource source set. The following work remains, in order:
+through Fabric server lifecycle, generated JSON is included in the resource
+source set, and the populated-tavern conversion creates a real visitor entity.
+The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable
    offline test profile: place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, warehouse and
-   research cycle, including a populated-tavern visitor conversion.
+   research cycle.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative network and citizen coverage to every client-bound family,
    then turn the populated-colony stop/restart smoke test into an explicit

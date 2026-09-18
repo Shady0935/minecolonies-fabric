@@ -89,12 +89,21 @@ attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
 spawns an `EntityCitizen` through `CitizenManager`, round-trips colony and
 citizen NBT, and drives the Fabric Town Hall protection callback for both an
 outsider and the colony owner. It also dispatches the Fabric mob-conversion
-callback into the retained `LivingConversionEvent.Pre` event. The passing
-seven-test batch is recorded in `logs/minecolonies-gametest-conversion-2.log`.
+callback into the retained `LivingConversionEvent.Pre` event and builds a
+populated level-one tavern fixture. That fixture resolves the owning colony
+from the claimed chunk, creates exactly one `VisitorCitizen` through the
+retained visitor manager, assigns it to the tavern and discards Fabric's
+vanilla villager candidate. The passing eight-test batch is recorded in
+`logs/minecolonies-gametest-tavern-10.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
 reassembly for the login UUID packet, including cache cleanup.
+
+The same shutdown pass exposed that colony serialization can run after the
+world reference has been detached. `AbstractSchematicProvider.getRotation()`
+now returns the neutral runtime rotation in that serialization-only state,
+keeping save/stop clean without dropping the persisted colony payload.
 
 Structurize's server pack loader is connected to Fabric's
 `SERVER_STARTING` callback. Its mod-resource scan also descends through the

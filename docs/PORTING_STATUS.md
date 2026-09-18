@@ -62,8 +62,9 @@ completed.
 - [x] Town Hall and colony creation exercised server-side by Fabric GameTest
 - [x] Colony protection callback denies unauthorized Town Hall access and
   accepts the colony owner through Fabric's interaction event
-- [x] Mob conversion callback dispatches the retained `LivingConversionEvent.Pre`
-  and preserves the tavern visitor conversion gate
+- [x] Mob conversion callback dispatches the retained `LivingConversionEvent.Pre`,
+  preserves the tavern visitor conversion gate and has an end-to-end populated
+  tavern fixture that creates a `VisitorCitizen` and discards the vanilla candidate
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
 - [ ] Warehouse and courier logistics
@@ -82,11 +83,12 @@ completed.
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
   Town Hall registration, colony creation, permissions, NBT round-trip and
   representative network codec/split-envelope behavior, plus citizen entity
-  registration and serialization, supply-loot target tables and Town Hall
-  protection callbacks and mob-conversion event dispatch
+  registration and serialization, supply-loot target tables, Town Hall
+  protection callbacks and populated-tavern mob-conversion replacement
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
-  and client bootstrap; real colony interaction remains pending
+  and client bootstrap; server-side Town Hall protection and tavern visitor
+  replacement are exercised by real colony fixtures
 - [x] Core colony creation and persistence runtime fixture
 - [x] Dedicated-server restart after common S2C registration changes
 - [x] Manual validation list and remaining limitations documented

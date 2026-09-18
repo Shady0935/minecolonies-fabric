@@ -39,9 +39,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   Those paths remain explicit coverage gaps; they are not hidden behind broad
   no-op adapters.
 - Mob conversion now has a real bridge through Fabric's pre-spawn
-  `MOB_CONVERSION` callback. The automated fixture verifies event dispatch and
-  leaves an unrelated conversion intact, but it does not yet construct a
-  populated tavern and assert the complete visitor replacement in-game.
+  `MOB_CONVERSION` callback. The automated fixture constructs a populated
+  tavern, creates one `VisitorCitizen`, assigns it to that tavern and confirms
+  that the unrelated vanilla candidate is discarded. Broader conversion types
+  still depend on the retained event coverage listed above.
 - The retained block-place event is emitted as a pre-vanilla placement
   preflight because Fabric has no matching post-placement event. The bridge
   validates `BlockPlaceContext` and prevents placement when the retained event
@@ -50,9 +51,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Validation still pending
 
-- BlockUI screens, builder placement, citizen work cycles, logistics, research,
-  raids and the populated-tavern visitor conversion still need a real in-game
-  interaction pass. Server-side Town Hall, colony creation and colony-backed
+- BlockUI screens, builder placement, citizen work cycles, logistics, research
+  and raids still need a real in-game interaction pass. Server-side Town Hall,
+  colony creation and colony-backed
   citizen registration have automated GameTest fixtures; the dedicated restart
   smoke test restores the populated colony records but does not yet assert
   citizen-entity reappearance.
