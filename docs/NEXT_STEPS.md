@@ -17,8 +17,9 @@ The following work remains, in order:
    then turn the populated-colony stop/restart smoke test into an explicit
    citizen-persistence assertion.
 3. Cover the remaining Forge event points that have no direct Fabric callback
-   only where a narrow mixin or server hook can preserve semantics; keep the
-   unsupported paths documented when that is not technically safe.
+   only where a narrow mixin or server hook can preserve semantics. The retained
+   `ArrowLooseEvent` bridge is now covered; keep the unsupported `ArrowNock`
+   extension point and other gaps documented when that is not technically safe.
 4. Port the entity DataFixer registrations or document a deliberate migration
    policy for existing MineColonies 1.20.1 saves.
 5. Port the eight excluded Forge-only datagen providers and compare their

@@ -80,6 +80,14 @@ callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
 expose a direct equivalent for every Forge event, so unsupported event points
 remain documented gaps instead of being represented by no-op shims.
 
+The Forge-shaped bow compatibility surface preserves the upstream neutral
+`ArrowNock` contract: when no retained listener supplies a result it returns
+`null`, allowing `ItemPharaoScepter` to enter `startUsingItem`. Its
+`ArrowLooseEvent` path posts the retained event bus for players and returns
+`-1` when a listener cancels the shot, preserving the MineColonies colony
+permission handler. The focused GameTest verifies both the scepter-use flow
+and the cancellation gate.
+
 ## Server-side colony fixture and structure packs
 
 Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
@@ -93,8 +101,10 @@ callback into the retained `LivingConversionEvent.Pre` event and builds a
 populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
-vanilla villager candidate. The passing eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`.
+vanilla villager candidate. The earlier eight-test batch is recorded in
+`logs/minecolonies-gametest-tavern-10.log`. The current nine-test batch also
+verifies the Pharao Scepter bow-hook bridge and is recorded in
+`logs/minecolonies-gametest-arrow-hooks.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope

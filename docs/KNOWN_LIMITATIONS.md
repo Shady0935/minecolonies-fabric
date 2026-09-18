@@ -35,9 +35,13 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   smoke test does restore the populated colony records.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points: farmland trampling, explosion start/detonate, item toss/pickup,
-  bucket fill, arrow loose and mob-spawn position checks.
-  Those paths remain explicit coverage gaps; they are not hidden behind broad
-  no-op adapters.
+  bucket fill and mob-spawn position checks. Those paths remain explicit
+  coverage gaps; they are not hidden behind broad no-op adapters.
+- The retained bow adapter now dispatches `ArrowLooseEvent` and respects
+  cancellation for MineColonies colony permissions. Fabric still has no direct
+  `ArrowNockEvent` callback in this target, so external listeners cannot yet
+  supply an alternate nock result; the no-listener path follows Forge's
+  neutral `null` contract and the Pharao Scepter flow is GameTest-covered.
 - Mob conversion now has a real bridge through Fabric's pre-spawn
   `MOB_CONVERSION` callback. The automated fixture constructs a populated
   tavern, creates one `VisitorCitizen`, assigns it to that tavern and confirms

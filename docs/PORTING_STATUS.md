@@ -44,8 +44,8 @@ completed.
   lifecycle, commands, login/logout and datapack reload callbacks
 - [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,
   pre-break, pre-place, dimension-change, damage, death and mob-conversion
-  callbacks; client
-  tooltip and disconnect callbacks are also connected
+  callbacks; the retained bow adapter dispatches and respects cancellation of
+  `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
@@ -65,6 +65,9 @@ completed.
 - [x] Mob conversion callback dispatches the retained `LivingConversionEvent.Pre`,
   preserves the tavern visitor conversion gate and has an end-to-end populated
   tavern fixture that creates a `VisitorCitizen` and discards the vanilla candidate
+- [x] Forge-shaped bow hooks preserve neutral `ArrowNock` semantics and dispatch
+  retained `ArrowLooseEvent` cancellation; the Pharao Scepter use/shot gate is
+  covered by Fabric GameTest
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
 - [ ] Warehouse and courier logistics
@@ -84,11 +87,13 @@ completed.
   Town Hall registration, colony creation, permissions, NBT round-trip and
   representative network codec/split-envelope behavior, plus citizen entity
   registration and serialization, supply-loot target tables, Town Hall
-  protection callbacks and populated-tavern mob-conversion replacement
+  protection callbacks, populated-tavern mob-conversion replacement and bow-hook
+  compatibility semantics
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
-  replacement are exercised by real colony fixtures
+  replacement are exercised by real colony fixtures, while the retained bow
+  cancellation path is exercised by a focused fixture
 - [x] Core colony creation and persistence runtime fixture
 - [x] Dedicated-server restart after common S2C registration changes
 - [x] Manual validation list and remaining limitations documented
