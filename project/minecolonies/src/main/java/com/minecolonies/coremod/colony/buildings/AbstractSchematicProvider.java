@@ -330,6 +330,15 @@ public abstract class AbstractSchematicProvider implements ISchematicProvider, I
             return cachedRotation;
         }
 
+        // Colony data can be serialized by the world-unload callback after
+        // the Level reference has already been detached.  Rotation is only a
+        // runtime placement detail at that point; do not dereference a dead
+        // world while saving the remaining colony state.
+        if (colony.getWorld() == null)
+        {
+            return 0;
+        }
+
         try
         {
             Blueprint blueprint = StructurePacks.getBlueprint(this.structurePack, this.path, true);

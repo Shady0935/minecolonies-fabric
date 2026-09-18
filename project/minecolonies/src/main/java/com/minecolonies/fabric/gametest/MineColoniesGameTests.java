@@ -4,6 +4,7 @@ import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.network.IMessage;
@@ -14,7 +15,10 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
+import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
+import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
+import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
@@ -55,7 +59,9 @@ import com.minecolonies.fabric.network.NetworkEvent;
 import io.netty.buffer.Unpooled;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -289,10 +295,105 @@ public final class MineColoniesGameTests implements FabricGameTest
         final Mob previous = EntityType.ZOMBIE_VILLAGER.create(helper.getLevel());
         final Mob converted = EntityType.VILLAGER.create(helper.getLevel());
         helper.assertTrue(previous != null && converted != null, "Vanilla conversion fixtures could not be created");
+        // The tavern fixture claims its own chunk in the same server-side
+        // GameTest world.  Place this deliberately unrelated conversion well
+        // outside that claim so the assertion tests event dispatch, not the
+        // neighbouring colony's visitor rule.
+        final BlockPos unrelatedConversionPos = helper.absolutePos(new BlockPos(256, 1, 256));
+        previous.setPos(unrelatedConversionPos.getX() + 0.5, unrelatedConversionPos.getY(), unrelatedConversionPos.getZ() + 0.5);
+        converted.setPos(previous.getX(), previous.getY(), previous.getZ());
         ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
         helper.assertTrue(eventSeen.get(), "Fabric mob-conversion callback did not dispatch the retained event");
         helper.assertTrue(!converted.isRemoved(), "Unrelated conversion was canceled by the retained bridge");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void tavernConversionCreatesVisitorAndDiscardsVanillaCandidate(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        // Keep the conversion inside the GameTest entity-ticking area.  The
+        // visitor manager intentionally defers spawns in simulation chunks
+        // that are merely loaded but not ticking entities.
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeTavern = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos tavernPos = helper.absolutePos(relativeTavern);
+        level.getChunkAt(townHall);
+        level.getChunkAt(tavernPos);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeTavern, ModBlocks.blockHutTavern);
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        final BlockEntity tavernEntity = level.getBlockEntity(tavernPos);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Visitor fixture Town Hall did not create a colony-building block entity");
+        helper.assertTrue(tavernEntity instanceof TileEntityColonyBuilding,
+          "Visitor fixture tavern did not create a colony-building block entity");
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Visitor GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Visitor fixture colony was not created");
+
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        // A freshly placed level-one blueprint normally inherits the claim
+        // made during the level-zero placement tick.  This direct fixture
+        // creates the finished schematic in one call, so reproduce that claim
+        // before resolving the conversion position through the colony manager.
+        // The conversion handler resolves the colony through the chunk's
+        // owning-colony entry, not merely through the list of nearby claims.
+        // Reproduce the completed Town Hall claim with the same force-owner
+        // path used by the in-game claim command.
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 0, level, true);
+
+        final TileEntityColonyBuilding tavernHut = (TileEntityColonyBuilding) tavernEntity;
+        tavernHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        tavernHut.setBlueprintPath("fundamentals/tavern1.blueprint");
+        tavernHut.setSchematicName("tavern1");
+        final IBuilding tavern = colony.getBuildingManager().addNewBuilding(tavernHut, level);
+        helper.assertTrue(tavern != null && tavern.getBuildingLevel() >= 1,
+          "Visitor fixture tavern was not registered at level one");
+        helper.assertTrue(colony.hasBuilding("tavern", 1, false),
+          "Visitor fixture colony did not expose its tavern to conversion logic");
+
+        final BlockPos conversionPos = townHall.above(2);
+        helper.assertTrue(IColonyManager.getInstance().getIColony(level, conversionPos) == colony,
+          "Visitor conversion position did not resolve to the fixture colony");
+        helper.assertTrue(WorldUtil.isEntityBlockLoaded(level, conversionPos),
+          "Visitor conversion position is not in an entity-ticking chunk");
+        owner.teleportTo(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
+        helper.runAfterDelay(1, () ->
+        {
+            final net.minecraft.world.entity.monster.ZombieVillager previous =
+              EntityType.ZOMBIE_VILLAGER.create(level);
+            final Mob converted = EntityType.VILLAGER.create(level);
+            helper.assertTrue(previous != null && converted != null, "Visitor conversion entities could not be created");
+            previous.setPos(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
+            converted.setPos(previous.getX(), previous.getY(), previous.getZ());
+            final Set<Integer> visitorsBefore = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
+            helper.assertTrue(level.addFreshEntity(previous), "Zombie Villager could not be added to the conversion fixture");
+
+            ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
+
+            helper.assertTrue(converted.isRemoved(), "Tavern conversion left the vanilla candidate alive");
+            final Set<Integer> visitorsAfter = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
+            visitorsAfter.removeAll(visitorsBefore);
+            helper.assertTrue(visitorsAfter.size() == 1,
+              "Tavern conversion did not create exactly one visitor: " + visitorsAfter);
+            final int visitorId = visitorsAfter.iterator().next();
+            final var visitorData = colony.getVisitorManager().getVisitor(visitorId);
+            helper.assertTrue(visitorData != null && visitorData.getHomeBuilding() == tavern,
+              "Converted visitor was not assigned to the registered tavern");
+            helper.assertTrue(visitorData.getEntity().isPresent() && visitorData.getEntity().get() instanceof VisitorCitizen,
+              "Tavern conversion did not spawn a VisitorCitizen entity");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
