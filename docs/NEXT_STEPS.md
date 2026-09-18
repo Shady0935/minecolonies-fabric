@@ -14,7 +14,7 @@ following work remains, in order:
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative network and citizen coverage to every client-bound family,
    then turn the populated-colony stop/restart smoke test into an explicit
-   citizen-persistence assertion and add the supply-loot target table set.
+   citizen-persistence assertion.
 3. Cover the remaining Forge event points that have no direct Fabric callback
    only where a narrow mixin or server hook can preserve semantics; keep the
    unsupported paths documented when that is not technically safe.

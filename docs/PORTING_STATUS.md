@@ -52,6 +52,8 @@ completed.
 ## Gameplay systems
 
 - [x] Core registries, recipes, tags, sounds, particles and content bootstrap
+- [x] Supply loot modifier targets vanilla dungeon/shipwreck tables and
+  preserves instant-placement NBT, exercised by Fabric GameTest
 - [x] Colony saved data, ownership permissions and NBT round-trip exercised by Fabric GameTest
 - [x] Citizen entity creation, colony registration and citizen-data NBT
   round-trip exercised by Fabric GameTest
@@ -75,7 +77,7 @@ completed.
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
   Town Hall registration, colony creation, permissions, NBT round-trip and
   representative network codec/split-envelope behavior, plus citizen entity
-  registration and serialization
+  registration and serialization, and supply-loot target tables
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; real colony interaction remains pending

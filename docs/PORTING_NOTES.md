@@ -82,7 +82,9 @@ a real Town Hall block entity, creates a colony through `IColonyManager`,
 attaches the Colonial Town Hall blueprint, checks ownership/building indexes,
 spawns an `EntityCitizen` through `CitizenManager`, and round-trips colony and
 citizen NBT. The passing batch is recorded in
-`logs/minecolonies-gametest-citizen.log`. The same batch also
+`logs/minecolonies-gametest-supply-loot.log`. The same batch also verifies the
+Fabric loot-table modifier against dungeon and shipwreck targets, preserving
+the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
 reassembly for the login UUID packet, including cache cleanup.
 
