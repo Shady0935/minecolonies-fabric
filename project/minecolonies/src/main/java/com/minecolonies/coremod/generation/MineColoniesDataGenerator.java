@@ -7,14 +7,17 @@ import com.minecolonies.coremod.generation.defaults.DefaultBlockLootTableProvide
 import com.minecolonies.coremod.generation.defaults.DefaultBlockTagsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultConventionalBlockTagsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultConventionalItemTagsProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultAdvancementsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultDamageTagsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultDamageTypeProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultEntityIconProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultEntityLootProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultEntityTypeTagsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultItemTagsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultRecipeProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultResearchProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultSupplyLootProvider;
+import com.minecolonies.coremod.generation.defaults.QuestTranslationProvider;
 import com.minecolonies.coremod.generation.defaults.workers.DefaultAlchemistCraftingProvider;
 import com.minecolonies.coremod.generation.defaults.workers.DefaultBakerCraftingProvider;
 import com.minecolonies.coremod.generation.defaults.workers.DefaultBlacksmithCraftingProvider;
@@ -76,6 +79,9 @@ public final class MineColoniesDataGenerator implements DataGeneratorEntrypoint
 
         pack.addProvider(provider(DefaultRecipeProvider::new));
         pack.addProvider(provider(DefaultResearchProvider::new));
+        pack.addProvider(provider(DefaultAdvancementsProvider::new));
+        pack.addProvider(provider(DefaultEntityIconProvider::new));
+        pack.addProvider(provider(QuestTranslationProvider::new));
         pack.addProvider(registryProvider(DefaultConventionalBlockTagsProvider::new));
         pack.addProvider(registryProvider(DefaultConventionalItemTagsProvider::new));
         final DefaultBlockTagsProvider blockTags = pack.addProvider(registryProvider(DefaultBlockTagsProvider::new));

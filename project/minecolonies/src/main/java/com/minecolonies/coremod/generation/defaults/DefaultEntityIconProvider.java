@@ -3,44 +3,41 @@ package com.minecolonies.coremod.generation.defaults;
 import com.minecolonies.api.util.Log;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
-import com.mojang.blaze3d.platform.NativeImage;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.Util;
 import net.minecraft.data.CachedOutput;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackResources;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.resources.IoSupplier;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.forgespi.language.IModFileInfo;
-import net.minecraftforge.resource.ResourcePackLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
-import static net.minecraft.client.gui.components.PlayerFaceRenderer.*;
 
 /**
  * Datagen for entity_icon
  */
 public class DefaultEntityIconProvider implements DataProvider
 {
-    private final DataGenerator generator;
+    private final FabricDataOutput output;
 
-    public DefaultEntityIconProvider(@NotNull final DataGenerator generator)
+    public DefaultEntityIconProvider(@NotNull final FabricDataOutput output)
     {
-        this.generator = generator;
+        this.output = output;
     }
 
     @NotNull
@@ -50,52 +47,78 @@ public class DefaultEntityIconProvider implements DataProvider
         return "Default Citizen Icons";
     }
 
-    private static boolean IsEntitySkin(@NotNull final ResourceLocation id)
+    private static boolean isEntitySkin(@NotNull final Path relativePath)
     {
-        return id.getPath().endsWith(".png") &&
-                (id.getPath().startsWith("textures/entity/citizen/") || id.getPath().startsWith("textures/entity/raiders/"));
+        final String path = relativePath.toString().replace('\\', '/');
+        return path.endsWith(".png") &&
+                (path.startsWith("textures/entity/citizen/") || path.startsWith("textures/entity/raiders/"));
     }
 
     @NotNull
     @Override
     public CompletableFuture<?> run(@NotNull final CachedOutput cache)
     {
-        final PackOutput.PathProvider outputProvider = generator.getPackOutput().createPathProvider(PackOutput.Target.RESOURCE_PACK, "textures/entity_icon");
+        final PackOutput.PathProvider outputProvider = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "textures/entity_icon");
+        final ModContainer modContainer = output.getModContainer();
+        final Set<Path> skinFiles = new HashSet<>();
 
-        final IModFileInfo modFileInfo = ModList.get().getModFileById(MOD_ID);
-        try (final PackResources pack = ResourcePackLoader.createPackForMod(modFileInfo))
+        try
         {
-            final List<CompletableFuture<?>> icons = new ArrayList<>();
-
-            pack.listResources(PackType.CLIENT_RESOURCES, MOD_ID, "textures/entity", (id, stream) ->
+            for (final Path root : modContainer.getRootPaths())
             {
-                if (IsEntitySkin(id))
+                final Path assetsRoot = root.resolve("assets").resolve(MOD_ID);
+                final Path entityRoot = assetsRoot.resolve("textures").resolve("entity");
+                if (!Files.isDirectory(entityRoot))
                 {
-                    final ResourceLocation iconId = new ResourceLocation(id.getNamespace(),
-                            id.getPath().replace("textures/entity/", "").replace(".png", ""));
-                    icons.add(generateIcon(outputProvider, iconId, stream, cache));
+                    continue;
                 }
-            });
 
-            return CompletableFuture.allOf(icons.toArray(CompletableFuture[]::new));
+                try (final Stream<Path> files = Files.walk(entityRoot))
+                {
+                    files.filter(Files::isRegularFile)
+                      .map(entityRoot.getParent().getParent()::relativize)
+                      .filter(DefaultEntityIconProvider::isEntitySkin)
+                      .map(entityRoot.getParent().getParent()::resolve)
+                      .forEach(skinFiles::add);
+                }
+            }
         }
+        catch (final IOException exception)
+        {
+            throw new IllegalStateException("Failed to enumerate MineColonies entity skins", exception);
+        }
+
+        final List<CompletableFuture<?>> icons = new ArrayList<>();
+        for (final Path skinFile : skinFiles)
+        {
+            final Path assetsRoot = skinFile;
+            final String normalized = assetsRoot.toString().replace('\\', '/');
+            final int entityIndex = normalized.lastIndexOf("/textures/entity/");
+            final String iconPath = normalized.substring(entityIndex + "/textures/entity/".length(), normalized.length() - ".png".length());
+            icons.add(generateIcon(outputProvider, new ResourceLocation(MOD_ID, iconPath), skinFile, cache));
+        }
+
+        return CompletableFuture.allOf(icons.toArray(CompletableFuture[]::new));
     }
 
     private CompletableFuture<?> generateIcon(@NotNull final PackOutput.PathProvider outputProvider,
                                               @NotNull final ResourceLocation id,
-                                              @NotNull final IoSupplier<InputStream> inputSupplier,
+                                              @NotNull final Path skinFile,
                                               @NotNull final CachedOutput cache)
     {
         return CompletableFuture.runAsync(() ->
         {
             try
             {
-                try (final NativeImage skin = NativeImage.read(inputSupplier.get()))
+                try (final InputStream input = Files.newInputStream(skinFile))
                 {
-                    try (final NativeImage icon = createIconForSkin(skin))
+                    final BufferedImage skin = ImageIO.read(input);
+                    if (skin == null)
                     {
-                        saveIcon(outputProvider, id, icon, cache);
+                        throw new IOException("Unsupported image format");
                     }
+
+                    saveIcon(outputProvider, id, createIconForSkin(skin), cache);
                 }
             }
             catch (final IOException e)
@@ -106,41 +129,55 @@ public class DefaultEntityIconProvider implements DataProvider
         }, Util.backgroundExecutor());
     }
 
-    private static NativeImage createIconForSkin(@NotNull final NativeImage skin)
+    private static BufferedImage createIconForSkin(@NotNull final BufferedImage skin)
     {
-        final NativeImage icon = new NativeImage(16, 16, false);
+        if (skin.getWidth() < 16 || skin.getHeight() < 16)
+        {
+            throw new IllegalArgumentException("Entity skin is smaller than the vanilla head region: "
+                                                 + skin.getWidth() + "x" + skin.getHeight());
+        }
 
-        skin.resizeSubRectTo(SKIN_HEAD_U, SKIN_HEAD_V, SKIN_HEAD_WIDTH, SKIN_HEAD_HEIGHT, icon);
+        final BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        final java.awt.Graphics2D graphics = icon.createGraphics();
+        graphics.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                                   java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        graphics.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING,
+                                   java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.drawImage(skin, 0, 0, 16, 16, 8, 8, 16, 16, null);
+        graphics.dispose();
 
         for (int i = 0; i < 16; ++i)
         {
-            icon.blendPixel(0, i, 0x80000000);
-            icon.blendPixel(15, i, 0x80000000);
+            icon.setRGB(0, i, darken(icon.getRGB(0, i)));
+            icon.setRGB(15, i, darken(icon.getRGB(15, i)));
 
             if (i > 0 && i < 15)
             {
-                icon.blendPixel(i, 0, 0x80000000);
-                icon.blendPixel(i, 15, 0x80000000);
+                icon.setRGB(i, 0, darken(icon.getRGB(i, 0)));
+                icon.setRGB(i, 15, darken(icon.getRGB(i, 15)));
             }
         }
 
         return icon;
     }
 
+    private static int darken(final int argb)
+    {
+        final int alpha = (argb >>> 24) & 0xFF;
+        final int red = ((argb >>> 16) & 0xFF) >> 1;
+        final int green = ((argb >>> 8) & 0xFF) >> 1;
+        final int blue = (argb & 0xFF) >> 1;
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
+    }
+
     private static void saveIcon(@NotNull final PackOutput.PathProvider outputProvider,
                                  @NotNull final ResourceLocation id,
-                                 @NotNull final NativeImage icon,
+                                 @NotNull final BufferedImage icon,
                                  @NotNull final CachedOutput cache) throws IOException
     {
-        final BufferedImage image;
-        try (final ByteArrayInputStream stream = new ByteArrayInputStream(icon.asByteArray()))
-        {
-            image = ImageIO.read(stream);
-        }
-
         // convert to 24-bit, to reduce file size a bit
-        final BufferedImage optimized = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-        optimized.getGraphics().drawImage(image, 0, 0, null);
+        final BufferedImage optimized = new BufferedImage(icon.getWidth(), icon.getHeight(), BufferedImage.TYPE_INT_RGB);
+        optimized.getGraphics().drawImage(icon, 0, 0, null);
 
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final HashingOutputStream hashStream = new HashingOutputStream(Hashing.sha1(), outputStream);
