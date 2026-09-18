@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:stick",
+    "#minecraft:logs",
+    "#minecraft:planks",
+    "#minecolonies:mechanic_ingredient",
+    "#minecolonies:dyer_ingredient"
+  ]
+}

@@ -2,27 +2,49 @@ package com.minecolonies.coremod.generation.defaults;
 
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.util.DamageSourceKeys;
-import com.mojang.serialization.JsonOps;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricCodecDataProvider;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.damagesource.DamageScaling;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
-import com.minecolonies.fabric.common.data.ExistingFileHelper;
-import com.minecolonies.fabric.common.data.JsonCodecProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
-public class DefaultDamageTypeProvider extends JsonCodecProvider<DamageType>
+/** Fabric datagen for the dynamic MineColonies damage-type registry. */
+public class DefaultDamageTypeProvider extends FabricCodecDataProvider<DamageType>
 {
-    public DefaultDamageTypeProvider(@NotNull final PackOutput packOutput,
-                                     @NotNull final ExistingFileHelper existingFileHelper)
+    public DefaultDamageTypeProvider(@NotNull final FabricDataOutput output)
     {
-        super(packOutput, existingFileHelper, MOD_ID, JsonOps.INSTANCE, PackType.SERVER_DATA, "damage_type", DamageType.CODEC, getDamageTypes());
+        super(output, PackOutput.Target.DATA_PACK, "damage_type", DamageType.CODEC);
+    }
+
+    @Override
+    @NotNull
+    public String getName()
+    {
+        return "MineColonies Damage Types";
+    }
+
+    @Override
+    protected void configure(final BiConsumer<ResourceLocation, DamageType> provider)
+    {
+        getDamageTypes().forEach(provider::accept);
+    }
+
+    /** Makes the generated dynamic entries visible to Fabric's tag validation. */
+    public static void bootstrap(final BootstapContext<DamageType> context)
+    {
+        getDamageTypes().forEach((id, type) ->
+          context.register(ResourceKey.create(Registries.DAMAGE_TYPE, id), type));
     }
 
     private static Map<ResourceLocation, DamageType> getDamageTypes()

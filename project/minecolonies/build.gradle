@@ -30,12 +30,7 @@ sourceSets {
             // 1.20.1 providers; the remaining Forge-only adapters are listed
             // explicitly until their Fabric implementations replace them.
             exclude '**/generation/defaults/DefaultAdvancementsProvider.java'
-            exclude '**/generation/defaults/DefaultBlockTagsProvider.java'
-            exclude '**/generation/defaults/DefaultDamageTagsProvider.java'
-            exclude '**/generation/defaults/DefaultDamageTypeProvider.java'
             exclude '**/generation/defaults/DefaultEntityIconProvider.java'
-            exclude '**/generation/defaults/DefaultEntityTypeTagsProvider.java'
-            exclude '**/generation/defaults/DefaultItemTagsProvider.java'
             exclude '**/generation/defaults/QuestTranslationProvider.java'
             exclude '**/compatibility/jei/**'
             exclude '**/compatibility/journeymap/**'

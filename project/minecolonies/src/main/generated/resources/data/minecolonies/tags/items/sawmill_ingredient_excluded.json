@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#c:ingots",
+    "#c:stone",
+    "#c:dusts/redstone",
+    "#c:string"
+  ]
+}

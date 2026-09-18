@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:spectral_arrow",
+    "minecraft:hay_block",
+    "minecraft:lead"
+  ]
+}

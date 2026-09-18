@@ -5,9 +5,10 @@ import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.items.ModTags;
 import com.minecolonies.api.util.constant.TagConstants;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -15,10 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import com.minecolonies.fabric.common.Tags;
-import com.minecolonies.fabric.common.data.BlockTagsProvider;
-import com.minecolonies.fabric.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,15 +26,20 @@ import java.util.concurrent.CompletableFuture;
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
 @SuppressWarnings("unchecked")
-public class DefaultItemTagsProvider extends ItemTagsProvider
+public class DefaultItemTagsProvider extends FabricTagProvider.ItemTagProvider
 {
     public DefaultItemTagsProvider(
-      @NotNull final PackOutput output,
+      @NotNull final FabricDataOutput output,
       final CompletableFuture<HolderLookup.Provider> lookupProvider,
-      @NotNull final BlockTagsProvider blockTagsProvider,
-      @Nullable final ExistingFileHelper existingFileHelper)
+      @NotNull final FabricTagProvider.BlockTagProvider blockTagsProvider)
     {
-        super(output, lookupProvider, blockTagsProvider.contentsGetter(), MOD_ID, existingFileHelper);
+        super(output, lookupProvider, blockTagsProvider);
+    }
+
+    @Override
+    protected FabricTagProvider<Item>.FabricTagBuilder tag(final TagKey<Item> key)
+    {
+        return getOrCreateTagBuilder(key);
     }
 
     @Override
@@ -44,7 +47,9 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
     {
         ModTags.init();     // apparently runData doesn't run work queued in common setup
 
-        tag(ModTags.compostables_poor).addTags(Tags.Items.SEEDS, ItemTags.SAPLINGS);
+        tag(ModTags.compostables_poor)
+          .forceAddTag(Tags.Items.SEEDS)
+          .forceAddTag(ItemTags.SAPLINGS);
         tag(ModTags.compostables)
           .add(Items.ROTTEN_FLESH, Items.BROWN_MUSHROOM, Items.RED_MUSHROOM)
           .add(Items.FEATHER, Items.PUMPKIN, Items.CARVED_PUMPKIN)
@@ -54,7 +59,12 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.BROWN_MUSHROOM_BLOCK, Items.RED_MUSHROOM_BLOCK, Items.MUSHROOM_STEM)
           .add(Items.CAKE, Items.RABBIT_FOOT, Items.FERMENTED_SPIDER_EYE)
           .add(Items.NETHER_WART_BLOCK, Items.WARPED_WART_BLOCK)
-          .addTags(Tags.Items.CROPS, Tags.Items.EGGS, ItemTags.FLOWERS, ItemTags.FISHES, ItemTags.LEAVES, ItemTags.WOOL);
+          .forceAddTag(Tags.Items.CROPS)
+          .forceAddTag(Tags.Items.EGGS)
+          .forceAddTag(ItemTags.FLOWERS)
+          .forceAddTag(ItemTags.FISHES)
+          .forceAddTag(ItemTags.LEAVES)
+          .forceAddTag(ItemTags.WOOL);
         tag(ModTags.compostables_rich).add(Items.PODZOL, ModBlocks.blockCompostedDirt.asItem());
 
         tag(ModTags.concretePowder)
@@ -75,10 +85,10 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.RED_CONCRETE_POWDER)
           .add(Items.BLACK_CONCRETE_POWDER);
 
-        final TagKey<Item> concrete = ItemTags.create(new ResourceLocation(MOD_ID, "concrete"));
+        final TagKey<Item> concrete = TagKey.create(Registries.ITEM, new ResourceLocation(MOD_ID, "concrete"));
         copy(ModTags.concreteBlock, concrete);
 
-        final TagKey<Item> glazedTerracotta = ItemTags.create(new ResourceLocation(MOD_ID, "glazed_terracotta"));
+        final TagKey<Item> glazedTerracotta = TagKey.create(Registries.ITEM, new ResourceLocation(MOD_ID, "glazed_terracotta"));
         tag(glazedTerracotta)
           .add(Items.WHITE_GLAZED_TERRACOTTA)
           .add(Items.ORANGE_GLAZED_TERRACOTTA)
@@ -97,9 +107,9 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.RED_GLAZED_TERRACOTTA)
           .add(Items.BLACK_GLAZED_TERRACOTTA);
 
-        final TagKey<Item> storageBlocks = ItemTags.create(new ResourceLocation(MOD_ID, "storage_blocks"));
+        final TagKey<Item> storageBlocks = TagKey.create(Registries.ITEM, new ResourceLocation(MOD_ID, "storage_blocks"));
         tag(storageBlocks)
-          .addTag(Tags.Items.STORAGE_BLOCKS)
+          .forceAddTag(Tags.Items.STORAGE_BLOCKS)
           .add(Items.BONE_BLOCK)
           .add(Items.HAY_BLOCK)
           .add(Items.DRIED_KELP_BLOCK)
@@ -152,14 +162,14 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(ModItems.goldenBread);
 
         tag(ModTags.breakable_ore)
-          .addTag(ItemTags.COAL_ORES)
-          .addTag(ItemTags.IRON_ORES)
-          .addTag(ItemTags.COPPER_ORES)
-          .addTag(ItemTags.GOLD_ORES)
-          .addTag(ItemTags.REDSTONE_ORES)
-          .addTag(ItemTags.EMERALD_ORES)
-          .addTag(ItemTags.LAPIS_ORES)
-          .addTag(ItemTags.DIAMOND_ORES)
+          .forceAddTag(ItemTags.COAL_ORES)
+          .forceAddTag(ItemTags.IRON_ORES)
+          .forceAddTag(ItemTags.COPPER_ORES)
+          .forceAddTag(ItemTags.GOLD_ORES)
+          .forceAddTag(ItemTags.REDSTONE_ORES)
+          .forceAddTag(ItemTags.EMERALD_ORES)
+          .forceAddTag(ItemTags.LAPIS_ORES)
+          .forceAddTag(ItemTags.DIAMOND_ORES)
           .add(Items.NETHER_QUARTZ_ORE);
 
         tag(ModTags.raw_ore)
@@ -170,7 +180,7 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
         final Item[] paperExtras = getDomumExtra(ExtraBlockType.BASE_PAPER, ExtraBlockType.LIGHT_PAPER);
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_BAKER))
-          .addTag(Tags.Items.CROPS_WHEAT);
+          .forceAddTag(Tags.Items.CROPS_WHEAT);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_BAKER));
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_BAKER));
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_BAKER))
@@ -179,15 +189,17 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_BLACKSMITH))
           .add(Items.DIAMOND_BLOCK, Items.EMERALD_BLOCK)
-          .addTags(Tags.Items.NUGGETS, Tags.Items.INGOTS);
+          .forceAddTag(Tags.Items.NUGGETS)
+          .forceAddTag(Tags.Items.INGOTS);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_BLACKSMITH))
-          .addTag(Tags.Items.CROPS)
+          .forceAddTag(Tags.Items.CROPS)
           .addTag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_DYER))
           .addTag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_MECHANIC))
           .add(Items.BRICK, Items.NETHER_BRICK);
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_BLACKSMITH))
           .add(Items.SHEARS, Items.LIGHTNING_ROD)
-          .addTags(Tags.Items.NUGGETS, Tags.Items.INGOTS);
+          .forceAddTag(Tags.Items.NUGGETS)
+          .forceAddTag(Tags.Items.INGOTS);
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_BLACKSMITH))
           .addTag(ModTags.crafterProduct.get(TagConstants.CRAFTING_DYER))
           .addTag(ModTags.crafterProduct.get(TagConstants.CRAFTING_MECHANIC))
@@ -198,7 +210,7 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.BOW, Items.CROSSBOW);
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_COOK))
-          .addTag(ItemTags.FISHES)
+          .forceAddTag(ItemTags.FISHES)
           .add(Items.BEEF)
           .add(Items.MUTTON)
           .add(Items.CHICKEN)
@@ -211,21 +223,21 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.EGG)
           .add(Items.MILK_BUCKET);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_COOK))
-          .addTag(Tags.Items.CROPS_WHEAT);
+          .forceAddTag(Tags.Items.CROPS_WHEAT);
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_COOK));
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_COOK))
           .add(Items.BREAD, Items.CAKE, Items.COOKIE, Items.PUMPKIN_PIE);
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_DYER))
-          .addTag(Tags.Items.DYES);
+          .forceAddTag(Tags.Items.DYES);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_DYER));
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_DYER))
-          .addTag(Tags.Items.DYES)
+          .forceAddTag(Tags.Items.DYES)
           .add(Items.RED_NETHER_BRICKS);
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_DYER))
-          .addTags(ModTags.concretePowder);
+          .addTag(ModTags.concretePowder);
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_DYER_SMELTING))
-          .addTag(Tags.Items.DYES);
+          .forceAddTag(Tags.Items.DYES);
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_FARMER))
                 .add(Items.HAY_BLOCK)
@@ -234,7 +246,7 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_FARMER));
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_FARMER))
           .add(Items.HAY_BLOCK)
-          .addTag(Tags.Items.SEEDS)
+          .forceAddTag(Tags.Items.SEEDS)
           .add(ModBlocks.blockCompostedDirt.asItem())
           .add(Items.MELON)
           .add(Items.COARSE_DIRT)
@@ -244,34 +256,34 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_FARMER));
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_FLETCHER))
-          .addTag(Tags.Items.STRING)
-          .addTag(ItemTags.WOOL)
+          .forceAddTag(Tags.Items.STRING)
+          .forceAddTag(ItemTags.WOOL)
           .add(Items.RABBIT_HIDE)
           .add(Items.LEATHER)
           .add(Items.FISHING_ROD);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_FLETCHER))
-          .addTag(Tags.Items.DYES);
+          .forceAddTag(Tags.Items.DYES);
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_FLETCHER))
-          .addTag(Tags.Items.STRING)
+          .forceAddTag(Tags.Items.STRING)
           .add(Items.MOSS_CARPET);
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_FLETCHER))
           .add(Items.BOOK)
           .add(Items.ITEM_FRAME);
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_GLASSBLOWER))
-          .addTag(Tags.Items.GLASS)
-          .addTag(Tags.Items.GLASS_PANES);
+          .forceAddTag(Tags.Items.GLASS)
+          .forceAddTag(Tags.Items.GLASS_PANES);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_GLASSBLOWER))
-          .addTag(Tags.Items.DYES);
+          .forceAddTag(Tags.Items.DYES);
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_GLASSBLOWER));
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_GLASSBLOWER));
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_GLASSBLOWER_SMELTING))
-          .addTag(Tags.Items.GLASS);
+          .forceAddTag(Tags.Items.GLASS);
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_MECHANIC))
-          .addTag(Tags.Items.DUSTS_REDSTONE)
-          .addTag(Tags.Items.ORES_REDSTONE)
-          .addTag(Tags.Items.STORAGE_BLOCKS_REDSTONE)
+          .forceAddTag(Tags.Items.DUSTS_REDSTONE)
+          .forceAddTag(Tags.Items.ORES_REDSTONE)
+          .forceAddTag(Tags.Items.STORAGE_BLOCKS_REDSTONE)
           .addTag(storageBlocks)
           .add(Items.BLAZE_ROD)
           .add(Items.SLIME_BALL)
@@ -285,9 +297,9 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_MECHANIC));
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_MECHANIC))
           .addTag(storageBlocks)
-          .addTag(ItemTags.RAILS)
-          .addTag(ItemTags.BUTTONS)
-          .addTag(ItemTags.WOODEN_PRESSURE_PLATES)
+          .forceAddTag(ItemTags.RAILS)
+          .forceAddTag(ItemTags.BUTTONS)
+          .forceAddTag(ItemTags.WOODEN_PRESSURE_PLATES)
           .add(Items.HEAVY_WEIGHTED_PRESSURE_PLATE)
           .add(Items.LIGHT_WEIGHTED_PRESSURE_PLATE)
           .add(Items.POLISHED_BLACKSTONE_PRESSURE_PLATE)
@@ -337,13 +349,13 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_SAWMILL))
           .add(Items.CACTUS);
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_SAWMILL))
-          .addTag(Tags.Items.INGOTS)
-          .addTag(Tags.Items.STONE)
-          .addTag(Tags.Items.DUSTS_REDSTONE)
-          .addTag(Tags.Items.STRING);
+          .forceAddTag(Tags.Items.INGOTS)
+          .forceAddTag(Tags.Items.STONE)
+          .forceAddTag(Tags.Items.DUSTS_REDSTONE)
+          .forceAddTag(Tags.Items.STRING);
         tag(ModTags.crafterProduct.get(TagConstants.CRAFTING_SAWMILL))
           .add(ModBlocks.blockBarrel.asItem(), ModBlocks.blockHutCrusher.asItem())
-          .addTags(ItemTags.CHEST_BOATS);
+          .forceAddTag(ItemTags.CHEST_BOATS);
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_SAWMILL))
           .addTag(ModTags.crafterProduct.get(TagConstants.CRAFTING_MECHANIC))
           .add(Items.MAGMA_CREAM);
@@ -364,16 +376,23 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.WAXED_CUT_COPPER, Items.WAXED_EXPOSED_CUT_COPPER, Items.WAXED_OXIDIZED_CUT_COPPER, Items.WAXED_WEATHERED_CUT_COPPER)
           .add(Items.BASALT, Items.POLISHED_BASALT, Items.SMOOTH_BASALT, Items.TUFF)
           .add(Items.BRICKS, Items.STONE_BRICKS, Items.CHISELED_STONE_BRICKS, Items.CRACKED_STONE_BRICKS, Items.MOSSY_STONE_BRICKS)
-          .addTags(ItemTags.TERRACOTTA, glazedTerracotta)
-          .addTags(Tags.Items.STONE, Tags.Items.COBBLESTONE, Tags.Items.END_STONES)
-          .addTags(Tags.Items.SANDSTONE, concrete)
-          .addTags(com.ldtteam.domumornamentum.tag.ModTags.BRICK_ITEMS)
-          .addTags(com.ldtteam.domumornamentum.tag.ModTags.EXTRA_BLOCK_ITEMS)
-          .addTags(ItemTags.STAIRS, ItemTags.SLABS, ItemTags.WALLS);
+          .forceAddTag(ItemTags.TERRACOTTA)
+          .addTag(glazedTerracotta)
+          .forceAddTag(Tags.Items.STONE)
+          .forceAddTag(Tags.Items.COBBLESTONE)
+          .forceAddTag(Tags.Items.END_STONES)
+          .forceAddTag(Tags.Items.SANDSTONE)
+          .addTag(concrete)
+          .forceAddTag(com.ldtteam.domumornamentum.tag.ModTags.BRICK_ITEMS)
+          .forceAddTag(com.ldtteam.domumornamentum.tag.ModTags.EXTRA_BLOCK_ITEMS)
+          .forceAddTag(ItemTags.STAIRS)
+          .forceAddTag(ItemTags.SLABS)
+          .forceAddTag(ItemTags.WALLS);
 
         tag(ModTags.crafterIngredientExclusions.get(TagConstants.CRAFTING_STONEMASON))
           .add(Items.STICK)
-          .addTags(ItemTags.LOGS, ItemTags.PLANKS)
+          .forceAddTag(ItemTags.LOGS)
+          .forceAddTag(ItemTags.PLANKS)
           .addTag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_MECHANIC))
           .addTag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_DYER));
 
@@ -393,16 +412,21 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.WAXED_CUT_COPPER, Items.WAXED_EXPOSED_CUT_COPPER, Items.WAXED_OXIDIZED_CUT_COPPER, Items.WAXED_WEATHERED_CUT_COPPER)
           .add(Items.MAGMA_BLOCK)
           .add(Items.SNOW)
-          .addTag(com.ldtteam.domumornamentum.tag.ModTags.BRICK_ITEMS)
-          .addTag(com.ldtteam.domumornamentum.tag.ModTags.EXTRA_BLOCK_ITEMS)
-          .addTags(Tags.Items.STONE, Tags.Items.COBBLESTONE, Tags.Items.SANDSTONE)
-          .addTags(ItemTags.STONE_BRICKS, ItemTags.SLABS, ItemTags.STAIRS, ItemTags.WALLS);
+          .forceAddTag(com.ldtteam.domumornamentum.tag.ModTags.BRICK_ITEMS)
+          .forceAddTag(com.ldtteam.domumornamentum.tag.ModTags.EXTRA_BLOCK_ITEMS)
+          .forceAddTag(Tags.Items.STONE)
+          .forceAddTag(Tags.Items.COBBLESTONE)
+          .forceAddTag(Tags.Items.SANDSTONE)
+          .forceAddTag(ItemTags.STONE_BRICKS)
+          .forceAddTag(ItemTags.SLABS)
+          .forceAddTag(ItemTags.STAIRS)
+          .forceAddTag(ItemTags.WALLS);
 
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_STONEMASON))
                 .addTag(ModTags.crafterProduct.get(TagConstants.CRAFTING_MECHANIC))
-                .addTag(ItemTags.WOODEN_SLABS)
-                .addTag(ItemTags.WOODEN_STAIRS)
-                .addTag(ItemTags.TRIM_TEMPLATES)
+                .forceAddTag(ItemTags.WOODEN_SLABS)
+                .forceAddTag(ItemTags.WOODEN_STAIRS)
+                .forceAddTag(ItemTags.TRIM_TEMPLATES)
                 .add(Items.LECTERN, Items.PISTON, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)
                 .add(Items.PRISMARINE, Items.PRISMARINE_BRICKS)
                 .add(paperExtras);
@@ -427,18 +451,19 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.COAL)
           .add(Items.CHARCOAL)
           .add(Items.NETHER_BRICK)
-          .addTag(Tags.Items.STONE)
+          .forceAddTag(Tags.Items.STONE)
           .add(Items.SMOOTH_STONE)
           .add(Items.DEEPSLATE)
-          .addTags(ItemTags.TERRACOTTA, glazedTerracotta)
-          .addTag(ItemTags.STONE_BRICKS);
+          .forceAddTag(ItemTags.TERRACOTTA)
+          .addTag(glazedTerracotta)
+          .forceAddTag(ItemTags.STONE_BRICKS);
 
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_STONE_SMELTERY));
 
         tag(ModTags.crafterIngredient.get(TagConstants.CRAFTING_REDUCEABLE))
 
           .add(Items.BOOK, Items.PAPER, Items.SUGAR)
-          .addTag(ItemTags.FISHES)
+          .forceAddTag(ItemTags.FISHES)
           .add(Items.BEEF)
           .add(Items.MUTTON)
           .add(Items.CHICKEN)
@@ -452,15 +477,22 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(Items.POPPED_CHORUS_FRUIT)
           .add(Items.PRISMARINE_SHARD)
           .add(Items.PRISMARINE_CRYSTALS)
-          .addTags(Tags.Items.GLASS, Tags.Items.GLASS_PANES)
-          .addTag(Tags.Items.CROPS_WHEAT)
-          .addTag(Tags.Items.STRING)
-          .addTags(Tags.Items.NUGGETS, Tags.Items.INGOTS)
-          .addTags(Tags.Items.STONE, Tags.Items.COBBLESTONE)
-          .addTags(Tags.Items.GRAVEL, Tags.Items.SAND)
-          .addTags(Tags.Items.DUSTS, Tags.Items.GEMS)
-          .addTag(ItemTags.WOOL)
-          .addTags(ItemTags.LOGS, ItemTags.PLANKS, ItemTags.STONE_BRICKS);
+          .forceAddTag(Tags.Items.GLASS)
+          .forceAddTag(Tags.Items.GLASS_PANES)
+          .forceAddTag(Tags.Items.CROPS_WHEAT)
+          .forceAddTag(Tags.Items.STRING)
+          .forceAddTag(Tags.Items.NUGGETS)
+          .forceAddTag(Tags.Items.INGOTS)
+          .forceAddTag(Tags.Items.STONE)
+          .forceAddTag(Tags.Items.COBBLESTONE)
+          .forceAddTag(Tags.Items.GRAVEL)
+          .forceAddTag(Tags.Items.SAND)
+          .forceAddTag(Tags.Items.DUSTS)
+          .forceAddTag(Tags.Items.GEMS)
+          .forceAddTag(ItemTags.WOOL)
+          .forceAddTag(ItemTags.LOGS)
+          .forceAddTag(ItemTags.PLANKS)
+          .forceAddTag(ItemTags.STONE_BRICKS);
 
 
         tag(ModTags.crafterProductExclusions.get(TagConstants.CRAFTING_REDUCEABLE))
@@ -469,12 +501,15 @@ public class DefaultItemTagsProvider extends ItemTagsProvider
           .add(ModItems.cookieDough)
           .add(ModItems.rawPumpkinPie)
           .add(ModItems.cakeBatter)
-          .addTags(Tags.Items.STONE, Tags.Items.COBBLESTONE)
-          .addTags(Tags.Items.GRAVEL, Tags.Items.SAND)
-          .addTags(Tags.Items.INGOTS, storageBlocks);
+          .forceAddTag(Tags.Items.STONE)
+          .forceAddTag(Tags.Items.COBBLESTONE)
+          .forceAddTag(Tags.Items.GRAVEL)
+          .forceAddTag(Tags.Items.SAND)
+          .forceAddTag(Tags.Items.INGOTS)
+          .addTag(storageBlocks);
 
         tag(ModTags.ignoreNBT)
-          .addTag(ItemTags.BANNERS);
+          .forceAddTag(ItemTags.BANNERS);
     }
 
     @NotNull

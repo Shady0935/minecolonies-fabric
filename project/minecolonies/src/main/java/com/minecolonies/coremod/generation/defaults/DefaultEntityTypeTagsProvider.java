@@ -2,34 +2,28 @@ package com.minecolonies.coremod.generation.defaults;
 
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.items.ModTags;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.EntityTypeTagsProvider;
-import net.minecraft.tags.TagEntry;
 import net.minecraft.world.entity.EntityType;
-import com.minecolonies.fabric.common.data.ExistingFileHelper;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.minecolonies.api.util.constant.Constants.MOD_ID;
-
-public class DefaultEntityTypeTagsProvider extends EntityTypeTagsProvider
+public class DefaultEntityTypeTagsProvider extends FabricTagProvider.EntityTypeTagProvider
 {
-    public DefaultEntityTypeTagsProvider(final PackOutput output,
-      final CompletableFuture<HolderLookup.Provider> lookupProvider,
-      @Nullable final ExistingFileHelper existingFileHelper)
+    public DefaultEntityTypeTagsProvider(final FabricDataOutput output,
+      final CompletableFuture<HolderLookup.Provider> lookupProvider)
     {
-        super(output, lookupProvider, MOD_ID, existingFileHelper);
+        super(output, lookupProvider);
     }
 
     @Override
     protected void addTags(final HolderLookup.Provider holder)
     {
-        tag(ModTags.hostile).add(EntityType.SLIME);
-        tag(ModTags.mobAttackBlacklist).add(EntityType.ENDERMAN, EntityType.LLAMA);
+        getOrCreateTagBuilder(ModTags.hostile).add(EntityType.SLIME);
+        getOrCreateTagBuilder(ModTags.mobAttackBlacklist).add(EntityType.ENDERMAN, EntityType.LLAMA);
 
-        final TagAppender<EntityType<?>> raiderTagAppender = tag(ModTags.raiders);
-        ModEntities.getRaiders().forEach(raiderType -> raiderTagAppender.add(TagEntry.element(EntityType.getKey(raiderType))));
+        final var raiderTagAppender = getOrCreateTagBuilder(ModTags.raiders);
+        ModEntities.getRaiders().forEach(raiderType -> raiderTagAppender.add(EntityType.getKey(raiderType)));
     }
 }

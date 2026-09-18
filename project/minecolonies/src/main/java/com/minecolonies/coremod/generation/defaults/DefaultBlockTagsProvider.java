@@ -2,30 +2,35 @@ package com.minecolonies.coremod.generation.defaults;
 
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.items.ModTags;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import com.minecolonies.fabric.common.Tags;
-import com.minecolonies.fabric.common.data.BlockTagsProvider;
-import com.minecolonies.fabric.common.data.ExistingFileHelper;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
 @SuppressWarnings({"ConstantConditions", "unchecked"})
-public class DefaultBlockTagsProvider extends BlockTagsProvider
+public class DefaultBlockTagsProvider extends FabricTagProvider.BlockTagProvider
 {
 
     public DefaultBlockTagsProvider(
-      final PackOutput output,
-      final CompletableFuture<HolderLookup.Provider> lookupProvider,
-      @Nullable final ExistingFileHelper existingFileHelper)
+      final FabricDataOutput output,
+      final CompletableFuture<HolderLookup.Provider> lookupProvider)
     {
-        super(output, lookupProvider, MOD_ID, existingFileHelper);
+        super(output, lookupProvider);
+    }
+
+    @Override
+    protected FabricTagProvider<Block>.FabricTagBuilder tag(final TagKey<Block> key)
+    {
+        return getOrCreateTagBuilder(key);
     }
 
     @Override
@@ -46,9 +51,9 @@ public class DefaultBlockTagsProvider extends BlockTagsProvider
                 .add(Blocks.LANTERN)
                 .add(ModBlocks.blockWoodenGate)
                 .add(ModBlocks.blockIronGate)
-                .addTag(BlockTags.BANNERS)
-                .addTag(BlockTags.SIGNS)
-                .addTag(BlockTags.CAMPFIRES);
+                .forceAddTag(BlockTags.BANNERS)
+                .forceAddTag(BlockTags.SIGNS)
+                .forceAddTag(BlockTags.CAMPFIRES);
 
         tag(ModTags.concreteBlock)
                 .add(Blocks.WHITE_CONCRETE)
@@ -70,7 +75,7 @@ public class DefaultBlockTagsProvider extends BlockTagsProvider
 
         tag(ModTags.pathingBlocks)
                 .addTag(ModTags.concreteBlock)
-                .addTag(BlockTags.STONE_BRICKS)
+                .forceAddTag(BlockTags.STONE_BRICKS)
                 .add(Blocks.STONE_BRICK_STAIRS)
                 .add(Blocks.STONE_BRICK_SLAB)
                 .add(Blocks.MOSSY_STONE_BRICK_SLAB)
@@ -131,14 +136,14 @@ public class DefaultBlockTagsProvider extends BlockTagsProvider
                 .add(Blocks.DEEPSLATE_TILES)
                 .add(Blocks.DEEPSLATE_TILE_SLAB)
                 .add(Blocks.DEEPSLATE_TILE_STAIRS)
-                .addTag(com.ldtteam.domumornamentum.tag.ModTags.BRICKS);
+                .forceAddTag(com.ldtteam.domumornamentum.tag.ModTags.BRICKS);
 
         tag(ModTags.mangroveTree)
                 .add(Blocks.MANGROVE_LOG)
                 .add(Blocks.MANGROVE_ROOTS);
 
         tag(ModTags.tree)
-                .addTag(BlockTags.LOGS)
+                .forceAddTag(BlockTags.LOGS)
                 .addTag(ModTags.mangroveTree);
 
         tag(ModTags.colonyProtectionException)
@@ -148,8 +153,10 @@ public class DefaultBlockTagsProvider extends BlockTagsProvider
 
         tag(ModTags.indestructible).add(Blocks.BEDROCK);
         tag(ModTags.oreChanceBlocks)
-                .addTags(Tags.Blocks.STONE, Tags.Blocks.COBBLESTONE)
-                .addTags(BlockTags.BASE_STONE_OVERWORLD, BlockTags.BASE_STONE_NETHER);
+                .forceAddTag(Tags.Blocks.STONE)
+                .forceAddTag(Tags.Blocks.COBBLESTONE)
+                .forceAddTag(BlockTags.BASE_STONE_OVERWORLD)
+                .forceAddTag(BlockTags.BASE_STONE_NETHER);
 
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ModBlocks.blockIronGate);
@@ -173,8 +180,8 @@ public class DefaultBlockTagsProvider extends BlockTagsProvider
                 .add(ModBlocks.blockNamedGrave);
         tag(ModTags.validSpawn)
           .add(Blocks.AIR, Blocks.CAVE_AIR, Blocks.SNOW, Blocks.TALL_GRASS, Blocks.GRASS, Blocks.FERN, Blocks.TORCH)
-          .addTags(BlockTags.BUTTONS)
-          .addTags(BlockTags.RAILS)
-          .addTags(BlockTags.WOOL_CARPETS);
+          .forceAddTag(BlockTags.BUTTONS)
+          .forceAddTag(BlockTags.RAILS)
+          .forceAddTag(BlockTags.WOOL_CARPETS);
     }
 }

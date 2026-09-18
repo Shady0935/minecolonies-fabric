@@ -4,7 +4,14 @@ import com.minecolonies.api.crafting.CountedIngredient;
 import com.minecolonies.coremod.recipes.FoodIngredient;
 import com.minecolonies.coremod.recipes.PlantIngredient;
 import com.minecolonies.coremod.generation.defaults.DefaultBlockLootTableProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultBlockTagsProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultConventionalBlockTagsProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultConventionalItemTagsProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultDamageTagsProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultDamageTypeProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultEntityLootProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultEntityTypeTagsProvider;
+import com.minecolonies.coremod.generation.defaults.DefaultItemTagsProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultRecipeProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultResearchProvider;
 import com.minecolonies.coremod.generation.defaults.DefaultSupplyLootProvider;
@@ -33,6 +40,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import com.minecolonies.fabric.common.crafting.CraftingHelper;
+import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.data.DataProvider;
 import net.minecraft.core.HolderLookup;
 
@@ -50,6 +58,13 @@ import java.util.function.Function;
 public final class MineColoniesDataGenerator implements DataGeneratorEntrypoint
 {
     @Override
+    public void buildRegistry(final RegistrySetBuilder builder)
+    {
+        builder.add(net.minecraft.core.registries.Registries.DAMAGE_TYPE,
+          DefaultDamageTypeProvider::bootstrap);
+    }
+
+    @Override
     public void onInitializeDataGenerator(final FabricDataGenerator generator)
     {
         CraftingHelper.register(CountedIngredient.ID, CountedIngredient.SERIALIZER);
@@ -61,6 +76,13 @@ public final class MineColoniesDataGenerator implements DataGeneratorEntrypoint
 
         pack.addProvider(provider(DefaultRecipeProvider::new));
         pack.addProvider(provider(DefaultResearchProvider::new));
+        pack.addProvider(registryProvider(DefaultConventionalBlockTagsProvider::new));
+        pack.addProvider(registryProvider(DefaultConventionalItemTagsProvider::new));
+        final DefaultBlockTagsProvider blockTags = pack.addProvider(registryProvider(DefaultBlockTagsProvider::new));
+        pack.addProvider((output, registries) -> new DefaultItemTagsProvider(output, registries, blockTags));
+        pack.addProvider(registryProvider(DefaultEntityTypeTagsProvider::new));
+        pack.addProvider(provider(DefaultDamageTypeProvider::new));
+        pack.addProvider(registryProvider(DefaultDamageTagsProvider::new));
         pack.addProvider(provider(DefaultBlockLootTableProvider::new));
         pack.addProvider(provider(DefaultEntityLootProvider::new));
         pack.addProvider(provider(DefaultSupplyLootProvider::new));

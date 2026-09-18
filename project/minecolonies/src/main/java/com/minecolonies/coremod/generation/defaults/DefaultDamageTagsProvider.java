@@ -1,34 +1,40 @@
 package com.minecolonies.coremod.generation.defaults;
 
 import com.minecolonies.api.util.DamageSourceKeys;
-import com.minecolonies.api.util.constant.Constants;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.DamageTypeTagsProvider;
-import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageType;
-import com.minecolonies.fabric.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
 
 @SuppressWarnings("unchecked")
-public class DefaultDamageTagsProvider extends TagsProvider<DamageType>
+public class DefaultDamageTagsProvider extends FabricTagProvider<DamageType>
 {
     public DefaultDamageTagsProvider(
-      @NotNull final PackOutput output,
-      final CompletableFuture<HolderLookup.Provider> lookupProvider, final ExistingFileHelper helper)
+      @NotNull final FabricDataOutput output,
+      final CompletableFuture<HolderLookup.Provider> lookupProvider)
     {
-        super(output, Registries.DAMAGE_TYPE, lookupProvider, Constants.MOD_ID, helper);
+        super(output, Registries.DAMAGE_TYPE, lookupProvider);
     }
 
     @Override
     protected void addTags(final HolderLookup.Provider lookup)
     {
-        tag(DamageTypeTags.BYPASSES_ARMOR).add(DamageSourceKeys.WAKEY, DamageSourceKeys.GUARD_PVP);
-        tag(DamageTypeTags.IS_PROJECTILE).add(DamageSourceKeys.SPEAR);
+        getOrCreateTagBuilder(DamageTypeTags.BYPASSES_ARMOR)
+          .add(DamageSourceKeys.WAKEY.location(), DamageSourceKeys.GUARD_PVP.location());
+        getOrCreateTagBuilder(DamageTypeTags.IS_PROJECTILE)
+          .add(DamageSourceKeys.SPEAR.location());
+    }
+
+    @Override
+    @NotNull
+    public String getName()
+    {
+        return "MineColonies Damage Type Tags";
     }
 }

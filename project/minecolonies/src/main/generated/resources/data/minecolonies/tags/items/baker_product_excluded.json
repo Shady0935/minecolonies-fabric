@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:bread",
+    "minecraft:cake",
+    "minecraft:cookie",
+    "minecraft:pumpkin_pie",
+    "minecraft:packed_mud"
+  ]
+}
