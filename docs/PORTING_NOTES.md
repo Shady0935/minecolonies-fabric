@@ -84,10 +84,27 @@ redirects only the `turnToDirt` mutation, so a canceled `FarmlandTrampleEvent`
 preserves the farmland while retaining vanilla fall damage. Finally,
 `FabricGameplayHooks` posts `FillBucketEvent` for bucket use with the same
 raycast target before vanilla performs the fill. The focused server fixture in
-`logs/minecolonies-gametest-compat-event-mixins.log` verifies the three
-mixin-backed cancellation paths; explosion phases and mob-spawn position checks
-remain explicit gaps because they require different internal interception
-points.
+`logs/minecolonies-gametest-explosion-damage-retry.log` verifies the three
+mixin-backed cancellation paths plus the hostile-spawn and living-entity
+explosion-policy bridges; generic explosion phases still require different
+internal interception points.
+
+The retained `MobSpawnEvent.PositionCheck` is bridged at the two vanilla
+`NaturalSpawner` spawn-rule gates: natural spawning and chunk-generation
+spawning. The hook posts the event with the mob's resolved position before
+calling vanilla `checkSpawnRules`; a `DENY` result blocks only that candidate.
+Spawner, spawn-egg, `/summon`, raid and MineColonies-owned spawn paths do not
+pass through this redirect, matching the upstream handler's explicit spawner
+exception and avoiding a broad entity-load veto.
+
+Explosion protection has a deliberately split scope on 1.20.1. The existing
+`ALLOW_DAMAGE` callback now applies `turnOffExplosionsInColonies` to living
+entities with the upstream policy: `DAMAGE_PLAYERS` protects non-hostile
+colony entities, `DAMAGE_NOTHING` protects all non-player colony entities, and
+the two permissive policies allow the damage. Fabric 1.20.1 still exposes no
+generic explosion start/detonate callback, so block-list filtering, non-living
+blast victims and a full start cancellation remain open limitations rather
+than being approximated by a global no-op.
 
 The client entrypoint also forwards item tooltip and play-connection disconnect
 callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not

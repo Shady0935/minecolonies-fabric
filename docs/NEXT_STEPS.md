@@ -21,9 +21,11 @@ The following work remains, in order:
 3. Continue covering the remaining Forge event points only where a narrow mixin
    or server hook can preserve semantics. Item toss/pickup, farmland trampling
    and bucket filling now have focused Fabric bridges and cancellation coverage;
-   explosion start/detonate and mob-spawn position checks remain explicit gaps.
-   The retained `ArrowLooseEvent` bridge is covered, while the unsupported
-   `ArrowNock` extension point stays documented.
+   hostile natural/chunk-generation position checks and living-entity explosion
+   damage are also covered. Explosion start/detonate block filtering, non-living
+   blast victims and full start cancellation remain explicit gaps. The retained
+   `ArrowLooseEvent` bridge is covered, while the unsupported `ArrowNock`
+   extension point stays documented.
 4. Port the entity DataFixer registrations or document a deliberate migration
    policy for existing MineColonies 1.20.1 saves.
 5. Port the eight excluded Forge-only datagen providers and compare their

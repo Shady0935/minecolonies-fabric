@@ -37,9 +37,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
   before vanilla fills the bucket; the focused server fixture verifies the
-  cancellation semantics of the three mixin-backed paths. Explosion
-  start/detonate and mob-spawn position checks remain explicit coverage gaps;
-  they are not hidden behind broad no-op adapters.
+  cancellation semantics of the three mixin-backed paths. Natural and
+  chunk-generation hostile spawn position checks are now covered at
+  `NaturalSpawner`, and living-entity explosion damage follows the configured
+  colony policy through `ALLOW_DAMAGE`. Explosion start/detonate block-list
+  filtering, non-living blast victims and full start cancellation remain
+  explicit coverage gaps; they are not hidden behind broad no-op adapters.
 - The retained bow adapter now dispatches `ArrowLooseEvent` and respects
   cancellation for MineColonies colony permissions. Fabric still has no direct
   `ArrowNockEvent` callback in this target, so external listeners cannot yet

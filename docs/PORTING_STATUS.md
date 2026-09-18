@@ -54,8 +54,15 @@ completed.
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
-  retained `FillBucketEvent` contract; the 11-test server fixture covers the
+  retained `FillBucketEvent` contract; the 12-test server fixture covers the
   cancellation semantics of the mixin-backed paths
+- [x] `NaturalSpawner` forwards natural and chunk-generation spawn-rule checks
+  to the retained `MobSpawnEvent.PositionCheck`; the focused fixture verifies
+  that a `DENY` result blocks a hostile candidate without touching spawner or
+  MineColonies-owned spawn paths
+- [x] Fabric's living-damage callback applies the retained colony explosion
+  policy to living entities; block-list filtering and generic explosion start
+  interception remain explicitly documented limitations
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
@@ -103,14 +110,15 @@ completed.
   representative network codec/split-envelope behavior, extended menu opening
   data, citizen entity registration and serialization, supply-loot target
   tables, Town Hall protection callbacks, populated-tavern mob-conversion
-  replacement, bow-hook compatibility semantics and cancellable gameplay-event
-  semantics for item toss/pickup and farmland trampling
+  replacement, bow-hook compatibility semantics, cancellable gameplay-event
+  semantics, the hostile-spawn position veto and explosion entity-policy
+  semantics
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
   replacement are exercised by real colony fixtures, while retained bow
-  cancellation plus item toss/pickup and farmland-trample cancellation paths
-  are exercised by focused fixtures
+  cancellation plus item toss/pickup, farmland-trample, hostile-spawn and
+  explosion entity-policy paths are exercised by focused fixtures
 - [x] Core colony creation and persistence runtime fixture
 - [x] Dedicated-server restart after common S2C registration changes
 - [x] Manual validation list and remaining limitations documented
