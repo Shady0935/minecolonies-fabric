@@ -28,12 +28,14 @@ completed.
 
 ## Runtime
 
-- [x] Fabric datagen task and portable provider set; `runDatagen` registered 27
-  providers and generated 764 JSON resources. The eight remaining Forge-only
-  providers are explicitly excluded and tracked in the limitations.
+- [x] Fabric datagen task and portable provider set; `runDatagen` registered 34
+  providers and generated 895 JSON resources, including native block/item/entity
+  type/damage tags and the missing `c:` conventional compatibility tags. The
+  three remaining Forge-only providers are explicitly excluded and tracked in
+  the limitations.
 - [x] The tracked upstream 1.20.1 generated parity snapshot is included on
-  the runtime resource path: the packaged JAR now exposes 1,434 JSON files,
-  including 28 damage types, 96 tags, 152 advancements and 9 quests, plus
+  the runtime resource path: the packaged JAR now exposes 1,453 JSON files,
+  including 28 damage types, 130 tags, 152 advancements and 9 quests, plus
   2,599 generated citizen/raider icon textures. Fabric-generated files remain
   authoritative when a path overlaps.
 - [x] Dedicated server startup reaches `Done`
@@ -74,6 +76,9 @@ completed.
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
+- [x] MineColonies' Forge-shaped conventional item/block tag references resolve
+  at runtime through native Fabric datagen; dedicated startup and `/reload`
+  report no missing-tag errors
 
 ## Gameplay systems
 
@@ -133,4 +138,7 @@ completed.
 - [x] Core colony creation and persistence runtime fixture
 - [x] Dedicated-server restart after common S2C registration changes
 - [x] Dedicated-server restart queried saved citizen and visitor entities
+- [x] Dedicated-server startup and `/reload` validated the generated `c:`
+  conventional tags; evidence is in
+  `logs/minecolonies-native-conventional-tags.log`
 - [x] Manual validation list and remaining limitations documented

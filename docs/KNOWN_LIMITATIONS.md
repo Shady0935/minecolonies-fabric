@@ -12,17 +12,14 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   that upstream behavior rather than inventing migration schemas; existing
   saves that require entity-version migration are not covered yet.
 - Fabric datagen is available and reproducible for the portable provider set:
-  27 providers generated 764 JSON resources. Eight upstream providers remain
-  explicitly excluded because they still depend on Forge-only APIs:
-  `DefaultAdvancementsProvider`, `DefaultBlockTagsProvider`,
-  `DefaultDamageTagsProvider`, `DefaultDamageTypeProvider`,
-  `DefaultEntityIconProvider`, `DefaultEntityTypeTagsProvider`,
-  `DefaultItemTagsProvider` and `QuestTranslationProvider`. Their exact parity
-  is not claimed until those providers are ported or replaced with Fabric
-  implementations. Their tracked upstream 1.20.1 outputs are nevertheless
-  packaged as a runtime parity snapshot: the JAR contains 1,434 JSON files and
-  2,599 citizen/raider icon textures. This restores runtime content parity but
-  does not make the excluded provider graph reproducible from Fabric datagen.
+  34 providers generated 895 JSON resources, including native MineColonies
+  block/item/entity/damage tags and the missing `c:` conventional tags. Three
+  upstream providers remain explicitly excluded because they still depend on
+  Forge-only APIs: `DefaultAdvancementsProvider`, `DefaultEntityIconProvider`
+  and `QuestTranslationProvider`. Their tracked upstream 1.20.1 outputs are
+  nevertheless packaged as a runtime parity snapshot. This restores runtime
+  content parity but does not make those three provider graphs reproducible
+  from Fabric datagen.
 - JEI and JourneyMap integrations are excluded from the target source set.
 - The standalone MultiPiston Forge dependency is not included in the Fabric
   runtime. The current MineColonies main source has no direct runtime reference

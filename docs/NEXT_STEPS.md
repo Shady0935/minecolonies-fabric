@@ -33,9 +33,9 @@ The following work remains, in order:
    modern Fabric reference, so do not invent migrations. Revisit only if
    upstream publishes schemas or a real legacy-save requirement is defined.
 5. Replace the packaged upstream parity snapshot with native Fabric providers
-   for the eight excluded datagen areas, then compare freshly generated tags,
-   advancements, damage data, entity icons and translations against the current
-   validated snapshot.
+   for the three excluded datagen areas, then compare freshly generated
+   advancements, entity icons and translations against the current validated
+   snapshot.
 6. Decide whether the standalone MultiPiston feature belongs in the supported
    Fabric distribution; if it does, port it as its own Fabric module rather
    than hiding its Forge implementation behind compatibility stubs.
