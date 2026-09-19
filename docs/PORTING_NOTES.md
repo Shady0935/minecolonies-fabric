@@ -187,7 +187,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 78-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 79-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -201,17 +201,21 @@ Hall, claims the full blueprint footprint required by the upstream
 verifies that `WorkManager` assigns and returns the persistent order ID. A
 companion fixture registers a real Colonial Builder, assigns a live citizen to
 `JobBuilder`, and verifies that `BuildingBuilder.searchWorkOrder()` assigns the
-order and persists the citizen claim. These are server-side work-order and
-assignment contracts; they do not claim that Builder AI navigation, material
-requests, block placement or BlockUI interaction are complete.
+order and persists the citizen claim. A focused companion creates a one-block
+`Blueprint`, routes it through the real `EntityAIStructureBuilder` and
+`BuildingStructureHandler`, and verifies solid-block placement plus consumption
+of the required stone item. These are server-side work-order, assignment and
+placement contracts; full Builder navigation, multi-stage construction,
+material-request logistics and BlockUI interaction remain open.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric
 split envelope and server executor, verifies the owner permission path with a
 registered `SERVERBOUND` player, and checks that a live `JobBuilder` allows the
 handlers to create/claim the Town Hall `WorkOrderBuilding` and assign it to the
-citizen job. Builder GUI placement, material consumption and AI navigation
-remain manual validation items.
+citizen job. The one-block server placement/consumption path is automated;
+full blueprint construction, navigation, material-request logistics and Builder
+GUI interaction remain manual validation items.
 
 A companion C2S fixture serializes `DirectPlaceMessage` in the same real split
 envelope. It places a Town Hall for a registered owner, consumes the supplied

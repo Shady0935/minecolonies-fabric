@@ -46,6 +46,7 @@ import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
+import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
@@ -97,6 +98,7 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.EntityUtils;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.entity.ai.citizen.miner.MinerLevel;
+import com.minecolonies.coremod.entity.ai.util.BuildingStructureHandler;
 import com.minecolonies.coremod.tileentities.TileEntityWareHouse;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
@@ -177,6 +179,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.warehous
 import com.minecolonies.coremod.network.messages.server.colony.building.warehouse.UpgradeWarehouseMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
+import com.ldtteam.structurize.util.PlacementSettings;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.common.extensions.IForgeMenuType;
 import com.minecolonies.fabric.event.Event;
@@ -687,6 +690,112 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Builder did not select the registered work order");
         helper.assertTrue(order.isClaimedBy(citizen),
           "Builder did not persist the work-order claim for its citizen");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void builderPlacesSolidBlockThroughStructureHandler(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos relativeBuildTarget = new BlockPos(15, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        final BlockPos buildTarget = helper.absolutePos(relativeBuildTarget);
+        for (int x = 0; x <= 18; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+        level.setBlock(buildTarget, Blocks.AIR.defaultBlockState(), 3);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Builder Placement GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Builder placement fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Builder placement fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "Builder placement fixture did not create a builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(registered instanceof BuildingBuilder,
+          "Builder placement fixture registered the wrong building implementation: " + registered);
+        final BuildingBuilder builder = (BuildingBuilder) registered;
+        helper.assertTrue(builder.getBuildingLevel() >= 1,
+          "Builder placement fixture did not resolve its level-one blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Builder placement fixture could not create a live builder citizen");
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null, "Builder placement worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Builder placement worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobBuilder,
+          "Builder placement assignment did not create the builder job");
+        final JobBuilder job = citizen.getJob(JobBuilder.class);
+        helper.assertTrue(job != null && !job.hasWorkOrder(),
+          "Builder placement job unexpectedly started with a work order");
+
+        final WorkOrderBuilding order = WorkOrderBuilding.create(WorkOrderType.BUILD, builder);
+        colony.getWorkManager().addWorkOrder(order, false);
+        helper.assertTrue(order.getID() > 0, "Builder placement order did not receive a persistent id");
+        helper.assertTrue(order.canBeMadeBy(job), "Builder placement order rejected the assigned builder job");
+        builder.searchWorkOrder();
+        helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
+          "Builder placement builder did not select the registered work order");
+        helper.assertTrue(order.isClaimedBy(citizen),
+          "Builder placement builder did not persist the work-order claim");
+
+        final AbstractEntityCitizen builderCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < builderCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            builderCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        builderCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE));
+
+        final Blueprint placementBlueprint = new Blueprint((short) 1, (short) 1, (short) 1);
+        placementBlueprint.setName("fabric-builder-placement-test");
+        placementBlueprint.addBlockState(BlockPos.ZERO, Blocks.STONE.defaultBlockState());
+        final TestBuilderAI placementAI = new TestBuilderAI(job);
+        final BuildingStructureHandler<JobBuilder, BuildingBuilder> structure = new BuildingStructureHandler<>(
+          level,
+          buildTarget,
+          placementBlueprint,
+          new PlacementSettings(),
+          placementAI,
+          new BuildingStructureHandler.Stage[] {BuildingStructureHandler.Stage.BUILD_SOLID});
+        placementAI.attach(structure);
+        for (int i = 0; i < 4 && !level.getBlockState(buildTarget).is(Blocks.STONE); i++)
+        {
+            placementAI.step();
+        }
+
+        helper.assertTrue(level.getBlockState(buildTarget).is(Blocks.STONE),
+          "Builder structure step did not place the requested solid block");
+        helper.assertTrue(countItem(builderCitizen, Items.STONE) == 0,
+          "Builder structure step did not consume the required block item");
         helper.succeed();
     }
 
@@ -5822,6 +5931,24 @@ public final class MineColoniesGameTests implements FabricGameTest
             blockToMine = target;
             workFrom = stand;
             doMining();
+        }
+    }
+
+    private static final class TestBuilderAI extends EntityAIStructureBuilder
+    {
+        private TestBuilderAI(final JobBuilder job)
+        {
+            super(job);
+        }
+
+        private void attach(final BuildingStructureHandler<JobBuilder, BuildingBuilder> handler)
+        {
+            super.setStructurePlacer(handler);
+        }
+
+        private void step()
+        {
+            structureStep();
         }
     }
 

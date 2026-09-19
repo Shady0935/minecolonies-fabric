@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  78-test GameTest run
+  79-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 78-test Fabric GameTest run
+  is covered by the latest 79-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -297,15 +297,17 @@ completed.
    field registration/assignment and the focused farmer harvest routine, plus
    Guard Tower blueprint registration
    and knight-guard assignment, plantation-field work-order toggling, rally-banner
-   guard-state updates, and RaidManager event eligibility/registration
+   guard-state updates, RaidManager event eligibility/registration, and the
+   focused real Builder one-block placement/material-consumption path
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 78-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 77-test core batch covers event-dispatch
+- [x] Latest 79-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 78-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
-  creation/selection, decoration work-order creation and University research
+  creation/selection, focused Builder one-block solid placement/material
+  consumption, decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,
   colony allocation and flag updates, Builder delivery-priority updates,
   FarmField registration/seed/radius updates, Farmer field assignment
