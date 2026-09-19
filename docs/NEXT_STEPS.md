@@ -2,8 +2,8 @@
 
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
 colony fixture, builder work-order/assignment, residence assignment,
-warehouse/courier resolver wiring, research-manager, University worker-tick and
-Miner work-order/assignment checkpoints are now
+warehouse/courier resolver wiring, Miner work-order/assignment, Farmer field
+assignment, research-manager and University worker-tick checkpoints are now
 complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric

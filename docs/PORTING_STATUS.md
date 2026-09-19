@@ -71,6 +71,9 @@ completed.
   pre-break, pre-place, dimension-change, damage, death and mob-conversion
   callbacks; the retained bow adapter dispatches and respects cancellation of
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
+- [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
+  so colony-scoped registration/removal cannot race event dispatch; the
+  21-test GameTest batch exercises this under concurrent colony fixtures
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
   retained `FillBucketEvent` contract; the 13-test server fixture covers the
@@ -143,6 +146,10 @@ completed.
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; mining AI, shaft/ore behavior,
   placement and resource logistics remain open
+- [x] Server-side Farmer registration resolves the Colonial level-one farm
+  blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
+  `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
+  harvesting AI, placement and farming GUI remain open
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -170,10 +177,11 @@ completed.
    work-order registration and live `JobBuilder` claim selection, residence
    registration and citizen-home assignment, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
-   warehouse/courier resolver wiring, and Miner work-order/claim selection
+   warehouse/courier resolver wiring, Miner work-order/claim selection, and
+   Farmer field registration/assignment
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 20-test Fabric GameTest batch passes with clean saves for all three
+- [x] Latest 21-test Fabric GameTest batch passes with clean saves for all three
   dimensions; research-cycle evidence is in
   `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload

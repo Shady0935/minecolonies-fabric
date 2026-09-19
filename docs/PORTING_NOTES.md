@@ -139,6 +139,11 @@ The Forge-shaped bow compatibility surface preserves the upstream neutral
 permission handler. The focused GameTest verifies both the scepter-use flow
 and the cancellation gate.
 
+The retained Forge-shaped event bus now stores listeners and consumers in
+copy-on-write collections. GameTests create and remove colony-scoped permission
+listeners while other fixtures dispatch gameplay callbacks; stable snapshots
+preserve the upstream listener semantics without concurrent `ArrayList` races.
+
 ## Server-side colony fixture and structure packs
 
 Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
@@ -194,6 +199,13 @@ to `JobMiner`, creates a persistent `WorkOrderMiner` through the colony
 order and persists the citizen claim. Mine-shaft construction, ore/mining AI,
 placement, resource delivery and the miner GUI remain open.
 
+The farmer fixture registers a Colonial farmer through its real building entry,
+resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
+`FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
+`FarmerFieldsModule` then retains the field and its owning building ID. Crop
+growth/harvesting AI, field placement, resource delivery and the farming GUI
+remain manual validation items.
+
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond
 cost, advances the configured branch progress, records completion and verifies
@@ -214,13 +226,13 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 20-test run therefore resolves the structure without
+the building; the latest 21-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The latest 20-test GameTest batch resolves all four
+retained `ResearchListener`. The latest 21-test GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`; its
 research-cycle fixture also covers item-cost consumption, progress completion,
