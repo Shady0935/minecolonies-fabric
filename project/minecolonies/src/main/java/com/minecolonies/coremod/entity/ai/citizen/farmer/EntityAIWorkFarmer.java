@@ -31,7 +31,6 @@ import com.minecolonies.coremod.network.messages.client.CompostParticleMessage;
 import com.minecolonies.coremod.util.AdvancementUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -788,9 +787,7 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
 
         final double chance = worker.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(FARMING);
 
-        final NonNullList<ItemStack> drops = NonNullList.create();
-        state.getDrops(new LootParams.Builder((ServerLevel) world).withLuck(fortune)
-                         .withLuck(fortune)
+        final List<ItemStack> drops = state.getDrops(new LootParams.Builder((ServerLevel) world).withLuck(fortune)
                          .withParameter(LootContextParams.ORIGIN, worker.position())
                          .withParameter(LootContextParams.TOOL, tool)
                          .withParameter(LootContextParams.THIS_ENTITY, getCitizen()));
