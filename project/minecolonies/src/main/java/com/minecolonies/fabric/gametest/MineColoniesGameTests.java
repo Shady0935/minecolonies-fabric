@@ -23,6 +23,7 @@ import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.colony.requestsystem.StandardFactoryController;
+import com.minecolonies.api.colony.requestsystem.location.ILocation;
 import com.minecolonies.api.colony.requestsystem.request.RequestState;
 import com.minecolonies.api.colony.requestsystem.requestable.Stack;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
@@ -48,6 +49,7 @@ import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.entity.SpearEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.colony.workorders.WorkOrderDecoration;
+import com.minecolonies.coremod.colony.workorders.WorkOrderPlantationField;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
@@ -84,7 +86,10 @@ import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
+import com.minecolonies.coremod.colony.requestsystem.locations.EntityLocation;
+import com.minecolonies.coremod.colony.requestsystem.locations.StaticLocation;
 import com.minecolonies.coremod.colony.workorders.WorkOrderMiner;
+import com.minecolonies.coremod.items.ItemBannerRallyGuards;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.EntityUtils;
 import com.minecolonies.coremod.util.ChunkDataHelper;
@@ -100,9 +105,12 @@ import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
+import com.minecolonies.coremod.network.messages.server.PlantationFieldBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.ReactivateBuildingMessage;
+import com.minecolonies.coremod.network.messages.server.RemoveFromRallyingListMessage;
 import com.minecolonies.coremod.network.messages.server.ResourceScrollSaveWarehouseSnapshotMessage;
 import com.minecolonies.coremod.network.messages.server.SwitchBuildingWithToolMessage;
+import com.minecolonies.coremod.network.messages.server.ToggleBannerRallyGuardsMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyFlagChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
@@ -3416,8 +3424,18 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeTownHall = new BlockPos(262144, 1, 262144);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final int townHallChunkX = townHall.getX() >> 4;
+        final int townHallChunkZ = townHall.getZ() >> 4;
+        for (int chunkX = townHallChunkX - 2; chunkX <= townHallChunkX + 2; chunkX++)
+        {
+            for (int chunkZ = townHallChunkZ - 2; chunkZ <= townHallChunkZ + 2; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
+                level.getChunk(chunkX, chunkZ);
+            }
+        }
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
 
         final ServerPlayer owner = makeNonCreativeServerPlayer(level);
@@ -3859,6 +3877,234 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 600)
+    public void clientToServerPlantationFieldBuildRequestCreatesAndRemovesWorkOrder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(98304, 1, 98304);
+        final BlockPos relativeField = relativeTownHall.offset(8, 0, 0);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos fieldPos = helper.absolutePos(relativeField);
+        final int fieldChunkX = fieldPos.getX() >> 4;
+        final int fieldChunkZ = fieldPos.getZ() >> 4;
+        for (int chunkX = fieldChunkX - 4; chunkX <= fieldChunkX + 4; chunkX++)
+        {
+            for (int chunkZ = fieldChunkZ - 4; chunkZ <= fieldChunkZ + 4; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
+                level.getChunk(chunkX, chunkZ);
+            }
+        }
+        for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 12; x++)
+        {
+            for (int z = relativeTownHall.getZ() - 2; z <= relativeTownHall.getZ() + 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Plantation Field Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S plantation-field fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S plantation-field fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S plantation-field fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, fieldPos, 4, level, true);
+        helper.assertTrue(IColonyManager.getInstance().getColonyByPosFromDim(level.dimension(), fieldPos) == colony,
+          "C2S plantation-field fixture target was not claimed by the owner colony");
+        helper.assertTrue(colony.getPermissions().hasPermission(owner, Action.MANAGE_HUTS),
+          "C2S plantation-field fixture owner did not receive Manage Huts permission");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S plantation-field fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, PlantationFieldBuildRequestMessage.class);
+        helper.assertTrue(messageId > 0, "PlantationFieldBuildRequest message was not registered");
+        final String blueprintPath = "agriculture/horticulture/plantation1.blueprint";
+        helper.assertTrue(StructurePacks.getBlueprint(Constants.DEFAULT_STYLE, blueprintPath) != null,
+          "C2S plantation-field fixture could not synchronously resolve its blueprint");
+        final PlantationFieldBuildRequestMessage original = new PlantationFieldBuildRequestMessage(
+          WorkOrderType.BUILD, fieldPos, Constants.DEFAULT_STYLE, blueprintPath,
+          level.dimension(), Rotation.CLOCKWISE_90, true, BlockPos.ZERO);
+        final int communicationId = 0x504C4131;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId, original);
+
+        helper.runAfterDelay(400, () ->
+        {
+            final WorkOrderPlantationField order = colony.getWorkManager()
+              .getWorkOrdersOfType(WorkOrderPlantationField.class).stream()
+              .filter(candidate -> candidate.getLocation().equals(fieldPos))
+              .findFirst().orElse(null);
+            helper.assertTrue(order != null,
+              "PlantationFieldBuildRequest message did not create the field work order");
+            helper.assertTrue(order.getWorkOrderType() == WorkOrderType.BUILD,
+              "PlantationFieldBuildRequest message created the wrong work-order type");
+            helper.assertTrue(Constants.DEFAULT_STYLE.equals(order.getStructurePack())
+                && blueprintPath.equals(order.getStructurePath()),
+              "PlantationFieldBuildRequest message stored the wrong pack or blueprint path");
+            helper.assertTrue(order.getRotation() == Rotation.CLOCKWISE_90.ordinal() && order.isMirrored(),
+              "PlantationFieldBuildRequest message lost rotation or mirror state");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "PlantationFieldBuildRequest envelope remained in the split-packet cache");
+
+            final int removeCommunicationId = 0x504C4132;
+            dispatchServerMessage(channel, server, owner, messageId, removeCommunicationId, original);
+            helper.runAfterDelay(2, () ->
+            {
+                helper.assertTrue(colony.getWorkManager().getWorkOrdersOfType(WorkOrderPlantationField.class)
+                    .stream().noneMatch(candidate -> candidate.getLocation().equals(fieldPos)),
+                  "PlantationFieldBuildRequest message did not remove the existing field work order");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                  "PlantationFieldBuildRequest removal envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerRallyBannerMessagesUpdateGuardRallyState(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(196608, 1, 196608);
+        final BlockPos relativeGuardTower = relativeTownHall.offset(8, 0, 0);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos guardTowerPos = helper.absolutePos(relativeGuardTower);
+        final int guardChunkX = guardTowerPos.getX() >> 4;
+        final int guardChunkZ = guardTowerPos.getZ() >> 4;
+        for (int chunkX = guardChunkX - 4; chunkX <= guardChunkX + 4; chunkX++)
+        {
+            for (int chunkZ = guardChunkZ - 4; chunkZ <= guardChunkZ + 4; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
+                level.getChunk(chunkX, chunkZ);
+            }
+        }
+        for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 14; x++)
+        {
+            for (int z = relativeTownHall.getZ() - 2; z <= relativeTownHall.getZ() + 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeGuardTower, ModBlocks.blockHutGuardTower);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Rally Banner Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S rally-banner fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S rally-banner fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S rally-banner fixture Town Hall was not registered");
+
+        final BlockEntity guardTowerEntity = level.getBlockEntity(guardTowerPos);
+        helper.assertTrue(guardTowerEntity instanceof TileEntityColonyBuilding,
+          "C2S rally-banner fixture did not create a guard-tower block entity");
+        final TileEntityColonyBuilding guardTowerHut = (TileEntityColonyBuilding) guardTowerEntity;
+        guardTowerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        guardTowerHut.setBlueprintPath("military/guardtower1.blueprint");
+        guardTowerHut.setSchematicName("guardtower1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(guardTowerHut, level);
+        helper.assertTrue(registered instanceof BuildingGuardTower,
+          "C2S rally-banner fixture registered the wrong building: " + registered);
+        final BuildingGuardTower guardTower = (BuildingGuardTower) registered;
+        final StaticLocation guardLocation = new StaticLocation(guardTower.getID(), level.dimension());
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 1, level, true);
+        owner.teleportTo(townHall.getX() + 0.5D, townHall.getY() + 1.0D, townHall.getZ() + 0.5D);
+        final EntityLocation ownerLocation = new EntityLocation(owner.getUUID());
+        helper.assertTrue(ownerLocation.getPlayerEntity() == owner,
+          "C2S rally-banner fixture could not resolve the owner through EntityLocation");
+        helper.assertTrue(IColonyManager.getInstance().getColonyByPosFromDim(level.dimension(), owner.blockPosition()) == colony,
+          "C2S rally-banner fixture owner was not inside a claimed colony chunk: " + owner.blockPosition());
+        helper.assertTrue(colony.getPermissions().hasPermission(owner, Action.RALLY_GUARDS),
+          "C2S rally-banner fixture owner did not receive Rally Guards permission");
+        helper.assertTrue(ItemBannerRallyGuards.getGuardBuilding(level, guardLocation.getInDimensionLocation()) == guardTower,
+          "C2S rally-banner fixture could not resolve the registered guard tower from its location");
+        final ItemStack banner = new ItemStack(ModItems.bannerRallyGuards);
+        final CompoundTag bannerTag = ItemBannerRallyGuards.checkForCompound(banner);
+        bannerTag.getList(NbtTagConstants.TAG_RALLIED_GUARDTOWERS, Constants.TAG_COMPOUND)
+          .add(StandardFactoryController.getInstance().serialize(guardLocation));
+        owner.getInventory().clearContent();
+        owner.getInventory().setItem(0, banner);
+        final ILocation serializedGuardLocation = ItemBannerRallyGuards.getGuardTowerLocations(banner).get(0);
+        helper.assertTrue(ItemBannerRallyGuards.getGuardBuilding(level, serializedGuardLocation.getInDimensionLocation()) == guardTower,
+          "C2S rally-banner fixture could not resolve the guard tower after banner serialization");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S rally-banner fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int toggleMessageId = findMessageId(channel, ToggleBannerRallyGuardsMessage.class);
+        final int removeMessageId = findMessageId(channel, RemoveFromRallyingListMessage.class);
+        helper.assertTrue(toggleMessageId > 0, "ToggleBannerRallyGuards message was not registered");
+        helper.assertTrue(removeMessageId > 0, "RemoveFromRallyingList message was not registered");
+        final int activateCommunicationId = 0x52414C31;
+        dispatchServerMessage(channel, server, owner, toggleMessageId, activateCommunicationId,
+          new ToggleBannerRallyGuardsMessage(banner.copy()));
+
+        helper.runAfterDelay(2, () ->
+        {
+            final ItemStack activeBanner = owner.getInventory().getItem(0);
+            final EntityLocation ownerRallyLocation = new EntityLocation(owner.getUUID());
+            helper.assertTrue(ownerRallyLocation.getPlayerEntity() == owner,
+              "C2S rally-banner fixture lost the owner before validating the rally location");
+            helper.assertTrue(IColonyManager.getInstance().getColonyByPosFromDim(level.dimension(), ownerRallyLocation.getInDimensionLocation()) == colony,
+              "C2S rally-banner fixture owner left the claimed colony before validating the rally location: "
+                + ownerRallyLocation.getInDimensionLocation());
+            helper.assertTrue(ItemBannerRallyGuards.isActive(activeBanner),
+              "ToggleBannerRallyGuards message did not activate the banner");
+            helper.assertTrue(((ItemBannerRallyGuards) ModItems.bannerRallyGuards).isActiveForGuardTower(activeBanner, guardTower),
+              "ToggleBannerRallyGuards message did not retain the registered guard tower in the active banner");
+            helper.assertTrue(guardTower.getRallyLocation() != null,
+              "ToggleBannerRallyGuards message did not assign the guard rally location");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(activateCommunicationId) == null,
+              "ToggleBannerRallyGuards activation envelope remained in the split-packet cache");
+
+            final int deactivateCommunicationId = 0x52414C32;
+            dispatchServerMessage(channel, server, owner, toggleMessageId, deactivateCommunicationId,
+              new ToggleBannerRallyGuardsMessage(activeBanner.copy()));
+            helper.runAfterDelay(2, () ->
+            {
+                helper.assertTrue(!ItemBannerRallyGuards.isActive(owner.getInventory().getItem(0)),
+                  "ToggleBannerRallyGuards message did not deactivate the banner");
+                helper.assertTrue(guardTower.getRallyLocation() == null,
+                  "ToggleBannerRallyGuards message did not clear the guard rally location");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(deactivateCommunicationId) == null,
+                  "ToggleBannerRallyGuards deactivation envelope remained in the split-packet cache");
+
+                final int removeCommunicationId = 0x52414C33;
+                dispatchServerMessage(channel, server, owner, removeMessageId, removeCommunicationId,
+                  new RemoveFromRallyingListMessage(owner.getInventory().getItem(0).copy(),
+                    guardLocation));
+                helper.runAfterDelay(2, () ->
+                {
+                    helper.assertTrue(ItemBannerRallyGuards.getGuardTowerLocations(owner.getInventory().getItem(0)).isEmpty(),
+                      "RemoveFromRallyingList message did not remove the guard tower");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                      "RemoveFromRallyingList envelope remained in the split-packet cache");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerTransferItemsToCitizenMovesInventory(final GameTestHelper helper)
     {
@@ -4047,12 +4293,10 @@ public final class MineColoniesGameTests implements FabricGameTest
           "C2S recall-assigned fixture Builder rejected the citizen assignment");
         final AbstractEntityCitizen citizenEntity = citizen.getEntity().get();
         citizenEntity.setNoAi(true);
-        final BlockPos expectedSpawn = EntityUtils.getSpawnPoint(level, builderPos);
-        helper.assertTrue(expectedSpawn != null, "C2S recall-assigned fixture found no valid Builder spawn point");
         final BlockPos away = builderPos.offset(12, 0, 8);
         citizenEntity.moveTo(away.getX() + 0.5D, away.getY(), away.getZ() + 0.5D, 0.0F, 0.0F);
-        helper.assertTrue(!citizenEntity.blockPosition().equals(expectedSpawn),
-          "C2S recall-assigned fixture citizen was not moved away before the packet route");
+        helper.assertTrue(citizenEntity.blockPosition().equals(away),
+          "C2S recall-assigned fixture citizen was not moved to the away position before the packet route");
 
         final MinecraftServer server = level.getServer();
         helper.assertTrue(server != null, "C2S recall-assigned fixture has no running server");
@@ -4070,6 +4314,8 @@ public final class MineColoniesGameTests implements FabricGameTest
               "C2S recall-assigned fixture citizen was not alive long enough for a stable recall route");
             readyCitizen.setNoAi(true);
             readyCitizen.setPos(away.getX() + 0.5D, away.getY(), away.getZ() + 0.5D);
+            final BlockPos expectedSpawn = EntityUtils.getSpawnPoint(level, builderPos);
+            helper.assertTrue(expectedSpawn != null, "C2S recall-assigned fixture found no valid Builder spawn point");
             dispatchServerMessage(channel, server, owner, recallMessageId, recallCommunicationId,
               new RecallCitizenMessage(colony.getDimension(), colony.getID(), builderPos));
 

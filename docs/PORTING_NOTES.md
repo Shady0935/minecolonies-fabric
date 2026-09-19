@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 76-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 78-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -476,6 +476,22 @@ with a non-creative inventory. It swaps a cobblestone stack with the
 Structurize build tool across the selected and main-inventory slots and
 confirms the resulting item/count state plus split-cache cleanup.
 
+A forty-sixth companion C2S fixture serializes
+`PlantationFieldBuildRequestMessage` against an isolated Colonial Town Hall.
+It asynchronously resolves `agriculture/horticulture/plantation1.blueprint`,
+creates a `WorkOrderPlantationField` with the requested build type, rotation
+and mirror state, confirms the split-cache cleanup, then sends the same route
+again to remove the existing order. The field placement and planter AI remain
+manual validation items.
+
+A forty-seventh companion C2S fixture serializes
+`ToggleBannerRallyGuardsMessage` and `RemoveFromRallyingListMessage` against an
+isolated Colonial Guard Tower. It preserves the serialized `StaticLocation`,
+activates and deactivates the banner through the server executor, updates and
+clears the tower's rally target, removes the tower from the banner list and
+confirms every split-cache entry is cleaned. Guard navigation, equipment,
+raids and combat remain manual validation items.
+
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
 the level-one house blueprint, assigns a live citizen through
@@ -538,8 +554,15 @@ The full GameTest pass also exposed a race during miner AI startup: a restored
 `BuildingMiner` could request ladder/cobble tags before its building
 BlockEntity had been reattached. `BuildingMiner.loadLadderPos()` now resolves
 the current BlockEntity through the normal lazy lookup and safely waits for a
-later tick when it is still unavailable. The 76-test run no longer reports the
+later tick when it is still unavailable. The 78-test run no longer reports the
 previous `getWorldTagNamePosMap()` null dereference.
+
+The same concurrent server pass exposed that Structurize's global blueprint
+future queue could be starved by an unfinished or unrelated entry at its head.
+`ServerFutureProcessor` now scans each queue for completed work belonging to
+the ticking `ServerLevel` and drains all ready entries, so C2S decoration and
+plantation requests do not depend on queue insertion order or dimension
+timing.
 
 Structurize's server pack loader is connected to Fabric's
 `SERVER_STARTING` callback. Its mod-resource scan also descends through the
@@ -547,7 +570,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 76-test run therefore resolves the structure without
+the building; the latest 78-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -666,6 +689,8 @@ serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `SwitchBuildingWithToolMessage`,
 `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage`,
+`PlantationFieldBuildRequestMessage`, `ToggleBannerRallyGuardsMessage` and
+`RemoveFromRallyingListMessage`,
 wraps each in the
 real split envelope, sends them
 through `SimpleChannel`'s server dispatch boundary and verifies the deferred
@@ -677,10 +702,11 @@ Town Hall placement with item consumption and blueprint resolution, and
 decoration work-order creation with asynchronous blueprint resolution and
 rotation/mirror preservation, building custom-name mutation, colony-style and
 colony-management updates, Builder delivery-priority mutation, Farmer field
-assignment-mode/ownership mutation and Farmer settings mutation,
-deconstructed-building style mutation, Farmer hiring-mode transition,
-creative citizen Strength adjustment, Courier hiring-mode transition and
-Quarry hiring-mode transition and Miner level repair work-order creation. The
+  assignment-mode/ownership mutation and Farmer settings mutation,
+  deconstructed-building style mutation, Farmer hiring-mode transition,
+  creative citizen Strength adjustment, Courier hiring-mode transition and
+  Quarry hiring-mode transition, Miner level repair work-order creation and
+  plantation-field/rally-banner state transitions. The
 work-order priority and removal transitions, residence assignment and
 unassignment, free-interaction block/position permission changes, Builder
 inventory transfer, minimum-stock module updates, Guard Tower entity-filter
@@ -696,8 +722,8 @@ The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-citizen-scroll-tool.log`; it reports
-`All 76 required tests passed` (75 core tests plus one entity batch test).
+`logs/minecolonies-gametest-plantation-rally-fix6.log`; it reports
+`All 78 required tests passed` (77 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

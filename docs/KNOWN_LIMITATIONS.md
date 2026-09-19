@@ -35,7 +35,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `DirectPlaceMessage` Town Hall placement route with item consumption and
   blueprint resolution, and the real C2S `DecorationBuildRequestMessage`
   route with asynchronous blueprint resolution and decoration work-order
-  registration, the real C2S `HutRenameMessage` building-name mutation route,
+  registration, the real C2S `PlantationFieldBuildRequestMessage` route with
+  asynchronous plantation work-order creation/removal, and the real C2S
+  rally-banner toggle/removal routes with serialized Guard Tower locations;
+  the real C2S `HutRenameMessage` building-name mutation route,
   and the real C2S colony name/structure/texture style mutation routes,
   plus the real C2S deconstructed-building style route,
   and the real C2S FarmField registration, seed and radius routes,
@@ -123,6 +126,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage`,
   `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`,
   `DirectPlaceMessage`, `DecorationBuildRequestMessage`, `HutRenameMessage`,
+  `PlantationFieldBuildRequestMessage`, `ToggleBannerRallyGuardsMessage` and
+  `RemoveFromRallyingListMessage`,
   the three colony style messages, `BuildingSetStyleMessage`, the three
   FarmField messages, `RestartCitizenMessage`,
   `ResourceScrollSaveWarehouseSnapshotMessage`,
@@ -157,6 +162,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
+- The full 78-test GameTest run still logs the upstream-style warning that
+  `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
+  fixture registers a Town Hall. The tested server routes still complete and
+  the suite passes; the blueprint data should be audited before treating this
+  warning as resolved.
 
 ## Intentional compatibility residues
 

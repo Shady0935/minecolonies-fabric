@@ -76,8 +76,9 @@ completed.
   request-state updates, building pickup and force-pickup request routes,
   warehouse sort/storage-upgrade routes, Enchanter station assignment,
   Postbox request creation, citizen-restart scheduling, resource-scroll
-  warehouse snapshots and build-tool inventory swapping are covered by the
-  latest 76-test GameTest run
+  warehouse snapshots, build-tool inventory swapping, plantation-field
+  work-order toggling and rally-banner guard state are covered by the latest
+  78-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -98,7 +99,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 76-test Fabric GameTest run
+  is covered by the latest 78-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -176,8 +177,11 @@ completed.
   selected item, preserves the selected style and resolves its blueprint;
   the real C2S `DecorationBuildRequestMessage` route also resolves the
   blueprint asynchronously and registers a `WorkOrderDecoration` with its
-  style, path, rotation and mirror state; Builder AI, construction placement
-  and resource logistics remain open
+  style, path, rotation and mirror state; the real C2S
+  `PlantationFieldBuildRequestMessage` route registers/removes a
+  `WorkOrderPlantationField`, and the rally-banner routes activate,
+  deactivate and remove a guard tower target; Builder AI, construction
+  placement and resource logistics remain open
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; the real C2S `AssignUnassignMessage` route now
@@ -281,11 +285,12 @@ completed.
    effect application, University researcher assignment/worker-tick progression,
    warehouse/courier resolver wiring, Miner work-order/claim selection, and
    Farmer field registration/assignment, plus Guard Tower blueprint registration
-   and knight-guard assignment and RaidManager event eligibility/registration
+   and knight-guard assignment, plantation-field work-order toggling, rally-banner
+   guard-state updates, and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 76-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 75-test core batch covers event-dispatch
+- [x] Latest 78-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 77-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -325,9 +330,11 @@ completed.
   Enchanter station assignment and Postbox request creation,
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
   build-tool inventory swapping,
+  plantation-field work-order creation/removal and rally-banner activation,
+  deactivation/removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-citizen-scroll-tool.log`
+  `logs/minecolonies-gametest-plantation-rally-fix6.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

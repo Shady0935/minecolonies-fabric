@@ -6,11 +6,13 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /** Waits for blueprint futures to finish loading and processes them on server ticks. */
 public final class ServerFutureProcessor
@@ -51,23 +53,46 @@ public final class ServerFutureProcessor
 
     private static void processCompleted(final net.minecraft.server.level.ServerLevel level)
     {
-        if (!blueprintConsumerQueue.isEmpty() && blueprintConsumerQueue.peek().level == level && blueprintConsumerQueue.peek().blueprintFuture.isDone())
+        BlueprintProcessingData blueprintData;
+        while ((blueprintData = pollCompleted(blueprintConsumerQueue,
+          data -> data.level == level && data.blueprintFuture.isDone())) != null)
         {
-            final BlueprintProcessingData data = blueprintConsumerQueue.poll();
-            accept(data.blueprintFuture, data.consumer);
+            accept(blueprintData.blueprintFuture, blueprintData.consumer);
         }
 
-        if (!blueprintDataConsumerQueue.isEmpty() && blueprintDataConsumerQueue.peek().level == level && blueprintDataConsumerQueue.peek().blueprintDataFuture.isDone())
+        BlueprintDataProcessingData blueprintDataBytes;
+        while ((blueprintDataBytes = pollCompleted(blueprintDataConsumerQueue,
+          data -> data.level == level && data.blueprintDataFuture.isDone())) != null)
         {
-            final BlueprintDataProcessingData data = blueprintDataConsumerQueue.poll();
-            accept(data.blueprintDataFuture, data.consumer);
+            accept(blueprintDataBytes.blueprintDataFuture, blueprintDataBytes.consumer);
         }
 
-        if (!blueprintListConsumerQueue.isEmpty() && blueprintListConsumerQueue.peek().level == level && blueprintListConsumerQueue.peek().blueprintFuture.isDone())
+        BlueprintListProcessingData blueprintList;
+        while ((blueprintList = pollCompleted(blueprintListConsumerQueue,
+          data -> data.level == level && data.blueprintFuture.isDone())) != null)
         {
-            final BlueprintListProcessingData data = blueprintListConsumerQueue.poll();
-            accept(data.blueprintFuture, data.consumer);
+            accept(blueprintList.blueprintFuture, blueprintList.consumer);
         }
+    }
+
+    /**
+     * Removes the first completed entry for the current level without allowing
+     * a slow or unrelated dimension entry at the head of the global queue to
+     * starve ready server work.
+     */
+    private static <T> T pollCompleted(final Queue<T> queue, final Predicate<T> predicate)
+    {
+        final Iterator<T> iterator = queue.iterator();
+        while (iterator.hasNext())
+        {
+            final T entry = iterator.next();
+            if (predicate.test(entry))
+            {
+                iterator.remove();
+                return entry;
+            }
+        }
+        return null;
     }
 
     private static <T> void accept(final Future<T> future, final Consumer<T> consumer)
