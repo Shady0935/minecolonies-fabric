@@ -29,6 +29,7 @@ import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
+import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
@@ -472,6 +473,66 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Builder did not select the registered work order");
         helper.assertTrue(order.isClaimedBy(citizen),
           "Builder did not persist the work-order claim for its citizen");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void residenceAssignsHomeToCitizen(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeResidence = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos residencePos = helper.absolutePos(relativeResidence);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeResidence, ModBlocks.blockHutHome);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Residence GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Residence fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Residence fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity residenceEntity = level.getBlockEntity(residencePos);
+        helper.assertTrue(residenceEntity instanceof TileEntityColonyBuilding,
+          "Residence fixture did not create a colony-building block entity");
+        final TileEntityColonyBuilding residenceHut = (TileEntityColonyBuilding) residenceEntity;
+        residenceHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        residenceHut.setBlueprintPath("fundamentals/house1.blueprint");
+        residenceHut.setSchematicName("house1");
+        final IBuilding residence = colony.getBuildingManager().addNewBuilding(residenceHut, level);
+        helper.assertTrue(residence != null && residence.hasModule(LivingBuildingModule.class),
+          "Residence fixture did not register its living module: " + residence);
+        helper.assertTrue(residence.getBuildingLevel() >= 1,
+          "Residence fixture did not resolve its level-one house blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, residencePos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Residence fixture could not create a live citizen");
+        final LivingBuildingModule livingModule = residence.getFirstModuleOccurance(LivingBuildingModule.class);
+        helper.assertTrue(livingModule.assignCitizen(citizen),
+          "Residence living module rejected the citizen assignment");
+        helper.assertTrue(livingModule.hasAssignedCitizen(citizen),
+          "Residence living module did not retain the assigned citizen");
+        helper.assertTrue(citizen.getHomeBuilding() == residence,
+          "Residence assignment did not update the citizen home building");
         helper.succeed();
     }
 
