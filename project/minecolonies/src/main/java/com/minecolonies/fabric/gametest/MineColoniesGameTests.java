@@ -30,7 +30,9 @@ import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
+import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
@@ -395,6 +397,81 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(order.getID() > 0, "Builder order did not receive a persistent id");
         helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == order,
           "Builder order was not registered in the colony WorkManager");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void builderAssignsRegisteredWorkOrderToCitizen(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Builder Assignment GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Builder assignment fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Builder assignment fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "Builder assignment fixture did not create a builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(registered instanceof BuildingBuilder,
+          "Builder assignment fixture registered the wrong building implementation: " + registered);
+        final BuildingBuilder builder = (BuildingBuilder) registered;
+        helper.assertTrue(builder.getBuildingLevel() >= 1,
+          "Builder assignment fixture did not resolve its level-one blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Builder assignment fixture could not create a live builder citizen");
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null, "Builder worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Builder worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobBuilder,
+          "Builder assignment did not create the builder job");
+        final JobBuilder job = citizen.getJob(JobBuilder.class);
+        helper.assertTrue(job != null && !job.hasWorkOrder(),
+          "Builder job unexpectedly started with a work order");
+
+        final WorkOrderBuilding order = WorkOrderBuilding.create(WorkOrderType.BUILD, builder);
+        colony.getWorkManager().addWorkOrder(order, false);
+        helper.assertTrue(order.getID() > 0, "Builder assignment order did not receive a persistent id");
+        helper.assertTrue(order.canBeMadeBy(job), "Builder assignment order rejected the assigned builder job");
+
+        builder.searchWorkOrder();
+        helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
+          "Builder did not select the registered work order");
+        helper.assertTrue(order.isClaimedBy(citizen),
+          "Builder did not persist the work-order claim for its citizen");
         helper.succeed();
     }
 
