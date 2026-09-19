@@ -6,7 +6,10 @@ import com.minecolonies.api.colony.buildings.modules.IMinimumStockModule;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +45,23 @@ public class RemoveMinimumStockFromBuildingModuleMessage extends AbstractBuildin
     public RemoveMinimumStockFromBuildingModuleMessage(final IBuildingView building, final ItemStack itemStack, final int moduleId)
     {
         super(building);
+        this.itemStack = itemStack;
+        this.moduleId = moduleId;
+    }
+
+    /**
+     * Creates a server-bound minimum-stock removal from stable world identifiers.
+     *
+     * @param dimensionId the dimension containing the building
+     * @param colonyId    the colony owning the building
+     * @param buildingId  the building position
+     * @param itemStack   the item to remove from minimum stock
+     * @param moduleId    the module runtime id
+     */
+    public RemoveMinimumStockFromBuildingModuleMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final BlockPos buildingId, final ItemStack itemStack, final int moduleId)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.itemStack = itemStack;
         this.moduleId = moduleId;
     }

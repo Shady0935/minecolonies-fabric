@@ -10,6 +10,7 @@ import com.minecolonies.api.colony.colonyEvents.EventStatus;
 import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.HiringMode;
+import com.minecolonies.api.colony.buildings.modules.IMinimumStockModule;
 import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
@@ -101,6 +102,8 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HireFire
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TransferItemsRequestMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.AddMinimumStockToBuildingModuleMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.RemoveMinimumStockFromBuildingModuleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.home.AssignUnassignMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.BuildingHiringModeMessage;
@@ -2347,6 +2350,81 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "TransferItemsRequest envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerMinimumStockMessagesUpdateBuilderModule(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Minimum Stock Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S minimum-stock fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S minimum-stock fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S minimum-stock fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "C2S minimum-stock fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding builder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(builder instanceof BuildingBuilder,
+          "C2S minimum-stock fixture registered the wrong building: " + builder);
+        final IMinimumStockModule stockModule = builder.getModule(BuildingModules.MIN_STOCK);
+        helper.assertTrue(stockModule != null,
+          "C2S minimum-stock fixture Builder did not register the minimum-stock module");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S minimum-stock fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int addMessageId = findMessageId(channel, AddMinimumStockToBuildingModuleMessage.class);
+        final int removeMessageId = findMessageId(channel, RemoveMinimumStockFromBuildingModuleMessage.class);
+        helper.assertTrue(addMessageId > 0, "AddMinimumStock message was not registered");
+        helper.assertTrue(removeMessageId > 0, "RemoveMinimumStock message was not registered");
+        final ItemStack stockStack = new ItemStack(Items.OAK_PLANKS, 1);
+        final int addCommunicationId = 0x4D535441;
+        dispatchServerMessage(channel, server, owner, addMessageId, addCommunicationId,
+          new AddMinimumStockToBuildingModuleMessage(colony.getDimension(), colony.getID(), builderPos,
+            stockStack, 3));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(stockModule.isStocked(stockStack),
+              "AddMinimumStock message did not register the Builder minimum-stock item");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(addCommunicationId) == null,
+              "AddMinimumStock envelope remained in the split-packet cache");
+            final int removeCommunicationId = 0x4D535452;
+            dispatchServerMessage(channel, server, owner, removeMessageId, removeCommunicationId,
+              new RemoveMinimumStockFromBuildingModuleMessage(colony.getDimension(), colony.getID(), builderPos,
+                stockStack, BuildingModules.MIN_STOCK.getRuntimeID()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!stockModule.isStocked(stockStack),
+                  "RemoveMinimumStock message did not remove the Builder minimum-stock item");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                  "RemoveMinimumStock envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 
