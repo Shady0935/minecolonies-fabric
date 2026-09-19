@@ -12,6 +12,8 @@ import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
+import com.minecolonies.api.research.IGlobalResearchTree;
+import com.minecolonies.api.research.util.ResearchConstants;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.util.constant.Constants;
@@ -106,6 +108,33 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(ModBlocks.blockHutTownHall != null, "Town Hall block was not initialized");
         helper.assertTrue(IColonyManager.getInstance() != null, "Colony manager API is unavailable");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void researchDatapackBuildsUsableGlobalTree(final GameTestHelper helper)
+    {
+        final IGlobalResearchTree tree = IGlobalResearchTree.getInstance();
+        final ResourceLocation civilian = new ResourceLocation(Constants.MOD_ID, "civilian");
+        final ResourceLocation combat = new ResourceLocation(Constants.MOD_ID, "combat");
+        final ResourceLocation technology = new ResourceLocation(Constants.MOD_ID, "technology");
+        final ResourceLocation unlockable = new ResourceLocation(Constants.MOD_ID, "unlockable");
+
+        helper.assertTrue(tree.getBranches().contains(civilian), "Civilian research branch was not loaded");
+        helper.assertTrue(tree.getBranches().contains(combat), "Combat research branch was not loaded");
+        helper.assertTrue(tree.getBranches().contains(technology), "Technology research branch was not loaded");
+        helper.assertTrue(tree.getBranches().contains(unlockable), "Unlockable research branch was not loaded");
+        helper.assertTrue(tree.getBranchData(civilian) != null, "Civilian branch metadata was not loaded");
+        helper.assertTrue(tree.hasResearch(civilian, new ResourceLocation(Constants.MOD_ID, "civilian/academic")),
+          "Civilian research entries were not parsed");
+        helper.assertTrue(tree.hasResearch(combat, new ResourceLocation(Constants.MOD_ID, "combat/accuracy")),
+          "Combat research entries were not parsed");
+        helper.assertTrue(tree.hasResearch(technology, new ResourceLocation(Constants.MOD_ID, "technology/woodwork")),
+          "Technology research entries were not parsed");
+        helper.assertTrue(tree.hasResearch(unlockable, new ResourceLocation(Constants.MOD_ID, "unlockable/diamondmesh")),
+          "Unlockable research entries were not parsed");
+        helper.assertTrue(tree.hasResearchEffect(ResearchConstants.CITIZEN_CAP),
+          "Default citizen-cap research effect was not registered");
         helper.succeed();
     }
 
