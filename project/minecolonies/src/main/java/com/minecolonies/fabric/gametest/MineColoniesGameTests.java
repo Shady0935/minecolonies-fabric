@@ -6,6 +6,7 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.ModEntities;
@@ -28,6 +29,9 @@ import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
+import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
+import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
@@ -154,32 +158,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
 
-        final Player player = new Player(level, townHall, 0.0F,
-          new GameProfile(UUID.randomUUID(), "research-test-player"))
-        {
-            @Override
-            public boolean isSpectator()
-            {
-                return false;
-            }
-
-            @Override
-            public boolean isCreative()
-            {
-                return false;
-            }
-
-            @Override
-            public void displayClientMessage(final net.minecraft.network.chat.Component message, final boolean overlay)
-            {
-            }
-
-            @Override
-            public void playNotifySound(final net.minecraft.sounds.SoundEvent sound, final net.minecraft.sounds.SoundSource source,
-              final float volume, final float pitch)
-            {
-            }
-        };
+        final Player player = makeNonCreativeResearchPlayer(level, townHall);
         final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
         helper.assertTrue(!player.isCreative(), "Research fixture player unexpectedly remained creative");
         player.getInventory().clearContent();
@@ -227,6 +206,101 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(colony.getResearchManager().getResearchEffects().getEffectStrength(
           new ResourceLocation(Constants.MOD_ID, "effects/blockhutmysticalsite")) > 0,
           "Finished research did not apply its configured effect");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void universityWorkerTickCompletesResearch(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeUniversity = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos universityPos = helper.absolutePos(relativeUniversity);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeUniversity, ModBlocks.blockHutUniversity);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric University GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "University fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "University fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding registeredTownHall = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(registeredTownHall != null && colony.hasTownHall(),
+          "University fixture Town Hall was not registered");
+
+        final BlockEntity blockEntity = level.getBlockEntity(universityPos);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "University fixture did not create a colony-building block entity");
+        final TileEntityColonyBuilding universityHut = (TileEntityColonyBuilding) blockEntity;
+        universityHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        universityHut.setBlueprintPath("education/university1.blueprint");
+        universityHut.setSchematicName("university1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(universityHut, level);
+        helper.assertTrue(registered instanceof BuildingUniversity,
+          "University hut registered the wrong building implementation: " + registered);
+        final BuildingUniversity university = (BuildingUniversity) registered;
+        helper.assertTrue(university.getBuildingLevel() >= 1,
+          "University fixture did not resolve its level-one blueprint");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, universityPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "University fixture could not create a live researcher citizen");
+        final WorkerBuildingModule researcherModule = university.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.researcher.get());
+        helper.assertTrue(researcherModule != null, "University researcher module was not registered");
+        helper.assertTrue(researcherModule.assignCitizen(citizen),
+          "University researcher module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobResearch,
+          "University assignment did not create the researcher job");
+        helper.assertTrue(researcherModule.getAssignedCitizen().size() == 1,
+          "University researcher module did not retain the assigned citizen");
+
+        final Player player = makeNonCreativeResearchPlayer(level, townHall);
+        player.getInventory().setItem(0, new ItemStack(Items.DIAMOND));
+        final IGlobalResearchTree tree = IGlobalResearchTree.getInstance();
+        final ResourceLocation branch = new ResourceLocation(Constants.MOD_ID, "civilian");
+        final ResourceLocation researchId = new ResourceLocation(Constants.MOD_ID, "civilian/ambition");
+        final IGlobalResearch research = tree.getResearch(branch, researchId);
+        helper.assertTrue(research != null && research.canResearch(1, colony.getResearchManager().getResearchTree()),
+          "University research fixture was not eligible to start");
+        colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, research);
+
+        final ILocalResearch localResearch = colony.getResearchManager().getResearchTree().getResearch(branch, researchId);
+        helper.assertTrue(localResearch != null && localResearch.getState() == ResearchState.IN_PROGRESS,
+          "University research fixture did not enter the in-progress state");
+        final int requiredProgress = tree.getBranchData(branch).getBaseTime(research.getDepth());
+        helper.assertTrue(requiredProgress > 1, "University research fixture did not expose a multi-tick progress requirement");
+        for (int progress = 0; progress < requiredProgress; progress++)
+        {
+            university.onColonyTick(colony);
+            helper.assertTrue(localResearch.getProgress() == progress + 1 || localResearch.getState() == ResearchState.FINISHED,
+              "University worker tick did not advance research progress at step " + (progress + 1));
+        }
+        helper.assertTrue(localResearch.getState() == ResearchState.FINISHED,
+          "University worker tick did not advance research to completion");
+        helper.assertTrue(colony.getResearchManager().getResearchTree().getResearchInProgress().isEmpty(),
+          "University worker tick left completed research in progress");
+        helper.assertTrue(colony.getResearchManager().getResearchTree().hasCompletedResearch(researchId),
+          "University worker tick did not record completed research");
+        helper.assertTrue(colony.getResearchManager().getResearchEffects().getEffectStrength(
+          new ResourceLocation(Constants.MOD_ID, "effects/blockhutmysticalsite")) > 0,
+          "University worker tick did not apply the research effect");
         helper.succeed();
     }
 
@@ -849,6 +923,36 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
           "Completed split packet was not removed from the cache");
         helper.succeed();
+    }
+
+    private static Player makeNonCreativeResearchPlayer(final ServerLevel level, final BlockPos position)
+    {
+        return new Player(level, position, 0.0F,
+          new GameProfile(UUID.randomUUID(), "research-test-player"))
+        {
+            @Override
+            public boolean isSpectator()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isCreative()
+            {
+                return false;
+            }
+
+            @Override
+            public void displayClientMessage(final net.minecraft.network.chat.Component message, final boolean overlay)
+            {
+            }
+
+            @Override
+            public void playNotifySound(final net.minecraft.sounds.SoundEvent sound, final net.minecraft.sounds.SoundSource source,
+              final float volume, final float pitch)
+            {
+            }
+        };
     }
 
     private static boolean isMessageRegistered(final NetworkChannel channel, final Class<? extends IMessage> messageClass)
