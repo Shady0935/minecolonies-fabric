@@ -10,7 +10,10 @@ import com.minecolonies.coremod.colony.buildings.modules.AbstractAssignedCitizen
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +56,25 @@ public class AssignUnassignMessage extends AbstractBuildingServerMessage<Default
     public AssignUnassignMessage(@NotNull final IBuildingView building, final boolean assign, final int citizenID, final JobEntry entry)
     {
         super(building);
+        this.assign = assign;
+        this.citizenID = citizenID;
+        this.jobEntry = entry;
+    }
+
+    /**
+     * Creates a server-bound message from stable world identifiers.
+     *
+     * @param dimensionId the dimension containing the building
+     * @param colonyId    the colony owning the building
+     * @param buildingId  the building position
+     * @param assign      assign or unassign the citizen
+     * @param citizenID   the citizen id to update
+     * @param entry       the job entry, or {@code null} for a residence
+     */
+    public AssignUnassignMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final boolean assign, final int citizenID, final JobEntry entry)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.assign = assign;
         this.citizenID = citizenID;
         this.jobEntry = entry;

@@ -31,6 +31,7 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
+import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
@@ -99,6 +100,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HireFire
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.home.AssignUnassignMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.BuildingHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
@@ -681,6 +683,100 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(citizen.getHomeBuilding() == residence,
           "Residence assignment did not update the citizen home building");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerAssignUnassignMessageUpdatesResidence(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeResidence = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos residencePos = helper.absolutePos(relativeResidence);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeResidence, ModBlocks.blockHutHome);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        helper.assertTrue(!owner.isCreative(), "C2S residence-assignment fixture owner remained creative");
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Residence Assignment Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S residence-assignment fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S residence-assignment fixture Town Hall did not create a block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S residence-assignment fixture Town Hall was not registered");
+
+        final BlockEntity residenceEntity = level.getBlockEntity(residencePos);
+        helper.assertTrue(residenceEntity instanceof TileEntityColonyBuilding,
+          "C2S residence-assignment fixture did not create a residence block entity");
+        final TileEntityColonyBuilding residenceHut = (TileEntityColonyBuilding) residenceEntity;
+        residenceHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        residenceHut.setBlueprintPath("fundamentals/house1.blueprint");
+        residenceHut.setSchematicName("house1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(residenceHut, level);
+        helper.assertTrue(registered instanceof DefaultBuildingInstance,
+          "C2S residence-assignment fixture registered the wrong building: " + registered);
+        final DefaultBuildingInstance residence = (DefaultBuildingInstance) registered;
+        final LivingBuildingModule livingModule = residence.getFirstModuleOccurance(LivingBuildingModule.class);
+        helper.assertTrue(livingModule != null,
+          "C2S residence-assignment fixture did not register its living module");
+        helper.assertTrue(residence.getBuildingLevel() >= 1,
+          "C2S residence-assignment fixture did not resolve its level-one house blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, residencePos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S residence-assignment fixture could not create a live citizen");
+        helper.assertTrue(!livingModule.hasAssignedCitizen(citizen),
+          "C2S residence-assignment fixture citizen was assigned before the packet route");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S residence-assignment fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, AssignUnassignMessage.class);
+        helper.assertTrue(messageId > 0, "AssignUnassign message was not registered");
+        final int assignCommunicationId = 0x4153484F;
+        dispatchServerMessage(channel, server, owner, messageId, assignCommunicationId,
+          new AssignUnassignMessage(colony.getDimension(), colony.getID(), residencePos,
+            true, citizen.getId(), null));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(livingModule.hasAssignedCitizen(citizen),
+              "AssignUnassign message did not assign the residence citizen");
+            helper.assertTrue(citizen.getHomeBuilding() == residence,
+              "AssignUnassign message did not update the citizen home building");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(assignCommunicationId) == null,
+              "AssignUnassign assignment envelope remained in the split-packet cache");
+            final int unassignCommunicationId = 0x41534855;
+            dispatchServerMessage(channel, server, owner, messageId, unassignCommunicationId,
+              new AssignUnassignMessage(colony.getDimension(), colony.getID(), residencePos,
+                false, citizen.getId(), null));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!livingModule.hasAssignedCitizen(citizen),
+                  "AssignUnassign message did not remove the residence citizen");
+                helper.assertTrue(citizen.getHomeBuilding() == null,
+                  "AssignUnassign message did not clear the citizen home building");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(unassignCommunicationId) == null,
+                  "AssignUnassign removal envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
