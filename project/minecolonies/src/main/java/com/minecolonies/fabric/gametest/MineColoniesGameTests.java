@@ -563,6 +563,8 @@ public final class MineColoniesGameTests implements FabricGameTest
           level, townHall, owner, "Fabric Explosion GameTest Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "Explosion protection colony was not created");
         final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
+        hut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        hut.setBlueprintPath("fundamentals/townhall1.blueprint");
         colony.getBuildingManager().addNewBuilding(hut, level);
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 0, level, true);
 
