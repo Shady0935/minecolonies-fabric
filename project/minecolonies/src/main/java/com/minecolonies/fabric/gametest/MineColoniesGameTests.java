@@ -43,6 +43,7 @@ import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
+import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
@@ -223,6 +224,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
@@ -1084,6 +1086,25 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Farmer fields module did not retain the assigned field");
         helper.assertTrue(field.getBuildingId().equals(farmer.getID()),
           "Farmer field assignment did not persist the owning building");
+
+        final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
+        final BlockPos cropPos = fieldPos.east();
+        level.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
+        try
+        {
+            final java.lang.reflect.Method harvestCrop = EntityAIWorkFarmer.class.getDeclaredMethod("harvestCrop", BlockPos.class);
+            harvestCrop.setAccessible(true);
+            harvestCrop.invoke(citizen.getJob(JobFarmer.class).getWorkerAI(), cropPos);
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new AssertionError("Farmer harvest fixture could not invoke its crop-harvest path", exception);
+        }
+        helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) > wheatBefore,
+          "Farmer harvest path did not transfer crop drops into the citizen inventory");
+        helper.assertTrue(level.getBlockState(cropPos).getValue(CropBlock.AGE) == 0,
+          "Farmer harvest path did not reset the harvested crop");
         helper.succeed();
     }
 
@@ -5651,6 +5672,20 @@ public final class MineColoniesGameTests implements FabricGameTest
             {
             }
         };
+    }
+
+    private static int countItem(final AbstractEntityCitizen citizen, final net.minecraft.world.item.Item item)
+    {
+        int count = 0;
+        for (int slot = 0; slot < citizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            final ItemStack stack = citizen.getInventoryCitizen().getStackInSlot(slot);
+            if (stack.is(item))
+            {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     private static ServerPlayer makeNonCreativeServerPlayer(final ServerLevel level)
