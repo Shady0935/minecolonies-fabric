@@ -7,7 +7,10 @@ import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.EntityListModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,6 +58,25 @@ public class AssignFilterableEntityMessage extends AbstractBuildingServerMessage
         this.id = id;
     }
 
+    /**
+     * Creates a server-bound entity-filter update from stable world identifiers.
+     *
+     * @param dimensionId the dimension containing the building
+     * @param colonyId    the colony owning the building
+     * @param buildingId  the building position
+     * @param id          the module runtime id
+     * @param entity      the entity registry id to filter
+     * @param assign      add or remove the entity
+     */
+    public AssignFilterableEntityMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int id, final ResourceLocation entity, final boolean assign)
+    {
+        super(dimensionId, colonyId, buildingId);
+        this.assign = assign;
+        this.entity = entity;
+        this.id = id;
+    }
+
     @Override
     public void fromBytesOverride(@NotNull final FriendlyByteBuf buf)
     {
@@ -75,15 +97,15 @@ public class AssignFilterableEntityMessage extends AbstractBuildingServerMessage
     public void onExecute(
       final NetworkEvent.Context ctxIn, final boolean isLogicalServer, final IColony colony, final AbstractBuilding building)
     {
-        if (building.hasModule(EntityListModule.class))
+        if (building.getModule(id) instanceof EntityListModule module)
         {
             if (assign)
             {
-                building.getModuleMatching(EntityListModule.class, m -> m.getId().equals(id)).addEntity(entity);
+                module.addEntity(entity);
             }
             else
             {
-                building.getModuleMatching(EntityListModule.class, m -> m.getId().equals(id)).removeEntity(entity);
+                module.removeEntity(entity);
             }
         }
     }

@@ -43,6 +43,7 @@ import com.minecolonies.coremod.colony.workorders.WorkOrderDecoration;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
+import com.minecolonies.coremod.colony.buildings.modules.EntityListModule;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
@@ -99,6 +100,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.Building
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.CourierHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableEntityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TransferItemsRequestMessage;
@@ -2831,6 +2833,88 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "ReactivateBuilding envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerAssignFilterableEntityMessageUpdatesGuardList(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeGuardTower = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos guardTowerPos = helper.absolutePos(relativeGuardTower);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeGuardTower, ModBlocks.blockHutGuardTower);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Guard Entity Filter Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S guard-entity-filter fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S guard-entity-filter fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S guard-entity-filter fixture Town Hall was not registered");
+
+        final BlockEntity guardTowerEntity = level.getBlockEntity(guardTowerPos);
+        helper.assertTrue(guardTowerEntity instanceof TileEntityColonyBuilding,
+          "C2S guard-entity-filter fixture did not create a guard-tower block entity");
+        final TileEntityColonyBuilding guardTowerHut = (TileEntityColonyBuilding) guardTowerEntity;
+        guardTowerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        guardTowerHut.setBlueprintPath("military/guardtower1.blueprint");
+        guardTowerHut.setSchematicName("guardtower1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(guardTowerHut, level);
+        helper.assertTrue(registered instanceof BuildingGuardTower,
+          "C2S guard-entity-filter fixture registered the wrong building: " + registered);
+        final EntityListModule entityList = registered.getModule(BuildingModules.GUARD_ENTITY_LIST);
+        helper.assertTrue(entityList != null,
+          "C2S guard-entity-filter fixture did not register the guard entity list module");
+        final ResourceLocation entity = new ResourceLocation("minecraft", "zombie");
+        helper.assertTrue(!entityList.isEntityInList(entity),
+          "C2S guard-entity-filter fixture entity list was not initially empty");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S guard-entity-filter fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, AssignFilterableEntityMessage.class);
+        helper.assertTrue(messageId > 0, "AssignFilterableEntity message was not registered");
+        final int assignCommunicationId = 0x45464C41;
+        dispatchServerMessage(channel, server, owner, messageId, assignCommunicationId,
+          new AssignFilterableEntityMessage(colony.getDimension(), colony.getID(), guardTowerPos,
+            BuildingModules.GUARD_ENTITY_LIST.getRuntimeID(), entity, true));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(entityList.isEntityInList(entity),
+              "AssignFilterableEntity message did not add the guard entity filter");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(assignCommunicationId) == null,
+              "AssignFilterableEntity add envelope remained in the split-packet cache");
+            final int removeCommunicationId = 0x45464C52;
+            dispatchServerMessage(channel, server, owner, messageId, removeCommunicationId,
+              new AssignFilterableEntityMessage(colony.getDimension(), colony.getID(), guardTowerPos,
+                BuildingModules.GUARD_ENTITY_LIST.getRuntimeID(), entity, false));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!entityList.isEntityInList(entity),
+                  "AssignFilterableEntity message did not remove the guard entity filter");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                  "AssignFilterableEntity remove envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 
