@@ -17,6 +17,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import com.minecolonies.fabric.inventory.InvWrapper;
 import com.minecolonies.fabric.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -62,6 +65,25 @@ public class TransferItemsRequestMessage extends AbstractBuildingServerMessage<I
     public TransferItemsRequestMessage(@NotNull final IBuildingView building, final ItemStack itemStack, final int quantity, final boolean attemptResolve)
     {
         super(building);
+        this.itemStack = itemStack;
+        this.quantity = quantity;
+        this.attemptResolve = attemptResolve;
+    }
+
+    /**
+     * Creates a server-bound transfer request from stable world identifiers.
+     *
+     * @param dimensionId    the dimension containing the building
+     * @param colonyId       the colony owning the building
+     * @param buildingId     the building position
+     * @param itemStack      the item to transfer
+     * @param quantity       the requested quantity
+     * @param attemptResolve whether to overrule the next open request
+     */
+    public TransferItemsRequestMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final ItemStack itemStack, final int quantity, final boolean attemptResolve)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.itemStack = itemStack;
         this.quantity = quantity;
         this.attemptResolve = attemptResolve;

@@ -100,6 +100,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.CourierH
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.TransferItemsRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.home.AssignUnassignMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.BuildingHiringModeMessage;
@@ -2265,6 +2266,87 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "ChangeDeliveryPriority decrease envelope remained in the split-packet cache");
                 helper.succeed();
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerTransferItemsRequestMovesItemsToBuilder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        helper.assertTrue(!owner.isCreative(), "C2S transfer-items fixture owner remained creative");
+        owner.getInventory().clearContent();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Transfer Items Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S transfer-items fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S transfer-items fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S transfer-items fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "C2S transfer-items fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding builder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(builder instanceof BuildingBuilder,
+          "C2S transfer-items fixture registered the wrong building: " + builder);
+        helper.assertTrue(builderHut.getInventory().getSlots() > 0,
+          "C2S transfer-items fixture Builder has no inventory slots");
+
+        final int quantity = 8;
+        final ItemStack transferStack = new ItemStack(Items.COBBLESTONE, quantity);
+        helper.assertTrue(owner.getInventory().add(transferStack.copy()),
+          "C2S transfer-items fixture could not seed the owner inventory");
+        helper.assertTrue(owner.getInventory().countItem(Items.COBBLESTONE) == quantity,
+          "C2S transfer-items fixture did not seed the requested item quantity");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S transfer-items fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TransferItemsRequestMessage.class);
+        helper.assertTrue(messageId > 0, "TransferItemsRequest message was not registered");
+        final int communicationId = 0x54495251;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new TransferItemsRequestMessage(colony.getDimension(), colony.getID(), builderPos,
+            transferStack, quantity, false));
+
+        helper.runAfterDelay(1, () ->
+        {
+            int storedCount = 0;
+            for (int slot = 0; slot < builderHut.getInventory().getSlots(); slot++)
+            {
+                final ItemStack storedStack = builderHut.getInventory().getStackInSlot(slot);
+                if (storedStack.is(Items.COBBLESTONE))
+                {
+                    storedCount += storedStack.getCount();
+                }
+            }
+            helper.assertTrue(storedCount == quantity,
+              "TransferItemsRequest message did not move the requested items into the Builder inventory: "
+                + storedCount);
+            helper.assertTrue(owner.getInventory().countItem(Items.COBBLESTONE) == 0,
+              "TransferItemsRequest message did not remove the transferred items from the owner");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "TransferItemsRequest envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 

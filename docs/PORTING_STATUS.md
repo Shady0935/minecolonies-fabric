@@ -67,8 +67,8 @@ completed.
   marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring
   mode, creative citizen skill adjustment, Courier hiring mode, Quarry hiring
   mode, Miner level repair, work-order priority/removal, residence
-  assignment/unassignment and free-interaction permission changes are covered
-  by the latest 56-test GameTest run
+  assignment/unassignment, free-interaction permission changes and Builder
+  inventory transfer are covered by the latest 57-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -89,7 +89,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 56-test Fabric GameTest run
+  is covered by the latest 57-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -178,6 +178,10 @@ completed.
 - [x] The real C2S `ChangeFreeToInteractBlockMessage` route adds and removes
   both a free-interaction block and a free-interaction position under the
   colony permission check; the Town Hall permissions GUI remains open
+- [x] The real C2S `TransferItemsRequestMessage` route moves a live item stack
+  from the owner inventory into a registered Builder inventory and consumes
+  the transferred amount; inventory GUI, request resolution and logistics AI
+  remain open
 - [x] Server-side warehouse/courier registration resolves the Colonial storage
   blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
   modules, and registers the Warehouse, Delivery and Pickup resolvers; actual
@@ -233,16 +237,16 @@ completed.
    creation and University research actions, builder work-order
     registration and live `JobBuilder` claim selection, residence
     registration, citizen-home assignment and C2S residence
-    assignment/unassignment, free-interaction permission changes, research
-    selection/progression/
+    assignment/unassignment, free-interaction permission changes, Builder
+    inventory transfer, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
    warehouse/courier resolver wiring, Miner work-order/claim selection, and
    Farmer field registration/assignment, plus Guard Tower blueprint registration
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 56-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 55-test core batch covers event-dispatch
+- [x] Latest 57-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 56-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -265,9 +269,10 @@ completed.
   work-order priority updates and removal,
   residence assignment and unassignment,
   free-interaction block and position permission changes,
+  Builder inventory transfer,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-free-interaction.log`
+  `logs/minecolonies-gametest-c2s-transfer-items.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
