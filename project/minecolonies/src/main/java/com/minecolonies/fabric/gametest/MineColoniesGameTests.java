@@ -45,6 +45,7 @@ import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
+import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
@@ -1032,6 +1033,26 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Miner did not select the registered mine work order");
         helper.assertTrue(order.isClaimedBy(citizen),
           "Miner did not persist the work-order claim for its citizen");
+
+        final AbstractEntityCitizen minerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < minerCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            minerCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        minerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_PICKAXE));
+        minerCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        final BlockPos blockToMine = minerCitizen.blockPosition().east();
+        level.setBlock(blockToMine, Blocks.STONE.defaultBlockState(), 3);
+        final int cobblestoneBefore = countItem(minerCitizen, Items.COBBLESTONE);
+        final TestMinerAI miningAI = new TestMinerAI(job);
+        helper.assertTrue(miningAI.holdEfficientTool(level.getBlockState(blockToMine), blockToMine),
+          "Miner AI rejected the level-one stone pickaxe for the stone target");
+        miningAI.mine(blockToMine, minerCitizen.blockPosition());
+        miningAI.mine(blockToMine, minerCitizen.blockPosition());
+        helper.assertTrue(level.isEmptyBlock(blockToMine),
+          "Miner mining cycle did not remove the target block");
+        helper.assertTrue(countItem(minerCitizen, Items.COBBLESTONE) > cobblestoneBefore,
+          "Miner mining cycle did not transfer the block drop into the citizen inventory");
         helper.succeed();
     }
 
@@ -5787,6 +5808,21 @@ public final class MineColoniesGameTests implements FabricGameTest
 
     private static final class PriorityProbeEvent extends Event
     {
+    }
+
+    private static final class TestMinerAI extends EntityAIStructureMiner
+    {
+        private TestMinerAI(final JobMiner job)
+        {
+            super(job);
+        }
+
+        private void mine(final BlockPos target, final BlockPos stand)
+        {
+            blockToMine = target;
+            workFrom = stand;
+            doMining();
+        }
     }
 
     private static class InheritedPriorityProbe

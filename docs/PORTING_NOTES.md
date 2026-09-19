@@ -528,8 +528,11 @@ The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen
 to `JobMiner`, creates a persistent `WorkOrderMiner` through the colony
 `WorkManager` and verifies that `BuildingMiner.searchWorkOrder()` selects the
-order and persists the citizen claim. Mine-shaft construction, ore/mining AI,
-placement, resource delivery and the miner GUI remain open.
+order and persists the citizen claim. A focused companion equips the level-one
+miner with a stone pickaxe, runs the real `EntityAIStructureMiner.doMining()`
+cycle against a stone block and verifies both block removal and cobblestone
+delivery. Mine-shaft construction, ore selection, navigation, resource
+delivery and the miner GUI remain open.
 
 The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed

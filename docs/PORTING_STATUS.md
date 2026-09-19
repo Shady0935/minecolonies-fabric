@@ -235,8 +235,10 @@ completed.
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
-  a temporarily unavailable building BlockEntity during world rehydration;
-  mining AI, shaft/ore behavior, placement and resource logistics remain open
+  a temporarily unavailable building BlockEntity during world rehydration; a
+  focused level-one mining cycle now verifies stone removal and drop delivery
+  through `EntityAIStructureMiner`; shaft construction, ore behavior, placement
+  and resource logistics remain open
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
@@ -291,8 +293,9 @@ completed.
     filter updates, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
    warehouse/courier resolver wiring and rack-backed inventory transfer,
-   Miner work-order/claim selection, Farmer field registration/assignment and
-   the focused farmer harvest routine, plus Guard Tower blueprint registration
+   Miner work-order/claim selection and a focused stone-mining cycle, Farmer
+   field registration/assignment and the focused farmer harvest routine, plus
+   Guard Tower blueprint registration
    and knight-guard assignment, plantation-field work-order toggling, rally-banner
    guard-state updates, and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
@@ -337,13 +340,13 @@ completed.
   warehouse sort and storage-upgrade routes,
   Enchanter station assignment and Postbox request creation,
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
-  build-tool inventory swapping, warehouse rack-backed courier transfer and
-  farmer harvest drops,
+  build-tool inventory swapping, warehouse rack-backed courier transfer,
+  miner stone drops and farmer harvest drops,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-warehouse-transfer-fix1.log`
+  `logs/minecolonies-gametest-miner-mining-fix2.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
