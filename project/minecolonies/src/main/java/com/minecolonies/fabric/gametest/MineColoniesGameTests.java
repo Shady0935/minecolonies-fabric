@@ -89,6 +89,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HutRenam
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
@@ -2742,6 +2743,93 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.assertTrue(!citizen.isPaused(), "PauseCitizen message did not resume the citizen");
                 helper.assertTrue(channel.getMessageCache().getIfPresent(resumeCommunicationId) == null,
                   "PauseCitizen resume envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerHireFireMessageUpdatesFarmerWorker(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Hire Fire Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S hire-fire fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S hire-fire fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S hire-fire fixture Town Hall was not registered");
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "C2S hire-fire fixture did not create a Farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(registered instanceof BuildingFarmer,
+          "C2S hire-fire fixture registered the wrong building: " + registered);
+        final BuildingFarmer farmer = (BuildingFarmer) registered;
+        final WorkerBuildingModule workerModule = farmer.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.farmer.get());
+        helper.assertTrue(workerModule != null, "C2S hire-fire Farmer worker module was not registered");
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, farmerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S hire-fire fixture could not create a live citizen");
+        helper.assertTrue(!workerModule.hasAssignedCitizen(citizen),
+          "C2S hire-fire fixture citizen was assigned before the message");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S hire-fire fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, HireFireMessage.class);
+        helper.assertTrue(messageId > 0, "HireFire message was not registered");
+        final int hireCommunicationId = 0x48495245;
+        dispatchServerMessage(channel, server, owner, messageId, hireCommunicationId,
+          new HireFireMessage(colony.getDimension(), colony.getID(), farmerPos, true, citizen.getId(),
+            BuildingModules.FARMER_CRAFT.getRuntimeID()));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(workerModule.hasAssignedCitizen(citizen),
+              "HireFire message did not assign the Farmer citizen");
+            helper.assertTrue(citizen.getJob() instanceof JobFarmer,
+              "HireFire message did not create the Farmer job");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(hireCommunicationId) == null,
+              "HireFire hire envelope remained in the split-packet cache");
+            final int fireCommunicationId = 0x46495245;
+            dispatchServerMessage(channel, server, owner, messageId, fireCommunicationId,
+              new HireFireMessage(colony.getDimension(), colony.getID(), farmerPos, false, citizen.getId(),
+                BuildingModules.FARMER_CRAFT.getRuntimeID()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!workerModule.hasAssignedCitizen(citizen),
+                  "HireFire message did not remove the Farmer citizen");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(fireCommunicationId) == null,
+                  "HireFire fire envelope remained in the split-packet cache");
                 helper.succeed();
             });
         });

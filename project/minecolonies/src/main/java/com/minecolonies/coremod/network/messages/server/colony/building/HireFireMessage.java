@@ -7,6 +7,9 @@ import com.minecolonies.api.colony.buildings.modules.IAssignsJob;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +51,25 @@ public class HireFireMessage extends AbstractBuildingServerMessage<IBuilding>
     public HireFireMessage(@NotNull final IBuildingView building, final boolean hire, final int citizenID, final int moduleId)
     {
         super(building);
+        this.hire = hire;
+        this.citizenID = citizenID;
+        this.moduleId = moduleId;
+    }
+
+    /**
+     * Creates a server-bound hire/fire message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  target building position
+     * @param hire        whether to hire or fire
+     * @param citizenID   citizen to change
+     * @param moduleId    worker-module runtime id
+     */
+    public HireFireMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final boolean hire, final int citizenID, final int moduleId)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.hire = hire;
         this.citizenID = citizenID;
         this.moduleId = moduleId;
