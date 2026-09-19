@@ -9,6 +9,8 @@ import com.minecolonies.api.util.Log;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,6 +56,24 @@ public class AdjustSkillCitizenMessage extends AbstractColonyServerMessage
     {
         super(colony);
         this.citizenId = citizenDataView.getId();
+        this.quantity = quantity;
+        this.skill = skill;
+    }
+
+    /**
+     * Creates a server-bound skill adjustment without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param citizenId   citizen to update
+     * @param quantity    skill levels to add
+     * @param skill       skill to alter
+     */
+    public AdjustSkillCitizenMessage(final ResourceKey<Level> dimensionId, final int colonyId, final int citizenId,
+      final int quantity, final Skill skill)
+    {
+        super(dimensionId, colonyId);
+        this.citizenId = citizenId;
         this.quantity = quantity;
         this.skill = skill;
     }

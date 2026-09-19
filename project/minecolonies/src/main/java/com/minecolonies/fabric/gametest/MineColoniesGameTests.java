@@ -14,6 +14,7 @@ import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.inventory.ModContainers;
@@ -104,6 +105,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.guard.Gu
 import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerSetLevelMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleMoveInMessage;
+import com.minecolonies.coremod.network.messages.server.colony.citizen.AdjustSkillCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCitizenMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
@@ -2916,6 +2918,70 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "BuildingHiringMode DEFAULT envelope remained in the split-packet cache");
                 helper.succeed();
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerAdjustSkillMessageUpdatesCreativeCitizen(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = new ServerPlayer(level.getServer(), level,
+          new GameProfile(UUID.randomUUID(), "c2s-skill-player"))
+        {
+            @Override
+            public boolean isSpectator()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isCreative()
+            {
+                return true;
+            }
+        };
+        level.getServer().getPlayerList().placeNewPlayer(new Connection(PacketFlow.SERVERBOUND), owner);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Skill Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S skill fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S skill fixture did not create a Town Hall block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S skill fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S skill fixture could not create a live citizen");
+        final int before = citizen.getCitizenSkillHandler().getLevel(Skill.Strength);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S skill fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, AdjustSkillCitizenMessage.class);
+        helper.assertTrue(messageId > 0, "AdjustSkillCitizen message was not registered");
+        final int communicationId = 0x534B494C;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new AdjustSkillCitizenMessage(colony.getDimension(), colony.getID(), citizen.getId(), 2, Skill.Strength));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(citizen.getCitizenSkillHandler().getLevel(Skill.Strength) == before + 2,
+              "AdjustSkillCitizen message did not increment the Strength skill");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "AdjustSkillCitizen envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 
