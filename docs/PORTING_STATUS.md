@@ -73,7 +73,7 @@ completed.
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
   so colony-scoped registration/removal cannot race event dispatch; the
-  23-test GameTest batch exercises this under concurrent colony fixtures
+  24-test GameTest batch exercises this under concurrent colony fixtures
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
   retained `FillBucketEvent` contract; the 13-test server fixture covers the
@@ -110,6 +110,9 @@ completed.
 - [x] Colony saved data, ownership permissions and NBT round-trip exercised by Fabric GameTest
 - [x] Citizen entity creation, colony registration and citizen-data NBT
   round-trip exercised by Fabric GameTest
+- [x] All 25 registered MineColonies custom entity types instantiate, preserve
+  their registry identity and serialize position NBT in Fabric GameTest;
+  entity AI, combat and rendering remain separate validation work
 - [ ] Citizen rendering/work cycle and hostile custom entities exercised
 - [x] Town Hall and colony creation exercised server-side by Fabric GameTest
 - [x] Colony protection callback denies unauthorized Town Hall access and
@@ -180,7 +183,8 @@ completed.
   representative network codec/split-envelope behavior, extended menu opening
   data, citizen entity registration and serialization, supply-loot target
   tables, Town Hall protection callbacks, populated-tavern mob-conversion
-   replacement, bow-hook compatibility semantics, cancellable gameplay-event
+   replacement, all 25 custom entity registry/serialization contracts,
+   bow-hook compatibility semantics, cancellable gameplay-event
    semantics, the hostile-spawn position veto and explosion entity-policy
    semantics, fishing-hook angler spawn-state synchronization, builder
    work-order registration and live `JobBuilder` claim selection, residence
@@ -191,9 +195,9 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 23-test Fabric GameTest batch passes with clean saves for all three
-  dimensions; research-cycle evidence is in
-  `logs/minecolonies-gametest-research-cycle.log`
+- [x] Latest 24-test Fabric GameTest batch passes with clean saves for all three
+  dimensions; entity-registry evidence is in
+  `logs/minecolonies-gametest-entity-registry.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

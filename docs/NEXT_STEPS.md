@@ -11,7 +11,10 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity.
+real visitor entity. The latest clean Fabric GameTest batch passes all 24
+required tests and covers construction/position-NBT serialization for all 25
+currently registered custom entity types; their AI, combat and client
+rendering are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable

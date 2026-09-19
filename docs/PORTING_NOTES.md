@@ -143,7 +143,7 @@ The retained Forge-shaped event bus now stores listeners and consumers in
 copy-on-write collections. GameTests create and remove colony-scoped permission
 listeners while other fixtures dispatch gameplay callbacks; stable snapshots
 preserve the upstream listener semantics without concurrent `ArrayList` races.
-The latest 23-test batch exercises this under concurrent colony fixtures.
+The latest 24-test batch exercises this under concurrent colony fixtures.
 
 ## Server-side colony fixture and structure packs
 
@@ -241,13 +241,13 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 23-test run therefore resolves the structure without
+the building; the latest 24-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The latest 23-test GameTest batch resolves all four
+retained `ResearchListener`. The latest 24-test GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`; its
 research-cycle fixture also covers item-cost consumption, progress completion,
@@ -353,6 +353,13 @@ logs one `No data fixer registered` message per custom entity at bootstrap;
 this port preserves upstream behavior and does not invent migration schemas.
 Old entity data that needs a version migration remains outside the supported
 migration guarantee until upstream defines those schemas.
+
+The Fabric GameTest registry fixture now enumerates the target registry and
+verifies all 25 MineColonies custom entity types can be constructed, retain
+their registered type identity and serialize their position NBT. This closes
+the registration/constructor/serialization contract for the complete current
+entity list without claiming that hostile AI, citizen work AI, combat,
+restart migration or client rendering have been exercised.
 
 The container-opening bridge had a separate Forge semantic that the first Fabric
 implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`

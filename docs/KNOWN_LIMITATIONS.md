@@ -40,12 +40,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
+  A complete registry fixture also instantiates and serializes all 25 current
+  MineColonies custom entity types. This verifies registration and basic NBT
+  construction only; it does not replace the pending AI, combat, rendering or
+  restart-migration checks.
   It does not yet cover automatic housing capture, citizen sleep/navigation,
   request creation/resolution, inventory transfer, courier navigation, Builder
   AI/material requests/placement, miner shaft construction, ore/mining AI and
   resource delivery, farmer crop growth/harvesting AI and field placement, a
-  client opening the Town Hall GUI, citizen rendering/work AI, every custom
-  entity family after restart, or DataFixer migration for old entity data. A
+  client opening the Town Hall GUI, citizen rendering/work AI, hostile entity
+  AI/combat/rendering after restart, or DataFixer migration for old entity data. A
   dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
   with colony/citizen NBT.

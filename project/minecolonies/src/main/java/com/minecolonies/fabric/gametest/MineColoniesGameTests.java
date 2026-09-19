@@ -84,6 +84,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -96,6 +97,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -147,6 +149,36 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(ModBlocks.blockHutTownHall != null, "Town Hall block was not initialized");
         helper.assertTrue(IColonyManager.getInstance() != null, "Colony manager API is unavailable");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void customEntityTypesInstantiateAndSerialize(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        int customEntityCount = 0;
+
+        for (final EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE)
+        {
+            final ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
+            if (!Constants.MOD_ID.equals(id.getNamespace()))
+            {
+                continue;
+            }
+
+            final Entity entity = entityType.create(level);
+            helper.assertTrue(entity != null, "Could not instantiate custom entity type " + id);
+            entity.setPos(helper.absolutePos(new BlockPos(1 + customEntityCount, 1, 1)).getCenter());
+
+            final CompoundTag serialized = entity.saveWithoutId(new CompoundTag());
+            helper.assertTrue(serialized.contains("Pos"), "Custom entity did not serialize its position: " + id);
+            helper.assertTrue(entity.getType() == entityType, "Entity type mismatch after construction: " + id);
+            entity.discard();
+            customEntityCount++;
+        }
+
+        helper.assertTrue(customEntityCount == 25,
+          "Expected 25 MineColonies entity types, found " + customEntityCount);
         helper.succeed();
     }
 
