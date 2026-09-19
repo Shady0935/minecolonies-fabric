@@ -69,6 +69,7 @@ import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestReso
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
 import com.minecolonies.coremod.colony.workorders.WorkOrderMiner;
 import com.minecolonies.coremod.util.ChunkDataHelper;
+import com.minecolonies.coremod.entity.ai.citizen.miner.MinerLevel;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
@@ -106,6 +107,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.fields.A
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignmentModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.guard.GuardSetMinePosMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerSetLevelMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerRepairLevelMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleMoveInMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.AdjustSkillCitizenMessage;
@@ -2518,6 +2520,86 @@ public final class MineColoniesGameTests implements FabricGameTest
               "MinerSetLevel message did not persist the selected level");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "MinerSetLevel envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerMinerRepairLevelMessageCreatesWorkOrder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeMiner = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos minerPos = helper.absolutePos(relativeMiner);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeMiner, ModBlocks.blockHutMiner);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Miner Repair Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S miner-repair fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S miner-repair fixture Town Hall did not create a block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S miner-repair fixture Town Hall was not registered");
+
+        final BlockEntity minerEntity = level.getBlockEntity(minerPos);
+        helper.assertTrue(minerEntity instanceof TileEntityColonyBuilding,
+          "C2S miner-repair fixture did not create a Miner block entity");
+        final TileEntityColonyBuilding minerHut = (TileEntityColonyBuilding) minerEntity;
+        minerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
+        minerHut.setSchematicName("mine1");
+        final Map<BlockPos, java.util.List<String>> tags = new java.util.HashMap<>();
+        tags.put(BlockPos.ZERO, java.util.List.of("cobble"));
+        tags.put(new BlockPos(1, 0, 0), java.util.List.of("ladder"));
+        minerHut.setPositionedTags(tags);
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(minerHut, level);
+        helper.assertTrue(registered instanceof BuildingMiner,
+          "C2S miner-repair fixture registered the wrong building: " + registered);
+        final BuildingMiner miner = (BuildingMiner) registered;
+        final MinerLevelManagementModule levels = miner.getModule(BuildingModules.MINER_LEVELS);
+        helper.assertTrue(levels != null, "C2S miner-repair fixture did not register the level module");
+        levels.addLevel(new MinerLevel(miner, level.getMinBuildHeight() + 10, null));
+        helper.assertTrue(levels.getNumberOfLevels() == 1,
+          "C2S miner-repair fixture could not create a repairable mine level");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final int workOrdersBefore = colony.getWorkManager().getOrderedList(WorkOrderMiner.class, minerPos).size();
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S miner-repair fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, MinerRepairLevelMessage.class);
+        helper.assertTrue(messageId > 0, "MinerRepairLevel message was not registered");
+        final int communicationId = 0x4D52504C;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new MinerRepairLevelMessage(colony.getDimension(), colony.getID(), minerPos, 0));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final java.util.List<WorkOrderMiner> workOrders =
+              colony.getWorkManager().getOrderedList(WorkOrderMiner.class, minerPos);
+            helper.assertTrue(workOrders.size() == workOrdersBefore + 1,
+              "MinerRepairLevel message did not create a shaft repair work order");
+            helper.assertTrue(workOrders.stream().anyMatch(order -> minerPos.equals(order.getMinerBuilding())),
+              "MinerRepairLevel repair order was not associated with the Miner");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "MinerRepairLevel envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
