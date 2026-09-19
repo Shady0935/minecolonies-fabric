@@ -223,8 +223,9 @@ completed.
   request resolution, inventory transfer and courier AI remain open
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
-  select and persist a `WorkOrderMiner` claim; mining AI, shaft/ore behavior,
-  placement and resource logistics remain open
+  select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
+  a temporarily unavailable building BlockEntity during world rehydration;
+  mining AI, shaft/ore behavior, placement and resource logistics remain open
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
@@ -322,7 +323,7 @@ completed.
   Enchanter station assignment and Postbox request creation,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-enchanter-postbox.log`
+  `logs/minecolonies-gametest-requester-clean.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

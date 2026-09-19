@@ -8,6 +8,7 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.ToolType;
+import com.minecolonies.api.tileentities.AbstractTileEntityColonyBuilding;
 import com.minecolonies.coremod.colony.buildings.AbstractBuildingStructureBuilder;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BlockSetting;
@@ -231,7 +232,13 @@ public class BuildingMiner extends AbstractBuildingStructureBuilder
 
     private void loadLadderPos()
     {
-        final Map<String, Set<BlockPos>> map = tileEntity.getWorldTagNamePosMap();
+        final AbstractTileEntityColonyBuilding currentTileEntity = getTileEntity();
+        if (currentTileEntity == null)
+        {
+            return;
+        }
+
+        final Map<String, Set<BlockPos>> map = currentTileEntity.getWorldTagNamePosMap();
         final Set<BlockPos> cobblePos = map.getOrDefault("cobble", new HashSet<>());
         final Set<BlockPos> ladderPos = map.getOrDefault("ladder", new HashSet<>());
         if (cobblePos.isEmpty() || ladderPos.isEmpty())

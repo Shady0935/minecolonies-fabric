@@ -3380,7 +3380,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(building != null, "C2S request-state fixture Town Hall was not registered");
 
         final IToken<?> requestToken = colony.getRequestManager().createRequest(
-          building, new Stack(new ItemStack(Items.COBBLESTONE)));
+          building.getRequester(), new Stack(new ItemStack(Items.COBBLESTONE)));
         helper.assertTrue(requestToken != null, "Request manager did not create the request token");
         helper.assertTrue(colony.getRequestManager().getRequestForToken(requestToken) != null,
           "Request manager did not retain the created request");

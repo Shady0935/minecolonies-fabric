@@ -518,6 +518,13 @@ world reference has been detached. `AbstractSchematicProvider.getRotation()`
 now returns the neutral runtime rotation in that serialization-only state,
 keeping save/stop clean without dropping the persisted colony payload.
 
+The full GameTest pass also exposed a race during miner AI startup: a restored
+`BuildingMiner` could request ladder/cobble tags before its building
+BlockEntity had been reattached. `BuildingMiner.loadLadderPos()` now resolves
+the current BlockEntity through the normal lazy lookup and safely waits for a
+later tick when it is still unavailable. The 73-test run no longer reports the
+previous `getWorldTagNamePosMap()` null dereference.
+
 Structurize's server pack loader is connected to Fabric's
 `SERVER_STARTING` callback. Its mod-resource scan also descends through the
 `blueprints/minecolonies/<style>` layout used by the official MineColonies
@@ -669,7 +676,7 @@ The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-enchanter-postbox.log`; it reports
+`logs/minecolonies-gametest-requester-clean.log`; it reports
 `All 73 required tests passed` (72 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
