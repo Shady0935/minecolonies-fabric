@@ -70,6 +70,7 @@ import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -97,7 +98,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -1820,6 +1823,98 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerResearchMessageStartsResearch(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeUniversity = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos universityPos = helper.absolutePos(relativeUniversity);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeUniversity, ModBlocks.blockHutUniversity);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        helper.assertTrue(!owner.isCreative(), "C2S research fixture owner remained creative");
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Research Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S research fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S research fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S research fixture Town Hall was not registered");
+
+        final BlockEntity universityEntity = level.getBlockEntity(universityPos);
+        helper.assertTrue(universityEntity instanceof TileEntityColonyBuilding,
+          "C2S research fixture did not create a university block entity");
+        final TileEntityColonyBuilding universityHut = (TileEntityColonyBuilding) universityEntity;
+        universityHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        universityHut.setBlueprintPath("education/university1.blueprint");
+        universityHut.setSchematicName("university1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(universityHut, level);
+        helper.assertTrue(registered instanceof BuildingUniversity,
+          "C2S research fixture registered the wrong building: " + registered);
+        final BuildingUniversity university = (BuildingUniversity) registered;
+        helper.assertTrue(university.getBuildingLevel() >= 1,
+          "C2S research fixture did not resolve its level-one blueprint");
+
+        final ResourceLocation branch = new ResourceLocation(Constants.MOD_ID, "civilian");
+        final ResourceLocation researchId = new ResourceLocation(Constants.MOD_ID, "civilian/ambition");
+        final IGlobalResearch research = IGlobalResearchTree.getInstance().getResearch(branch, researchId);
+        helper.assertTrue(research != null && research.canResearch(1, colony.getResearchManager().getResearchTree()),
+          "C2S research fixture was not eligible to start");
+        owner.getInventory().clearContent();
+        owner.getInventory().setItem(0, new ItemStack(Items.DIAMOND));
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TryResearchMessage.class);
+        helper.assertTrue(messageId > 0, "TryResearch message was not registered");
+        final TryResearchMessage original = new TryResearchMessage(
+          colony.getDimension(), colony.getID(), university.getID(), researchId, branch, false);
+        final int communicationId = 0x43525352;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            final MinecraftServer server = level.getServer();
+            helper.assertTrue(server != null, "C2S research fixture has no running server");
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(1, () ->
+        {
+            final ILocalResearch localResearch = colony.getResearchManager().getResearchTree().getResearch(branch, researchId);
+            helper.assertTrue(localResearch != null && localResearch.getState() == ResearchState.IN_PROGRESS,
+              "C2S research message did not start the selected research");
+            helper.assertTrue(owner.getInventory().countItem(Items.DIAMOND) == 0,
+              "C2S research message did not consume the research cost");
+            helper.assertTrue(colony.getResearchManager().getResearchTree().getResearchInProgress().size() == 1,
+              "C2S research message did not register the selected research as in progress");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "C2S research envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
     private static Player makeNonCreativeResearchPlayer(final ServerLevel level, final BlockPos position)
     {
         return new Player(level, position, 0.0F,
@@ -1848,6 +1943,27 @@ public final class MineColoniesGameTests implements FabricGameTest
             {
             }
         };
+    }
+
+    private static ServerPlayer makeNonCreativeServerPlayer(final ServerLevel level)
+    {
+        final ServerPlayer player = new ServerPlayer(level.getServer(), level,
+          new GameProfile(UUID.randomUUID(), "c2s-research-player"))
+        {
+            @Override
+            public boolean isSpectator()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isCreative()
+            {
+                return false;
+            }
+        };
+        level.getServer().getPlayerList().placeNewPlayer(new Connection(PacketFlow.SERVERBOUND), player);
+        return player;
     }
 
     private static boolean isMessageRegistered(final NetworkChannel channel, final Class<? extends IMessage> messageClass)

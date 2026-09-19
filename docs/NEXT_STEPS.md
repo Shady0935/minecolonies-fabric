@@ -11,12 +11,13 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 28
+real visitor entity. The latest clean Fabric GameTest run passes all 29
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
-inherited listener dispatch; entity AI, combat and client rendering are still
-open.
+inherited listener dispatch. Its 28-test core batch also exercises real
+client-to-server Town Hall rename and University research actions; entity AI,
+combat and client rendering are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable
@@ -28,8 +29,8 @@ The following work remains, in order:
    researcher AI/walking and GUI cycle.
    Include an inventory/GUI visual check for the custom spear renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
-   representative server/client network coverage, including one real
-   client-to-server Town Hall action, fishing-hook and citizen coverage to every
+   representative server/client network coverage, including the real
+   client-to-server Town Hall and University research actions, fishing-hook and citizen coverage to every
    client-bound family; the seven registered menu opening buffers now have an
    automated contract test. The dedicated restart probe already confirms
    representative citizen and visitor reappearance; broaden it to every

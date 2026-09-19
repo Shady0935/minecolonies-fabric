@@ -6,9 +6,12 @@ import com.minecolonies.api.research.IGlobalResearch;
 import com.minecolonies.api.research.IGlobalResearchTree;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +50,26 @@ public class TryResearchMessage extends AbstractBuildingServerMessage<BuildingUn
     public TryResearchMessage(final IBuildingView building, @NotNull final ResourceLocation researchId, final ResourceLocation branch, final boolean reset)
     {
         super(building);
+        this.researchId = researchId;
+        this.branch = branch;
+        this.reset = reset;
+    }
+
+    /**
+     * Creates a server-bound research message without requiring a client
+     * building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId university position
+     * @param researchId research id
+     * @param branch research branch
+     * @param reset whether to reset the selected research
+     */
+    public TryResearchMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+                              @NotNull final ResourceLocation researchId, final ResourceLocation branch, final boolean reset)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.researchId = researchId;
         this.branch = branch;
         this.reset = reset;

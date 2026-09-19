@@ -59,7 +59,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   datapack cost, a real University receives a live `JobResearch` citizen, its
   configured worker ticks complete the research and its effect is applied. This
   does not cover researcher AI walking/mana recovery, work-speed scaling,
-  University GUI interaction or client research packets.
+  University GUI interaction or the broader set of client research packets.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
@@ -109,8 +109,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
-  block interaction. One real `TownHallRenameMessage` now crosses the Fabric
-  split envelope, reaches the server executor and changes the owner colony;
+  block interaction. Real `TownHallRenameMessage` and `TryResearchMessage`
+  actions now cross the Fabric split envelope, reach the server executor and
+  mutate the owner colony/research state;
   the common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,
   but their visual/client behavior still needs an in-game interaction pass.
