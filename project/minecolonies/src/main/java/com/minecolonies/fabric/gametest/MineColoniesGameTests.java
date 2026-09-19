@@ -694,7 +694,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
-    public void builderPlacesSolidBlockThroughStructureHandler(final GameTestHelper helper)
+    public void builderCompletesMultiStageBlueprint(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -714,6 +714,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
         level.setBlock(buildTarget, Blocks.AIR.defaultBlockState(), 3);
+        level.setBlock(buildTarget.above(), Blocks.AIR.defaultBlockState(), 3);
 
         final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
         final IColony colony = IColonyManager.getInstance().createColony(
@@ -774,10 +775,13 @@ public final class MineColoniesGameTests implements FabricGameTest
             builderCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
         }
         builderCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE));
+        builderCitizen.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.TORCH));
 
-        final Blueprint placementBlueprint = new Blueprint((short) 1, (short) 1, (short) 1);
-        placementBlueprint.setName("fabric-builder-placement-test");
+        final Blueprint placementBlueprint = new Blueprint((short) 1, (short) 2, (short) 1);
+        placementBlueprint.setName("fabric-builder-multistage-test");
         placementBlueprint.addBlockState(BlockPos.ZERO, Blocks.STONE.defaultBlockState());
+        placementBlueprint.addBlockState(new BlockPos(0, 1, 0), Blocks.TORCH.defaultBlockState());
+        placementBlueprint.setCachePrimaryOffset(BlockPos.ZERO);
         final TestBuilderAI placementAI = new TestBuilderAI(job);
         final BuildingStructureHandler<JobBuilder, BuildingBuilder> structure = new BuildingStructureHandler<>(
           level,
@@ -785,17 +789,26 @@ public final class MineColoniesGameTests implements FabricGameTest
           placementBlueprint,
           new PlacementSettings(),
           placementAI,
-          new BuildingStructureHandler.Stage[] {BuildingStructureHandler.Stage.BUILD_SOLID});
+          new BuildingStructureHandler.Stage[] {
+            BuildingStructureHandler.Stage.BUILD_SOLID,
+            BuildingStructureHandler.Stage.DECORATE});
         placementAI.attach(structure);
-        for (int i = 0; i < 4 && !level.getBlockState(buildTarget).is(Blocks.STONE); i++)
+        placementAI.setWorkFrom(builderCitizen.blockPosition());
+        for (int i = 0; i < 12 && structure.getStage() != null; i++)
         {
             placementAI.step();
         }
 
         helper.assertTrue(level.getBlockState(buildTarget).is(Blocks.STONE),
-          "Builder structure step did not place the requested solid block");
+          "Builder BUILD_SOLID stage did not place the requested block");
+        helper.assertTrue(level.getBlockState(buildTarget.above()).is(Blocks.TORCH),
+          "Builder DECORATE stage did not place the requested torch");
         helper.assertTrue(countItem(builderCitizen, Items.STONE) == 0,
-          "Builder structure step did not consume the required block item");
+          "Builder BUILD_SOLID stage did not consume the required block item");
+        helper.assertTrue(countItem(builderCitizen, Items.TORCH) == 0,
+          "Builder DECORATE stage did not consume the required torch");
+        helper.assertTrue(structure.getStage() == null,
+          "Builder structure handler did not finish all placement stages");
         helper.succeed();
     }
 
@@ -5949,6 +5962,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         private void step()
         {
             structureStep();
+        }
+
+        private void setWorkFrom(final BlockPos position)
+        {
+            workFrom = position;
         }
     }
 
