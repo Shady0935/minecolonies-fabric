@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  79-test GameTest run
+  80-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 79-test Fabric GameTest run
+  is covered by the latest 80-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -230,8 +230,12 @@ completed.
 - [x] Server-side warehouse/courier registration resolves the Colonial storage
   blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
   modules, registers the Warehouse, Delivery and Pickup resolvers, and verifies
-  a real rack-backed courier inventory transfer plus warehouse lookup; request
-  creation/resolution, courier AI and logistics GUI remain open
+  a real rack-backed courier inventory transfer plus warehouse lookup. A
+  focused delivery cycle creates a real `Delivery` request for an assigned
+  Builder, checks resolver assignment, runs the deliveryman's prepare/deliver
+  states against the rack and Builder inventory, and verifies request
+  completion; full pathfinding, multi-request scheduling and logistics GUI
+  remain open
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
@@ -301,8 +305,8 @@ completed.
    focused real Builder two-stage placement/material-consumption path
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 79-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 78-test core batch covers event-dispatch
+- [x] Latest 80-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 79-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -348,7 +352,7 @@ completed.
   deactivation/removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-miner-mining-fix2.log`
+  `logs/minecolonies-gametest-courier-delivery-fix3.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

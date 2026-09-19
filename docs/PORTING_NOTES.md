@@ -187,7 +187,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 79-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 80-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -525,9 +525,12 @@ blueprints, assigns a live `JobDeliveryman` citizen to the courier and
 `PickupRequestResolver` registrations. It also registers a real rack through
 `BuildingWareHouse`, transfers a wheat stack from the live courier inventory
 through `TileEntityWareHouse.dumpInventoryIntoWareHouse` and verifies the
-stored quantity through both the rack and warehouse lookup APIs. This validates
-the server-side storage path; request creation/resolution, courier navigation
-and the client logistics GUI remain open.
+stored quantity through both the rack and warehouse lookup APIs. A focused
+companion creates a real `Delivery` request for an assigned Builder, confirms
+that the resolver puts it on the courier queue, runs the real deliveryman's
+prepare/deliver states against the rack and Builder inventory, and verifies
+that the request completes after the stack is delivered. Full pathfinding,
+multi-request scheduling and the client logistics GUI remain open.
 
 The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen

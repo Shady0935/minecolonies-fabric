@@ -24,8 +24,10 @@ import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.colony.requestsystem.StandardFactoryController;
 import com.minecolonies.api.colony.requestsystem.location.ILocation;
+import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.request.RequestState;
 import com.minecolonies.api.colony.requestsystem.requestable.Stack;
+import com.minecolonies.api.colony.requestsystem.requestable.deliveryman.Delivery;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.crafting.IRecipeStorage;
 import com.minecolonies.api.research.IGlobalResearch;
@@ -47,6 +49,7 @@ import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
+import com.minecolonies.coremod.entity.ai.citizen.deliveryman.EntityAIWorkDeliveryman;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
@@ -1081,6 +1084,178 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Warehouse delivery resolver was not registered");
         helper.assertTrue(resolvers.stream().anyMatch(resolver -> resolver instanceof PickupRequestResolver),
           "Warehouse pickup resolver was not registered");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void deliverymanMovesWarehouseStackIntoWorkerBuilding(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(6, 1, 2);
+        final BlockPos relativeWarehouse = new BlockPos(10, 1, 2);
+        final BlockPos relativeDeliveryman = new BlockPos(14, 1, 2);
+        final BlockPos relativeRack = new BlockPos(16, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
+        final BlockPos deliverymanPos = helper.absolutePos(relativeDeliveryman);
+        final BlockPos rackPos = helper.absolutePos(relativeRack);
+        for (int x = 0; x <= 18; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+        helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
+        helper.setBlock(relativeDeliveryman, ModBlocks.blockHutDeliveryman);
+        helper.setBlock(relativeRack, ModBlocks.blockRack);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Courier Delivery GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Courier delivery fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Courier delivery fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "Courier delivery fixture did not create a builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding builder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(builder instanceof BuildingBuilder,
+          "Courier delivery fixture registered the wrong worker building: " + builder);
+
+        final BlockEntity warehouseEntity = level.getBlockEntity(warehousePos);
+        helper.assertTrue(warehouseEntity instanceof TileEntityColonyBuilding,
+          "Courier delivery fixture did not create a warehouse block entity");
+        final TileEntityColonyBuilding warehouseHut = (TileEntityColonyBuilding) warehouseEntity;
+        warehouseHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        warehouseHut.setBlueprintPath("craftsmanship/storage/warehouse1.blueprint");
+        warehouseHut.setSchematicName("warehouse1");
+        final IBuilding warehouseBuilding = colony.getBuildingManager().addNewBuilding(warehouseHut, level);
+        helper.assertTrue(warehouseBuilding instanceof BuildingWareHouse,
+          "Courier delivery fixture registered the wrong warehouse implementation: " + warehouseBuilding);
+
+        final BlockEntity deliverymanEntity = level.getBlockEntity(deliverymanPos);
+        helper.assertTrue(deliverymanEntity instanceof TileEntityColonyBuilding,
+          "Courier delivery fixture did not create a deliveryman block entity");
+        final TileEntityColonyBuilding deliverymanHut = (TileEntityColonyBuilding) deliverymanEntity;
+        deliverymanHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        deliverymanHut.setBlueprintPath("craftsmanship/storage/courier1.blueprint");
+        deliverymanHut.setSchematicName("courier1");
+        final IBuilding deliverymanBuilding = colony.getBuildingManager().addNewBuilding(deliverymanHut, level);
+        helper.assertTrue(deliverymanBuilding instanceof BuildingDeliveryman,
+          "Courier delivery fixture registered the wrong courier implementation: " + deliverymanBuilding);
+
+        final BlockEntity rackEntity = level.getBlockEntity(rackPos);
+        helper.assertTrue(rackEntity instanceof TileEntityRack,
+          "Courier delivery fixture did not create a warehouse rack");
+        ((BuildingWareHouse) warehouseBuilding).registerBlockPosition(ModBlocks.blockRack, rackPos, level);
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData builderCitizenData = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
+        helper.assertTrue(builderCitizenData != null && builderCitizenData.getEntity().isPresent(),
+          "Courier delivery fixture could not create a builder citizen");
+        final WorkerBuildingModule builderWork = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(builderWork != null && builderWork.assignCitizen(builderCitizenData),
+          "Courier delivery fixture could not assign the builder citizen");
+
+        final ICitizenData courierData = colony.getCitizenManager().spawnOrCreateCitizen(null, level, deliverymanPos.above());
+        helper.assertTrue(courierData != null && courierData.getEntity().isPresent(),
+          "Courier delivery fixture could not create a courier citizen");
+        final WorkerBuildingModule courierWork = deliverymanBuilding.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.delivery.get());
+        helper.assertTrue(courierWork instanceof DeliverymanAssignmentModule && courierWork.assignCitizen(courierData),
+          "Courier delivery fixture could not assign the courier citizen");
+        helper.assertTrue(courierData.getJob() instanceof JobDeliveryman,
+          "Courier delivery fixture did not create the deliveryman job");
+        final CourierAssignmentModule couriers = warehouseBuilding.getFirstModuleOccurance(CourierAssignmentModule.class);
+        helper.assertTrue(couriers != null && couriers.assignCitizen(courierData),
+          "Courier delivery fixture could not register the courier at the warehouse");
+        courierData.setWorking(true);
+
+        final BuildingWareHouse warehouse = (BuildingWareHouse) warehouseBuilding;
+        final TileEntityWareHouse warehouseTile = (TileEntityWareHouse) warehouse.getTileEntity();
+        final AbstractEntityCitizen courier = (AbstractEntityCitizen) courierData.getEntity().get();
+        for (int slot = 0; slot < courier.getInventoryCitizen().getSlots(); slot++)
+        {
+            courier.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        courier.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.WHEAT, 16));
+        warehouseTile.dumpInventoryIntoWareHouse(courier.getInventoryCitizen());
+        final TileEntityRack rack = (TileEntityRack) rackEntity;
+        helper.assertTrue(rack.getCount(new ItemStack(Items.WHEAT), true, false) == 16,
+          "Courier delivery fixture could not seed the warehouse rack");
+
+        final ILocation source = StandardFactoryController.getInstance().getNewInstance(
+          TypeConstants.ILOCATION, rackPos, colony.getDimension());
+        final ILocation target = StandardFactoryController.getInstance().getNewInstance(
+          TypeConstants.ILOCATION, builderPos, colony.getDimension());
+        final Delivery delivery = new Delivery(source, target, new ItemStack(Items.WHEAT, 16), 0);
+        final IToken<?> requestToken = builder.createRequest(builderCitizenData, delivery, false);
+        final JobDeliveryman courierJob = courierData.getJob(JobDeliveryman.class);
+        helper.assertTrue(courierJob != null && courierJob.getTaskQueue().contains(requestToken),
+          "Delivery request was not assigned to the courier by the request resolver");
+        final IRequest<?> request = colony.getRequestManager().getRequestForToken(requestToken);
+        helper.assertTrue(request != null && request.getState() == RequestState.IN_PROGRESS,
+          "Assigned delivery request did not enter the in-progress state");
+
+        courier.setPos(rackPos.getX() + 0.5D, rackPos.getY() + 1.0D, rackPos.getZ() + 0.5D);
+        final EntityAIWorkDeliveryman deliveryAI = courierJob.generateAI();
+        try
+        {
+            final java.lang.reflect.Method prepareDelivery = EntityAIWorkDeliveryman.class.getDeclaredMethod("prepareDelivery");
+            prepareDelivery.setAccessible(true);
+            prepareDelivery.invoke(deliveryAI);
+            helper.assertTrue(countItem(courier, Items.WHEAT) == 16,
+              "Courier prepare-delivery state did not gather the requested stack from the rack");
+            prepareDelivery.invoke(deliveryAI);
+
+            courier.setPos(builderPos.getX() + 0.5D, builderPos.getY() + 1.0D, builderPos.getZ() + 0.5D);
+            final java.lang.reflect.Method deliver = EntityAIWorkDeliveryman.class.getDeclaredMethod("deliver");
+            deliver.setAccessible(true);
+            deliver.invoke(deliveryAI);
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new AssertionError("Could not invoke the deliveryman state machine", exception);
+        }
+
+        int deliveredWheat = 0;
+        for (int slot = 0; slot < builderHut.getInventory().getSlots(); slot++)
+        {
+            final ItemStack stack = builderHut.getInventory().getStackInSlot(slot);
+            if (stack.is(Items.WHEAT))
+            {
+                deliveredWheat += stack.getCount();
+            }
+        }
+        helper.assertTrue(deliveredWheat == 16,
+          "Courier delivery state did not insert the requested stack into the worker building");
+        helper.assertTrue(countItem(courier, Items.WHEAT) == 0,
+          "Courier delivery state left the delivered stack in the courier inventory");
+        helper.assertTrue(request.getState() == RequestState.COMPLETED,
+          "Courier delivery state did not complete the request: " + request.getState());
+        helper.assertTrue(courierJob.getTaskQueue().isEmpty(),
+          "Courier delivery state left the completed request in the task queue");
+        helper.assertTrue(rack.getCount(new ItemStack(Items.WHEAT), true, false) == 0,
+          "Courier delivery state did not consume the warehouse stack");
         helper.succeed();
     }
 
