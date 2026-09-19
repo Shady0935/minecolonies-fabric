@@ -184,8 +184,11 @@ completed.
   style, path, rotation and mirror state; the real C2S
   `PlantationFieldBuildRequestMessage` route registers/removes a
   `WorkOrderPlantationField`, and the rally-banner routes activate,
-  deactivate and remove a guard tower target; Builder AI, construction
-  placement and resource logistics remain open
+  deactivate and remove a guard tower target. A focused real Builder AI
+  fixture now scans a one-block blueprint, requests the missing material,
+  receives it through Warehouse/Courier, picks it up from the Builder Hut,
+  places the block and consumes the resource; full navigation, larger
+  construction and GUI interaction remain open
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; the real C2S `AssignUnassignMessage` route now
@@ -235,8 +238,9 @@ completed.
   blueprint, creates the normal asynchronous `Stack` request, verifies that
   the warehouse resolver creates and assigns its `Delivery` child, runs the
   deliveryman's prepare/deliver states against the rack and Builder inventory,
-  and verifies parent-request completion; full pathfinding, multi-request
-  scheduling and logistics GUI remain open
+  verifies parent-request completion, then drives the Builder pickup and real
+  one-block placement/consumption path; full pathfinding, multi-request
+  scheduling and logistics GUI remain open. Evidence: `logs/minecolonies-gametest-builder-material-placement-fix9.log`
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates

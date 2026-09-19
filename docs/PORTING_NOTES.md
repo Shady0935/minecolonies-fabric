@@ -206,17 +206,22 @@ order and persists the citizen claim. A focused companion creates a two-stage
 real `EntityAIStructureBuilder` and `BuildingStructureHandler`, and verifies
 both placements, consumption of both required items and handler completion.
 These are server-side work-order, assignment and minimal construction
-contracts; full Builder navigation, larger multi-stage construction,
-material-request logistics and BlockUI interaction remain open.
+contracts. The material-backed companion additionally runs the normal Builder
+resource scanner, creates its asynchronous `Stack` request, receives the
+resolver-generated Warehouse `Delivery`, transfers the item from the Builder
+Hut into the citizen and drives the real one-block placement/consumption path.
+Full Builder navigation, larger multi-stage construction and BlockUI
+interaction remain open.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric
 split envelope and server executor, verifies the owner permission path with a
 registered `SERVERBOUND` player, and checks that a live `JobBuilder` allows the
 handlers to create/claim the Town Hall `WorkOrderBuilding` and assign it to the
-citizen job. The two-stage server placement/consumption path is automated; full
-blueprint construction, navigation, material-request logistics and Builder GUI
-interaction remain manual validation items.
+citizen job. The two-stage server placement/consumption path and the focused
+material-request/delivery/pickup/placement path are automated; full blueprint
+construction, navigation and Builder GUI interaction remain manual validation
+items.
 
 A companion C2S fixture serializes `DirectPlaceMessage` in the same real split
 envelope. It places a Town Hall for a registered owner, consumes the supplied
@@ -530,9 +535,12 @@ companion runs the Builder's real material scanner against a one-block
 blueprint, creates its normal asynchronous `Stack` request, confirms that the
 warehouse resolver creates the `Delivery` child and assigns it to the courier,
 then runs the real deliveryman's prepare/deliver states against the rack and
-Builder inventory. The test verifies that the Builder receives the requested
-material and that the parent request completes. Full pathfinding, multi-request
-scheduling and the client logistics GUI remain open.
+Builder inventory. It then invokes the Builder's normal pickup state, moves the
+delivered item out of the Builder Hut, places the one-block blueprint through
+`BuildingStructureHandler` and verifies resource consumption and handler
+completion. Evidence is in
+`logs/minecolonies-gametest-builder-material-placement-fix9.log`. Full
+pathfinding, multi-request scheduling and the client logistics GUI remain open.
 
 The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen

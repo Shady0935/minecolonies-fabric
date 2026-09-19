@@ -1175,6 +1175,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ICitizenData builderCitizenData = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
         helper.assertTrue(builderCitizenData != null && builderCitizenData.getEntity().isPresent(),
           "Courier delivery fixture could not create a builder citizen");
+        final AbstractEntityCitizen builderCitizen = (AbstractEntityCitizen) builderCitizenData.getEntity().get();
+        for (int slot = 0; slot < builderCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            builderCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
         final WorkerBuildingModule builderWork = builder.getModuleMatching(
           WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
         helper.assertTrue(builderWork != null && builderWork.assignCitizen(builderCitizenData),
@@ -1294,6 +1299,58 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Courier delivery state left the completed request in the task queue");
         helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
           "Courier delivery state did not consume the warehouse stack");
+
+        helper.assertTrue(resourceAI.pickUpMaterial() != null,
+          "Builder material pickup did not enter a valid AI state");
+        try
+        {
+            final java.lang.reflect.Method getNeededItem = com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIBasic.class
+              .getDeclaredMethod("getNeededItem");
+            getNeededItem.setAccessible(true);
+            getNeededItem.invoke(resourceAI);
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new AssertionError("Could not invoke the Builder material pickup state", exception);
+        }
+        helper.assertTrue(countItem(builderCitizen, Items.STONE) == 1,
+          "Builder pickup state did not move the delivered material into the citizen inventory");
+        int buildingStoneAfterPickup = 0;
+        for (int slot = 0; slot < builderHut.getInventory().getSlots(); slot++)
+        {
+            if (builderHut.getInventory().getStackInSlot(slot).is(Items.STONE))
+            {
+                buildingStoneAfterPickup += builderHut.getInventory().getStackInSlot(slot).getCount();
+            }
+        }
+        helper.assertTrue(deliveredStone == 1 && buildingStoneAfterPickup == 0,
+          "Builder pickup state did not remove the delivered material from the worker building");
+
+        builder.setProgressPos(null, null);
+        helper.assertTrue(resourceStructure.hasRequiredItems(List.of(new ItemStack(Items.STONE))),
+          "Builder placement handler did not recognize the picked-up stone");
+        builderCitizen.setPos(buildTarget.getX() - 0.5D, buildTarget.getY() + 1.0D, buildTarget.getZ() + 0.5D);
+        resourceAI.setWorkFrom(builderCitizen.blockPosition());
+        for (int i = 0; i < 12 && resourceStructure.getStage() != null; i++)
+        {
+            resourceAI.step();
+        }
+        helper.assertTrue(level.getBlockState(buildTarget).is(Blocks.STONE),
+          "Builder structure step did not place the delivered material at "
+            + buildTarget + "; actual=" + level.getBlockState(buildTarget)
+            + "; handlerStage=" + resourceStructure.getStage()
+            + "; progress=" + builder.getProgress()
+            + "; translatedTarget=" + resourceStructure.getProgressPosInWorld(BlockPos.ZERO)
+            + "; worker=" + builderCitizen.blockPosition()
+            + "; state=" + resourceAI.getState()
+            + "; citizenStone=" + countItem(builderCitizen, Items.STONE)
+            + "; requiredStone=" + builder.requiresResourceForBuilding(new ItemStack(Items.STONE)));
+        helper.assertTrue(countItem(builderCitizen, Items.STONE) == 0,
+          "Builder structure step did not consume the delivered material");
+        helper.assertTrue(!builder.requiresResourceForBuilding(new ItemStack(Items.STONE)),
+          "Builder structure step did not reduce its required resource bucket");
+        helper.assertTrue(resourceStructure.getStage() == null,
+          "Builder material-backed structure handler did not complete");
         helper.succeed();
     }
 
