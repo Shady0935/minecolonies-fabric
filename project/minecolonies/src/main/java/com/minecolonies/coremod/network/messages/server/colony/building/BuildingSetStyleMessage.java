@@ -4,7 +4,10 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +38,21 @@ public class BuildingSetStyleMessage extends AbstractBuildingServerMessage<IBuil
     public BuildingSetStyleMessage(@NotNull final IBuildingView building, final String structurePack)
     {
         super(building);
+        this.structurePack = structurePack;
+    }
+
+    /**
+     * Creates a server-bound style message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId building position
+     * @param structurePack selected structure pack
+     */
+    public BuildingSetStyleMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final BlockPos buildingId, final String structurePack)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.structurePack = structurePack;
     }
 

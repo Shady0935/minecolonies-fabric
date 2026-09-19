@@ -37,6 +37,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   route with asynchronous blueprint resolution and decoration work-order
   registration, the real C2S `HutRenameMessage` building-name mutation route,
   and the real C2S colony name/structure/texture style mutation routes,
+  plus the real C2S deconstructed-building style route,
   builder
   work-order registration, live `JobBuilder` assignment and work-order claim
   selection, colony NBT
@@ -120,7 +121,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage`,
   `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`,
   `DirectPlaceMessage`, `DecorationBuildRequestMessage`, `HutRenameMessage`,
-  the three colony style messages and
+  the three colony style messages, `BuildingSetStyleMessage` and
   `TryResearchMessage` actions now cross the Fabric
   split envelope, reach the server executor and mutate the owner
   colony/work-order/research state or place the Town Hall and resolve its

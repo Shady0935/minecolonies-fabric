@@ -80,6 +80,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyl
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
@@ -1939,6 +1940,51 @@ public final class MineColoniesGameTests implements FabricGameTest
               "ColonyStructureStyle envelope remained in the split-packet cache");
             helper.assertTrue(channel.getMessageCache().getIfPresent(textureCommunicationId) == null,
               "ColonyTextureStyle envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerBuildingSetStyleMessageUpdatesDeconstructedBuilding(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Building Style Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S building-style fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S building-style fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding building = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(building != null, "C2S building-style fixture Town Hall was not registered");
+        building.setDeconstructed();
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S building-style fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, BuildingSetStyleMessage.class);
+        helper.assertTrue(messageId > 0, "BuildingSetStyle message was not registered");
+        final int communicationId = 0x42535459;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new BuildingSetStyleMessage(colony.getDimension(), colony.getID(), townHall, "Urban Savanna"));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue("Urban Savanna".equals(building.getStructurePack()),
+              "BuildingSetStyle message did not update the deconstructed building style: "
+                + building.getStructurePack());
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "BuildingSetStyle envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
