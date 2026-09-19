@@ -30,12 +30,14 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
   next load, so this does not validate colony-backed citizen persistence.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
-  ownership permissions, blueprint lookup, colony NBT round-trip and a
+  ownership permissions, blueprint lookup, builder work-order registration,
+  colony NBT round-trip and a
   colony-backed `EntityCitizen`/`CitizenData` round-trip. It does not yet
-  cover a client opening the Town Hall GUI, citizen rendering/work AI, every
-  custom entity family after restart, or DataFixer migration for old entity
-  data. A dedicated restart probe does confirm that saved `EntityCitizen` and
-  `VisitorCitizen` instances reappear with colony/citizen NBT.
+  cover Builder AI/material requests/placement, a client opening the Town Hall
+  GUI, citizen rendering/work AI, every custom entity family after restart, or
+  DataFixer migration for old entity data. A dedicated restart probe does
+  confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
+  with colony/citizen NBT.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
@@ -68,9 +70,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Validation still pending
 
-- BlockUI screens, builder placement, citizen work cycles, logistics, research
-  and raids still need a real in-game interaction pass. Server-side Town Hall,
-  colony creation and colony-backed
+- BlockUI screens, Builder AI and placement, citizen work cycles, logistics,
+  research and raids still need a real in-game interaction pass. Server-side
+  Town Hall, colony creation, builder work-order registration and colony-backed
   citizen registration have automated GameTest fixtures; the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.

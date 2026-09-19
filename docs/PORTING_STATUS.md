@@ -120,6 +120,9 @@ completed.
 - [x] Default research datapack tree and effect registry exercised server-side
 - [ ] Guards and raids
 - [x] Structurize pack discovery and Town Hall blueprint lookup exercised by Fabric GameTest
+- [x] Server-side builder work-order creation resolves the Colonial Town Hall
+  blueprint and registers the order in `WorkManager`; Builder AI, placement and
+  resource logistics remain open
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -141,11 +144,15 @@ completed.
   representative network codec/split-envelope behavior, extended menu opening
   data, citizen entity registration and serialization, supply-loot target
   tables, Town Hall protection callbacks, populated-tavern mob-conversion
-  replacement, bow-hook compatibility semantics, cancellable gameplay-event
-  semantics, the hostile-spawn position veto and explosion entity-policy
-  semantics, and fishing-hook angler spawn-state synchronization
+   replacement, bow-hook compatibility semantics, cancellable gameplay-event
+   semantics, the hostile-spawn position veto and explosion entity-policy
+   semantics, fishing-hook angler spawn-state synchronization and builder
+   work-order registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
+- [x] Latest 14-test Fabric GameTest batch passes with clean saves for all three
+  dimensions; builder-order evidence is in
+  `logs/minecolonies-gametest-builder-order.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

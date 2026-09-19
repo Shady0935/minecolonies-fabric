@@ -1,7 +1,8 @@
 # Next steps
 
-The datagen, lifecycle, gameplay-callback, mob-conversion and first server-side
-colony fixture checkpoints are now complete: `runDatagen` is reproducible with
+The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
+colony fixture and builder work-order checkpoints are now complete:
+`runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load

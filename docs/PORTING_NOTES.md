@@ -161,6 +161,13 @@ shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
 reassembly for the login UUID packet, including cache cleanup.
 
+The builder-order fixture creates a `WorkOrderBuilding` for the Colonial Town
+Hall, claims the full blueprint footprint required by the upstream
+`WorkManager` boundary check, resolves `fundamentals/townhall1.blueprint` and
+verifies that `WorkManager` assigns and returns the persistent order ID. This
+is a server-side work-order contract check; it does not claim that Builder AI,
+material requests, block placement or BlockUI interaction are complete.
+
 The same shutdown pass exposed that colony serialization can run after the
 world reference has been detached. `AbstractSchematicProvider.getRotation()`
 now returns the neutral runtime rotation in that serialization-only state,
@@ -172,13 +179,13 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 13-test run therefore resolves the structure without
+the building; the latest 14-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The 13-test GameTest batch resolves all four
+retained `ResearchListener`. The latest 14-test GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`.
 
