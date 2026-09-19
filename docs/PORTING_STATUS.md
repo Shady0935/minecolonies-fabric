@@ -72,8 +72,9 @@ completed.
   callbacks; the retained bow adapter dispatches and respects cancellation of
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
-  so colony-scoped registration/removal cannot race event dispatch; the
-  24-test GameTest batch exercises this under concurrent colony fixtures
+  honors Forge priority order and discovers inherited listener methods, so
+  colony-scoped registration/removal cannot race event dispatch; the 25-test
+  GameTest batch exercises this under concurrent colony fixtures
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
   retained `FillBucketEvent` contract; the 13-test server fixture covers the
@@ -195,9 +196,9 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 24-test Fabric GameTest batch passes with clean saves for all three
-  dimensions; entity-registry evidence is in
-  `logs/minecolonies-gametest-entity-registry.log`
+- [x] Latest 25-test Fabric GameTest batch passes with clean saves for all three
+  dimensions; event-dispatch evidence is in
+  `logs/minecolonies-gametest-event-priority.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

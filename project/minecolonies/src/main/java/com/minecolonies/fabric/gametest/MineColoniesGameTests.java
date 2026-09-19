@@ -72,6 +72,7 @@ import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.common.extensions.IForgeMenuType;
 import com.minecolonies.fabric.event.Event;
+import com.minecolonies.fabric.event.EventPriority;
 import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
 import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
@@ -179,6 +180,26 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         helper.assertTrue(customEntityCount == 25,
           "Expected 25 MineColonies entity types, found " + customEntityCount);
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void eventBusHonorsPriorityAndInheritedListeners(final GameTestHelper helper)
+    {
+        final StringBuilder invocationOrder = new StringBuilder();
+        final PriorityProbe probe = new PriorityProbe(invocationOrder);
+        MinecraftForge.EVENT_BUS.register(probe);
+        try
+        {
+            helper.assertTrue(!MinecraftForge.EVENT_BUS.post(new PriorityProbeEvent()),
+              "Priority probe event was unexpectedly canceled");
+            helper.assertTrue("highest|inherited-high|normal|low|lowest".contentEquals(invocationOrder),
+              "Unexpected event listener order: " + invocationOrder);
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(probe);
+        }
         helper.succeed();
     }
 
@@ -1593,6 +1614,64 @@ public final class MineColoniesGameTests implements FabricGameTest
         finally
         {
             buffer.release();
+        }
+    }
+
+    private static final class PriorityProbeEvent extends Event
+    {
+    }
+
+    private static class InheritedPriorityProbe
+    {
+        private final StringBuilder invocationOrder;
+
+        private InheritedPriorityProbe(final StringBuilder invocationOrder)
+        {
+            this.invocationOrder = invocationOrder;
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGH)
+        public void inheritedHigh(final PriorityProbeEvent event)
+        {
+            append("inherited-high");
+        }
+
+        protected final void append(final String value)
+        {
+            if (invocationOrder.length() > 0) invocationOrder.append('|');
+            invocationOrder.append(value);
+        }
+    }
+
+    private static final class PriorityProbe extends InheritedPriorityProbe
+    {
+        private PriorityProbe(final StringBuilder invocationOrder)
+        {
+            super(invocationOrder);
+        }
+
+        @SubscribeEvent(priority = EventPriority.HIGHEST)
+        public void highest(final PriorityProbeEvent event)
+        {
+            append("highest");
+        }
+
+        @SubscribeEvent
+        public void normal(final PriorityProbeEvent event)
+        {
+            append("normal");
+        }
+
+        @SubscribeEvent(priority = EventPriority.LOW)
+        public void low(final PriorityProbeEvent event)
+        {
+            append("low");
+        }
+
+        @SubscribeEvent(priority = EventPriority.LOWEST)
+        public void lowest(final PriorityProbeEvent event)
+        {
+            append("lowest");
         }
     }
 
