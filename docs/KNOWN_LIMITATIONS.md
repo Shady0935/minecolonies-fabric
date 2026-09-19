@@ -109,7 +109,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Validation still pending
 
-- BlockUI screens, Builder AI and placement, citizen work cycles, logistics,
+- Authenticated in-game interaction with BlockUI screens (including an actual
+  rendered entity/block hook overlay), Builder AI and placement, citizen work cycles, logistics,
   automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. Server-side

@@ -50,6 +50,10 @@ completed.
   `VisitorCitizen` with MineColonies identity/colony NBT; evidence is in
   `logs/minecolonies-runserver-citizen-entity-restart.log`
 - [x] Client bootstrap reaches OpenAL and all texture atlases
+- [x] BlockUI's in-world hook renderer is wired to Fabric's
+  `WorldRenderEvents.LAST`; the full BlockUI module build and the post-change
+  client bootstrap both pass (an authenticated in-game hook overlay check is
+  still manual)
 - [x] Fabric built-in renderer registration for the MineColonies spear is
   lifecycle-safe; renderer construction is deferred until `EntityModelSet` is
   available (visual item rendering still needs a manual pass)

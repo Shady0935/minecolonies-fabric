@@ -56,6 +56,19 @@ entity icons.
   artifact. The package audit confirms that the JAR contains the Fabric
   descriptor and mixin configuration only.
 
+## BlockUI client rendering
+
+The regular BlockUI `BOScreen` pipeline remains the source of truth for
+full-screen MineColonies windows. The in-world hook path now uses that same
+`BOGuiGraphics` pane traversal from `HookScreen` while preserving the world
+projection and billboard transform established by `HookManager`. Fabric's
+`WorldRenderEvents.LAST` callback now invokes `HookRegistries.render`, so
+entity/block hook windows are no longer a deliberate
+`UnsupportedOperationException` path. The complete BlockUI module build also
+declares its existing JUnit 4 test dependency and passes. The current client
+bootstrap reaches resource reload and OpenAL with this implementation, while
+an authenticated in-game overlay interaction remains a manual validation item.
+
 ## Lifecycle and datapack events
 
 The Fabric common entrypoint now bridges the lifecycle callbacks that the
@@ -574,6 +587,11 @@ the building; the latest 78-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
+
+After the BlockUI hook-render change, the MineColonies regression run in
+`logs/minecolonies-gametest-hook-render.log` again reports all 78 required
+tests passed and shuts down after saving the world. That server run does not
+replace the pending authenticated client visual pass.
 
 The same Fabric server-data reload builds the default research tree through the
 retained `ResearchListener`. The latest 33-test core GameTest batch resolves all four

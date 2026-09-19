@@ -9,6 +9,7 @@ import com.ldtteam.blockui.util.resloc.OutOfJarResourceLocation;
 import com.ldtteam.blockui.views.BOWindow;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -31,6 +32,14 @@ public final class ClientEventSubscriber
         ClientTickEvents.START_CLIENT_TICK.register(ClientEventSubscriber::onClientTickStart);
         ClientTickEvents.END_CLIENT_TICK.register(ClientEventSubscriber::onClientTickEnd);
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> ContainerHook.init());
+        WorldRenderEvents.LAST.register(context -> {
+            if (context.world() != null)
+            {
+                context.world().getProfiler().push("blockui_hook_manager_render");
+                com.ldtteam.blockui.hooks.HookRegistries.render(context.matrixStack(), context.tickDelta());
+                context.world().getProfiler().pop();
+            }
+        });
     }
 
     private static void onClientTickStart(final Minecraft client)

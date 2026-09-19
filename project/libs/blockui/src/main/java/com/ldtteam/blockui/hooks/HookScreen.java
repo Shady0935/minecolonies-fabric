@@ -1,6 +1,7 @@
 package com.ldtteam.blockui.hooks;
 
 import com.ldtteam.blockui.BOScreen;
+import com.ldtteam.blockui.BOGuiGraphics;
 import com.ldtteam.blockui.hooks.TriggerMechanism.RayTraceTriggerMechanism;
 import com.ldtteam.blockui.views.ScrollingList;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -8,7 +9,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 /**
  * Screen wrapper.
@@ -47,10 +50,15 @@ public class HookScreen extends BOScreen
         ms.translate(-width / 2, -height, 0.0d);
         try
         {
-            throw new UnsupportedOperationException("need port fix");
-            // TODO: rework in-game gui rendering
-            //window.draw(ms, -1, -1);
-            //window.drawLast(ms, -1, -1);
+            // Hook screens are drawn inside the world render pass.  The world
+            // pose already contains the camera and billboard transforms from
+            // HookManager, so use the same pane pipeline as a normal BOScreen
+            // without replacing the world projection with an orthographic one.
+            final MultiBufferSource.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+            final BOGuiGraphics target = new BOGuiGraphics(minecraft, ms, buffers);
+            window.draw(target, -1, -1);
+            window.drawLast(target, -1, -1);
+            target.flush();
         }
         catch (final Exception e)
         {
