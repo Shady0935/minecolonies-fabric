@@ -39,8 +39,8 @@ The following work remains, in order:
    hostile natural/chunk-generation position checks, living-entity explosion
    damage, `ExplosionEvent.Start` cancellation and complete detonate block and
    entity filtering are also covered. The retained
-   `ArrowLooseEvent` and projectile-impact bridges are covered, while the
-   unsupported `ArrowNock` extension point stays documented.
+   `ArrowNockEvent`, `ArrowLooseEvent` and projectile-impact bridges are
+   covered; remaining unsupported Forge points stay documented individually.
 4. Keep the documented DataFixer policy aligned with upstream: no custom
    MineColonies 1.20.1 entity schemas exist in either the Forge source or the
    modern Fabric reference, so do not invent migrations. Revisit only if

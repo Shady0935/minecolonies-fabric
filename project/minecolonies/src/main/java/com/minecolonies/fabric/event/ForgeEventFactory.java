@@ -1,6 +1,7 @@
 package com.minecolonies.fabric.event;
 
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 
 import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.fabric.event.entity.player.ArrowNockEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
 
@@ -23,11 +25,14 @@ public final class ForgeEventFactory
 
     public static InteractionResultHolder<ItemStack> onArrowNock(final ItemStack stack, final Level level, final Player player, final InteractionHand hand, final boolean hasAmmo)
     {
-        // Forge returns null when no ArrowNockEvent listener supplies a final
-        // result.  ItemPharaoScepter uses that null value to continue into
-        // startUsingItem; returning InteractionResultHolder.pass here would
-        // incorrectly short-circuit the bow-use flow on Fabric.
-        return null;
+        final ArrowNockEvent event = new ArrowNockEvent(player, stack, hand, level, hasAmmo);
+        if (MinecraftForge.EVENT_BUS.post(event))
+        {
+            return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+        }
+        // Forge leaves this result null until a listener supplies an alternate
+        // action; ItemPharaoScepter relies on null to continue into use logic.
+        return event.getAction();
     }
 
     public static int onArrowLoose(final ItemStack stack, final Level level, final LivingEntity entity, final int charge, final boolean hasAmmo)

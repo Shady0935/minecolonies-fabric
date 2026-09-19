@@ -131,13 +131,15 @@ callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
 expose a direct equivalent for every Forge event, so unsupported event points
 remain documented gaps instead of being represented by no-op shims.
 
-The Forge-shaped bow compatibility surface preserves the upstream neutral
-`ArrowNock` contract: when no retained listener supplies a result it returns
-`null`, allowing `ItemPharaoScepter` to enter `startUsingItem`. Its
-`ArrowLooseEvent` path posts the retained event bus for players and returns
-`-1` when a listener cancels the shot, preserving the MineColonies colony
-permission handler. The focused GameTest verifies both the scepter-use flow
-and the cancellation gate.
+The Forge-shaped bow compatibility surface preserves the upstream
+`ArrowNock` contract: it posts a result-bearing `ArrowNockEvent`, returns
+`null` when no retained listener supplies an action so `ItemPharaoScepter` can
+enter `startUsingItem`, returns a listener-supplied action, and maps
+cancellation to Forge's `FAIL` result. Its `ArrowLooseEvent` path posts the
+retained event bus for players and returns `-1` when a listener cancels the
+shot, preserving the MineColonies colony permission handler. The focused
+GameTest verifies the scepter-use flow, alternate nock result, cancellation
+and neutral paths.
 
 The retained Forge-shaped event bus now stores listeners and consumers in
 copy-on-write collections, walks listener superclasses and orders annotated
@@ -171,9 +173,9 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current nine-test batch also
+`logs/minecolonies-gametest-tavern-10.log`. The current 26-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
-`logs/minecolonies-gametest-arrow-hooks.log`.
+`logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope

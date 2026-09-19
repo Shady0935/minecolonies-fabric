@@ -74,11 +74,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   colony policy filters protected blocks and non-living entities at the
   correct point. No broad no-op adapter is used for the covered explosion
   paths.
-- The retained bow adapter now dispatches `ArrowLooseEvent` and respects
-  cancellation for MineColonies colony permissions. Fabric still has no direct
-  `ArrowNockEvent` callback in this target, so external listeners cannot yet
-  supply an alternate nock result; the no-listener path follows Forge's
-  neutral `null` contract and the Pharao Scepter flow is GameTest-covered.
+- The retained bow adapter now dispatches the result-bearing `ArrowNockEvent`
+  and `ArrowLooseEvent`. The no-listener nock path follows Forge's neutral
+  `null` contract, listeners can supply an alternate action or cancel with a
+  failure result, and the Pharao Scepter flow is GameTest-covered.
 - Projectile impacts now dispatch a cancellable `ProjectileImpactEvent` with
   the original hit result; the focused bridge is covered. The fishing-hook
   `ItemFishedEvent` remains intentionally unposted because the retained

@@ -81,6 +81,7 @@ import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
 import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
 import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
 import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
+import com.minecolonies.fabric.event.entity.player.ArrowNockEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import com.minecolonies.fabric.event.entity.player.EntityItemPickupEvent;
 import com.minecolonies.fabric.event.level.BlockEvent;
@@ -957,13 +958,25 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ServerLevel level = helper.getLevel();
         final boolean previousMobSpawning = level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING);
         level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(true, level.getServer());
-        // Keep the raid colony in its own chunk.  The Fabric GameTest runner
-        // places all empty templates in one shared server world, so the
-        // small default fixture coordinates can otherwise make
-        // RaidManager's legitimate other-colony guard reject every outward
-        // spawn candidate.
-        final BlockPos relativeTownHall = new BlockPos(34, 1, 34);
+        // Keep the raid colony in an isolated region.  The Fabric GameTest
+        // runner places all empty templates in one shared server world, so
+        // the small default fixture coordinates can otherwise make
+        // RaidManager's legitimate other-colony guard reject outward spawn
+        // candidates near another fixture.
+        final BlockPos relativeTownHall = new BlockPos(256, 1, 256);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final int forcedChunkRadius = 12;
+        final int townHallChunkX = townHall.getX() >> 4;
+        final int townHallChunkZ = townHall.getZ() >> 4;
+        for (int chunkX = townHallChunkX - forcedChunkRadius; chunkX <= townHallChunkX + forcedChunkRadius; chunkX++)
+        {
+            for (int chunkZ = townHallChunkZ - forcedChunkRadius; chunkZ <= townHallChunkZ + forcedChunkRadius; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
+            }
+        }
+        try
+        {
         level.getChunkAt(townHall);
         for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 14; x++)
         {
@@ -1049,8 +1062,19 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Raider manager ignored the disabled colony raid-events flag");
         helper.assertTrue(raiderManager.raiderEvent("barbarian", true, false) == IRaiderManager.RaidSpawnResult.CANNOT_RAID,
           "Raider manager started an event after colony raid-events were disabled");
-        level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(previousMobSpawning, level.getServer());
         helper.succeed();
+        }
+        finally
+        {
+            level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(previousMobSpawning, level.getServer());
+            for (int chunkX = townHallChunkX - forcedChunkRadius; chunkX <= townHallChunkX + forcedChunkRadius; chunkX++)
+            {
+                for (int chunkZ = townHallChunkZ - forcedChunkRadius; chunkZ <= townHallChunkZ + forcedChunkRadius; chunkZ++)
+                {
+                    level.setChunkForced(chunkX, chunkZ, false);
+                }
+            }
+        }
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
@@ -1353,6 +1377,61 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(player.isUsingItem(),
           "Pharao scepter use was short-circuited before startUsingItem");
         player.stopUsingItem();
+
+        helper.assertTrue(ForgeEventFactory.onArrowNock(scepter, level, player, InteractionHand.MAIN_HAND, true) == null,
+          "ArrowNockEvent bridge changed Forge's neutral no-listener result");
+
+        final AtomicBoolean nockSeen = new AtomicBoolean();
+        final Object actionListener = new Object()
+        {
+            @SubscribeEvent
+            public void overrideArrowNock(final ArrowNockEvent event)
+            {
+                helper.assertTrue(event.getEntity() == player, "ArrowNockEvent exposed the wrong player");
+                helper.assertTrue(event.getBow() == scepter, "ArrowNockEvent exposed the wrong item stack");
+                helper.assertTrue(event.getLevel() == level, "ArrowNockEvent exposed the wrong level");
+                helper.assertTrue(event.getHand() == InteractionHand.MAIN_HAND, "ArrowNockEvent exposed the wrong hand");
+                helper.assertTrue(event.hasAmmo(), "ArrowNockEvent lost the has-ammo flag");
+                event.setAction(new InteractionResultHolder<>(InteractionResult.SUCCESS, event.getBow()));
+                nockSeen.set(true);
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(actionListener);
+        try
+        {
+            final InteractionResultHolder<ItemStack> alternate = ForgeEventFactory.onArrowNock(
+              scepter, level, player, InteractionHand.MAIN_HAND, true);
+            helper.assertTrue(nockSeen.get(), "ArrowNockEvent bridge did not dispatch its event");
+            helper.assertTrue(alternate != null && alternate.getResult() == InteractionResult.SUCCESS
+                && alternate.getObject() == scepter,
+              "ArrowNockEvent listener result was not returned to the caller");
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(actionListener);
+        }
+
+        final Object cancelNock = new Object()
+        {
+            @SubscribeEvent
+            public void cancelArrowNock(final ArrowNockEvent event)
+            {
+                event.setCanceled(true);
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(cancelNock);
+        try
+        {
+            final InteractionResultHolder<ItemStack> canceled = ForgeEventFactory.onArrowNock(
+              scepter, level, player, InteractionHand.MAIN_HAND, true);
+            helper.assertTrue(canceled != null && canceled.getResult() == InteractionResult.FAIL
+                && canceled.getObject() == scepter,
+              "Canceled ArrowNockEvent did not return Forge's failure result");
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(cancelNock);
+        }
 
         final Object cancelListener = new Object()
         {

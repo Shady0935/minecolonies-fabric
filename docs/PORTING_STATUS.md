@@ -126,9 +126,9 @@ completed.
 - [x] Mob conversion callback dispatches the retained `LivingConversionEvent.Pre`,
   preserves the tavern visitor conversion gate and has an end-to-end populated
   tavern fixture that creates a `VisitorCitizen` and discards the vanilla candidate
-- [x] Forge-shaped bow hooks preserve neutral `ArrowNock` semantics and dispatch
-  retained `ArrowLooseEvent` cancellation; the Pharao Scepter use/shot gate is
-  covered by Fabric GameTest
+- [x] Forge-shaped bow hooks dispatch result-bearing `ArrowNockEvent` and
+  retained `ArrowLooseEvent` cancellation; neutral, alternate-result and
+  canceled Pharao Scepter use/shot paths are covered by Fabric GameTest
 - [x] Projectile-impact cancellation is preserved through
   `ForgeEventFactory.onProjectileImpact`; listeners receive the original hit
   result and the bridge returns the Forge-shaped cancellation result
