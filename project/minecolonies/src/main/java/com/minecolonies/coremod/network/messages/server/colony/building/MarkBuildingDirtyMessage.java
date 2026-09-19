@@ -5,6 +5,9 @@ import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 
 /**
@@ -37,6 +40,18 @@ public class MarkBuildingDirtyMessage extends AbstractBuildingServerMessage<IBui
     public MarkBuildingDirtyMessage(final IBuildingView building)
     {
         super(building);
+    }
+
+    /**
+     * Creates a server-bound dirty marker without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  target building position
+     */
+    public MarkBuildingDirtyMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override

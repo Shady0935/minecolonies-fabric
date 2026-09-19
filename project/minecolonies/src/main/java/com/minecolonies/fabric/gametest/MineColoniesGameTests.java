@@ -89,6 +89,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HutRenam
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
@@ -2599,6 +2600,51 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "GuardSetMinePos clear envelope remained in the split-packet cache");
                 helper.succeed();
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 160)
+    public void clientToServerMarkBuildingDirtyMessageMarksTownHall(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Dirty Building Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S dirty-building fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S dirty-building fixture did not create a Town Hall block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(registered != null, "C2S dirty-building fixture Town Hall was not registered");
+        registered.clearDirty();
+        helper.assertTrue(!registered.isDirty(), "C2S dirty-building fixture could not clear initial dirty state");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S dirty-building fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, MarkBuildingDirtyMessage.class);
+        helper.assertTrue(messageId > 0, "MarkBuildingDirty message was not registered");
+        final int communicationId = 0x44495254;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new MarkBuildingDirtyMessage(colony.getDimension(), colony.getID(), townHall));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(registered.isDirty(),
+              "MarkBuildingDirty message did not mark the Town Hall dirty");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "MarkBuildingDirty envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 
