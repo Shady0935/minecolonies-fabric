@@ -117,9 +117,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. The focused server-side
-  CitizenAI/Builder worker tick cycle and a colony-backed advanced-navigation
-  completion are covered by GameTest, but full scheduling and longer work
-  cycles remain pending. Server-side
+  CitizenAI/Builder worker tick cycle and colony-backed advanced navigation,
+  including a solid-barrier detour, are covered by GameTest, but full scheduling
+  and longer work cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
@@ -172,7 +172,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The full 78-test GameTest run still logs the upstream-style warning that
+- The latest 83-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the blueprint data should be audited before treating this

@@ -187,7 +187,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 82-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 83-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -211,8 +211,10 @@ resource scanner, creates its asynchronous `Stack` request, receives the
 resolver-generated Warehouse `Delivery`, and ticks the real
 `EntityAIStructureBuilder` state machine through request pickup, Builder Hut
 transfer and one-block placement/consumption. The fixture supplies the known
-hut/build-site positions while the navigation/pathfinding contract is still
-pending. Larger multi-stage construction and BlockUI interaction remain open.
+hut/build-site positions while the full Builder navigation/pathfinding contract
+is still pending; the citizen navigation fixture separately covers a real
+solid-barrier detour. Larger multi-stage construction and BlockUI interaction
+remain open.
 The shared worker state machine also guards the missing-item event from
 re-entering `NEEDS_ITEM` while that state is already waiting, preserving the
 normal `waitForRequests()` path for completed deliveries.
@@ -223,12 +225,14 @@ the high-level `CitizenAI`, selects `WORKING` for an assigned `JobBuilder` and
 ticks the real `EntityAIStructureBuilder`. A colony-backed companion invokes
 the real advanced navigator and waits for the path result to complete at the
 target; the navigator now preserves `PathResult.COMPLETE` when its finish path
-is stopped. The same checkpoint uses a forced, exact Town Hall chunk for the
-protection callback, so the owner/outsider decision resolves against the
-intended colony. Evidence for the combined 82-test run is in
-`logs/minecolonies-gametest-citizen-navigation-fix1.log` and the earlier
-worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`;
-client rendering, full CitizenAI scheduling and longer multi-step work cycles
+is stopped. A companion fixture places a solid two-block barrier across the
+direct route and verifies that the computed path contains a real detour. The
+same checkpoint uses a forced, exact Town Hall chunk for the protection
+callback, so the owner/outsider decision resolves against the intended colony.
+Evidence for the combined 83-test run is in
+`logs/minecolonies-gametest-citizen-navigation-barrier-fix1.log`; the earlier
+worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`.
+Client rendering, full CitizenAI scheduling and longer multi-step work cycles
 remain manual or pending.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode

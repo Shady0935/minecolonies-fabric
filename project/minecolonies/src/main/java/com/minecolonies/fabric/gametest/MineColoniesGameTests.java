@@ -242,6 +242,7 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -961,6 +962,93 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "Colony citizen stopped too far from the navigation target: " + entity.blockPosition()
                     + "; target=" + target
                     + "; pathEnd=" + (pathResult.hasPath() ? pathResult.getPath().getEndNode() : null));
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 800)
+    public void citizenNavigationRoutesAroundSolidBarrier(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeStart = new BlockPos(3, 1, 4);
+        final BlockPos relativeTarget = new BlockPos(12, 1, 4);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos start = helper.absolutePos(relativeStart);
+        final BlockPos target = helper.absolutePos(relativeTarget);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        for (int z = 2; z <= 6; z++)
+        {
+            helper.setBlock(new BlockPos(7, 1, z), Blocks.STONE);
+            helper.setBlock(new BlockPos(7, 2, z), Blocks.STONE);
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Citizen Barrier Navigation GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Citizen barrier navigation fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Citizen barrier navigation fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Citizen barrier navigation fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, start);
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Citizen barrier navigation fixture could not create a live colony citizen");
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        helper.runAfterDelay(120, () ->
+        {
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Colony citizen did not reach ACTIVE_SERVER before barrier navigation: "
+                + entity.getEntityStateController().getState());
+            final PathResult<? extends IPathJob> pathResult = entity.getNavigation()
+              .moveToXYZ(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, 1.0D);
+            helper.assertTrue(pathResult != null, "Colony-backed barrier navigation did not create a path request");
+            entity.getCitizenAI().setCurrentDelay(600);
+            helper.succeedWhen(() ->
+            {
+                helper.assertTrue(pathResult.getStatus() == PathFindingStatus.COMPLETE,
+                  "Colony-backed barrier navigation did not complete: status=" + pathResult.getStatus()
+                    + "; computing=" + pathResult.isCalculatingPath()
+                    + "; position=" + entity.blockPosition()
+                    + "; pathLength=" + (pathResult.hasPath() ? pathResult.getPathLength() : -1)
+                    + "; nextNode=" + (pathResult.hasPath() ? pathResult.getPath().getNextNodeIndex() : -1)
+                    + "; pathEnd=" + (pathResult.hasPath() ? pathResult.getPath().getEndNode() : null));
+                helper.assertTrue(pathResult.isPathReachingDestination(),
+                  "Colony-backed barrier navigation completed without reaching its target");
+                helper.assertTrue(entity.blockPosition().distManhattan(target) <= 2,
+                  "Colony citizen stopped too far after barrier navigation: " + entity.blockPosition()
+                    + "; target=" + target);
+                boolean detoured = false;
+                if (pathResult.hasPath())
+                {
+                    for (int i = 0; i < pathResult.getPath().getNodeCount(); i++)
+                    {
+                        final Node node = pathResult.getPath().getNode(i);
+                        if (node.z != start.getZ())
+                        {
+                            detoured = true;
+                            break;
+                        }
+                    }
+                }
+                helper.assertTrue(detoured,
+                  "Colony-backed barrier navigation did not use a detour: pathEnd="
+                    + (pathResult.hasPath() ? pathResult.getPath().getEndNode() : null));
             });
         });
     }

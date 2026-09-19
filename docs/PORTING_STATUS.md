@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  82-test GameTest run
+  83-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 82-test Fabric GameTest run
+  is covered by the latest 83-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -199,9 +199,11 @@ completed.
   fixture now ticks a registered `EntityCitizen` through `ACTIVE_SERVER`,
   high-level `CitizenAI.WORKING` and the assigned Builder worker AI
 - [x] Colony-backed citizen advanced navigation reaches a real target and
-  preserves the completed `PathResult` status; the focused fixture also
-  validates Town Hall protection after exact chunk registration. Full
-  CitizenAI scheduling and longer work-cycle navigation remain open
+  preserves the completed `PathResult` status; a companion fixture routes the
+  citizen around a solid two-block barrier and verifies a real detour in the
+  computed path. The focused fixture also validates Town Hall protection after
+  exact chunk registration. Full CitizenAI scheduling and longer work-cycle
+  navigation remain open
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; the real C2S `AssignUnassignMessage` route now
@@ -326,8 +328,8 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 82-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 81-test core batch covers event-dispatch
+- [x] Latest 83-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 82-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
