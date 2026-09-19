@@ -82,6 +82,9 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HutRenam
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldRegistrationMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldUpdateSeedMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
@@ -1985,6 +1988,62 @@ public final class MineColoniesGameTests implements FabricGameTest
                 + building.getStructurePack());
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "BuildingSetStyle envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerFarmFieldMessagesConfigureField(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeField = new BlockPos(12, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos fieldPos = helper.absolutePos(relativeField);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeField, ModBlocks.blockScarecrow);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Farm Field Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S farm-field fixture colony was not created");
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S farm-field fixture has no running server");
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int registrationId = findMessageId(channel, FarmFieldRegistrationMessage.class);
+        final int seedId = findMessageId(channel, FarmFieldUpdateSeedMessage.class);
+        final int resizeId = findMessageId(channel, FarmFieldPlotResizeMessage.class);
+        helper.assertTrue(registrationId > 0, "FarmFieldRegistration message was not registered");
+        helper.assertTrue(seedId > 0, "FarmFieldUpdateSeed message was not registered");
+        helper.assertTrue(resizeId > 0, "FarmFieldPlotResize message was not registered");
+
+        final int registrationCommunicationId = 0x46465247;
+        final int seedCommunicationId = 0x46465344;
+        final int resizeCommunicationId = 0x4646525A;
+        dispatchServerMessage(channel, server, owner, registrationId, registrationCommunicationId,
+          new FarmFieldRegistrationMessage(colony.getDimension(), colony.getID(), fieldPos));
+        dispatchServerMessage(channel, server, owner, seedId, seedCommunicationId,
+          new FarmFieldUpdateSeedMessage(colony.getDimension(), colony.getID(), new ItemStack(Items.CARROT), fieldPos));
+        dispatchServerMessage(channel, server, owner, resizeId, resizeCommunicationId,
+          new FarmFieldPlotResizeMessage(colony.getDimension(), colony.getID(), 3, Direction.EAST, fieldPos));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final FarmField field = colony.getBuildingManager().getField(candidate -> candidate.getPosition().equals(fieldPos))
+              .map(candidate -> (FarmField) candidate)
+              .orElse(null);
+            helper.assertTrue(field != null, "FarmFieldRegistration message did not create the field");
+            helper.assertTrue(field.getSeed().is(Items.CARROT),
+              "FarmFieldUpdateSeed message did not update the seed: " + field.getSeed());
+            helper.assertTrue(field.getRadius(Direction.EAST) == 3,
+              "FarmFieldPlotResize message did not update the east radius: " + field.getRadius(Direction.EAST));
+            helper.assertTrue(channel.getMessageCache().getIfPresent(registrationCommunicationId) == null,
+              "FarmFieldRegistration envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(seedCommunicationId) == null,
+              "FarmFieldUpdateSeed envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(resizeCommunicationId) == null,
+              "FarmFieldPlotResize envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

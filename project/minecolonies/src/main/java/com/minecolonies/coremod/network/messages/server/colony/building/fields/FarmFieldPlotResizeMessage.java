@@ -7,6 +7,8 @@ import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMess
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 
 /**
@@ -45,6 +47,24 @@ public class FarmFieldPlotResizeMessage extends AbstractColonyServerMessage
     public FarmFieldPlotResizeMessage(IColony colony, int size, Direction direction, BlockPos position)
     {
         super(colony);
+        this.size = size;
+        this.direction = direction;
+        this.position = position;
+    }
+
+    /**
+     * Creates a server-bound field resize message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param size new radius
+     * @param direction radius direction
+     * @param position field position
+     */
+    public FarmFieldPlotResizeMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final int size, final Direction direction, final BlockPos position)
+    {
+        super(dimensionId, colonyId);
         this.size = size;
         this.direction = direction;
         this.position = position;

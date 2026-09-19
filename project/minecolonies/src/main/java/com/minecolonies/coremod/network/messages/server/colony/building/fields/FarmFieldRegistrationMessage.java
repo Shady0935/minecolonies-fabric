@@ -7,6 +7,8 @@ import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 
 import java.util.Optional;
@@ -35,6 +37,19 @@ public class FarmFieldRegistrationMessage extends AbstractColonyServerMessage
     public FarmFieldRegistrationMessage(IColony colony, BlockPos position)
     {
         super(colony);
+        this.position = position;
+    }
+
+    /**
+     * Creates a server-bound field registration message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param position field position
+     */
+    public FarmFieldRegistrationMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos position)
+    {
+        super(dimensionId, colonyId);
         this.position = position;
     }
 

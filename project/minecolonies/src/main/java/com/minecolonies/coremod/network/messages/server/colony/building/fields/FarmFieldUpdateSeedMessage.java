@@ -6,7 +6,9 @@ import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +45,22 @@ public class FarmFieldUpdateSeedMessage extends AbstractColonyServerMessage
     public FarmFieldUpdateSeedMessage(@NotNull IColony colony, ItemStack newSeed, BlockPos position)
     {
         super(colony);
+        this.newSeed = newSeed;
+        this.position = position;
+    }
+
+    /**
+     * Creates a server-bound seed update without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param newSeed new field seed
+     * @param position field position
+     */
+    public FarmFieldUpdateSeedMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final ItemStack newSeed, final BlockPos position)
+    {
+        super(dimensionId, colonyId);
         this.newSeed = newSeed;
         this.position = position;
     }
