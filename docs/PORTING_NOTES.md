@@ -171,9 +171,11 @@ material requests, block placement or BlockUI interaction are complete.
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond
 cost, advances the configured branch progress, records completion and verifies
-the `minecolonies:effects/blockhutmysticalsite` effect. This covers the
-server-side research manager contract; University citizen assignment, work
-speed and the client GUI remain manual validation items.
+the `minecolonies:effects/blockhutmysticalsite` effect. The same fixture now
+registers a real Colonial University, assigns a live citizen to `JobResearch`
+and drives the configured progress through repeated `BuildingUniversity`
+server-side worker ticks. Researcher AI walking/mana behavior, work-speed
+scaling and the client GUI remain manual validation items.
 
 The same shutdown pass exposed that colony serialization can run after the
 world reference has been detached. `AbstractSchematicProvider.getRotation()`
@@ -186,17 +188,17 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 15-test run therefore resolves the structure without
+the building; the latest 16-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The latest 15-test GameTest batch resolves all four
+retained `ResearchListener`. The latest 16-test GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`; its
-research-cycle fixture also covers item-cost consumption, progress completion
-and effect application.
+research-cycle fixture also covers item-cost consumption, progress completion,
+effect application and the real University worker-tick path.
 
 ## Fabric datagen
 

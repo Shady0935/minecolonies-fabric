@@ -92,8 +92,9 @@ completed.
   `IGlobalResearchTree`; the complete University gameplay cycle remains open
 - [x] Server-side research selection consumes the configured item cost,
   advances `civilian/ambition` to completion and applies its
-  `effects/blockhutmysticalsite` effect; University worker assignment and GUI
-  interaction remain open
+  `effects/blockhutmysticalsite` effect; the real University building can now
+  register a researcher and advance that research through its server-side
+  worker tick; researcher AI and GUI interaction remain open
 - [x] MineColonies' Forge-shaped conventional item/block tag references resolve
   at runtime through native Fabric datagen; dedicated startup and `/reload`
   report no missing-tag errors
@@ -122,6 +123,8 @@ completed.
 - [ ] Farmer and Miner
 - [ ] Research
 - [x] Default research datapack tree and effect registry exercised server-side
+- [x] Server-side University registration, researcher-job assignment and
+  configured worker-tick progression exercised by Fabric GameTest
 - [ ] Guards and raids
 - [x] Structurize pack discovery and Town Hall blueprint lookup exercised by Fabric GameTest
 - [x] Server-side builder work-order creation resolves the Colonial Town Hall
@@ -151,11 +154,11 @@ completed.
    replacement, bow-hook compatibility semantics, cancellable gameplay-event
    semantics, the hostile-spawn position veto and explosion entity-policy
    semantics, fishing-hook angler spawn-state synchronization and builder
-   work-order registration, and research selection/progression/effect
-   application
+   work-order registration, research selection/progression/effect application,
+   and University researcher assignment/worker-tick progression
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 15-test Fabric GameTest batch passes with clean saves for all three
+- [x] Latest 16-test Fabric GameTest batch passes with clean saves for all three
   dimensions; research-cycle evidence is in
   `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload
