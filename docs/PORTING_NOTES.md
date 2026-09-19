@@ -187,10 +187,10 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 86-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 87-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-builder-auto-assignment-fix1.log`.
+in `logs/minecolonies-gametest-housing-fix5-green-87.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,9 +243,10 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 86-test run (82 core tests, two isolated
-Builder tests, one isolated residence sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-residence-sleep-fix3.log`; the earlier
+Evidence for the latest combined 87-test run (82 core tests, one isolated
+automatic-housing test, two isolated Builder tests, one isolated residence
+sleep/wake test and one entity batch) is in
+`logs/minecolonies-gametest-housing-fix5-green-87.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -403,9 +404,12 @@ a real Colonial residence. It registers the level-one house blueprint, creates
 a live citizen, assigns and then unassigns the citizen through separate split
 envelopes, verifies the `LivingBuildingModule` membership and
 `CitizenData.getHomeBuilding()` transitions, and confirms both cache entries
-are removed. Automatic housing capture and the residence GUI remain manual
-validation items; the assigned-citizen sleep/navigation and daytime wake-up
-cycle is covered by `logs/minecolonies-gametest-residence-sleep-fix3.log`.
+are removed. A separate housing fixture invokes the real DEFAULT
+`LivingBuildingModule.onColonyTick` rule and verifies that it captures an
+unassigned citizen into the residence; the assigned-citizen sleep/navigation
+and daytime wake-up cycle is covered by
+`logs/minecolonies-gametest-housing-fix5-green-87.log`. The residence GUI and
+full in-game housing workflow remain manual validation items.
 
 A twenty-fifth companion C2S fixture serializes
 `ChangeFreeToInteractBlockMessage` against a real colony owner. It adds and
@@ -565,10 +569,11 @@ the level-one house blueprint, assigns a live citizen through
 retain the home relationship. A follow-up isolated fixture registers a real
 two-block bed in the residence, ticks the assigned citizen through normal
 `CitizenAI` sleep navigation and `CitizenSleepHandler.trySleep`, then advances
-the world to daytime and verifies bed release/wake-up. Automatic housing
-capture during colony ticks and the residence GUI remain manual validation
-items; evidence is in
-`logs/minecolonies-gametest-residence-sleep-fix3.log`.
+the world to daytime and verifies bed release/wake-up. A companion fixture
+invokes the DEFAULT automatic-housing module tick and verifies capture of an
+unassigned citizen. The residence GUI and full in-game housing workflow remain
+manual validation items; evidence is in
+`logs/minecolonies-gametest-housing-fix5-green-87.log`.
 
 The warehouse fixture registers Colonial warehouse and courier buildings from
 their real `TileEntityColonyBuilding` entries, resolves the level-one storage

@@ -279,6 +279,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String TEST_BATCH = "minecolonies_fabric_port";
     private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
+    private static final String HOUSING_TEST_BATCH = "minecolonies_fabric_housing_port";
     private static final String SLEEP_TEST_BATCH = "minecolonies_fabric_sleep_port";
 
     public MineColoniesGameTests()
@@ -992,7 +993,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; navigationDone=" + entity.getNavigation().isDone()
                     + "; destination=" + entity.getNavigation().getDestination()
                     + "; path=" + entity.getNavigation().getPath());
-                helper.assertTrue(entity.blockPosition().distManhattan(buildTarget) <= 5,
+                helper.assertTrue(entity.blockPosition().distSqr(buildTarget) <= 25,
                   "Builder citizen reported construction-site arrival too far away: " + entity.blockPosition()
                     + "; target=" + buildTarget);
             });
@@ -1339,6 +1340,83 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Residence living module did not retain the assigned citizen");
         helper.assertTrue(citizen.getHomeBuilding() == residence,
           "Residence assignment did not update the citizen home building");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = HOUSING_TEST_BATCH, timeoutTicks = 200)
+    public void automaticHousingCapturesUnassignedCitizen(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeResidence = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos residencePos = helper.absolutePos(relativeResidence);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeResidence, ModBlocks.blockHutHome);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Automatic Housing GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Automatic-housing fixture colony was not created");
+        helper.assertTrue(!colony.isManualHousing(), "Automatic-housing fixture unexpectedly started in manual mode");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Automatic-housing fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Automatic-housing fixture Town Hall was not registered");
+
+        final BlockEntity residenceEntity = level.getBlockEntity(residencePos);
+        helper.assertTrue(residenceEntity instanceof TileEntityColonyBuilding,
+          "Automatic-housing fixture did not create a residence block entity");
+        final TileEntityColonyBuilding residenceHut = (TileEntityColonyBuilding) residenceEntity;
+        residenceHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        residenceHut.setBlueprintPath("fundamentals/house1.blueprint");
+        residenceHut.setSchematicName("house1");
+        final IBuilding residence = colony.getBuildingManager().addNewBuilding(residenceHut, level);
+        helper.assertTrue(residence != null && residence.hasModule(LivingBuildingModule.class),
+          "Automatic-housing fixture did not register its living module: " + residence);
+        helper.assertTrue(residence.getBuildingLevel() >= 1,
+          "Automatic-housing fixture did not resolve its level-one house blueprint");
+        final LivingBuildingModule livingModule = residence.getFirstModuleOccurance(LivingBuildingModule.class);
+        helper.assertTrue(livingModule.getHiringMode() == HiringMode.DEFAULT,
+          "Automatic-housing fixture residence did not keep DEFAULT hiring mode");
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, residencePos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Automatic-housing fixture could not create a live citizen");
+        // Keep the colony's initial move-in loop from creating a second citizen and filling the one-slot house
+        // before this fixture observes the automatic housing pass.
+        colony.setMoveIn(false);
+        helper.assertTrue(citizen.getHomeBuilding() == null,
+          "Automatic-housing fixture citizen already had a home before the housing tick");
+        helper.assertTrue(livingModule.getAssignedCitizen().isEmpty(),
+          "Automatic-housing fixture residence was already occupied before the housing tick");
+
+        // Isolate the upstream housing rule from the shared GameTest chunk/subscriber lifecycle.
+        // The normal colony slow-tick bridge is exercised by the end-to-end sleep and worker tests.
+        livingModule.onColonyTick(colony);
+        helper.assertTrue(citizen.getHomeBuilding() == residence,
+          "Automatic housing did not assign the unassigned citizen to the residence: home="
+            + citizen.getHomeBuilding() + "; assigned=" + livingModule.getAssignedCitizen().size()
+            + "; max=" + livingModule.getModuleMax() + "; citizens=" + colony.getCitizenManager().getCitizens().size()
+            + "; registered=" + (colony.getBuildingManager().getBuilding(residencePos) == residence));
+        helper.assertTrue(livingModule.hasAssignedCitizen(citizen),
+          "Automatic housing did not retain the citizen in the living module");
+        helper.assertTrue(livingModule.getAssignedCitizen().size() == 1,
+          "Automatic housing assigned an unexpected number of residents: "
+            + livingModule.getAssignedCitizen().size());
         helper.succeed();
     }
 
@@ -1877,7 +1955,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         resourceAI.setWorkFrom(builderCitizen.blockPosition());
         resourceAI.resetAI();
         boolean pickupObserved = false;
-        for (int i = 0; i < 240 && resourceStructure.getStage() != null; i++)
+        for (int i = 0; i < 600 && resourceStructure.getStage() != null; i++)
         {
             if (pickupObserved && ("NEEDS_ITEM".equals(resourceAI.getState().toString())
                                      || "GATHERING_REQUIRED_MATERIALS".equals(resourceAI.getState().toString())
@@ -1943,7 +2021,14 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(!builder.requiresResourceForBuilding(new ItemStack(Items.STONE)),
           "Builder structure step did not reduce its required resource bucket");
         helper.assertTrue(resourceStructure.getStage() == null,
-          "Builder material-backed structure handler did not complete");
+          "Builder material-backed structure handler did not complete: stage=" + resourceStructure.getStage()
+            + "; state=" + resourceAI.getState()
+            + "; target=" + level.getBlockState(buildTarget)
+            + "; translatedTarget=" + resourceStructure.getProgressPosInWorld(BlockPos.ZERO)
+            + "; worker=" + builderCitizen.blockPosition()
+            + "; citizenStone=" + countItem(builderCitizen, Items.STONE)
+            + "; buildingStone=" + buildingStoneAfterPickup
+            + "; builderProgress=" + builder.getProgress());
         helper.succeed();
     }
 

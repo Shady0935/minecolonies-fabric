@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  86-test GameTest run
+  87-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 86-test Fabric GameTest run
+  is covered by the latest 87-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -219,8 +219,9 @@ completed.
   citizen-to-home relationship; the real C2S `AssignUnassignMessage` route now
   also assigns and unassigns that residence through the server executor;
   an isolated real-bed fixture now drives the assigned citizen through normal
-  `CitizenAI` sleep navigation, bed occupation and daytime wake-up; automatic
-  housing ticks and housing GUI interaction remain open
+  `CitizenAI` sleep navigation, bed occupation and daytime wake-up; an isolated
+  automatic-housing module tick also captures an unassigned citizen into a
+  DEFAULT residence; housing GUI interaction remains open
 - [x] The real C2S `ChangeFreeToInteractBlockMessage` route adds and removes
   both a free-interaction block and a free-interaction position under the
   colony permission check; the Town Hall permissions GUI remains open
@@ -339,8 +340,9 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 86-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 82-test core batch covers event-dispatch
+- [x] Latest 87-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 82-test core batch plus the isolated housing, Builder,
+  sleep/wake and entity batches cover event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -387,9 +389,10 @@ completed.
   miner stone drops and farmer harvest drops,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
-  all custom entity NBT reload contracts, populated-tavern conversion and the
-   assigned-residence bed/sleep/wake cycle; evidence is in
-   `logs/minecolonies-gametest-residence-sleep-fix3.log`
+  all custom entity NBT reload contracts, populated-tavern conversion, the
+  assigned-residence bed/sleep/wake cycle and automatic housing capture;
+  evidence is in
+  `logs/minecolonies-gametest-housing-fix5-green-87.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

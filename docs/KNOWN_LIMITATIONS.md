@@ -58,10 +58,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   non-persistent projectile types are expected to discard during reload; this
   does not replace the pending combat, rendering or restart-migration
   checks.
-  It does not yet cover automatic housing capture,
-  multi-request resolution/delivery, automatic logistics inventory transfer
-  beyond the focused rack-backed cycle, courier navigation, automatic Builder
-  work-order scheduling/selection, full Builder work-order pathfinding and
+  It does not yet cover multi-request resolution/delivery, automatic logistics
+  inventory transfer beyond the focused rack-backed cycle, courier navigation,
+  full Builder work-order pathfinding and
   larger construction, full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop
   growth/harvesting AI and field placement, a
@@ -115,7 +114,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - Authenticated in-game interaction with BlockUI screens (including an actual
   rendered entity/block hook overlay), full Builder work-order pathfinding/larger
   placement, full citizen work cycles/scheduling, logistics,
-  automatic housing capture, miner shaft/ore behavior and mining AI,
+  miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
@@ -177,7 +176,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 86-test GameTest run still logs the upstream-style warning that
+- The latest 87-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the blueprint data should be audited before treating this
