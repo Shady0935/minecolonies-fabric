@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 41-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 42-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -265,6 +265,12 @@ Farmer settings module. It round-trips a `BoolSetting`, disables fertilizer
 requests through the server handler and confirms the split-cache entry is
 removed. The generic building-settings GUI remains manual.
 
+An eleventh companion C2S fixture serializes `ReactivateBuildingMessage` with a
+real deactivated Builder hut. It routes the position-only request through the
+server executor, re-registers the `BuildingBuilder`, removes the `deactivated`
+tag and confirms that the split-cache entry is removed. The in-game
+reactivation screen remains manual.
+
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
 the level-one house blueprint, assigns a live citizen through
@@ -329,7 +335,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 41-test run therefore resolves the structure without
+the building; the latest 42-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -412,6 +418,7 @@ serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `ToggleHousingMessage`, `ToggleJobMessage`, `ColonyFlagChangeMessage`,
 `ChangeDeliveryPriorityMessage`, `AssignmentModeMessage`, `AssignFieldMessage`,
 `TriggerSettingMessage` and `BuildingSetStyleMessage`,
+`ReactivateBuildingMessage`,
 `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage`,
 wraps each in the
@@ -433,8 +440,8 @@ The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-farmer-settings.log`; it reports
-`All 41 required tests passed` (40 core tests plus one entity batch test).
+`logs/minecolonies-gametest-c2s-reactivate.log`; it reports
+`All 42 required tests passed` (41 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

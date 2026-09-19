@@ -76,6 +76,7 @@ import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
+import com.minecolonies.coremod.network.messages.server.ReactivateBuildingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyFlagChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
@@ -2366,6 +2367,70 @@ public final class MineColoniesGameTests implements FabricGameTest
               "TriggerSetting message did not disable Farmer fertilizer requests");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "TriggerSetting envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerReactivateBuildingMessageRestoresDeactivatedHut(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Reactivate Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S reactivate fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S reactivate fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S reactivate fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "C2S reactivate fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final Map<BlockPos, java.util.List<String>> tags = new java.util.HashMap<>();
+        tags.put(BlockPos.ZERO, new java.util.ArrayList<>(java.util.List.of(Constants.DEFAULT_STYLE, "deactivated")));
+        builderHut.setPositionedTags(tags);
+        helper.assertTrue(colony.getBuildingManager().getBuilding(builderPos) == null,
+          "C2S reactivate fixture hut was unexpectedly registered before the message");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S reactivate fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ReactivateBuildingMessage.class);
+        helper.assertTrue(messageId > 0, "ReactivateBuilding message was not registered");
+        final int communicationId = 0x52454143;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new ReactivateBuildingMessage(builderPos));
+
+        helper.runAfterDelay(160, () ->
+        {
+            final IBuilding restored = colony.getBuildingManager().getBuilding(builderPos);
+            helper.assertTrue(restored instanceof BuildingBuilder,
+              "ReactivateBuilding message did not register the Builder: " + restored);
+            helper.assertTrue(!builderHut.getPositionedTags().getOrDefault(BlockPos.ZERO, java.util.List.of())
+                .contains("deactivated"),
+              "ReactivateBuilding message left the hut marked as deactivated");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "ReactivateBuilding envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
