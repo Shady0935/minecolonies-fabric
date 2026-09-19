@@ -187,9 +187,10 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 84-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 85-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
-`logs/minecolonies-gametest-arrow-nock.log`.
+`logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
+in `logs/minecolonies-gametest-builder-structure-step-fix1.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -215,7 +216,14 @@ hut/build-site positions. A companion live-citizen fixture now drives the real
 `EntityAIStructureBuilder` construction-site navigation helper through its
 worker proxy and verifies arrival within the work radius; full work-order
 navigation, larger multi-stage construction and BlockUI interaction remain
-open.
+open. The latest companion fixture uses the actual Builder AI assigned by
+`JobBuilder`, persists a `WorkOrderBuilding` through the colony `WorkManager`,
+manually associates that order after the initial AI reset to isolate execution
+from scheduling, and then lets normal `CitizenAI` ticks reach `BUILDING_STEP`
+for a custom one-block blueprint. The block is placed, the required stone is
+consumed and the structure handler completes. Automatic order scheduling,
+larger-structure pathfinding and the complete logistics-backed work cycle
+remain open.
 The shared worker state machine also guards the missing-item event from
 re-entering `NEEDS_ITEM` while that state is already waiting, preserving the
 normal `waitForRequests()` path for completed deliveries.
@@ -230,7 +238,10 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the combined 84-test run is in
+Evidence for the latest combined 85-test run (83 core tests plus isolated
+Builder and entity batches) is in
+`logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
+construction-site navigation evidence remains in
 `logs/minecolonies-gametest-builder-navigation-fix2.log`; the earlier
 worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`.
 Client rendering, full CitizenAI scheduling and longer multi-step work cycles
@@ -242,9 +253,10 @@ split envelope and server executor, verifies the owner permission path with a
 registered `SERVERBOUND` player, and checks that a live `JobBuilder` allows the
 handlers to create/claim the Town Hall `WorkOrderBuilding` and assign it to the
 citizen job. The two-stage server placement/consumption path, the focused
-material-request/delivery/pickup/placement path and the construction-site
-navigation proxy are automated; full work-order construction and Builder GUI
-interaction remain manual validation items.
+material-request/delivery/pickup/placement path, the assigned live-AI
+`BUILDING_STEP` fixture and the construction-site navigation proxy are
+automated; automatic work-order scheduling, full work-order pathfinding and
+Builder GUI interaction remain manual validation items.
 
 A companion C2S fixture serializes `DirectPlaceMessage` in the same real split
 envelope. It places a Town Hall for a registered owner, consumes the supplied

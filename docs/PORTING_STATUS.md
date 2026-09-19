@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  84-test GameTest run
+  85-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 84-test Fabric GameTest run
+  is covered by the latest 85-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -201,6 +201,13 @@ completed.
   a live citizen and verifies arrival within the work radius. A companion citizen-cycle
   fixture now ticks a registered `EntityCitizen` through `ACTIVE_SERVER`,
   high-level `CitizenAI.WORKING` and the assigned Builder worker AI
+- [x] A dedicated live-assigned Builder fixture now persists a `WorkOrderBuilding`
+  in the colony `WorkManager`, associates it with the actual `JobBuilder`, and
+  drives the normal `CitizenAI` tick path through the assigned
+  `EntityAIStructureBuilder` and a `BUILDING_STEP`; a custom one-block blueprint
+  is placed and its stone is consumed before the handler finishes. Automatic
+  work-order scheduling/selection, pathfinding over larger structures and the
+  full logistics-backed construction cycle remain open
 - [x] Colony-backed citizen advanced navigation reaches a real target and
   preserves the completed `PathResult` status; a companion fixture routes the
   citizen around a solid two-block barrier and verifies a real detour in the
@@ -331,7 +338,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 84-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 85-test Fabric GameTest run passes with clean saves for all three
   dimensions; its 83-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
