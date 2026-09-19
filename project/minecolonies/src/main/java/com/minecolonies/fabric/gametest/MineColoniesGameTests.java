@@ -23,15 +23,18 @@ import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.NewBobberEntity;
+import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
+import com.minecolonies.api.colony.workorders.WorkOrderType;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
+import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.common.extensions.IForgeMenuType;
 import com.minecolonies.fabric.event.Event;
@@ -190,6 +193,45 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Colony center changed during NBT round-trip");
         helper.assertTrue(loaded.getName().equals(colony.getName()),
           "Colony name changed during NBT round-trip");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void builderWorkOrderResolvesBlueprintAndRegisters(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, player, "Fabric Builder GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Builder fixture colony was not created");
+
+        final BlockEntity blockEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "Builder fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
+        hut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        hut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        colony.getBuildingManager().addNewBuilding(hut, level);
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final IBuilding building = colony.getBuildingManager().getBuilding(townHall);
+        helper.assertTrue(building != null, "Builder fixture Town Hall was not registered");
+        final WorkOrderBuilding order = WorkOrderBuilding.create(WorkOrderType.BUILD, building);
+        helper.assertTrue(order.getStructurePath().equals("fundamentals/townhall1.blueprint"),
+          "Builder order selected the wrong blueprint path: " + order.getStructurePath());
+        final Blueprint blueprint = StructurePacks.getBlueprint(order.getStructurePack(), order.getStructurePath());
+        helper.assertTrue(blueprint != null,
+          "Builder order could not resolve its blueprint");
+
+        colony.getWorkManager().addWorkOrder(order, false);
+        helper.assertTrue(order.getID() > 0, "Builder order did not receive a persistent id");
+        helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == order,
+          "Builder order was not registered in the colony WorkManager");
         helper.succeed();
     }
 
