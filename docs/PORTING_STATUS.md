@@ -62,7 +62,7 @@ completed.
   the registrations and a payload round-trip are covered by GameTest
 - [x] Fishing-hook spawn state mirrors the angler entity ID through
   `SynchedEntityData`; the client-side reattachment round-trip is covered by
-  the 12-test GameTest batch
+  the 13-test GameTest batch
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
@@ -73,7 +73,7 @@ completed.
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
-  retained `FillBucketEvent` contract; the 12-test server fixture covers the
+  retained `FillBucketEvent` contract; the 13-test server fixture covers the
   cancellation semantics of the mixin-backed paths
 - [x] `NaturalSpawner` forwards natural and chunk-generation spawn-rule checks
   to the retained `MobSpawnEvent.PositionCheck`; the focused fixture verifies
@@ -87,6 +87,9 @@ completed.
 - [x] Server JSON listeners are registered through Fabric's server-data reload
   manager and rebuild 130 worker recipes, 201 research recipes, quests and
   1,455 item-NBT compatibility rules
+- [x] The default research reload produces four usable branches, representative
+  branch-qualified research IDs and the citizen-cap effect through
+  `IGlobalResearchTree`; the complete University gameplay cycle remains open
 - [x] MineColonies' Forge-shaped conventional item/block tag references resolve
   at runtime through native Fabric datagen; dedicated startup and `/reload`
   report no missing-tag errors
@@ -114,6 +117,7 @@ completed.
 - [ ] Warehouse and courier logistics
 - [ ] Farmer and Miner
 - [ ] Research
+- [x] Default research datapack tree and effect registry exercised server-side
 - [ ] Guards and raids
 - [x] Structurize pack discovery and Town Hall blueprint lookup exercised by Fabric GameTest
 - [ ] BlockUI screens and client-to-server gameplay actions
@@ -140,6 +144,8 @@ completed.
   replacement, bow-hook compatibility semantics, cancellable gameplay-event
   semantics, the hostile-spawn position veto and explosion entity-policy
   semantics, and fishing-hook angler spawn-state synchronization
+- [x] Fabric GameTest verifies the four default research branches, representative
+  branch-qualified research IDs, branch metadata and the citizen-cap effect
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

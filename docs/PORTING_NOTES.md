@@ -123,8 +123,8 @@ live affected-block and affected-entity lists. The retained handler can remove
 protected colony blocks and non-living entities before vanilla applies damage
 or destroys blocks. The existing `Explosion.Start` cancellation still skips
 both computation and finalization. Start cancellation, living damage, block
-filtering and non-living entity filtering are covered by the 12-test GameTest
-batch in `logs/minecolonies-gametest-explosion-start.log`.
+filtering and non-living entity filtering are covered by the 13-test GameTest
+batch in `logs/minecolonies-gametest-research-tree.log`.
 
 The client entrypoint also forwards item tooltip and play-connection disconnect
 callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
@@ -172,10 +172,15 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 12-test run therefore resolves the structure without
+the building; the latest 13-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
+
+The same Fabric server-data reload builds the default research tree through the
+retained `ResearchListener`. The 13-test GameTest batch resolves all four
+default branches, representative research IDs using their full branch paths,
+branch metadata and the citizen-cap effect through `IGlobalResearchTree`.
 
 ## Fabric datagen
 
@@ -266,7 +271,7 @@ Forge's `IEntityAdditionalSpawnData` is not consumed automatically by Fabric's
 vanilla entity-spawn packet path, so `NewBobberEntity` mirrors the angler's
 entity ID into `SynchedEntityData`. The client resolves that ID lazily when the
 citizen entity becomes available, while the existing extra spawn buffer remains
-read for compatibility. The 12-test GameTest batch verifies the synced
+read for compatibility. The 13-test GameTest batch verifies the synced
 round-trip in `logs/minecolonies-gametest-fishing-hook.log`.
 
 The entity DataFixer audit is deliberately closed as a compatibility policy,
