@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 50-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 52-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -312,6 +312,17 @@ against a live creative citizen. It routes a Strength increment through the
 real split envelope and server executor, verifies the owner/creative permission
 path and the persisted skill-level mutation, and confirms split-cache cleanup.
 
+A twentieth companion C2S fixture serializes `CourierHiringModeMessage` against
+a real Warehouse courier-assignment module. It switches the module from
+`DEFAULT` to `AUTO` and back through separate split envelopes, verifying both
+live transitions and cache cleanup.
+
+A twenty-first companion C2S fixture serializes `QuarryHiringModeMessage`
+against a real Simple Quarry module. It uses the actual quarry block and
+structure pack, switches the module from `DEFAULT` to `AUTO` and back, and
+confirms the route and split-cache cleanup. The message's client-view
+constructor now preserves the module runtime ID required by the server handler.
+
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
 the level-one house blueprint, assigns a live citizen through
@@ -376,7 +387,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 50-test run therefore resolves the structure without
+the building; the latest 52-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -468,6 +479,8 @@ serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `HireFireMessage`,
 `BuildingHiringModeMessage`,
 `AdjustSkillCitizenMessage`,
+`CourierHiringModeMessage`,
+`QuarryHiringModeMessage`,
 `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage`,
 wraps each in the
@@ -482,16 +495,17 @@ decoration work-order creation with asynchronous blueprint resolution and
 rotation/mirror preservation, building custom-name mutation, colony-style and
 colony-management updates, Builder delivery-priority mutation, Farmer field
 assignment-mode/ownership mutation and Farmer settings mutation,
-deconstructed-building style mutation, Farmer hiring-mode transition and
-creative citizen Strength adjustment. The
+deconstructed-building style mutation, Farmer hiring-mode transition,
+creative citizen Strength adjustment, Courier hiring-mode transition and
+Quarry hiring-mode transition. The
 far-away colony fixtures use disjoint coordinate bands so concurrent GameTest
 execution does not depend on whichever fixture claims the first candidate.
 The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-adjust-skill.log`; it reports
-`All 50 required tests passed` (49 core tests plus one entity batch test).
+`logs/minecolonies-gametest-c2s-hiring-modes.log`; it reports
+`All 52 required tests passed` (51 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

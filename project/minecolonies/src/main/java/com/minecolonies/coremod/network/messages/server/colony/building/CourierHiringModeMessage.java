@@ -7,6 +7,9 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +47,23 @@ public class CourierHiringModeMessage extends AbstractBuildingServerMessage<IBui
         super(building);
         this.mode = mode;
         this.id = id;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  target warehouse position
+     * @param mode        hiring mode to select
+     * @param moduleId    courier module runtime id
+     */
+    public CourierHiringModeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final HiringMode mode, final int moduleId)
+    {
+        super(dimensionId, colonyId, buildingId);
+        this.mode = mode;
+        this.id = moduleId;
     }
 
     @Override

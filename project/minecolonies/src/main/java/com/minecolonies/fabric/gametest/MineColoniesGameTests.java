@@ -44,6 +44,7 @@ import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
+import com.minecolonies.coremod.colony.buildings.modules.QuarryModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
@@ -91,8 +92,10 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HutRenam
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.CourierHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.BuildingHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
@@ -2916,6 +2919,173 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "BuildingHiringMode message did not restore DEFAULT mode");
                 helper.assertTrue(channel.getMessageCache().getIfPresent(defaultCommunicationId) == null,
                   "BuildingHiringMode DEFAULT envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerCourierHiringModeMessageUpdatesWarehouse(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeWarehouse = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Courier Hiring Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S courier-hiring fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S courier-hiring fixture Town Hall did not create a block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S courier-hiring fixture Town Hall was not registered");
+
+        final BlockEntity warehouseEntity = level.getBlockEntity(warehousePos);
+        helper.assertTrue(warehouseEntity instanceof TileEntityColonyBuilding,
+          "C2S courier-hiring fixture did not create a warehouse block entity");
+        final TileEntityColonyBuilding warehouseHut = (TileEntityColonyBuilding) warehouseEntity;
+        warehouseHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        warehouseHut.setBlueprintPath("craftsmanship/storage/warehouse1.blueprint");
+        warehouseHut.setSchematicName("warehouse1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(warehouseHut, level);
+        helper.assertTrue(registered instanceof BuildingWareHouse,
+          "C2S courier-hiring fixture registered the wrong building: " + registered);
+        final BuildingWareHouse warehouse = (BuildingWareHouse) registered;
+        final CourierAssignmentModule courierModule = warehouse.getFirstModuleOccurance(CourierAssignmentModule.class);
+        helper.assertTrue(courierModule != null,
+          "C2S courier-hiring fixture did not register the warehouse courier module");
+        helper.assertTrue(courierModule.getHiringMode() == HiringMode.DEFAULT,
+          "C2S courier-hiring fixture did not start in DEFAULT mode");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S courier-hiring fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, CourierHiringModeMessage.class);
+        helper.assertTrue(messageId > 0, "CourierHiringMode message was not registered");
+        final int autoCommunicationId = 0x43484155;
+        dispatchServerMessage(channel, server, owner, messageId, autoCommunicationId,
+          new CourierHiringModeMessage(colony.getDimension(), colony.getID(), warehousePos,
+            HiringMode.AUTO, BuildingModules.WAREHOUSE_COURIERS.getRuntimeID()));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(courierModule.getHiringMode() == HiringMode.AUTO,
+              "CourierHiringMode message did not enable AUTO mode");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(autoCommunicationId) == null,
+              "CourierHiringMode AUTO envelope remained in the split-packet cache");
+            final int defaultCommunicationId = 0x43484144;
+            dispatchServerMessage(channel, server, owner, messageId, defaultCommunicationId,
+              new CourierHiringModeMessage(colony.getDimension(), colony.getID(), warehousePos,
+                HiringMode.DEFAULT, BuildingModules.WAREHOUSE_COURIERS.getRuntimeID()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(courierModule.getHiringMode() == HiringMode.DEFAULT,
+                  "CourierHiringMode message did not restore DEFAULT mode");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(defaultCommunicationId) == null,
+                  "CourierHiringMode DEFAULT envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerQuarryHiringModeMessageUpdatesSimpleQuarry(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeMiner = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos minerPos = helper.absolutePos(relativeMiner);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeMiner, ModBlocks.blockSimpleQuarry);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Quarry Hiring Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S quarry-hiring fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S quarry-hiring fixture Town Hall did not create a block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S quarry-hiring fixture Town Hall was not registered");
+
+        final BlockEntity quarryEntity = level.getBlockEntity(minerPos);
+        helper.assertTrue(quarryEntity instanceof TileEntityColonyBuilding,
+          "C2S quarry-hiring fixture did not create a Simple Quarry block entity");
+        final TileEntityColonyBuilding quarryHut = (TileEntityColonyBuilding) quarryEntity;
+        helper.assertTrue(StructurePacks.hasPack("Space Wars"),
+          "C2S quarry-hiring fixture did not discover the Space Wars structure pack");
+        quarryHut.setStructurePack(StructurePacks.getStructurePack("Space Wars"));
+        quarryHut.setBlueprintPath("infrastructure/mineshafts/simplequarry1.blueprint");
+        quarryHut.setSchematicName("simplequarry1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(quarryHut, level);
+        helper.assertTrue(registered != null,
+          "C2S quarry-hiring fixture could not register the Simple Quarry");
+        final QuarryModule quarryModule = registered.getModule(BuildingModules.SIMPLE_QUARRY);
+        helper.assertTrue(quarryModule != null,
+          "C2S quarry-hiring fixture did not register the quarry module");
+        helper.assertTrue(quarryModule.getHiringMode() == HiringMode.DEFAULT,
+          "C2S quarry-hiring fixture did not start in DEFAULT mode");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S quarry-hiring fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, QuarryHiringModeMessage.class);
+        helper.assertTrue(messageId > 0, "QuarryHiringMode message was not registered");
+        final int autoCommunicationId = 0x51484155;
+        dispatchServerMessage(channel, server, owner, messageId, autoCommunicationId,
+          new QuarryHiringModeMessage(colony.getDimension(), colony.getID(), minerPos,
+            HiringMode.AUTO, BuildingModules.SIMPLE_QUARRY.getRuntimeID()));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(quarryModule.getHiringMode() == HiringMode.AUTO,
+              "QuarryHiringMode message did not enable AUTO mode");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(autoCommunicationId) == null,
+              "QuarryHiringMode AUTO envelope remained in the split-packet cache");
+            final int defaultCommunicationId = 0x51484144;
+            dispatchServerMessage(channel, server, owner, messageId, defaultCommunicationId,
+              new QuarryHiringModeMessage(colony.getDimension(), colony.getID(), minerPos,
+                HiringMode.DEFAULT, BuildingModules.SIMPLE_QUARRY.getRuntimeID()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(quarryModule.getHiringMode() == HiringMode.DEFAULT,
+                  "QuarryHiringMode message did not restore DEFAULT mode");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(defaultCommunicationId) == null,
+                  "QuarryHiringMode DEFAULT envelope remained in the split-packet cache");
                 helper.succeed();
             });
         });
