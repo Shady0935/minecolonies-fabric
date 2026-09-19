@@ -84,6 +84,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ToggleJobMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldRegistrationMessage;
@@ -2012,6 +2013,78 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerChangeDeliveryPriorityMessageUpdatesBuilder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Delivery Priority Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S delivery-priority fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S delivery-priority fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S delivery-priority fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "C2S delivery-priority fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding builder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(builder instanceof BuildingBuilder,
+          "C2S delivery-priority fixture registered the wrong building: " + builder);
+        helper.assertTrue(builder.hasModule(WorkerBuildingModule.class),
+          "C2S delivery-priority fixture Builder has no worker module");
+        final int initialPriority = builder.getPickUpPriority();
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S delivery-priority fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ChangeDeliveryPriorityMessage.class);
+        helper.assertTrue(messageId > 0, "ChangeDeliveryPriority message was not registered");
+        final int increaseCommunicationId = 0x43504455;
+        final int decreaseCommunicationId = 0x43504444;
+        dispatchServerMessage(channel, server, owner, messageId, increaseCommunicationId,
+          new ChangeDeliveryPriorityMessage(colony.getDimension(), colony.getID(), builderPos, true));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(builder.getPickUpPriority() == initialPriority + 1,
+              "ChangeDeliveryPriority message did not increase the Builder priority: "
+                + builder.getPickUpPriority());
+            helper.assertTrue(channel.getMessageCache().getIfPresent(increaseCommunicationId) == null,
+              "ChangeDeliveryPriority increase envelope remained in the split-packet cache");
+            dispatchServerMessage(channel, server, owner, messageId, decreaseCommunicationId,
+              new ChangeDeliveryPriorityMessage(colony.getDimension(), colony.getID(), builderPos, false));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(builder.getPickUpPriority() == initialPriority,
+                  "ChangeDeliveryPriority message did not decrease the Builder priority: "
+                    + builder.getPickUpPriority());
+                helper.assertTrue(channel.getMessageCache().getIfPresent(decreaseCommunicationId) == null,
+                  "ChangeDeliveryPriority decrease envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerBuildingSetStyleMessageUpdatesDeconstructedBuilding(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2210,7 +2283,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
         BlockPos relativeTownHall = null;
-        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        for (int offset = 49152; offset <= 65536 && relativeTownHall == null; offset += 256)
         {
             final BlockPos candidate = new BlockPos(offset, 1, offset);
             if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
@@ -2285,7 +2358,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
         BlockPos relativeTownHall = null;
-        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        for (int offset = 16384; offset <= 32768 && relativeTownHall == null; offset += 256)
         {
             final BlockPos candidate = new BlockPos(offset, 1, offset);
             if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
@@ -2508,7 +2581,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
         BlockPos relativeTownHall = null;
-        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        for (int offset = 65536; offset <= 81920 && relativeTownHall == null; offset += 256)
         {
             final BlockPos candidate = new BlockPos(offset, 1, offset);
             if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))

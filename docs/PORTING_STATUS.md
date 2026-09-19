@@ -61,8 +61,8 @@ completed.
   server executor; the owner-permission path, Town Hall rename, colony
   foundation, hut/building rename, direct Town Hall placement, Builder work-order
   creation/selection, decoration work-order creation and University research
-  actions, colony allocation toggles and colony-flag updates are covered by
-  the latest 38-test GameTest run
+  actions, colony allocation toggles, colony-flag updates and Builder delivery
+  priority are covered by the latest 39-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -83,7 +83,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 38-test Fabric GameTest run
+  is covered by the latest 39-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -228,17 +228,18 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 38-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 37-test core batch covers event-dispatch
+- [x] Latest 39-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 38-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
   creation/selection, decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,
-  colony allocation and flag updates, FarmField registration/seed/radius updates,
+  colony allocation and flag updates, Builder delivery-priority updates,
+  FarmField registration/seed/radius updates,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-colony-management.log`
+  `logs/minecolonies-gametest-c2s-delivery-priority-isolated.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

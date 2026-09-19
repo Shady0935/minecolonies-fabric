@@ -7,6 +7,9 @@ import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.Stash;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +37,21 @@ public class ChangeDeliveryPriorityMessage extends AbstractBuildingServerMessage
     public ChangeDeliveryPriorityMessage(@NotNull final IBuildingView building, final boolean up)
     {
         super(building);
+        this.up = up;
+    }
+
+    /**
+     * Creates a server-bound priority message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId target building position
+     * @param up whether to increase or decrease the priority
+     */
+    public ChangeDeliveryPriorityMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final BlockPos buildingId, final boolean up)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.up = up;
     }
 
