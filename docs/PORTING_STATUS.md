@@ -281,8 +281,8 @@ completed.
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
   full work-cycle/navigation, placement and farming GUI remain open; the
-  focused harvest routine now verifies crop drops, inventory insertion and
-  mature-crop reset
+  focused real `EntityAIWorkFarmer` state-machine cycle now verifies mature
+  crop removal, drops and inventory insertion
 - [x] Server-side Guard Tower registration resolves the Colonial level-one
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live
@@ -386,13 +386,13 @@ completed.
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
   build-tool inventory swapping, warehouse rack-backed courier transfer and
   normal Builder material-request/resolver delivery,
-  miner stone drops and farmer harvest drops,
+  miner stone drops and the real `EntityAIWorkFarmer` harvest/drop cycle,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-housing-fix5-green-87.log`
+  `logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

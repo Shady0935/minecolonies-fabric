@@ -62,8 +62,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   inventory transfer beyond the focused rack-backed cycle, courier navigation,
   full Builder work-order pathfinding and
   larger construction, full CitizenAI scheduling/work-cycle
-  construction, ore/mining AI and resource delivery, farmer crop
-  growth/harvesting AI and field placement, a
+  construction, ore/mining AI and resource delivery, farmer crop growth, field
+  placement and longer harvest navigation/resource delivery beyond the focused
+  worker-AI cycle, a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
   navigation, hostile entity
   AI/combat/rendering after restart, or DataFixer migration for old entity data. A
@@ -115,7 +116,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   rendered entity/block hook overlay), full Builder work-order pathfinding/larger
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
-  farmer crop/harvest behavior, University researcher AI/GUI, and raids
+  farmer crop growth/field placement and longer harvest navigation/resource
+  delivery, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
@@ -179,8 +181,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - The latest 87-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
-  the suite passes; the blueprint data should be audited before treating this
-  warning as resolved.
+  the suite passes; the evidence is in
+  `logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`. The
+  blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues
 

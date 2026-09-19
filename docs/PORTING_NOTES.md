@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The current 87-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-housing-fix5-green-87.log`.
+in `logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -246,7 +246,7 @@ callback, so the owner/outsider decision resolves against the intended colony.
 Evidence for the latest combined 87-test run (82 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
 sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-housing-fix5-green-87.log`; the earlier
+`logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -610,10 +610,10 @@ The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
 `FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
 `FarmerFieldsModule` then retains the field and its owning building ID. Crop
-growth, full work-cycle/navigation, field placement, resource delivery and the
-farming GUI remain manual validation items. A focused companion invokes the
-real `EntityAIWorkFarmer` harvest routine against a mature wheat crop and
-verifies that the drop reaches the citizen inventory and the crop resets.
+growth, longer work-cycle/navigation, field placement, resource delivery and
+the farming GUI remain manual validation items. A focused companion ticks the
+real `EntityAIWorkFarmer` state machine against a mature wheat crop and
+verifies that the crop is removed and its drops reach the citizen inventory.
 
 The guard fixture registers a Colonial Guard Tower through its real building
 entry, resolves `military/guardtower1.blueprint`, verifies the default guard

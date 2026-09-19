@@ -1050,7 +1050,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(registeredBuilder instanceof BuildingBuilder,
           "Builder structure-step fixture registered the wrong worker building: " + registeredBuilder);
         final BuildingBuilder builder = (BuildingBuilder) registeredBuilder;
-        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+        // Keep the complete level-one Builder blueprint footprint inside the colony claim.
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, start);
         helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
@@ -2206,23 +2207,27 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Farmer field assignment did not persist the owning building");
 
         final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        final EntityAIWorkFarmer farmerAI = (EntityAIWorkFarmer) citizen.getJob(JobFarmer.class).getWorkerAI();
+        helper.assertTrue(farmerAI != null, "Farmer assignment did not create the farmer worker AI");
         final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
         final BlockPos cropPos = fieldPos.east();
+        field.setFieldStage(FarmField.Stage.PLANTED);
         level.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
-        try
+        farmerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_HOE));
+        farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        farmerCitizen.setPos(cropPos.getX() + 0.5D, cropPos.getY(), cropPos.getZ() + 0.5D);
+        farmerAI.resetAI();
+        for (int tick = 0; tick < 400 && level.getBlockState(cropPos).is(Blocks.WHEAT); tick++)
         {
-            final java.lang.reflect.Method harvestCrop = EntityAIWorkFarmer.class.getDeclaredMethod("harvestCrop", BlockPos.class);
-            harvestCrop.setAccessible(true);
-            harvestCrop.invoke(citizen.getJob(JobFarmer.class).getWorkerAI(), cropPos);
-        }
-        catch (final ReflectiveOperationException exception)
-        {
-            throw new AssertionError("Farmer harvest fixture could not invoke its crop-harvest path", exception);
+            farmerAI.tick();
         }
         helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) > wheatBefore,
-          "Farmer harvest path did not transfer crop drops into the citizen inventory");
-        helper.assertTrue(level.getBlockState(cropPos).getValue(CropBlock.AGE) == 0,
-          "Farmer harvest path did not reset the harvested crop");
+          "Farmer worker AI did not transfer harvest drops into the citizen inventory: state=" + farmerAI.getState()
+            + "; crop=" + level.getBlockState(cropPos)
+            + "; farmer=" + farmerCitizen.blockPosition());
+        helper.assertTrue(level.isEmptyBlock(cropPos),
+          "Farmer worker AI did not remove the harvested crop: state=" + farmerAI.getState()
+            + "; crop=" + level.getBlockState(cropPos));
         helper.succeed();
     }
 

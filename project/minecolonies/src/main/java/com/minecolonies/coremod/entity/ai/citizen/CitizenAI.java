@@ -77,6 +77,13 @@ public class CitizenAI implements IStateAI
     {
         citizen.getCitizenAI().addTransition(new AITarget<>(CitizenAIState.WORK, () -> true, () ->
         {
+            if (citizen.getCitizenJobHandler().getColonyJob() == null)
+            {
+                citizen.getCitizenData().setWorking(false);
+                citizen.getCitizenData().setVisibleStatus(HOUSE);
+                return CitizenAIState.IDLE;
+            }
+
             final ITickingStateAI ai = citizen.getCitizenJobHandler().getColonyJob().getWorkerAI();
             if (ai != null)
             {
