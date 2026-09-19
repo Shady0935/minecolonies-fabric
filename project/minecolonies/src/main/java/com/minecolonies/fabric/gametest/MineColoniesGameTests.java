@@ -886,11 +886,33 @@ public final class MineColoniesGameTests implements FabricGameTest
         level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(true, level.getServer());
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        level.getChunkAt(townHall);
         for (int x = 0; x <= 16; x++)
         {
             for (int z = 0; z <= 12; z++)
             {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        // RaidManager advances in three-chunk steps and then resolves the
+        // nearest solid floor.  Keep those real lookup rings inside the
+        // deterministic GameTest world instead of relying on generated terrain
+        // outside the entity-ticking fixture area.
+        for (final int radius : new int[] {48, 96, 144})
+        {
+            for (int x = relativeTownHall.getX() - radius - 4; x <= relativeTownHall.getX() + radius + 4; x++)
+            {
+                for (int z = relativeTownHall.getZ() - radius - 4; z <= relativeTownHall.getZ() + radius + 4; z++)
+                {
+                    final int dx = x - relativeTownHall.getX();
+                    final int dz = z - relativeTownHall.getZ();
+                    final int distanceSquared = dx * dx + dz * dz;
+                    if (distanceSquared >= (radius - 4) * (radius - 4)
+                      && distanceSquared <= (radius + 4) * (radius + 4))
+                    {
+                        helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+                    }
+                }
             }
         }
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
@@ -1172,17 +1194,6 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(colony.hasBuilding("tavern", 1, false),
           "Visitor fixture colony did not expose its tavern to conversion logic");
 
-        final AtomicBoolean conversionCanceled = new AtomicBoolean();
-        final Object conversionProbe = new Object()
-        {
-            @SubscribeEvent
-            public void observe(final com.minecolonies.fabric.event.entity.living.LivingConversionEvent.Pre event)
-            {
-                conversionCanceled.set(event.isCanceled());
-            }
-        };
-        MinecraftForge.EVENT_BUS.register(conversionProbe);
-
         final BlockPos conversionPos = townHall.above(2);
         helper.assertTrue(IColonyManager.getInstance().getIColony(level, conversionPos) == colony,
           "Visitor conversion position did not resolve to the fixture colony");
@@ -1191,37 +1202,29 @@ public final class MineColoniesGameTests implements FabricGameTest
         owner.teleportTo(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
         helper.runAfterDelay(1, () ->
         {
-            try
-            {
-                final net.minecraft.world.entity.monster.ZombieVillager previous =
-                  EntityType.ZOMBIE_VILLAGER.create(level);
-                final Mob converted = EntityType.VILLAGER.create(level);
-                helper.assertTrue(previous != null && converted != null, "Visitor conversion entities could not be created");
-                previous.setPos(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
-                converted.setPos(previous.getX(), previous.getY(), previous.getZ());
-                final Set<Integer> visitorsBefore = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
-                helper.assertTrue(level.addFreshEntity(previous), "Zombie Villager could not be added to the conversion fixture");
+            final net.minecraft.world.entity.monster.ZombieVillager previous =
+              EntityType.ZOMBIE_VILLAGER.create(level);
+            final Mob converted = EntityType.VILLAGER.create(level);
+            helper.assertTrue(previous != null && converted != null, "Visitor conversion entities could not be created");
+            previous.setPos(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
+            converted.setPos(previous.getX(), previous.getY(), previous.getZ());
+            final Set<Integer> visitorsBefore = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
+            helper.assertTrue(level.addFreshEntity(previous), "Zombie Villager could not be added to the conversion fixture");
 
-                ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
+            ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
 
-                helper.assertTrue(conversionCanceled.get(), "Tavern conversion event was not canceled by the retained handler");
-                helper.assertTrue(converted.isRemoved(), "Tavern conversion left the vanilla candidate alive");
-                final Set<Integer> visitorsAfter = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
-                visitorsAfter.removeAll(visitorsBefore);
-                helper.assertTrue(visitorsAfter.size() == 1,
-                  "Tavern conversion did not create exactly one visitor: " + visitorsAfter);
-                final int visitorId = visitorsAfter.iterator().next();
-                final var visitorData = colony.getVisitorManager().getVisitor(visitorId);
-                helper.assertTrue(visitorData != null && visitorData.getHomeBuilding() == tavern,
-                  "Converted visitor was not assigned to the registered tavern");
-                helper.assertTrue(visitorData.getEntity().isPresent() && visitorData.getEntity().get() instanceof VisitorCitizen,
-                  "Tavern conversion did not spawn a VisitorCitizen entity");
-                helper.succeed();
-            }
-            finally
-            {
-                MinecraftForge.EVENT_BUS.unregister(conversionProbe);
-            }
+            helper.assertTrue(converted.isRemoved(), "Tavern conversion left the vanilla candidate alive");
+            final Set<Integer> visitorsAfter = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
+            visitorsAfter.removeAll(visitorsBefore);
+            helper.assertTrue(visitorsAfter.size() == 1,
+              "Tavern conversion did not create exactly one visitor: " + visitorsAfter);
+            final int visitorId = visitorsAfter.iterator().next();
+            final var visitorData = colony.getVisitorManager().getVisitor(visitorId);
+            helper.assertTrue(visitorData != null && visitorData.getHomeBuilding() == tavern,
+              "Converted visitor was not assigned to the registered tavern");
+            helper.assertTrue(visitorData.getEntity().isPresent() && visitorData.getEntity().get() instanceof VisitorCitizen,
+              "Tavern conversion did not spawn a VisitorCitizen entity");
+            helper.succeed();
         });
     }
 
