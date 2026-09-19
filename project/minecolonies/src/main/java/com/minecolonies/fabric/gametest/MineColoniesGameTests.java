@@ -35,15 +35,18 @@ import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
+import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
+import com.minecolonies.coremod.colony.workorders.WorkOrderMiner;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
@@ -635,6 +638,80 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Warehouse delivery resolver was not registered");
         helper.assertTrue(resolvers.stream().anyMatch(resolver -> resolver instanceof PickupRequestResolver),
           "Warehouse pickup resolver was not registered");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void minerAssignsRegisteredMineWorkOrderToCitizen(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeMiner = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos minerPos = helper.absolutePos(relativeMiner);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeMiner, ModBlocks.blockHutMiner);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Miner GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Miner fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Miner fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity minerEntity = level.getBlockEntity(minerPos);
+        helper.assertTrue(minerEntity instanceof TileEntityColonyBuilding,
+          "Miner fixture did not create a miner block entity");
+        final TileEntityColonyBuilding minerHut = (TileEntityColonyBuilding) minerEntity;
+        minerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
+        minerHut.setSchematicName("mine1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(minerHut, level);
+        helper.assertTrue(registered instanceof BuildingMiner,
+          "Miner fixture registered the wrong building implementation: " + registered);
+        final BuildingMiner miner = (BuildingMiner) registered;
+        helper.assertTrue(miner.getBuildingLevel() >= 1,
+          "Miner fixture did not resolve its level-one mine blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, minerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Miner fixture could not create a live miner citizen");
+        final WorkerBuildingModule workerModule = miner.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.miner.get());
+        helper.assertTrue(workerModule != null, "Miner worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Miner worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobMiner,
+          "Miner assignment did not create the miner job");
+        final JobMiner job = citizen.getJob(JobMiner.class);
+        final WorkOrderMiner order = new WorkOrderMiner(
+          miner.getStructurePack(), "fundamentals/mine1.blueprint", "mine1", 0,
+          minerPos.above(), false, miner.getID());
+        colony.getWorkManager().addWorkOrder(order, false);
+        helper.assertTrue(order.getID() > 0, "Miner work order did not receive a persistent id");
+        helper.assertTrue(order.canBeMadeBy(job), "Miner work order rejected the assigned miner job");
+
+        miner.searchWorkOrder();
+        helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
+          "Miner did not select the registered mine work order");
+        helper.assertTrue(order.isClaimedBy(citizen),
+          "Miner did not persist the work-order claim for its citizen");
         helper.succeed();
     }
 
