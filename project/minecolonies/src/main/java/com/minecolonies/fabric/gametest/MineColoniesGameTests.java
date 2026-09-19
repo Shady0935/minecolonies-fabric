@@ -31,19 +31,23 @@ import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
+import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingFarmer;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingGuardTower;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
 import com.minecolonies.coremod.colony.jobs.JobFarmer;
+import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
+import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
 import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
@@ -796,6 +800,75 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Farmer fields module did not retain the assigned field");
         helper.assertTrue(field.getBuildingId().equals(farmer.getID()),
           "Farmer field assignment did not persist the owning building");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void guardTowerAssignsKnightGuardToCitizen(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeGuardTower = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos guardTowerPos = helper.absolutePos(relativeGuardTower);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeGuardTower, ModBlocks.blockHutGuardTower);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Guard GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Guard fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Guard fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity guardTowerEntity = level.getBlockEntity(guardTowerPos);
+        helper.assertTrue(guardTowerEntity instanceof TileEntityColonyBuilding,
+          "Guard fixture did not create a guard-tower block entity");
+        final TileEntityColonyBuilding guardTowerHut = (TileEntityColonyBuilding) guardTowerEntity;
+        guardTowerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        guardTowerHut.setBlueprintPath("military/guardtower1.blueprint");
+        guardTowerHut.setSchematicName("guardtower1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(guardTowerHut, level);
+        helper.assertTrue(registered instanceof BuildingGuardTower,
+          "Guard fixture registered the wrong building implementation: " + registered);
+        final BuildingGuardTower guardTower = (BuildingGuardTower) registered;
+        helper.assertTrue(guardTower.getBuildingLevel() >= 1,
+          "Guard fixture did not resolve its level-one guard-tower blueprint");
+        helper.assertTrue(guardTower.getGuardPos().equals(guardTower.getID()),
+          "Guard tower did not initialize its default defense position");
+        helper.assertTrue(guardTower.getTask().equals(GuardTaskSetting.PATROL),
+          "Guard tower did not initialize its patrol task");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, guardTowerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Guard fixture could not create a live guard citizen");
+        final GuardBuildingModule guardModule = guardTower.getModuleMatching(
+          GuardBuildingModule.class, module -> module.getJobEntry() == ModJobs.knight.get());
+        helper.assertTrue(guardModule != null, "Guard tower knight module was not registered");
+        helper.assertTrue(guardModule.assignCitizen(citizen),
+          "Guard tower knight module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobKnight,
+          "Guard tower assignment did not create the knight job");
+        helper.assertTrue(guardModule.getAssignedCitizen().contains(citizen),
+          "Guard tower knight module did not retain the assigned citizen");
+        helper.assertTrue(guardTower.getAllAssignedCitizen().contains(citizen),
+          "Guard tower did not expose the assigned citizen through its guard roster");
         helper.succeed();
     }
 

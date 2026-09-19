@@ -3,8 +3,8 @@
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
 colony fixture, builder work-order/assignment, residence assignment,
 warehouse/courier resolver wiring, Miner work-order/assignment, Farmer field
-assignment, research-manager and University worker-tick checkpoints are now
-complete:
+assignment, Guard Tower/knight assignment, research-manager and University
+worker-tick checkpoints are now complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
@@ -16,7 +16,7 @@ The following work remains, in order:
 1. Run a real gameplay pass with an authenticated client or a repeatable
    offline test profile: place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
-   warehouse and research cycle. The server-side research manager and
+   Guard Tower, warehouse and research cycle. The server-side research manager and
    University worker-tick
    paths are automated, so the remaining research work here is the real
    researcher AI/walking and GUI cycle.
