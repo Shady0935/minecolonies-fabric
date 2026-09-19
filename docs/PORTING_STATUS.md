@@ -186,8 +186,10 @@ completed.
   `WorkOrderPlantationField`, and the rally-banner routes activate,
   deactivate and remove a guard tower target. A focused real Builder AI
   fixture now scans a one-block blueprint, requests the missing material,
-  receives it through Warehouse/Courier, picks it up from the Builder Hut,
-  places the block and consumes the resource; full navigation, larger
+  receives it through Warehouse/Courier and ticks the real
+  `EntityAIStructureBuilder` through request pickup, Builder Hut transfer and
+  `BUILDING_STEP`, placing the block and consuming the resource; deterministic
+  position setup covers the known fixture route while full navigation, larger
   construction and GUI interaction remain open
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
@@ -238,9 +240,11 @@ completed.
   blueprint, creates the normal asynchronous `Stack` request, verifies that
   the warehouse resolver creates and assigns its `Delivery` child, runs the
   deliveryman's prepare/deliver states against the rack and Builder inventory,
-  verifies parent-request completion, then drives the Builder pickup and real
+  verifies parent-request completion, then ticks the real Builder AI through
+  `NEEDS_ITEM`, `PICK_UP`, `INVENTORY_FULL` and `BUILDING_STEP` for the
   one-block placement/consumption path; full pathfinding, multi-request
-  scheduling and logistics GUI remain open. Evidence: `logs/minecolonies-gametest-builder-material-placement-fix9.log`
+  scheduling and logistics GUI remain open. Evidence:
+  `logs/minecolonies-gametest-builder-ai-state-fix8.log`
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
@@ -359,7 +363,7 @@ completed.
   deactivation/removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-builder-material-request-fix1.log`
+  `logs/minecolonies-gametest-builder-ai-state-fix8.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

@@ -208,10 +208,14 @@ both placements, consumption of both required items and handler completion.
 These are server-side work-order, assignment and minimal construction
 contracts. The material-backed companion additionally runs the normal Builder
 resource scanner, creates its asynchronous `Stack` request, receives the
-resolver-generated Warehouse `Delivery`, transfers the item from the Builder
-Hut into the citizen and drives the real one-block placement/consumption path.
-Full Builder navigation, larger multi-stage construction and BlockUI
-interaction remain open.
+resolver-generated Warehouse `Delivery`, and ticks the real
+`EntityAIStructureBuilder` state machine through request pickup, Builder Hut
+transfer and one-block placement/consumption. The fixture supplies the known
+hut/build-site positions while the navigation/pathfinding contract is still
+pending. Larger multi-stage construction and BlockUI interaction remain open.
+The shared worker state machine also guards the missing-item event from
+re-entering `NEEDS_ITEM` while that state is already waiting, preserving the
+normal `waitForRequests()` path for completed deliveries.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric
@@ -535,12 +539,13 @@ companion runs the Builder's real material scanner against a one-block
 blueprint, creates its normal asynchronous `Stack` request, confirms that the
 warehouse resolver creates the `Delivery` child and assigns it to the courier,
 then runs the real deliveryman's prepare/deliver states against the rack and
-Builder inventory. It then invokes the Builder's normal pickup state, moves the
+Builder inventory. It then ticks the real Builder AI state machine through
+`NEEDS_ITEM`, `PICK_UP`, `INVENTORY_FULL` and `BUILDING_STEP`, moves the
 delivered item out of the Builder Hut, places the one-block blueprint through
 `BuildingStructureHandler` and verifies resource consumption and handler
 completion. Evidence is in
-`logs/minecolonies-gametest-builder-material-placement-fix9.log`. Full
-pathfinding, multi-request scheduling and the client logistics GUI remain open.
+`logs/minecolonies-gametest-builder-ai-state-fix8.log`. Full pathfinding,
+multi-request scheduling and the client logistics GUI remain open.
 
 The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen

@@ -120,8 +120,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
   warehouse/courier resolver wiring, the focused deterministic Builder
-  material-request/pickup and one-block placement path (the full long-running
-  CitizenAI tick loop is still pending), Miner work-order/claim selection,
+  material-request/pickup and one-block placement path through the real worker
+  AI state machine (full CitizenAI scheduling/navigation is still pending),
+  Miner work-order/claim selection,
   Farmer field assignment, Guard Tower/knight assignment, RaidManager event
   registration and the University worker-tick path have automated GameTest
   fixtures; multi-request logistics, full Builder navigation and the dedicated restart

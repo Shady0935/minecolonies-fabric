@@ -1204,6 +1204,8 @@ public final class MineColoniesGameTests implements FabricGameTest
           resourceAI,
           new BuildingStructureHandler.Stage[] {BuildingStructureHandler.Stage.BUILD_SOLID});
         resourceAI.attach(resourceStructure);
+        builderJob.setBlueprint(resourceBlueprint);
+        builderJob.getWorkOrder().setRequested(true);
         builder.setProgressPos(BlockPos.ZERO, BuildingStructureHandler.Stage.BUILD_SOLID);
         boolean materialsCalculated = false;
         for (int i = 0; i < 8 && !materialsCalculated; i++)
@@ -1300,21 +1302,41 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
           "Courier delivery state did not consume the warehouse stack");
 
-        helper.assertTrue(resourceAI.pickUpMaterial() != null,
-          "Builder material pickup did not enter a valid AI state");
-        try
+        builder.setProgressPos(null, null);
+        builderCitizen.setPos(builderPos.getX() + 0.5D, builderPos.getY() + 1.0D, builderPos.getZ() + 0.5D);
+        resourceAI.setWorkFrom(builderCitizen.blockPosition());
+        resourceAI.resetAI();
+        boolean pickupObserved = false;
+        for (int i = 0; i < 240 && resourceStructure.getStage() != null; i++)
         {
-            final java.lang.reflect.Method getNeededItem = com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIBasic.class
-              .getDeclaredMethod("getNeededItem");
-            getNeededItem.setAccessible(true);
-            getNeededItem.invoke(resourceAI);
+            if (pickupObserved && ("NEEDS_ITEM".equals(resourceAI.getState().toString())
+                                     || "GATHERING_REQUIRED_MATERIALS".equals(resourceAI.getState().toString())
+                                     || "PICK_UP".equals(resourceAI.getState().toString())
+                                     || "INVENTORY_FULL".equals(resourceAI.getState().toString())
+                                     || "START_WORKING".equals(resourceAI.getState().toString())))
+            {
+                builderCitizen.setPos(builderPos.getX() + 0.5D, builderPos.getY() + 1.0D, builderPos.getZ() + 0.5D);
+            }
+            else if (pickupObserved && ("LOAD_STRUCTURE".equals(resourceAI.getState().toString())
+                                          || "START_BUILDING".equals(resourceAI.getState().toString())
+                                          || "BUILDING_STEP".equals(resourceAI.getState().toString())))
+            {
+                builderCitizen.setPos(buildTarget.getX() - 0.5D, buildTarget.getY() + 1.0D, buildTarget.getZ() + 0.5D);
+                resourceAI.setWorkFrom(builderCitizen.blockPosition());
+            }
+            resourceAI.tickState();
+            if (countItem(builderCitizen, Items.STONE) == 1)
+            {
+                if (!pickupObserved)
+                {
+                    pickupObserved = true;
+                    helper.assertTrue(resourceStructure.hasRequiredItems(List.of(new ItemStack(Items.STONE))),
+                      "Builder placement handler did not recognize the picked-up stone");
+                    builderCitizen.setPos(buildTarget.getX() - 0.5D, buildTarget.getY() + 1.0D, buildTarget.getZ() + 0.5D);
+                    resourceAI.setWorkFrom(builderCitizen.blockPosition());
+                }
+            }
         }
-        catch (final ReflectiveOperationException exception)
-        {
-            throw new AssertionError("Could not invoke the Builder material pickup state", exception);
-        }
-        helper.assertTrue(countItem(builderCitizen, Items.STONE) == 1,
-          "Builder pickup state did not move the delivered material into the citizen inventory");
         int buildingStoneAfterPickup = 0;
         for (int slot = 0; slot < builderHut.getInventory().getSlots(); slot++)
         {
@@ -1323,18 +1345,19 @@ public final class MineColoniesGameTests implements FabricGameTest
                 buildingStoneAfterPickup += builderHut.getInventory().getStackInSlot(slot).getCount();
             }
         }
-        helper.assertTrue(deliveredStone == 1 && buildingStoneAfterPickup == 0,
-          "Builder pickup state did not remove the delivered material from the worker building");
-
-        builder.setProgressPos(null, null);
-        helper.assertTrue(resourceStructure.hasRequiredItems(List.of(new ItemStack(Items.STONE))),
-          "Builder placement handler did not recognize the picked-up stone");
-        builderCitizen.setPos(buildTarget.getX() - 0.5D, buildTarget.getY() + 1.0D, buildTarget.getZ() + 0.5D);
-        resourceAI.setWorkFrom(builderCitizen.blockPosition());
-        for (int i = 0; i < 12 && resourceStructure.getStage() != null; i++)
-        {
-            resourceAI.step();
-        }
+        helper.assertTrue(pickupObserved,
+          "Builder state machine never entered the material pickup state: state=" + resourceAI.getState()
+            + "; openRequests=" + builder.getOpenRequests(builderCitizenData.getId()).size()
+            + "; completedRequests=" + builder.getCompletedRequests(builderCitizenData).size()
+            + "; asyncStack=" + builderCitizenData.isRequestAsync(stackRequest.getId())
+            + "; requiredStone=" + builder.requiresResourceForBuilding(new ItemStack(Items.STONE))
+            + "; citizenStone=" + countItem(builderCitizen, Items.STONE));
+        helper.assertTrue(deliveredStone == 1 && buildingStoneAfterPickup == 0 && countItem(builderCitizen, Items.STONE) == 0,
+          "Builder state machine did not move the delivered material from the worker building into and out of the citizen inventory"
+            + "; state=" + resourceAI.getState()
+            + "; stage=" + resourceStructure.getStage()
+            + "; target=" + level.getBlockState(buildTarget)
+            + "; citizenStone=" + countItem(builderCitizen, Items.STONE));
         helper.assertTrue(level.getBlockState(buildTarget).is(Blocks.STONE),
           "Builder structure step did not place the delivered material at "
             + buildTarget + "; actual=" + level.getBlockState(buildTarget)
@@ -6232,6 +6255,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         private void step()
         {
             structureStep();
+        }
+
+        private void tickState()
+        {
+            super.tick();
         }
 
         private void setWorkFrom(final BlockPos position)
