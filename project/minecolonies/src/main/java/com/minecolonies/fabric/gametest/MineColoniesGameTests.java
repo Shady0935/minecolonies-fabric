@@ -22,6 +22,9 @@ import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
+import com.minecolonies.api.colony.requestsystem.StandardFactoryController;
+import com.minecolonies.api.colony.requestsystem.token.IToken;
+import com.minecolonies.api.crafting.IRecipeStorage;
 import com.minecolonies.api.research.IGlobalResearch;
 import com.minecolonies.api.research.IGlobalResearchTree;
 import com.minecolonies.api.research.ILocalResearch;
@@ -30,6 +33,7 @@ import com.minecolonies.api.research.util.ResearchConstants;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.api.util.constant.TypeConstants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
@@ -44,6 +48,7 @@ import com.minecolonies.coremod.colony.workorders.WorkOrderDecoration;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
+import com.minecolonies.coremod.colony.buildings.modules.AbstractCraftingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.EntityListModule;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
@@ -105,6 +110,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDe
 import com.minecolonies.coremod.network.messages.server.colony.building.CourierHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.GiveToolMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.OpenCraftingGUIMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableEntityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableItemMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
@@ -117,6 +123,8 @@ import com.minecolonies.coremod.network.messages.server.colony.building.RemoveMi
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.home.AssignUnassignMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.BuildingHiringModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.worker.AddRemoveRecipeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.worker.ChangeRecipePriorityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldRegistrationMessage;
@@ -133,6 +141,7 @@ import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCiti
 import com.minecolonies.coremod.network.messages.server.colony.citizen.RecallSingleCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.TransferItemsToCitizenRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.RecallCitizenMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.worker.ToggleRecipeMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -178,6 +187,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import com.minecolonies.api.inventory.container.ContainerCraftingFurnace;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -201,6 +211,7 @@ import io.netty.buffer.Unpooled;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -3027,6 +3038,145 @@ public final class MineColoniesGameTests implements FabricGameTest
                         helper.assertTrue(channel.getMessageCache().getIfPresent(resetCommunicationId) == null,
                           "ResetFilterableItem envelope remained in the split-packet cache");
                         helper.succeed();
+                    });
+                });
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerCraftingMessagesUpdateSmeltery(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeSmeltery = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos smelteryPos = helper.absolutePos(relativeSmeltery);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeSmeltery, ModBlocks.blockHutStoneSmeltery);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Crafting Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S crafting fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S crafting fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S crafting fixture Town Hall was not registered");
+
+        final BlockEntity smelteryEntity = level.getBlockEntity(smelteryPos);
+        helper.assertTrue(smelteryEntity instanceof TileEntityColonyBuilding,
+          "C2S crafting fixture did not create a Smeltery block entity");
+        final TileEntityColonyBuilding smelteryHut = (TileEntityColonyBuilding) smelteryEntity;
+        smelteryHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        smelteryHut.setBlueprintPath("craftsmanship/masonry/stonesmeltery1.blueprint");
+        smelteryHut.setSchematicName("stonesmeltery1");
+        final IBuilding smeltery = colony.getBuildingManager().addNewBuilding(smelteryHut, level);
+        helper.assertTrue(smeltery != null, "C2S crafting fixture Smeltery was not registered");
+        final AbstractCraftingBuildingModule craftingModule = smeltery.getModulesByType(AbstractCraftingBuildingModule.class).stream()
+          .filter(module -> module.canLearn(com.minecolonies.api.crafting.ModCraftingTypes.SMELTING.get()))
+          .findFirst()
+          .orElse(null);
+        helper.assertTrue(craftingModule != null, "C2S crafting fixture found no Smeltery smelting module");
+        final int moduleId = craftingModule.getProducer().getRuntimeID();
+        final int initialRecipeCount = craftingModule.getRecipes().size();
+
+        final IToken<?> firstToken = StandardFactoryController.getInstance().getNewInstance(TypeConstants.ITOKEN);
+        final IRecipeStorage firstRecipe = StandardFactoryController.getInstance().getNewInstance(
+          TypeConstants.RECIPE, firstToken, List.of(new ItemStorage(new ItemStack(Items.COBBLESTONE))), 1,
+          new ItemStack(Items.STONE), Blocks.FURNACE);
+        final IToken<?> secondToken = StandardFactoryController.getInstance().getNewInstance(TypeConstants.ITOKEN);
+        final IRecipeStorage secondRecipe = StandardFactoryController.getInstance().getNewInstance(
+          TypeConstants.RECIPE, secondToken, List.of(new ItemStorage(new ItemStack(Items.DEEPSLATE))), 1,
+          new ItemStack(Items.POLISHED_DEEPSLATE), Blocks.FURNACE);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S crafting fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int addRecipeMessageId = findMessageId(channel, AddRemoveRecipeMessage.class);
+        final int changePriorityMessageId = findMessageId(channel, ChangeRecipePriorityMessage.class);
+        final int toggleRecipeMessageId = findMessageId(channel, ToggleRecipeMessage.class);
+        final int openCraftingMessageId = findMessageId(channel, OpenCraftingGUIMessage.class);
+        helper.assertTrue(addRecipeMessageId > 0, "AddRemoveRecipe message was not registered");
+        helper.assertTrue(changePriorityMessageId > 0, "ChangeRecipePriority message was not registered");
+        helper.assertTrue(toggleRecipeMessageId > 0, "ToggleRecipe message was not registered");
+        helper.assertTrue(openCraftingMessageId > 0, "OpenCraftingGUI message was not registered");
+
+        final int firstAddCommunicationId = 0x43524131;
+        dispatchServerMessage(channel, server, owner, addRecipeMessageId, firstAddCommunicationId,
+          new AddRemoveRecipeMessage(colony.getDimension(), colony.getID(), smelteryPos, false, firstRecipe, moduleId));
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(craftingModule.getRecipes().size() == initialRecipeCount + 1,
+              "AddRemoveRecipe message did not add the first Smeltery recipe");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(firstAddCommunicationId) == null,
+              "AddRemoveRecipe first envelope remained in the split-packet cache");
+            final int secondAddCommunicationId = 0x43524132;
+            dispatchServerMessage(channel, server, owner, addRecipeMessageId, secondAddCommunicationId,
+              new AddRemoveRecipeMessage(colony.getDimension(), colony.getID(), smelteryPos, false, secondRecipe, moduleId));
+            helper.runAfterDelay(2, () ->
+            {
+                helper.assertTrue(craftingModule.getRecipes().size() == initialRecipeCount + 2,
+                  "AddRemoveRecipe message did not add the second Smeltery recipe");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(secondAddCommunicationId) == null,
+                  "AddRemoveRecipe second envelope remained in the split-packet cache");
+                final IToken<?> secondStoredToken = craftingModule.getRecipes().get(initialRecipeCount + 1);
+                final int priorityCommunicationId = 0x43525031;
+                dispatchServerMessage(channel, server, owner, changePriorityMessageId, priorityCommunicationId,
+                  new ChangeRecipePriorityMessage(colony.getDimension(), colony.getID(), smelteryPos,
+                    initialRecipeCount + 1, true, moduleId, false));
+                helper.runAfterDelay(2, () ->
+                {
+                    helper.assertTrue(craftingModule.getRecipes().get(initialRecipeCount).equals(secondStoredToken),
+                      "ChangeRecipePriority message did not move the second Smeltery recipe up");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(priorityCommunicationId) == null,
+                      "ChangeRecipePriority envelope remained in the split-packet cache");
+                    final int toggleCommunicationId = 0x43525431;
+                    dispatchServerMessage(channel, server, owner, toggleRecipeMessageId, toggleCommunicationId,
+                      new ToggleRecipeMessage(colony.getDimension(), colony.getID(), smelteryPos, initialRecipeCount, moduleId));
+                    helper.runAfterDelay(2, () ->
+                    {
+                        final IToken<?> toggledToken = craftingModule.getRecipes().get(initialRecipeCount);
+                        helper.assertTrue(craftingModule.isDisabled(toggledToken),
+                          "ToggleRecipe message did not disable the selected Smeltery recipe");
+                        helper.assertTrue(channel.getMessageCache().getIfPresent(toggleCommunicationId) == null,
+                          "ToggleRecipe disable envelope remained in the split-packet cache");
+                        final int untoggleCommunicationId = 0x43525432;
+                        dispatchServerMessage(channel, server, owner, toggleRecipeMessageId, untoggleCommunicationId,
+                          new ToggleRecipeMessage(colony.getDimension(), colony.getID(), smelteryPos, initialRecipeCount, moduleId));
+                        helper.runAfterDelay(2, () ->
+                        {
+                            helper.assertTrue(!craftingModule.isDisabled(toggledToken),
+                              "ToggleRecipe message did not re-enable the selected Smeltery recipe");
+                            helper.assertTrue(channel.getMessageCache().getIfPresent(untoggleCommunicationId) == null,
+                              "ToggleRecipe enable envelope remained in the split-packet cache");
+                            final int openCommunicationId = 0x43524731;
+                            dispatchServerMessage(channel, server, owner, openCraftingMessageId, openCommunicationId,
+                              new OpenCraftingGUIMessage(colony.getDimension(), colony.getID(), smelteryPos, moduleId));
+                            helper.runAfterDelay(2, () ->
+                            {
+                                helper.assertTrue(owner.containerMenu instanceof ContainerCraftingFurnace,
+                                  "OpenCraftingGUI message did not open the Fabric furnace crafting menu");
+                                helper.assertTrue(channel.getMessageCache().getIfPresent(openCommunicationId) == null,
+                                  "OpenCraftingGUI envelope remained in the split-packet cache");
+                                owner.closeContainer();
+                                helper.succeed();
+                            });
+                        });
                     });
                 });
             });

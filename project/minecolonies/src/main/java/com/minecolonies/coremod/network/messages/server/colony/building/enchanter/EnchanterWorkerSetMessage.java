@@ -7,6 +7,8 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingEnchant
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +45,15 @@ public class EnchanterWorkerSetMessage extends AbstractBuildingServerMessage<Bui
     public EnchanterWorkerSetMessage(@NotNull final IBuildingView building, final BlockPos worker, final boolean add)
     {
         super(building);
+        this.worker = worker;
+        this.add = add;
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public EnchanterWorkerSetMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final BlockPos worker, final boolean add)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.worker = worker;
         this.add = add;
     }

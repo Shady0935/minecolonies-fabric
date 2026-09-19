@@ -6,6 +6,9 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +33,12 @@ public class BuildPickUpMessage extends AbstractBuildingServerMessage<IBuilding>
     public BuildPickUpMessage(@NotNull final IBuildingView building)
     {
         super(building);
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public BuildPickUpMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override

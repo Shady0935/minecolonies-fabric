@@ -7,6 +7,9 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +48,16 @@ public class PostBoxRequestMessage extends AbstractBuildingServerMessage<PostBox
     public PostBoxRequestMessage(@NotNull final AbstractBuildingView building, final ItemStack itemStack, final int quantity, final boolean deliverAvailable)
     {
         super(building);
+        this.itemStack = itemStack;
+        reqQuantity = quantity;
+        this.deliverAvailable = deliverAvailable;
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public PostBoxRequestMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final ItemStack itemStack, final int quantity, final boolean deliverAvailable)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.itemStack = itemStack;
         reqQuantity = quantity;
         this.deliverAvailable = deliverAvailable;

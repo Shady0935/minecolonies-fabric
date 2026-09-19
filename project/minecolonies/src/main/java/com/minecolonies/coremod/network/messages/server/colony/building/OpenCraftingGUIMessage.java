@@ -16,6 +16,9 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.network.NetworkHooks;
@@ -47,6 +50,13 @@ public class OpenCraftingGUIMessage extends AbstractBuildingServerMessage<IBuild
     public OpenCraftingGUIMessage(@NotNull final AbstractBuildingView building, final int id)
     {
         super(building);
+        this.id = id;
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public OpenCraftingGUIMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId, final int id)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.id = id;
     }
 

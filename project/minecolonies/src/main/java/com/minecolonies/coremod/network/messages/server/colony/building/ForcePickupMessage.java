@@ -7,6 +7,9 @@ import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +37,12 @@ public class ForcePickupMessage extends AbstractBuildingServerMessage<IBuilding>
     public ForcePickupMessage(@NotNull final IBuildingView building)
     {
         super(building);
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public ForcePickupMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override

@@ -9,6 +9,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.inventory.InvWrapper;
 import com.minecolonies.fabric.network.NetworkEvent;
 
@@ -40,6 +43,12 @@ public class UpgradeWarehouseMessage extends AbstractBuildingServerMessage<Build
     public UpgradeWarehouseMessage(final IBuildingView building)
     {
         super(building);
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public UpgradeWarehouseMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override

@@ -6,6 +6,9 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.colony.buildings.modules.AbstractCraftingBuildingModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +56,17 @@ public class ChangeRecipePriorityMessage extends AbstractBuildingServerMessage<I
     public ChangeRecipePriorityMessage(@NotNull final IBuildingView building, final int location, final boolean up, final int id, final boolean fullMove)
     {
         super(building);
+        this.recipeLocation = location;
+        this.up = up;
+        this.id = id;
+        this.fullMove = fullMove;
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public ChangeRecipePriorityMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int location, final boolean up, final int id, final boolean fullMove)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.recipeLocation = location;
         this.up = up;
         this.id = id;

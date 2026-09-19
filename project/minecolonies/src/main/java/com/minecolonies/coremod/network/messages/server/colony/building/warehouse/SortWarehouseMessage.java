@@ -7,6 +7,9 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHou
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import com.minecolonies.coremod.util.SortingUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.capability.ForgeCapabilities;
 import com.minecolonies.fabric.network.NetworkEvent;
 
@@ -31,6 +34,12 @@ public class SortWarehouseMessage extends AbstractBuildingServerMessage<Building
     public SortWarehouseMessage(final IBuildingView building)
     {
         super(building);
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public SortWarehouseMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override

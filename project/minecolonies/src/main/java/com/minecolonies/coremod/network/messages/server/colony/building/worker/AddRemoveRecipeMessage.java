@@ -21,6 +21,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,6 +71,16 @@ public class AddRemoveRecipeMessage extends AbstractBuildingServerMessage<IBuild
     public AddRemoveRecipeMessage(final IBuildingView building, final boolean remove, final IRecipeStorage storage, final int id)
     {
         super(building);
+        this.remove = remove;
+        this.storage = storage;
+        this.id = id;
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public AddRemoveRecipeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final boolean remove, final IRecipeStorage storage, final int id)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.remove = remove;
         this.storage = storage;
         this.id = id;

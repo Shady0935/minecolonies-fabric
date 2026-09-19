@@ -6,6 +6,9 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.colony.buildings.modules.AbstractCraftingBuildingModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +44,15 @@ public class ToggleRecipeMessage extends AbstractBuildingServerMessage<IBuilding
     public ToggleRecipeMessage(@NotNull final IBuildingView building, final int location, final int id)
     {
         super(building);
+        this.recipeLocation = location;
+        this.id = id;
+    }
+
+    /** Creates a server-bound request without requiring a client building view. */
+    public ToggleRecipeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int location, final int id)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.recipeLocation = location;
         this.id = id;
     }
