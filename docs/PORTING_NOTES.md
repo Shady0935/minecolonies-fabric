@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 73-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 76-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -460,6 +460,22 @@ colony request manager and confirms the requested and minimum quantities plus
 split-cache cleanup. Delivery resolution and the complete courier logistics
 cycle remain manual validation items.
 
+A forty-third companion C2S fixture serializes `RestartCitizenMessage` against
+a real Town Hall-backed colony and live citizen. It schedules the citizen's
+server-side restart through the colony manager and confirms the restart flag
+plus split-cache cleanup; the subsequent AI restart cycle remains manual
+validation.
+
+A forty-fourth companion C2S fixture serializes
+`ResourceScrollSaveWarehouseSnapshotMessage` with a tagged resource scroll. It
+routes a two-item warehouse snapshot through the server executor and verifies
+the persisted quantities, work-order hash and split-cache cleanup.
+
+A forty-fifth companion C2S fixture serializes `SwitchBuildingWithToolMessage`
+with a non-creative inventory. It swaps a cobblestone stack with the
+Structurize build tool across the selected and main-inventory slots and
+confirms the resulting item/count state plus split-cache cleanup.
+
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
 the level-one house blueprint, assigns a live citizen through
@@ -522,7 +538,7 @@ The full GameTest pass also exposed a race during miner AI startup: a restored
 `BuildingMiner` could request ladder/cobble tags before its building
 BlockEntity had been reattached. `BuildingMiner.loadLadderPos()` now resolves
 the current BlockEntity through the normal lazy lookup and safely waits for a
-later tick when it is still unavailable. The 73-test run no longer reports the
+later tick when it is still unavailable. The 76-test run no longer reports the
 previous `getWorldTagNamePosMap()` null dereference.
 
 Structurize's server pack loader is connected to Fabric's
@@ -531,7 +547,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 73-test run therefore resolves the structure without
+the building; the latest 76-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -645,6 +661,9 @@ serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `ToggleHelpMessage`,
 `TeamColonyColorChangeMessage` and `HireSpiesMessage`,
 `OpenInventoryMessage`,
+`RestartCitizenMessage`,
+`ResourceScrollSaveWarehouseSnapshotMessage` and
+`SwitchBuildingWithToolMessage`,
 `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage`,
 wraps each in the
@@ -668,16 +687,17 @@ inventory transfer, minimum-stock module updates, Guard Tower entity-filter
 updates, Smeltery item-filter add/remove/reset, GiveTool inventory binding,
 citizen inventory transfer, single-citizen recall, assigned-citizen
 worker/hut recall, Stone Smeltery recipe add/reorder/toggle and crafting-menu
-opening, colony color/help and spy-hiring control routes, and citizen-inventory
-menu opening are also covered. The
+opening, colony color/help and spy-hiring control routes, citizen-inventory
+menu opening, citizen-restart scheduling, resource-scroll warehouse snapshots
+and build-tool inventory swapping are also covered. The
 far-away colony fixtures use disjoint coordinate bands so concurrent GameTest
 execution does not depend on whichever fixture claims the first candidate.
 The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-requester-clean.log`; it reports
-`All 73 required tests passed` (72 core tests plus one entity batch test).
+`logs/minecolonies-gametest-citizen-scroll-tool.log`; it reports
+`All 76 required tests passed` (75 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

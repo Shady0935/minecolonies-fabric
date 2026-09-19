@@ -56,7 +56,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   does not replace the pending AI, combat, rendering or restart-migration
   checks.
   It does not yet cover automatic housing capture, citizen sleep/navigation,
-  request creation/resolution, inventory transfer, courier navigation, Builder
+  the full request resolution/delivery cycle, automatic logistics inventory
+  transfer, courier navigation, Builder
   AI/material requests/placement, miner shaft construction, ore/mining AI and
   resource delivery, farmer crop growth/harvesting AI and field placement, a
   client opening the Town Hall GUI, citizen rendering/work AI, hostile entity
@@ -123,8 +124,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`,
   `DirectPlaceMessage`, `DecorationBuildRequestMessage`, `HutRenameMessage`,
   the three colony style messages, `BuildingSetStyleMessage`, the three
-  FarmField messages and
-  `TryResearchMessage` actions now cross the Fabric
+  FarmField messages, `RestartCitizenMessage`,
+  `ResourceScrollSaveWarehouseSnapshotMessage`,
+  `SwitchBuildingWithToolMessage` and `TryResearchMessage` actions now cross the Fabric
   split envelope, reach the server executor and mutate the owner
   colony/work-order/research state or place the Town Hall and resolve its
   blueprint;

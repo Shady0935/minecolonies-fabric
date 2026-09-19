@@ -35,6 +35,7 @@ import com.minecolonies.api.research.util.ResearchConstants;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.util.constant.Constants;
+import com.minecolonies.api.util.constant.NbtTagConstants;
 import com.minecolonies.api.util.constant.TypeConstants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
@@ -100,6 +101,8 @@ import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
 import com.minecolonies.coremod.network.messages.server.ReactivateBuildingMessage;
+import com.minecolonies.coremod.network.messages.server.ResourceScrollSaveWarehouseSnapshotMessage;
+import com.minecolonies.coremod.network.messages.server.SwitchBuildingWithToolMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyFlagChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
@@ -152,6 +155,7 @@ import com.minecolonies.coremod.network.messages.server.colony.UpdateRequestStat
 import com.minecolonies.coremod.network.messages.server.colony.citizen.AdjustSkillCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.RecallSingleCitizenMessage;
+import com.minecolonies.coremod.network.messages.server.colony.citizen.RestartCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.TransferItemsToCitizenRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.RecallCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.ToggleRecipeMessage;
@@ -3729,6 +3733,128 @@ public final class MineColoniesGameTests implements FabricGameTest
               "PostBoxRequest message created the wrong Stack request quantities");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "PostBoxRequest envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerRestartCitizenMessageSchedulesRestart(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Citizen Restart Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S citizen-restart fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S citizen-restart fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S citizen-restart fixture Town Hall was not registered");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S citizen-restart fixture could not create a live citizen");
+        helper.assertTrue(!citizen.shouldRestart(),
+          "C2S citizen-restart fixture citizen was already marked for restart");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S citizen-restart fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, RestartCitizenMessage.class);
+        helper.assertTrue(messageId > 0, "RestartCitizen message was not registered");
+        final int communicationId = 0x52435354;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new RestartCitizenMessage(colony.getDimension(), colony.getID(), citizen.getId()));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(citizen.shouldRestart(),
+              "RestartCitizen message did not schedule the citizen restart");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "RestartCitizen envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerResourceScrollSnapshotMessageUpdatesScroll(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos builderPos = helper.absolutePos(new BlockPos(8, 1, 2));
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().clearContent();
+
+        final ItemStack scroll = new ItemStack(ModItems.resourceScroll);
+        BlockPosUtil.write(scroll.getOrCreateTag(), NbtTagConstants.TAG_BUILDER, builderPos);
+        owner.getInventory().setItem(0, scroll);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S resource-scroll fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ResourceScrollSaveWarehouseSnapshotMessage.class);
+        helper.assertTrue(messageId > 0, "ResourceScrollSaveWarehouseSnapshot message was not registered");
+        final int communicationId = 0x52534353;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new ResourceScrollSaveWarehouseSnapshotMessage(builderPos,
+            Map.of("minecraft:cobblestone", 12, "minecraft:oak_planks", 4), "wo-test-hash"));
+
+        helper.runAfterDelay(2, () ->
+        {
+            final CompoundTag tag = owner.getInventory().getItem(0).getTag();
+            helper.assertTrue(tag != null && tag.contains(NbtTagConstants.TAG_WAREHOUSE_SNAPSHOT),
+              "ResourceScrollSaveWarehouseSnapshot message did not write the warehouse snapshot");
+            final CompoundTag snapshot = tag.getCompound(NbtTagConstants.TAG_WAREHOUSE_SNAPSHOT);
+            helper.assertTrue(snapshot.getInt("minecraft:cobblestone") == 12
+                && snapshot.getInt("minecraft:oak_planks") == 4,
+              "ResourceScrollSaveWarehouseSnapshot message wrote incorrect resource quantities");
+            helper.assertTrue("wo-test-hash".equals(tag.getString(NbtTagConstants.TAG_WAREHOUSE_SNAPSHOT_WO_HASH)),
+              "ResourceScrollSaveWarehouseSnapshot message did not preserve the work-order hash");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "ResourceScrollSaveWarehouseSnapshot envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerSwitchBuildingWithToolMessageSwapsInventory(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().clearContent();
+        final int stackCount = 7;
+        owner.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE, stackCount));
+        owner.getInventory().setItem(9,
+          new ItemStack(com.ldtteam.structurize.items.ModItems.buildTool.get()));
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S build-tool fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, SwitchBuildingWithToolMessage.class);
+        helper.assertTrue(messageId > 0, "SwitchBuildingWithTool message was not registered");
+        final int communicationId = 0x53575443;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new SwitchBuildingWithToolMessage(new ItemStack(Items.COBBLESTONE)));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(owner.getInventory().getItem(0).getItem()
+                == com.ldtteam.structurize.items.ModItems.buildTool.get(),
+              "SwitchBuildingWithTool message did not move the build tool to the selected slot");
+            helper.assertTrue(owner.getInventory().getItem(9).getItem() == Items.COBBLESTONE
+                && owner.getInventory().getItem(9).getCount() == stackCount,
+              "SwitchBuildingWithTool message did not move the selected stack to the build-tool slot");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "SwitchBuildingWithTool envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
