@@ -192,12 +192,13 @@ order and persists the citizen claim. These are server-side work-order and
 assignment contracts; they do not claim that Builder AI navigation, material
 requests, block placement or BlockUI interaction are complete.
 
-A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode,
-routes it through the real Fabric split envelope and server executor, verifies
-the owner permission path with a registered `SERVERBOUND` player, and checks
-that a live `JobBuilder` allows the handler to create and claim the Town Hall
-`WorkOrderBuilding`. Builder GUI placement, material consumption and AI
-navigation remain manual validation items.
+A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
+and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric
+split envelope and server executor, verifies the owner permission path with a
+registered `SERVERBOUND` player, and checks that a live `JobBuilder` allows the
+handlers to create/claim the Town Hall `WorkOrderBuilding` and assign it to the
+citizen job. Builder GUI placement, material consumption and AI navigation
+remain manual validation items.
 
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
@@ -339,16 +340,18 @@ envelope: a packet received by the server is marked as originating on the
 client, while a packet received by the client is marked as originating on the
 server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
-serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`
-and `BuildRequestMessage`, wraps each in the real split envelope, sends them
+serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
+`BuildRequestMessage` and `BuilderSelectWorkOrderMessage`, wraps each in the
+real split envelope, sends them
 through `SimpleChannel`'s server dispatch boundary and verifies the deferred
 server-executor actions, owner permission, colony-name mutation, Town Hall
 foundation with its requested pack/blueprint, non-creative research cost and
-in-progress state, and Town Hall repair-work-order creation/claiming by the
-requested Builder. The research, colony-foundation and Builder fixtures
+in-progress state, Town Hall repair-work-order creation/claiming by the
+requested Builder, and Builder work-order selection for the citizen job. The
+research, colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-builder-v3.log`; it reports
+`logs/minecolonies-gametest-c2s-builder-selection.log`; it reports
 `All 31 required tests passed` (30 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered

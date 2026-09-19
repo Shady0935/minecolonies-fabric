@@ -17,7 +17,7 @@ currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
 inherited listener dispatch. Its 30-test core batch also exercises real
 client-to-server Town Hall rename, colony foundation, Builder work-order
-request and University research actions; entity AI,
+creation/selection and University research actions; entity AI,
 combat and client rendering are still open.
 The following work remains, in order:
 
@@ -32,7 +32,7 @@ The following work remains, in order:
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative server/client network coverage, including the real
    client-to-server Town Hall rename, colony foundation, Builder work-order
-   request and University research actions, fishing-hook and citizen coverage to every
+   creation/selection and University research actions, fishing-hook and citizen coverage to every
    client-bound family; the seven registered menu opening buffers now have an
    automated contract test. The dedicated restart probe already confirms
    representative citizen and visitor reappearance; broaden it to every

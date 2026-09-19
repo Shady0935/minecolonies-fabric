@@ -72,6 +72,7 @@ import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
@@ -2069,6 +2070,9 @@ public final class MineColoniesGameTests implements FabricGameTest
           "C2S Builder worker module rejected the citizen assignment");
         helper.assertTrue(citizen.getJob() instanceof JobBuilder,
           "C2S Builder assignment did not create the builder job");
+        final JobBuilder job = citizen.getJob(JobBuilder.class);
+        helper.assertTrue(job != null && !job.hasWorkOrder(),
+          "C2S Builder job unexpectedly started with a work order");
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
 
         final IBuilding target = colony.getBuildingManager().getBuilding(townHall);
@@ -2107,7 +2111,35 @@ public final class MineColoniesGameTests implements FabricGameTest
               "BuildRequest message did not assign the requested Builder position");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "BuildRequest envelope remained in the split-packet cache");
-            helper.succeed();
+
+            final int selectMessageId = findMessageId(channel, BuilderSelectWorkOrderMessage.class);
+            helper.assertTrue(selectMessageId > 0, "BuilderSelectWorkOrder message was not registered");
+            final BuilderSelectWorkOrderMessage selectOriginal = new BuilderSelectWorkOrderMessage(
+              colony.getDimension(), colony.getID(), builderPos, order.getID());
+            final int selectCommunicationId = 0x42554953;
+            final SplitPacketMessage selectEnvelope = new SplitPacketMessage(
+              selectCommunicationId, 0, true, selectMessageId, encode(selectOriginal));
+            final FriendlyByteBuf selectPacket = new FriendlyByteBuf(
+              Unpooled.wrappedBuffer(encode(selectEnvelope)));
+            try
+            {
+                final MinecraftServer server = level.getServer();
+                helper.assertTrue(server != null, "C2S Builder selection fixture has no running server");
+                channel.getRawChannel().handleServerPacket(server, owner, selectPacket);
+            }
+            finally
+            {
+                selectPacket.release();
+            }
+
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
+                  "BuilderSelectWorkOrder message did not assign the selected work order to the citizen");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(selectCommunicationId) == null,
+                  "BuilderSelectWorkOrder envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 

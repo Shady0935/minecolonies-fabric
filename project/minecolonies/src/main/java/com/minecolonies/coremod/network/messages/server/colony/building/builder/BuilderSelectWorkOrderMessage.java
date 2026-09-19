@@ -4,7 +4,10 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +32,21 @@ public class BuilderSelectWorkOrderMessage extends AbstractBuildingServerMessage
     public BuilderSelectWorkOrderMessage(@NotNull final IBuildingView building, final int workOrder)
     {
         super(building);
+        this.workOrder = workOrder;
+    }
+
+    /**
+     * Creates a server-bound selection message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId builder building position
+     * @param workOrder work-order id
+     */
+    public BuilderSelectWorkOrderMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+                                         final BlockPos buildingId, final int workOrder)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.workOrder = workOrder;
     }
 

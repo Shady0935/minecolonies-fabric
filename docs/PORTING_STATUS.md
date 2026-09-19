@@ -59,8 +59,8 @@ completed.
   isolated behind the client bridge while preserving the upstream message IDs
 - [x] Real client-to-server split envelopes reach colony handlers on the
   server executor; the owner-permission path, Town Hall rename, colony
-  foundation, Builder work-order request and University research actions are
-  covered by the latest 31-test GameTest run
+  foundation, Builder work-order creation/selection and University research
+  actions are covered by the latest 31-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -153,8 +153,9 @@ completed.
   blueprint and registers the order in `WorkManager`; a live citizen can be
   assigned to `JobBuilder`, and `BuildingBuilder.searchWorkOrder()` persists
   the work-order claim. The real C2S `BuildRequestMessage` repair route also
-  creates and claims a `WorkOrderBuilding`; Builder AI, placement and resource
-  logistics remain open
+  creates and claims a `WorkOrderBuilding`, and
+  `BuilderSelectWorkOrderMessage` assigns it to the live `JobBuilder`; Builder
+  AI, placement and resource logistics remain open
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; automatic housing ticks, sleep/navigation and
@@ -194,8 +195,8 @@ completed.
 - [x] Automated resource serialization coverage: a recursive JSON parse covered
   1,462 source plus generated JSON files with zero parse failures
 - [x] Network transport smoke coverage for login/server-to-client packets plus
-  real Town Hall rename, colony foundation, Builder work-order request and
-  University research client-to-server actions
+  real Town Hall rename, colony foundation, Builder work-order creation/
+  selection and University research client-to-server actions
 - [x] Extended screen-handler registrations and server-to-client opening-buffer
   forwarding are covered for all seven registered MineColonies menu types
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
@@ -208,8 +209,8 @@ completed.
    semantics, the hostile-spawn position veto and explosion entity-policy
    semantics, fishing-hook angler spawn-state synchronization, real
    client-to-server Town Hall rename, colony foundation, Builder work-order
-   request and University research actions, builder work-order registration
-   and live `JobBuilder` claim selection, residence
+   creation/selection and University research actions, builder work-order
+   registration and live `JobBuilder` claim selection, residence
    registration and citizen-home assignment, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
    warehouse/courier resolver wiring, Miner work-order/claim selection, and
@@ -221,10 +222,10 @@ completed.
   dimensions; its 30-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
-  colony foundation, Builder work-order request and University research
+  colony foundation, Builder work-order creation/selection and University research
   envelopes, all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-builder-v3.log`
+  `logs/minecolonies-gametest-c2s-builder-selection.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
