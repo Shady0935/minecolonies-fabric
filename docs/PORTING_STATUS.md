@@ -75,6 +75,9 @@ completed.
   honors Forge priority order and discovers inherited listener methods, so
   colony-scoped registration/removal cannot race event dispatch; the 25-test
   GameTest batch exercises this under concurrent colony fixtures
+- [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
+  with the original projectile and hit result; the focused cancellation bridge
+  is covered by the latest 26-test Fabric GameTest run
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
   retained `FillBucketEvent` contract; the 13-test server fixture covers the
@@ -126,6 +129,9 @@ completed.
 - [x] Forge-shaped bow hooks preserve neutral `ArrowNock` semantics and dispatch
   retained `ArrowLooseEvent` cancellation; the Pharao Scepter use/shot gate is
   covered by Fabric GameTest
+- [x] Projectile-impact cancellation is preserved through
+  `ForgeEventFactory.onProjectileImpact`; listeners receive the original hit
+  result and the bridge returns the Forge-shaped cancellation result
 - [ ] Builder and Builder Hut
 - [ ] Residence and housing
 - [ ] Warehouse and courier logistics
@@ -198,10 +204,11 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 25-test Fabric GameTest batch passes with clean saves for all three
-  dimensions; the run covers event-dispatch priority/inheritance, all custom
-  entity NBT reload contracts and populated-tavern conversion; evidence is in
-  `logs/minecolonies-gametest-entity-persistence.log`
+- [x] Latest 26-test Fabric GameTest run passes with clean saves for all three
+  dimensions; the run covers event-dispatch priority/inheritance, projectile
+  impact cancellation, all custom entity NBT reload contracts and populated-
+  tavern conversion; evidence is in
+  `logs/minecolonies-gametest-projectile-impact.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

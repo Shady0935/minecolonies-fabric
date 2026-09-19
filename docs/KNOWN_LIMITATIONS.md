@@ -79,6 +79,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `ArrowNockEvent` callback in this target, so external listeners cannot yet
   supply an alternate nock result; the no-listener path follows Forge's
   neutral `null` contract and the Pharao Scepter flow is GameTest-covered.
+- Projectile impacts now dispatch a cancellable `ProjectileImpactEvent` with
+  the original hit result; the focused bridge is covered. The fishing-hook
+  `ItemFishedEvent` remains intentionally unposted because the retained
+  MineColonies 1.20.1 source keeps that event reference null and registers no
+  listener for it.
 - Mob conversion now has a real bridge through Fabric's pre-spawn
   `MOB_CONVERSION` callback. The automated fixture constructs a populated
   tavern, creates one `VisitorCitizen`, assigns it to that tavern and confirms

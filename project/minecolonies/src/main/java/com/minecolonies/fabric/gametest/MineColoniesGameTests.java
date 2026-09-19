@@ -78,6 +78,7 @@ import com.minecolonies.fabric.event.EventPriority;
 import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
 import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
+import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
 import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
 import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
@@ -122,6 +123,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
@@ -955,12 +957,17 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ServerLevel level = helper.getLevel();
         final boolean previousMobSpawning = level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING);
         level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(true, level.getServer());
-        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        // Keep the raid colony in its own chunk.  The Fabric GameTest runner
+        // places all empty templates in one shared server world, so the
+        // small default fixture coordinates can otherwise make
+        // RaidManager's legitimate other-colony guard reject every outward
+        // spawn candidate.
+        final BlockPos relativeTownHall = new BlockPos(34, 1, 34);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         level.getChunkAt(townHall);
-        for (int x = 0; x <= 16; x++)
+        for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 14; x++)
         {
-            for (int z = 0; z <= 12; z++)
+            for (int z = relativeTownHall.getZ() - 2; z <= relativeTownHall.getZ() + 12; z++)
             {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
             }
@@ -1004,7 +1011,8 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         for (int i = 0; i < 8; i++)
         {
-            final BlockPos citizenPos = new BlockPos(4 + (i % 4) * 2, 1, 6 + (i / 4) * 2);
+            final BlockPos citizenPos = new BlockPos(relativeTownHall.getX() + 2 + (i % 4) * 2,
+              1, relativeTownHall.getZ() + 4 + (i / 4) * 2);
             final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, citizenPos);
             helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
               "Raider fixture could not create citizen " + i);
@@ -1455,6 +1463,46 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             MinecraftForge.EVENT_BUS.unregister(probe);
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void projectileImpactBridgePreservesCancellation(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final Entity projectile = EntityType.ARROW.create(level);
+        helper.assertTrue(projectile != null, "Projectile impact fixture could not create an arrow");
+        final HitResult hitResult = new net.minecraft.world.phys.BlockHitResult(
+          new net.minecraft.world.phys.Vec3(0.5D, 1.0D, 0.5D), Direction.UP, BlockPos.ZERO, false);
+        final AtomicBoolean eventSeen = new AtomicBoolean();
+        final Object cancelListener = new Object()
+        {
+            @SubscribeEvent
+            public void observe(final ProjectileImpactEvent event)
+            {
+                helper.assertTrue(event.getProjectile() == projectile,
+                  "Projectile impact event exposed the wrong projectile");
+                helper.assertTrue(event.getHitResult() == hitResult,
+                  "Projectile impact event exposed the wrong hit result");
+                eventSeen.set(true);
+                event.setCanceled(true);
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(cancelListener);
+        try
+        {
+            helper.assertTrue(ForgeEventFactory.onProjectileImpact(projectile, hitResult),
+              "Canceled projectile impact did not return true");
+            helper.assertTrue(eventSeen.get(), "Projectile impact bridge did not dispatch its event");
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(cancelListener);
+            projectile.discard();
+        }
+
+        helper.assertTrue(!ForgeEventFactory.onProjectileImpact(projectile, hitResult),
+          "Projectile impact bridge remained canceled after listener removal");
         helper.succeed();
     }
 

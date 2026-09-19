@@ -12,6 +12,7 @@ import net.minecraft.world.phys.HitResult;
 
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
+import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
 
 /** Small compatibility surface for Forge hooks that have no direct Fabric event. */
 public final class ForgeEventFactory
@@ -44,7 +45,7 @@ public final class ForgeEventFactory
 
     public static boolean onProjectileImpact(final Entity projectile, final HitResult hitResult)
     {
-        return false;
+        return MinecraftForge.EVENT_BUS.post(new ProjectileImpactEvent(projectile, hitResult));
     }
 
     public static boolean canLivingConvert(final LivingEntity entity, final EntityType<?> targetType, final Object reason)
