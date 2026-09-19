@@ -135,6 +135,10 @@ completed.
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; automatic housing ticks, sleep/navigation and
   housing GUI interaction remain open
+- [x] Server-side warehouse/courier registration resolves the Colonial storage
+  blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
+  modules, and registers the Warehouse, Delivery and Pickup resolvers; actual
+  request resolution, inventory transfer and courier AI remain open
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -161,11 +165,11 @@ completed.
    semantics, fishing-hook angler spawn-state synchronization, builder
    work-order registration and live `JobBuilder` claim selection, residence
    registration and citizen-home assignment, research selection/progression/
-   effect application, and University researcher assignment/worker-tick
-   progression
+   effect application, University researcher assignment/worker-tick progression,
+   and warehouse/courier resolver wiring
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 18-test Fabric GameTest batch passes with clean saves for all three
+- [x] Latest 19-test Fabric GameTest batch passes with clean saves for all three
   dimensions; research-cycle evidence is in
   `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload

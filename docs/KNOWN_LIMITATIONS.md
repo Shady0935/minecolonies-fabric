@@ -33,10 +33,14 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   ownership permissions, blueprint lookup, builder work-order registration,
   live `JobBuilder` assignment and work-order claim selection, colony NBT
   round-trip, and residence registration with a citizen-home relationship.
+  It also covers server-side warehouse/courier registration, live
+  `JobDeliveryman` assignment, warehouse access and the three logistics
+  resolver registrations.
   It does not yet cover automatic housing capture, citizen sleep/navigation,
-  Builder AI/material requests/placement, a client opening the Town Hall GUI,
-  citizen rendering/work AI, every custom entity family after restart, or
-  DataFixer migration for old entity data. A dedicated restart probe does
+  request creation/resolution, inventory transfer, courier navigation, Builder
+  AI/material requests/placement, a client opening the Town Hall GUI, citizen
+  rendering/work AI, every custom entity family after restart, or DataFixer
+  migration for old entity data. A dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
   with colony/citizen NBT.
 - The server-side research manager and University building now have an
@@ -82,8 +86,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   still need a real in-game interaction pass. Server-side
   Town Hall, colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
-  manager selection/progression, residence registration/home assignment and the
-  University worker-tick path have automated GameTest fixtures; the dedicated restart
+  manager selection/progression, residence registration/home assignment,
+  warehouse/courier resolver wiring and the University worker-tick path have
+  automated GameTest fixtures; request delivery and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
