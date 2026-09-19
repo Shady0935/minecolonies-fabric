@@ -3,8 +3,9 @@
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
 colony fixture, builder work-order/assignment, residence assignment,
 warehouse/courier resolver wiring, Miner work-order/assignment, Farmer field
-assignment, Guard Tower/knight assignment, research-manager and University
-worker-tick checkpoints are now complete:
+assignment, Guard Tower/knight assignment, RaidManager eligibility/event
+registration, research-manager and University worker-tick checkpoints are now
+complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained

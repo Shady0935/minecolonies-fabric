@@ -73,7 +73,7 @@ completed.
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
   so colony-scoped registration/removal cannot race event dispatch; the
-  22-test GameTest batch exercises this under concurrent colony fixtures
+  23-test GameTest batch exercises this under concurrent colony fixtures
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
   retained `FillBucketEvent` contract; the 13-test server fixture covers the
@@ -155,6 +155,10 @@ completed.
   task, registers the knight `GuardBuildingModule` and persists a live
   `JobKnight` assignment in the guard roster; guard AI, equipment, raids and
   combat outcomes remain open
+- [x] Server-side `RaidManager` reaches the minimum eligible colony level,
+  creates a forced barbarian event with a persisted spawn point and rejects
+  new events after colony raid events are disabled; raid spawning, navigation,
+  guard response and combat outcomes remain open
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -184,10 +188,10 @@ completed.
    effect application, University researcher assignment/worker-tick progression,
    warehouse/courier resolver wiring, Miner work-order/claim selection, and
    Farmer field registration/assignment, plus Guard Tower blueprint registration
-   and knight-guard assignment
+   and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 22-test Fabric GameTest batch passes with clean saves for all three
+- [x] Latest 23-test Fabric GameTest batch passes with clean saves for all three
   dimensions; research-cycle evidence is in
   `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload

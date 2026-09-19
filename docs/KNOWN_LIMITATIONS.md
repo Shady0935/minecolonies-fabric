@@ -35,7 +35,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   round-trip, residence registration with a citizen-home relationship, and
   miner work-order registration with live `JobMiner` claim selection, plus
   farmer field registration with live `JobFarmer` assignment and Guard Tower
-  registration with live `JobKnight` assignment and guard-roster persistence.
+  registration with live `JobKnight` assignment and guard-roster persistence,
+  plus `RaidManager` eligibility and barbarian-event registration.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
@@ -94,7 +95,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
   warehouse/courier resolver wiring, Miner work-order/claim selection, Farmer
-  field assignment, Guard Tower/knight assignment and the University worker-tick path have
+  field assignment, Guard Tower/knight assignment, RaidManager event
+  registration and the University worker-tick path have
   automated GameTest fixtures; request delivery and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.

@@ -5,8 +5,11 @@ import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.colony.colonyEvents.EventStatus;
+import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.jobs.ModJobs;
+import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.ModEntities;
@@ -48,6 +51,7 @@ import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
+import com.minecolonies.coremod.colony.managers.RaidManager;
 import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
@@ -102,6 +106,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -869,6 +874,81 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Guard tower knight module did not retain the assigned citizen");
         helper.assertTrue(guardTower.getAllAssignedCitizen().contains(citizen),
           "Guard tower did not expose the assigned citizen through its guard roster");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void raiderManagerStartsEligibleBarbarianEvent(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final boolean previousMobSpawning = level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING);
+        level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(true, level.getServer());
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 12; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Raider GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Raider fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Raider fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        for (int i = 0; i < 8; i++)
+        {
+            final BlockPos citizenPos = new BlockPos(4 + (i % 4) * 2, 1, 6 + (i / 4) * 2);
+            final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, citizenPos);
+            helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+              "Raider fixture could not create citizen " + i);
+        }
+
+        final IRaiderManager raiderManager = colony.getRaiderManager();
+        helper.assertTrue(raiderManager.getColonyRaidLevel() >= RaidManager.MIN_REQUIRED_RAIDLEVEL,
+          "Raider fixture did not reach the minimum colony raid level");
+        helper.assertTrue(raiderManager.canRaid(true),
+          "Raider fixture did not pass the forced raid eligibility gates: difficulty="
+            + level.getDifficulty() + ", doMobSpawning=" + level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)
+            + ", importantPlayers=" + colony.getPackageManager().getImportantColonyPlayers().size());
+        final IRaiderManager.RaidSpawnResult result = raiderManager.raiderEvent("barbarian", true, false);
+        helper.assertTrue(result == IRaiderManager.RaidSpawnResult.SUCCESS,
+          "Raider manager did not start the forced barbarian event: " + result);
+        helper.assertTrue(!raiderManager.getLastSpawnPoints().isEmpty(),
+          "Raider manager did not persist a spawn point for the forced event");
+
+        final IColonyRaidEvent raidEvent = colony.getEventManager().getEvents().values().stream()
+          .filter(IColonyRaidEvent.class::isInstance)
+          .map(IColonyRaidEvent.class::cast)
+          .findFirst()
+          .orElse(null);
+        helper.assertTrue(raidEvent != null, "Raider manager did not register the colony raid event");
+        helper.assertTrue(raidEvent.getEventTypeID().equals(new ResourceLocation(Constants.MOD_ID, "barbarian_raid")),
+          "Raider manager registered the wrong event type: " + raidEvent.getEventTypeID());
+        helper.assertTrue(raidEvent.getSpawnPos() != null,
+          "Raider event did not retain its calculated spawn position");
+        helper.assertTrue(raidEvent.getStatus() == EventStatus.STARTING,
+          "Raider event did not begin in the STARTING state");
+
+        raiderManager.setCanHaveRaiderEvents(false);
+        helper.assertTrue(!raiderManager.canRaid(true),
+          "Raider manager ignored the disabled colony raid-events flag");
+        helper.assertTrue(raiderManager.raiderEvent("barbarian", true, false) == IRaiderManager.RaidSpawnResult.CANNOT_RAID,
+          "Raider manager started an event after colony raid-events were disabled");
+        level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(previousMobSpawning, level.getServer());
         helper.succeed();
     }
 
