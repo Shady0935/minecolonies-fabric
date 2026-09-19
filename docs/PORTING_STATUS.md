@@ -63,8 +63,9 @@ completed.
   creation/selection, decoration work-order creation and University research
   actions, colony allocation toggles, colony-flag updates and Builder delivery
   priority, Farmer field assignment, building settings, building reactivation,
-  Miner level selection, Guard Tower patrol-mine assignment and building dirty
-  marking are covered by the latest 45-test GameTest run
+  Miner level selection, Guard Tower patrol-mine assignment, building dirty
+  marking, move-in policy and citizen pause/resume are covered by the latest
+  47-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -85,7 +86,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 45-test Fabric GameTest run
+  is covered by the latest 47-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -230,8 +231,8 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 45-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 44-test core batch covers event-dispatch
+- [x] Latest 47-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 46-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -244,9 +245,10 @@ completed.
   Miner level selection,
   Guard Tower patrol-mine assignment and clearing,
   building dirty marking,
+  colony move-in policy and citizen pause/resume,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-dirty-building.log`
+  `logs/minecolonies-gametest-c2s-citizen-controls-retry.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

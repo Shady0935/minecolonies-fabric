@@ -5,6 +5,8 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.coremod.colony.buildings.views.AbstractBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +37,19 @@ public class PauseCitizenMessage extends AbstractColonyServerMessage
     public PauseCitizenMessage(@NotNull final AbstractBuildingView building, final int citizenID)
     {
         super(building.getColony());
+        this.citizenID = citizenID;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param citizenID   citizen to pause or resume
+     */
+    public PauseCitizenMessage(final ResourceKey<Level> dimensionId, final int colonyId, final int citizenID)
+    {
+        super(dimensionId, colonyId);
         this.citizenID = citizenID;
     }
 

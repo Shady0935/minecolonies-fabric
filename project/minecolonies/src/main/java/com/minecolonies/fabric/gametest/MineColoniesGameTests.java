@@ -100,6 +100,8 @@ import com.minecolonies.coremod.network.messages.server.colony.building.fields.A
 import com.minecolonies.coremod.network.messages.server.colony.building.guard.GuardSetMinePosMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerSetLevelMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ToggleMoveInMessage;
+import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCitizenMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -2645,6 +2647,103 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "MarkBuildingDirty envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 160)
+    public void clientToServerToggleMoveInMessageUpdatesColony(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Move In Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S move-in fixture colony was not created");
+        helper.assertTrue(colony.canMoveIn(), "C2S move-in fixture did not start enabled");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S move-in fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ToggleMoveInMessage.class);
+        helper.assertTrue(messageId > 0, "ToggleMoveIn message was not registered");
+        final int disableCommunicationId = 0x4D4F4646;
+        dispatchServerMessage(channel, server, owner, messageId, disableCommunicationId,
+          new ToggleMoveInMessage(colony.getDimension(), colony.getID(), false));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(!colony.canMoveIn(), "ToggleMoveIn message did not disable move-in");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(disableCommunicationId) == null,
+              "ToggleMoveIn disable envelope remained in the split-packet cache");
+            final int enableCommunicationId = 0x4D4F4E;
+            dispatchServerMessage(channel, server, owner, messageId, enableCommunicationId,
+              new ToggleMoveInMessage(colony.getDimension(), colony.getID(), true));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(colony.canMoveIn(), "ToggleMoveIn message did not re-enable move-in");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(enableCommunicationId) == null,
+                  "ToggleMoveIn enable envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerPauseCitizenMessageTogglesCitizenPauseState(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Pause Citizen Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S pause-citizen fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S pause-citizen fixture did not create a Town Hall block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S pause-citizen fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S pause-citizen fixture could not create a live citizen");
+        helper.assertTrue(!citizen.isPaused(), "C2S pause-citizen fixture started paused");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S pause-citizen fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, PauseCitizenMessage.class);
+        helper.assertTrue(messageId > 0, "PauseCitizen message was not registered");
+        final int pauseCommunicationId = 0x50415553;
+        dispatchServerMessage(channel, server, owner, messageId, pauseCommunicationId,
+          new PauseCitizenMessage(colony.getDimension(), colony.getID(), citizen.getId()));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(citizen.isPaused(), "PauseCitizen message did not pause the citizen");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(pauseCommunicationId) == null,
+              "PauseCitizen pause envelope remained in the split-packet cache");
+            final int resumeCommunicationId = 0x50415552;
+            dispatchServerMessage(channel, server, owner, messageId, resumeCommunicationId,
+              new PauseCitizenMessage(colony.getDimension(), colony.getID(), citizen.getId()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!citizen.isPaused(), "PauseCitizen message did not resume the citizen");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(resumeCommunicationId) == null,
+                  "PauseCitizen resume envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 
