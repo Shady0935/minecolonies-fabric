@@ -60,6 +60,9 @@ completed.
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
+- [x] Fishing-hook spawn state mirrors the angler entity ID through
+  `SynchedEntityData`; the client-side reattachment round-trip is covered by
+  the 12-test GameTest batch
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
@@ -136,7 +139,7 @@ completed.
   tables, Town Hall protection callbacks, populated-tavern mob-conversion
   replacement, bow-hook compatibility semantics, cancellable gameplay-event
   semantics, the hostile-spawn position veto and explosion entity-policy
-  semantics
+  semantics, and fishing-hook angler spawn-state synchronization
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

@@ -15,11 +15,11 @@ The following work remains, in order:
    research cycle. Include an inventory/GUI visual check for the custom spear
    renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
-   representative network and citizen coverage to every client-bound family;
-   the seven registered menu opening buffers now have an automated contract
-   test. The dedicated restart probe already confirms representative citizen
-   and visitor reappearance; broaden it to every custom entity family when
-   their gameplay fixtures exist.
+   representative network, fishing-hook and citizen coverage to every
+   client-bound family; the seven registered menu opening buffers now have an
+   automated contract test. The dedicated restart probe already confirms
+   representative citizen and visitor reappearance; broaden it to every
+   custom entity family when their gameplay fixtures exist.
 3. Continue covering the remaining Forge event points only where a narrow mixin
    or server hook can preserve semantics. Item toss/pickup, farmland trampling
    and bucket filling now have focused Fabric bridges and cancellation coverage;

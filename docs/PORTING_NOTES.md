@@ -258,6 +258,14 @@ focused follow-up query after the restart found a persisted `EntityCitizen` and
 cleanly; the transcript is in
 `logs/minecolonies-runserver-citizen-entity-restart.log`.
 
+The fishing bobber has one additional Fabric-specific spawn-state bridge.
+Forge's `IEntityAdditionalSpawnData` is not consumed automatically by Fabric's
+vanilla entity-spawn packet path, so `NewBobberEntity` mirrors the angler's
+entity ID into `SynchedEntityData`. The client resolves that ID lazily when the
+citizen entity becomes available, while the existing extra spawn buffer remains
+read for compatibility. The 12-test GameTest batch verifies the synced
+round-trip in `logs/minecolonies-gametest-fishing-hook.log`.
+
 The entity DataFixer audit is deliberately closed as a compatibility policy,
 not as an unverified TODO. The official Forge 1.20.1 entity initializer builds
 the same custom entity types without MineColonies DataFixer schemas, and the
