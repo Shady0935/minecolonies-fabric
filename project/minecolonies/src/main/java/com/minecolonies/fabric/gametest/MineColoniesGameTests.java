@@ -11,6 +11,7 @@ import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.HiringMode;
 import com.minecolonies.api.colony.buildings.modules.IMinimumStockModule;
+import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
@@ -45,6 +46,7 @@ import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentMo
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.EntityListModule;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
+import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
 import com.minecolonies.coremod.colony.buildings.modules.QuarryModule;
@@ -101,8 +103,10 @@ import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDe
 import com.minecolonies.coremod.network.messages.server.colony.building.CourierHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableEntityMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableItemMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.ResetFilterableItemMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TransferItemsRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AddMinimumStockToBuildingModuleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.RemoveMinimumStockFromBuildingModuleMessage;
@@ -2914,6 +2918,110 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
                   "AssignFilterableEntity remove envelope remained in the split-packet cache");
                 helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerFilterableItemMessagesUpdateSmelteryOreList(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeSmeltery = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos smelteryPos = helper.absolutePos(relativeSmeltery);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeSmeltery, ModBlocks.blockHutSmeltery);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Item Filter Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S item-filter fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S item-filter fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S item-filter fixture Town Hall was not registered");
+
+        final BlockEntity smelteryEntity = level.getBlockEntity(smelteryPos);
+        helper.assertTrue(smelteryEntity instanceof TileEntityColonyBuilding,
+          "C2S item-filter fixture did not create a Smeltery block entity");
+        final TileEntityColonyBuilding smelteryHut = (TileEntityColonyBuilding) smelteryEntity;
+        smelteryHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        smelteryHut.setBlueprintPath("craftsmanship/metallurgy/smeltery1.blueprint");
+        smelteryHut.setSchematicName("smeltery1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(smelteryHut, level);
+        helper.assertTrue(registered != null, "C2S item-filter fixture Smeltery was not registered");
+        final ItemListModule oreList = registered.getModule(BuildingModules.ITEMLIST_ORE);
+        helper.assertTrue(oreList != null, "C2S item-filter fixture did not register the ore list module");
+        final ItemStorage ore = new ItemStorage(new ItemStack(Items.IRON_ORE));
+        helper.assertTrue(!oreList.isItemInList(ore), "C2S item-filter fixture ore list was not initially empty");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S item-filter fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int assignMessageId = findMessageId(channel, AssignFilterableItemMessage.class);
+        final int resetMessageId = findMessageId(channel, ResetFilterableItemMessage.class);
+        helper.assertTrue(assignMessageId > 0, "AssignFilterableItem message was not registered");
+        helper.assertTrue(resetMessageId > 0, "ResetFilterableItem message was not registered");
+
+        final int addCommunicationId = 0x49464C41;
+        dispatchServerMessage(channel, server, owner, assignMessageId, addCommunicationId,
+          new AssignFilterableItemMessage(colony.getDimension(), colony.getID(), smelteryPos,
+            BuildingModules.ITEMLIST_ORE.getRuntimeID(), ore, true));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(oreList.isItemInList(ore),
+              "AssignFilterableItem message did not add the smeltery ore filter");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(addCommunicationId) == null,
+              "AssignFilterableItem add envelope remained in the split-packet cache");
+            final int removeCommunicationId = 0x49464C52;
+            dispatchServerMessage(channel, server, owner, assignMessageId, removeCommunicationId,
+              new AssignFilterableItemMessage(colony.getDimension(), colony.getID(), smelteryPos,
+                BuildingModules.ITEMLIST_ORE.getRuntimeID(), ore, false));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!oreList.isItemInList(ore),
+                  "AssignFilterableItem message did not remove the smeltery ore filter");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                  "AssignFilterableItem remove envelope remained in the split-packet cache");
+                final int readdCommunicationId = 0x49464C53;
+                dispatchServerMessage(channel, server, owner, assignMessageId, readdCommunicationId,
+                  new AssignFilterableItemMessage(colony.getDimension(), colony.getID(), smelteryPos,
+                    BuildingModules.ITEMLIST_ORE.getRuntimeID(), ore, true));
+                helper.runAfterDelay(1, () ->
+                {
+                    helper.assertTrue(oreList.isItemInList(ore),
+                      "AssignFilterableItem message did not restore the smeltery ore filter before reset");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(readdCommunicationId) == null,
+                      "AssignFilterableItem re-add envelope remained in the split-packet cache");
+                    final int resetCommunicationId = 0x49464C5A;
+                    dispatchServerMessage(channel, server, owner, resetMessageId, resetCommunicationId,
+                      new ResetFilterableItemMessage(colony.getDimension(), colony.getID(), smelteryPos,
+                        BuildingModules.ITEMLIST_ORE.getRuntimeID()));
+                    helper.runAfterDelay(1, () ->
+                    {
+                        helper.assertTrue(!oreList.isItemInList(ore),
+                          "ResetFilterableItem message did not restore the smeltery ore-list defaults");
+                        helper.assertTrue(channel.getMessageCache().getIfPresent(resetCommunicationId) == null,
+                          "ResetFilterableItem envelope remained in the split-packet cache");
+                        helper.succeed();
+                    });
+                });
             });
         });
     }

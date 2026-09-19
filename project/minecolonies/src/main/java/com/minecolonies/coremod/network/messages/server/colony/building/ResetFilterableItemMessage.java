@@ -6,7 +6,10 @@ import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
 import com.minecolonies.coremod.colony.buildings.moduleviews.ItemListModuleView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +40,21 @@ public class ResetFilterableItemMessage extends AbstractBuildingServerMessage<Ab
     public ResetFilterableItemMessage(final IBuildingView building, final int id)
     {
         super(building);
+        this.id = id;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client-side building view.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param buildingId  the building position.
+     * @param id          the id of the list of filterables.
+     */
+    public ResetFilterableItemMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int id)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.id = id;
     }
 

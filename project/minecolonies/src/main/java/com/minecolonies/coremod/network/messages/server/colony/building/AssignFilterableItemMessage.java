@@ -6,7 +6,10 @@ import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +52,25 @@ public class AssignFilterableItemMessage extends AbstractBuildingServerMessage<A
     public AssignFilterableItemMessage(final IBuildingView building, final int id, final ItemStorage item, final boolean assign)
     {
         super(building);
+        this.assign = assign;
+        this.item = item;
+        this.id = id;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client-side building view.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param buildingId  the building position.
+     * @param id          the id of the list of filterables.
+     * @param item        the item to assign or remove.
+     * @param assign      true to assign, false to remove.
+     */
+    public AssignFilterableItemMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int id, final ItemStorage item, final boolean assign)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.assign = assign;
         this.item = item;
         this.id = id;
