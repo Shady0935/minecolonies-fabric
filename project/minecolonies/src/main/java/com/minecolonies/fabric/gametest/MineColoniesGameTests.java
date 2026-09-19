@@ -897,6 +897,94 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 900)
+    public void citizenBuilderUsesNavigationForConstructionSite(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(8, 1, 2);
+        final BlockPos relativeStart = new BlockPos(3, 1, 5);
+        final BlockPos relativeBuildTarget = new BlockPos(18, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        final BlockPos start = helper.absolutePos(relativeStart);
+        final BlockPos buildTarget = helper.absolutePos(relativeBuildTarget);
+        for (int x = 0; x <= 22; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+        helper.setBlock(relativeBuildTarget, Blocks.AIR);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Builder Navigation GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Builder navigation fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Builder navigation fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Builder navigation fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "Builder navigation fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding registeredBuilder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(registeredBuilder instanceof BuildingBuilder,
+          "Builder navigation fixture registered the wrong worker building: " + registeredBuilder);
+        final BuildingBuilder builder = (BuildingBuilder) registeredBuilder;
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, start);
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Builder navigation fixture could not create a live citizen");
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null && workerModule.assignCitizen(citizen),
+          "Builder navigation fixture could not assign the Builder citizen");
+        final JobBuilder job = citizen.getJob(JobBuilder.class);
+        helper.assertTrue(job != null, "Builder navigation fixture did not create a Builder job");
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        final TestBuilderAI builderAI = new TestBuilderAI(job);
+        builderAI.setWorkFrom(buildTarget);
+        citizen.setWorking(true);
+
+        helper.runAfterDelay(160, () ->
+        {
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Builder citizen did not reach ACTIVE_SERVER before construction navigation: "
+                + entity.getEntityStateController().getState());
+            helper.assertTrue(entity.getCitizenAI().getState() == CitizenAIState.WORKING,
+              "Builder citizen did not enter WORKING before construction navigation: "
+                + entity.getCitizenAI().getState());
+            helper.succeedWhen(() ->
+            {
+                helper.assertTrue(builderAI.walkToConstructionSite(buildTarget),
+                  "Builder citizen did not reach the construction-site range: position=" + entity.blockPosition()
+                    + "; navigationDone=" + entity.getNavigation().isDone()
+                    + "; destination=" + entity.getNavigation().getDestination()
+                    + "; path=" + entity.getNavigation().getPath());
+                helper.assertTrue(entity.blockPosition().distManhattan(buildTarget) <= 5,
+                  "Builder citizen reported construction-site arrival too far away: " + entity.blockPosition()
+                    + "; target=" + buildTarget);
+            });
+        });
+    }
+
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 700)
     public void citizenNavigationUsesColonyBackedEntity(final GameTestHelper helper)
     {

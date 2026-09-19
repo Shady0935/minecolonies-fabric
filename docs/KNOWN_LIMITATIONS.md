@@ -60,8 +60,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   checks.
   It does not yet cover automatic housing capture or citizen sleep scheduling,
   multi-request resolution/delivery, automatic logistics inventory transfer
-  beyond the focused rack-backed cycle, courier navigation, Builder pathfinding,
-  full CitizenAI scheduling/work-cycle navigation and larger construction, miner shaft
+  beyond the focused rack-backed cycle, courier navigation, full Builder
+  work-order pathfinding/construction, full CitizenAI scheduling/work-cycle
+  navigation and larger construction, miner shaft
   construction, ore/mining AI and resource delivery, farmer crop
   growth/harvesting AI and field placement, a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
@@ -112,13 +113,14 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 ## Validation still pending
 
 - Authenticated in-game interaction with BlockUI screens (including an actual
-  rendered entity/block hook overlay), full Builder pathfinding/larger
+  rendered entity/block hook overlay), full Builder work-order pathfinding/larger
   placement, full citizen work cycles/scheduling, logistics,
   automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. The focused server-side
-  CitizenAI/Builder worker tick cycle and colony-backed advanced navigation,
-  including a solid-barrier detour, are covered by GameTest, but full scheduling
+  CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
+  including a solid-barrier detour, and the Builder construction-site navigation
+  proxy are covered by GameTest, but full work-order construction, scheduling
   and longer work cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
@@ -129,7 +131,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   Miner work-order/claim selection,
   Farmer field assignment, Guard Tower/knight assignment, RaidManager event
   registration and the University worker-tick path have automated GameTest
-  fixtures; multi-request logistics, full Builder navigation and the dedicated restart
+  fixtures; multi-request logistics, full Builder work-order navigation and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
@@ -172,7 +174,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 83-test GameTest run still logs the upstream-style warning that
+- The latest 84-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the blueprint data should be audited before treating this
