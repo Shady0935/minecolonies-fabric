@@ -526,11 +526,13 @@ blueprints, assigns a live `JobDeliveryman` citizen to the courier and
 `BuildingWareHouse`, transfers a wheat stack from the live courier inventory
 through `TileEntityWareHouse.dumpInventoryIntoWareHouse` and verifies the
 stored quantity through both the rack and warehouse lookup APIs. A focused
-companion creates a real `Delivery` request for an assigned Builder, confirms
-that the resolver puts it on the courier queue, runs the real deliveryman's
-prepare/deliver states against the rack and Builder inventory, and verifies
-that the request completes after the stack is delivered. Full pathfinding,
-multi-request scheduling and the client logistics GUI remain open.
+companion runs the Builder's real material scanner against a one-block
+blueprint, creates its normal asynchronous `Stack` request, confirms that the
+warehouse resolver creates the `Delivery` child and assigns it to the courier,
+then runs the real deliveryman's prepare/deliver states against the rack and
+Builder inventory. The test verifies that the Builder receives the requested
+material and that the parent request completes. Full pathfinding, multi-request
+scheduling and the client logistics GUI remain open.
 
 The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen

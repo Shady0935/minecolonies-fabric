@@ -231,11 +231,12 @@ completed.
   blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
   modules, registers the Warehouse, Delivery and Pickup resolvers, and verifies
   a real rack-backed courier inventory transfer plus warehouse lookup. A
-  focused delivery cycle creates a real `Delivery` request for an assigned
-  Builder, checks resolver assignment, runs the deliveryman's prepare/deliver
-  states against the rack and Builder inventory, and verifies request
-  completion; full pathfinding, multi-request scheduling and logistics GUI
-  remain open
+  focused delivery cycle runs the Builder material scanner against a one-block
+  blueprint, creates the normal asynchronous `Stack` request, verifies that
+  the warehouse resolver creates and assigns its `Delivery` child, runs the
+  deliveryman's prepare/deliver states against the rack and Builder inventory,
+  and verifies parent-request completion; full pathfinding, multi-request
+  scheduling and logistics GUI remain open
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
@@ -311,7 +312,8 @@ completed.
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
   creation/selection, focused Builder two-stage solid/decorative placement and
-  material consumption, decoration work-order creation and University research
+  material consumption, normal Builder material-request/resolver delivery,
+  decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,
   colony allocation and flag updates, Builder delivery-priority updates,
   FarmField registration/seed/radius updates, Farmer field assignment
@@ -346,13 +348,14 @@ completed.
   warehouse sort and storage-upgrade routes,
   Enchanter station assignment and Postbox request creation,
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
-  build-tool inventory swapping, warehouse rack-backed courier transfer,
+  build-tool inventory swapping, warehouse rack-backed courier transfer and
+  normal Builder material-request/resolver delivery,
   miner stone drops and farmer harvest drops,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-courier-delivery-fix3.log`
+  `logs/minecolonies-gametest-builder-material-request-fix1.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
