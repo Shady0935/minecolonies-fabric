@@ -23,6 +23,8 @@ import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
 import com.minecolonies.api.colony.requestsystem.StandardFactoryController;
+import com.minecolonies.api.colony.requestsystem.request.RequestState;
+import com.minecolonies.api.colony.requestsystem.requestable.Stack;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.crafting.IRecipeStorage;
 import com.minecolonies.api.research.IGlobalResearch;
@@ -140,6 +142,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.miner.Mi
 import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerRepairLevelMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleMoveInMessage;
+import com.minecolonies.coremod.network.messages.server.colony.UpdateRequestStateMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.AdjustSkillCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.RecallSingleCitizenMessage;
@@ -3344,6 +3347,57 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerUpdateRequestStateMessageUpdatesRequest(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Request State Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S request-state fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S request-state fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding building = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(building != null, "C2S request-state fixture Town Hall was not registered");
+
+        final IToken<?> requestToken = colony.getRequestManager().createRequest(
+          building, new Stack(new ItemStack(Items.COBBLESTONE)));
+        helper.assertTrue(requestToken != null, "Request manager did not create the request token");
+        helper.assertTrue(colony.getRequestManager().getRequestForToken(requestToken) != null,
+          "Request manager did not retain the created request");
+        helper.assertTrue(colony.getRequestManager().getRequestForToken(requestToken).getState() == RequestState.CREATED,
+          "Fixture request did not start in CREATED state");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S request-state fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, UpdateRequestStateMessage.class);
+        helper.assertTrue(messageId > 0, "UpdateRequestState message was not registered");
+        final int communicationId = 0x55525354;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new UpdateRequestStateMessage(colony.getDimension(), colony.getID(), requestToken,
+            RequestState.IN_PROGRESS, ItemStack.EMPTY));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(colony.getRequestManager().getRequestForToken(requestToken).getState() == RequestState.IN_PROGRESS,
+              "UpdateRequestState message did not update the request state");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "UpdateRequestState envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerTransferItemsToCitizenMovesInventory(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -3574,15 +3628,18 @@ public final class MineColoniesGameTests implements FabricGameTest
                 hutCitizenEntity.setPos(away.getX() + 0.5D, away.getY(), away.getZ() + 0.5D);
                 helper.assertTrue(!hutCitizenEntity.blockPosition().equals(expectedSpawn),
                   "C2S recall-assigned fixture citizen could not be moved away for the hut recall");
+                final BlockPos hutExpectedSpawn = EntityUtils.getSpawnPoint(level, builderPos);
+                helper.assertTrue(hutExpectedSpawn != null,
+                  "C2S recall-assigned fixture found no valid Builder spawn point for the hut recall");
                 final int hutRecallCommunicationId = 0x52434854;
                 dispatchServerMessage(channel, server, owner, hutRecallMessageId, hutRecallCommunicationId,
                   new RecallCitizenHutMessage(colony.getDimension(), colony.getID(), builderPos));
                 helper.runAfterDelay(2, () ->
                 {
                     final AbstractEntityCitizen recalledCitizen = citizen.getEntity().orElse(null);
-                    helper.assertTrue(recalledCitizen != null && recalledCitizen.blockPosition().equals(expectedSpawn),
+                    helper.assertTrue(recalledCitizen != null && recalledCitizen.blockPosition().equals(hutExpectedSpawn),
                       "RecallCitizenHut message did not teleport the assigned citizen to the Builder spawn point: "
-                        + (recalledCitizen == null ? "entity missing" : recalledCitizen.blockPosition()) + " expected " + expectedSpawn
+                        + (recalledCitizen == null ? "entity missing" : recalledCitizen.blockPosition()) + " expected " + hutExpectedSpawn
                         + " assigned=" + builder.getAllAssignedCitizen().size());
                     helper.assertTrue(channel.getMessageCache().getIfPresent(hutRecallCommunicationId) == null,
                       "RecallCitizenHut envelope remained in the split-packet cache");
