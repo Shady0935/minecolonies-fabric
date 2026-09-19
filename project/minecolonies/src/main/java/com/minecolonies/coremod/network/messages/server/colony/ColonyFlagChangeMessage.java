@@ -7,8 +7,10 @@ import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMess
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.network.NetworkEvent;
+import net.minecraft.world.level.Level;
 
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_BANNER_PATTERNS;
 
@@ -32,6 +34,19 @@ public class ColonyFlagChangeMessage extends AbstractColonyServerMessage
     {
         super(colony);
 
+        this.patterns = patternList;
+    }
+
+    /**
+     * Creates a server-bound flag message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param patternList the selected banner patterns
+     */
+    public ColonyFlagChangeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final ListTag patternList)
+    {
+        super(dimensionId, colonyId);
         this.patterns = patternList;
     }
 

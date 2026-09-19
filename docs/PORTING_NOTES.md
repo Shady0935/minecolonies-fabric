@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 37-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 38-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -229,12 +229,18 @@ split envelopes. It verifies owner-permission dispatch, mutation of the live
 colony's name, structure-pack and texture-style values, and cleanup of all
 three split-cache entries. The colony banner/style GUI remains manual.
 
-A fifth companion C2S fixture serializes `BuildingSetStyleMessage` with a raw
+A fifth companion C2S fixture serializes `ToggleHousingMessage`,
+`ToggleJobMessage` and `ColonyFlagChangeMessage` in real split envelopes. It
+verifies manual housing and hiring allocation toggles, banner-pattern
+serialization, owner-permission dispatch and cleanup of all three split-cache
+entries. The Town Hall management GUI remains manual.
+
+A sixth companion C2S fixture serializes `BuildingSetStyleMessage` with a raw
 server-bound building reference. It resolves a real deconstructed Town Hall,
 applies a loaded structure pack and verifies the building state plus split-cache
 cleanup. The normal building-style BlockUI interaction remains manual.
 
-A sixth companion C2S fixture serializes `FarmFieldRegistrationMessage`,
+A seventh companion C2S fixture serializes `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage` in three real
 split envelopes. It creates a scarecrow-backed `FarmField`, registers it in
 the colony, changes the seed to a carrot, resizes the east radius and verifies
@@ -305,7 +311,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 37-test run therefore resolves the structure without
+the building; the latest 38-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -384,7 +390,8 @@ whose execution side does not match its destination. A focused GameTest
 serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
 `DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
-`ColonyStructureStyleMessage`, `ColonyTextureStyleMessage` and
+`ColonyStructureStyleMessage`, `ColonyTextureStyleMessage`,
+`ToggleHousingMessage`, `ToggleJobMessage`, `ColonyFlagChangeMessage` and
 `BuildingSetStyleMessage`, `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage`,
 wraps each in the
@@ -396,14 +403,15 @@ in-progress state, Town Hall repair-work-order creation/claiming by the
 requested Builder, Builder work-order selection for the citizen job, direct
 Town Hall placement with item consumption and blueprint resolution, and
 decoration work-order creation with asynchronous blueprint resolution and
-rotation/mirror preservation, building custom-name mutation and colony-style
-updates, deconstructed-building style mutation and FarmField configuration.
+rotation/mirror preservation, building custom-name mutation, colony-style and
+colony-management updates, deconstructed-building style mutation and
+FarmField configuration.
 The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-farm-fields.log`; it reports
-`All 37 required tests passed` (36 core tests plus one entity batch test).
+`logs/minecolonies-gametest-c2s-colony-management.log`; it reports
+`All 38 required tests passed` (37 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

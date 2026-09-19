@@ -74,10 +74,13 @@ import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ColonyFlagChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ToggleJobMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
@@ -113,6 +116,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;
@@ -1943,6 +1947,66 @@ public final class MineColoniesGameTests implements FabricGameTest
               "ColonyStructureStyle envelope remained in the split-packet cache");
             helper.assertTrue(channel.getMessageCache().getIfPresent(textureCommunicationId) == null,
               "ColonyTextureStyle envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerColonyManagementMessagesUpdateAllocationAndFlag(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Colony Management Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S colony-management fixture colony was not created");
+        colony.setManualHousing(false);
+        colony.setManualHiring(false);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S colony-management fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int housingId = findMessageId(channel, ToggleHousingMessage.class);
+        final int jobId = findMessageId(channel, ToggleJobMessage.class);
+        final int flagId = findMessageId(channel, ColonyFlagChangeMessage.class);
+        helper.assertTrue(housingId > 0, "ToggleHousing message was not registered");
+        helper.assertTrue(jobId > 0, "ToggleJob message was not registered");
+        helper.assertTrue(flagId > 0, "ColonyFlagChange message was not registered");
+
+        final ListTag patterns = new ListTag();
+        final CompoundTag pattern = new CompoundTag();
+        pattern.putString("Pattern", "bs");
+        pattern.putInt("Color", 1);
+        patterns.add(pattern);
+
+        final int housingCommunicationId = 0x43484F55;
+        final int jobCommunicationId = 0x43484F4A;
+        final int flagCommunicationId = 0x43484F46;
+        dispatchServerMessage(channel, server, owner, housingId, housingCommunicationId,
+          new ToggleHousingMessage(colony.getDimension(), colony.getID(), true));
+        dispatchServerMessage(channel, server, owner, jobId, jobCommunicationId,
+          new ToggleJobMessage(colony.getDimension(), colony.getID(), true));
+        dispatchServerMessage(channel, server, owner, flagId, flagCommunicationId,
+          new ColonyFlagChangeMessage(colony.getDimension(), colony.getID(), patterns));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(colony.isManualHousing(),
+              "ToggleHousing message did not enable manual housing allocation");
+            helper.assertTrue(colony.isManualHiring(),
+              "ToggleJob message did not enable manual hiring allocation");
+            helper.assertTrue(colony.getColonyFlag().equals(patterns),
+              "ColonyFlagChange message did not preserve the selected banner patterns: "
+                + colony.getColonyFlag());
+            helper.assertTrue(channel.getMessageCache().getIfPresent(housingCommunicationId) == null,
+              "ToggleHousing envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(jobCommunicationId) == null,
+              "ToggleJob envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(flagCommunicationId) == null,
+              "ColonyFlagChange envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
