@@ -64,6 +64,7 @@ import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.AbstractCraftingBuildingModule;
+import com.minecolonies.coremod.colony.buildings.modules.BedHandlingModule;
 import com.minecolonies.coremod.colony.buildings.modules.EntityListModule;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
@@ -238,8 +239,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.pathfinder.Node;
@@ -276,6 +279,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String TEST_BATCH = "minecolonies_fabric_port";
     private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
+    private static final String SLEEP_TEST_BATCH = "minecolonies_fabric_sleep_port";
 
     public MineColoniesGameTests()
     {
@@ -1336,6 +1340,109 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(citizen.getHomeBuilding() == residence,
           "Residence assignment did not update the citizen home building");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = SLEEP_TEST_BATCH, timeoutTicks = 900)
+    public void assignedCitizenSleepsAndWakesAtResidence(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeResidence = new BlockPos(10, 1, 2);
+        final BlockPos relativeBedHead = new BlockPos(10, 1, 3);
+        final BlockPos relativeBedFoot = new BlockPos(10, 1, 4);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos residencePos = helper.absolutePos(relativeResidence);
+        final BlockPos bedHead = helper.absolutePos(relativeBedHead);
+        final BlockPos bedFoot = helper.absolutePos(relativeBedFoot);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeResidence, ModBlocks.blockHutHome);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Residence Sleep GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Residence-sleep fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Residence-sleep fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Residence-sleep fixture Town Hall was not registered");
+
+        final BlockEntity residenceEntity = level.getBlockEntity(residencePos);
+        helper.assertTrue(residenceEntity instanceof TileEntityColonyBuilding,
+          "Residence-sleep fixture did not create a residence block entity");
+        final TileEntityColonyBuilding residenceHut = (TileEntityColonyBuilding) residenceEntity;
+        residenceHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        residenceHut.setBlueprintPath("fundamentals/house1.blueprint");
+        residenceHut.setSchematicName("house1");
+        final IBuilding residence = colony.getBuildingManager().addNewBuilding(residenceHut, level);
+        helper.assertTrue(residence != null && residence.hasModule(LivingBuildingModule.class),
+          "Residence-sleep fixture did not register its living module: " + residence);
+        helper.assertTrue(residence.getBuildingLevel() >= 1,
+          "Residence-sleep fixture did not resolve its level-one house blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final BlockState bedHeadState = Blocks.RED_BED.defaultBlockState()
+          .setValue(BedBlock.FACING, Direction.NORTH)
+          .setValue(BedBlock.PART, BedPart.HEAD)
+          .setValue(BedBlock.OCCUPIED, false);
+        final BlockState bedFootState = bedHeadState.setValue(BedBlock.PART, BedPart.FOOT);
+        helper.setBlock(relativeBedHead, bedHeadState);
+        helper.setBlock(relativeBedFoot, bedFootState);
+        residence.registerBlockPosition(bedHeadState, bedHead, level);
+        final BedHandlingModule bedModule = residence.getFirstModuleOccurance(BedHandlingModule.class);
+        helper.assertTrue(bedModule != null && bedModule.getRegisteredBlocks().contains(bedHead),
+          "Residence-sleep fixture did not register the residence bed");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, residencePos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Residence-sleep fixture could not create a live citizen");
+        final LivingBuildingModule livingModule = residence.getFirstModuleOccurance(LivingBuildingModule.class);
+        helper.assertTrue(livingModule.assignCitizen(citizen),
+          "Residence-sleep fixture rejected the citizen assignment");
+        helper.assertTrue(citizen.getHomeBuilding() == residence,
+          "Residence-sleep fixture did not update the citizen home building");
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        level.setDayTime(12600L);
+
+        helper.runAfterDelay(420, () ->
+        {
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Residence citizen did not reach ACTIVE_SERVER before sleeping: "
+                + entity.getEntityStateController().getState());
+            helper.assertTrue(entity.getCitizenSleepHandler().isAsleep(),
+              "Residence citizen high-level sleep state did not put the citizen to bed: "
+                + entity.getCitizenAI().getState());
+            helper.assertTrue(citizen.getBedPos().equals(bedHead),
+              "Residence citizen recorded the wrong bed: " + citizen.getBedPos() + "; expected=" + bedHead);
+            helper.assertTrue(level.getBlockState(bedHead).getValue(BedBlock.OCCUPIED),
+              "Residence citizen did not mark the assigned bed occupied");
+
+            level.setDayTime(0L);
+            // While sleeping the high-level AI intentionally rechecks the time every 15 seconds.
+            helper.runAfterDelay(360, () ->
+            {
+                helper.assertTrue(!entity.getCitizenSleepHandler().isAsleep(),
+                  "Residence citizen did not wake during daytime");
+                helper.assertTrue(!citizen.getBedPos().equals(bedHead),
+                  "Residence citizen kept the sleeping bed after waking: " + citizen.getBedPos());
+                helper.assertTrue(!level.getBlockState(bedHead).getValue(BedBlock.OCCUPIED),
+                  "Residence bed remained occupied after the citizen woke");
+                helper.succeed();
+            });
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
