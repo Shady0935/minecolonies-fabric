@@ -73,11 +73,14 @@ completed.
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
   honors Forge priority order and discovers inherited listener methods, so
-  colony-scoped registration/removal cannot race event dispatch; the 25-test
-  GameTest batch exercises this under concurrent colony fixtures
+  colony-scoped registration/removal cannot race event dispatch; the 26-test
+  core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 26-test Fabric GameTest run
+  is covered by the latest 27-test Fabric GameTest run
+- [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
+  through `NewBobberEntity`, preserving neutral rod damage, listener-modified
+  rod damage and cancellation before drops are spawned
 - [x] Narrow Fabric compatibility hooks dispatch cancellable item toss, item
   pickup and farmland-trample events, and gate bucket filling through the
   retained `FillBucketEvent` contract; the 13-test server fixture covers the
@@ -204,11 +207,11 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 26-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 27-test Fabric GameTest run passes with clean saves for all three
   dimensions; the run covers event-dispatch priority/inheritance, projectile
-  impact cancellation, all custom entity NBT reload contracts and populated-
-  tavern conversion; evidence is in
-  `logs/minecolonies-gametest-projectile-impact.log`
+  impact cancellation, fishing-event cancellation/rod damage, all custom
+  entity NBT reload contracts and populated-tavern conversion; evidence is in
+  `logs/minecolonies-gametest-fishing-event.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

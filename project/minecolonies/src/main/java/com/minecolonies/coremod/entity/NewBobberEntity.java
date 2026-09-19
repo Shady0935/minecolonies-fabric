@@ -39,6 +39,8 @@ import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.dist.Dist;
 import com.minecolonies.fabric.dist.OnlyIn;
 import com.minecolonies.fabric.common.ToolActions;
+import com.minecolonies.fabric.event.ForgeEventFactory;
+import com.minecolonies.fabric.event.entity.player.ItemFishedEvent;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import com.minecolonies.fabric.network.NetworkHooks;
 import com.minecolonies.fabric.network.PlayMessages;
@@ -523,7 +525,7 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
         if (!this.level().isClientSide && this.angler != null)
         {
             int i = 0;
-            final com.minecolonies.fabric.event.entity.player.ItemFishedEvent event = null;
+            ItemFishedEvent event = null;
             if (this.caughtEntity != null)
             {
                 this.bringInHookedEntity();
@@ -541,6 +543,12 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
                 lootcontext$builder.withParameter(LootContextParams.KILLER_ENTITY, this.angler).withParameter(LootContextParams.THIS_ENTITY, this);
                 final LootTable loottable = this.level().getServer().getLootData().getLootTable(ModLootTables.FISHING);
                 final List<ItemStack> list = loottable.getRandomItems(lootcontext$builder.create(LootContextParamSets.FISHING));
+                event = ForgeEventFactory.onPlayerFishedItem(list, this.inGround ? 2 : 1, this);
+                if (event.isCanceled())
+                {
+                    this.remove(RemovalReason.DISCARDED);
+                    return event.getRodDamage();
+                }
 
                 for (final ItemStack itemstack : list)
                 {

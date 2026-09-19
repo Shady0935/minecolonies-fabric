@@ -147,7 +147,7 @@ methods using Forge's `HIGHEST` through `LOWEST` priorities. GameTests create
 and remove colony-scoped permission listeners while other fixtures dispatch
 gameplay callbacks; stable snapshots preserve the upstream listener semantics
 without concurrent `ArrayList` races. A dedicated probe covers priority order
-and an inherited handler, and the latest 25-test core batch exercises this under
+and an inherited handler, and the latest 26-test core batch exercises this under
 concurrent colony fixtures.
 
 Projectile impacts now have a narrow cancellable Fabric bridge through
@@ -155,9 +155,10 @@ Projectile impacts now have a narrow cancellable Fabric bridge through
 original projectile and hit result and returns the event-bus cancellation
 result, so `NewBobberEntity` keeps its upstream "cancel means do not call
 onHit" behavior. A focused GameTest verifies dispatch, object identity,
-cancellation and listener removal; the fishing-hook `ItemFishedEvent` remains
-intentionally unposted because the retained 1.20.1 source keeps that event
-reference null and registers no listener for it.
+cancellation and listener removal. The custom fishing hook now also posts
+`ItemFishedEvent` after loot generation and before item entities are spawned;
+listeners can change rod damage or cancel the drops, matching Forge's retained
+1.20.1 hook semantics while using MineColonies' `NewBobberEntity` type.
 
 ## Server-side colony fixture and structure packs
 
@@ -173,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 26-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 27-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -255,13 +256,13 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 26-test run therefore resolves the structure without
+the building; the latest 27-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The latest 25-test GameTest batch resolves all four
+retained `ResearchListener`. The latest 26-test core GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`; its
 research-cycle fixture also covers item-cost consumption, progress completion,

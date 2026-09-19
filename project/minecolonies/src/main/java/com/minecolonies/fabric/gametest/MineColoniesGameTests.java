@@ -84,6 +84,7 @@ import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowNockEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import com.minecolonies.fabric.event.entity.player.EntityItemPickupEvent;
+import com.minecolonies.fabric.event.entity.player.ItemFishedEvent;
 import com.minecolonies.fabric.event.level.BlockEvent;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -1582,6 +1583,49 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         helper.assertTrue(!ForgeEventFactory.onProjectileImpact(projectile, hitResult),
           "Projectile impact bridge remained canceled after listener removal");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void fishingEventBridgePreservesRodDamageAndCancellation(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final NewBobberEntity hook = new NewBobberEntity(ModEntities.FISHHOOK, level);
+        hook.setPos(helper.absolutePos(new BlockPos(1, 1, 1)).getCenter());
+        final ItemStack fish = new ItemStack(Items.COD);
+        final java.util.List<ItemStack> drops = java.util.List.of(fish);
+        final AtomicBoolean eventSeen = new AtomicBoolean();
+        final Object cancelListener = new Object()
+        {
+            @SubscribeEvent
+            public void cancelFishing(final ItemFishedEvent event)
+            {
+                helper.assertTrue(event.getHookEntity() == hook, "ItemFishedEvent exposed the wrong hook");
+                helper.assertTrue(event.getDrops().size() == 1 && event.getDrops().get(0) == fish,
+                  "ItemFishedEvent did not preserve the generated drops");
+                helper.assertTrue(event.getRodDamage() == 1, "ItemFishedEvent exposed the wrong default rod damage");
+                event.damageRodBy(4);
+                event.setCanceled(true);
+                eventSeen.set(true);
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(cancelListener);
+        try
+        {
+            final ItemFishedEvent canceled = ForgeEventFactory.onPlayerFishedItem(drops, 1, hook);
+            helper.assertTrue(eventSeen.get(), "ItemFishedEvent bridge did not dispatch its event");
+            helper.assertTrue(canceled.isCanceled() && canceled.getRodDamage() == 4,
+              "ItemFishedEvent did not preserve cancellation and modified rod damage");
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(cancelListener);
+            hook.discard();
+        }
+
+        final ItemFishedEvent neutral = ForgeEventFactory.onPlayerFishedItem(drops, 1, hook);
+        helper.assertTrue(!neutral.isCanceled() && neutral.getRodDamage() == 1,
+          "ItemFishedEvent bridge retained listener state after unregistering");
         helper.succeed();
     }
 

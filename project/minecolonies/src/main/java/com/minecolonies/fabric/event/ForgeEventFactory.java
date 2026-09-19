@@ -11,9 +11,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 
+import java.util.List;
+
 import com.minecolonies.fabric.common.MinecraftForge;
+import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.fabric.event.entity.player.ArrowNockEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
+import com.minecolonies.fabric.event.entity.player.ItemFishedEvent;
 import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
 
 /** Small compatibility surface for Forge hooks that have no direct Fabric event. */
@@ -51,6 +55,14 @@ public final class ForgeEventFactory
     public static boolean onProjectileImpact(final Entity projectile, final HitResult hitResult)
     {
         return MinecraftForge.EVENT_BUS.post(new ProjectileImpactEvent(projectile, hitResult));
+    }
+
+    public static ItemFishedEvent onPlayerFishedItem(final List<ItemStack> drops, final int rodDamage,
+      final NewBobberEntity hook)
+    {
+        final ItemFishedEvent event = new ItemFishedEvent(drops, rodDamage, hook);
+        MinecraftForge.EVENT_BUS.post(event);
+        return event;
     }
 
     public static boolean canLivingConvert(final LivingEntity entity, final EntityType<?> targetType, final Object reason)

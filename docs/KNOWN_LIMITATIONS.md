@@ -79,10 +79,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `null` contract, listeners can supply an alternate action or cancel with a
   failure result, and the Pharao Scepter flow is GameTest-covered.
 - Projectile impacts now dispatch a cancellable `ProjectileImpactEvent` with
-  the original hit result; the focused bridge is covered. The fishing-hook
-  `ItemFishedEvent` remains intentionally unposted because the retained
-  MineColonies 1.20.1 source keeps that event reference null and registers no
-  listener for it.
+  the original hit result; the focused bridge is covered. Fishing loot now
+  dispatches `ItemFishedEvent` for MineColonies' custom `NewBobberEntity`; the
+  vanilla `FishingHook` remains outside this mod's custom hook surface.
 - Mob conversion now has a real bridge through Fabric's pre-spawn
   `MOB_CONVERSION` callback. The automated fixture constructs a populated
   tavern, creates one `VisitorCitizen`, assigns it to that tavern and confirms
