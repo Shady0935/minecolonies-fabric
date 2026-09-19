@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.colonyEvents.EventStatus;
 import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.HiringMode;
 import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
@@ -92,6 +93,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDe
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.worker.BuildingHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldRegistrationMessage;
@@ -2830,6 +2832,88 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "HireFire message did not remove the Farmer citizen");
                 helper.assertTrue(channel.getMessageCache().getIfPresent(fireCommunicationId) == null,
                   "HireFire fire envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerBuildingHiringModeMessageUpdatesFarmer(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Hiring Mode Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S hiring-mode fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S hiring-mode fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S hiring-mode fixture Town Hall was not registered");
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "C2S hiring-mode fixture did not create a Farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(registered instanceof BuildingFarmer,
+          "C2S hiring-mode fixture registered the wrong building: " + registered);
+        final BuildingFarmer farmer = (BuildingFarmer) registered;
+        final WorkerBuildingModule workerModule = farmer.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.farmer.get());
+        helper.assertTrue(workerModule != null, "C2S hiring-mode Farmer worker module was not registered");
+        helper.assertTrue(workerModule.getHiringMode() == HiringMode.DEFAULT,
+          "C2S hiring-mode fixture did not start in DEFAULT mode");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S hiring-mode fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, BuildingHiringModeMessage.class);
+        helper.assertTrue(messageId > 0, "BuildingHiringMode message was not registered");
+        final int autoCommunicationId = 0x484D4155;
+        dispatchServerMessage(channel, server, owner, messageId, autoCommunicationId,
+          new BuildingHiringModeMessage(colony.getDimension(), colony.getID(), farmerPos,
+            HiringMode.AUTO, BuildingModules.FARMER_CRAFT.getRuntimeID()));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(workerModule.getHiringMode() == HiringMode.AUTO,
+              "BuildingHiringMode message did not enable AUTO mode");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(autoCommunicationId) == null,
+              "BuildingHiringMode AUTO envelope remained in the split-packet cache");
+            final int defaultCommunicationId = 0x484D4445;
+            dispatchServerMessage(channel, server, owner, messageId, defaultCommunicationId,
+              new BuildingHiringModeMessage(colony.getDimension(), colony.getID(), farmerPos,
+                HiringMode.DEFAULT, BuildingModules.FARMER_CRAFT.getRuntimeID()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(workerModule.getHiringMode() == HiringMode.DEFAULT,
+                  "BuildingHiringMode message did not restore DEFAULT mode");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(defaultCommunicationId) == null,
+                  "BuildingHiringMode DEFAULT envelope remained in the split-packet cache");
                 helper.succeed();
             });
         });

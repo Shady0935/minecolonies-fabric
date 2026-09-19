@@ -7,6 +7,9 @@ import com.minecolonies.api.colony.buildings.modules.IAssignsCitizen;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +45,23 @@ public class BuildingHiringModeMessage extends AbstractBuildingServerMessage<IBu
     public BuildingHiringModeMessage(@NotNull final IBuildingView building, final HiringMode mode, final int moduleId)
     {
         super(building);
+        this.mode = mode;
+        this.moduleId = moduleId;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  target building position
+     * @param mode        hiring mode to select
+     * @param moduleId    assigned-citizen module runtime id
+     */
+    public BuildingHiringModeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final HiringMode mode, final int moduleId)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.mode = mode;
         this.moduleId = moduleId;
     }

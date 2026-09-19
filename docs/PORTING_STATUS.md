@@ -64,8 +64,8 @@ completed.
   actions, colony allocation toggles, colony-flag updates and Builder delivery
   priority, Farmer field assignment, building settings, building reactivation,
   Miner level selection, Guard Tower patrol-mine assignment, building dirty
-  marking, move-in policy, citizen pause/resume and Farmer hire/fire are covered
-  by the latest 48-test GameTest run
+  marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring
+  mode are covered by the latest 49-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -86,7 +86,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 48-test Fabric GameTest run
+  is covered by the latest 49-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -231,8 +231,8 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 48-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 47-test core batch covers event-dispatch
+- [x] Latest 49-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 48-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -247,9 +247,10 @@ completed.
   building dirty marking,
   colony move-in policy and citizen pause/resume,
   Farmer hire/fire assignment,
+  Farmer hiring-mode transitions,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-hire-fire.log`
+  `logs/minecolonies-gametest-c2s-hiring-mode.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
