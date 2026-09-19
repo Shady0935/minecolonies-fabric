@@ -38,6 +38,7 @@ import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.colony.workorders.WorkOrderDecoration;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
+import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
@@ -89,6 +90,8 @@ import com.minecolonies.coremod.network.messages.server.colony.building.builder.
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldRegistrationMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldUpdateSeedMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignFieldMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignmentModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
@@ -2182,6 +2185,116 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(resizeCommunicationId) == null,
               "FarmFieldPlotResize envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerFarmerFieldMessagesControlAssignment(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
+        final BlockPos relativeField = new BlockPos(15, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        final BlockPos fieldPos = helper.absolutePos(relativeField);
+        for (int x = 0; x <= 18; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+        helper.setBlock(relativeField, ModBlocks.blockScarecrow);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Farmer Fields Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S farmer-fields fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S farmer-fields fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "C2S farmer-fields fixture did not create a Farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding farmerBuilding = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(farmerBuilding instanceof BuildingFarmer,
+          "C2S farmer-fields fixture registered the wrong building: " + farmerBuilding);
+        final BuildingFarmer farmer = (BuildingFarmer) farmerBuilding;
+        helper.assertTrue(farmer.getBuildingLevel() >= 1,
+          "C2S farmer-fields fixture did not resolve its level-one blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FarmField field = FarmField.create(fieldPos);
+        field.setSeed(new ItemStack(Items.WHEAT));
+        helper.assertTrue(field.isValidPlacement(colony),
+          "C2S farmer-fields fixture field does not have a valid scarecrow placement");
+        helper.assertTrue(colony.getBuildingManager().addField(field),
+          "C2S farmer-fields fixture field was not registered in the colony");
+        final BuildingFarmer.FarmerFieldsModule fields = farmer.getFirstModuleOccurance(
+          BuildingFarmer.FarmerFieldsModule.class);
+        helper.assertTrue(fields != null, "C2S farmer-fields fixture did not register its fields module");
+        final int moduleId = BuildingModules.FARMER_FIELDS.getRuntimeID();
+        helper.assertTrue(farmer.getModule(moduleId) == fields,
+          "C2S farmer-fields fixture runtime module id did not resolve its fields module");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S farmer-fields fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int modeId = findMessageId(channel, AssignmentModeMessage.class);
+        final int assignId = findMessageId(channel, AssignFieldMessage.class);
+        helper.assertTrue(modeId > 0, "AssignmentMode message was not registered");
+        helper.assertTrue(assignId > 0, "AssignField message was not registered");
+
+        final int modeCommunicationId = 0x46414D4D;
+        final int assignCommunicationId = 0x46415347;
+        final int freeCommunicationId = 0x46414652;
+        dispatchServerMessage(channel, server, owner, modeId, modeCommunicationId,
+          new AssignmentModeMessage(colony.getDimension(), colony.getID(), farmerPos, true, moduleId));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(fields.assignManually(),
+              "AssignmentMode message did not enable manual Farmer field assignment");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(modeCommunicationId) == null,
+              "AssignmentMode envelope remained in the split-packet cache");
+            dispatchServerMessage(channel, server, owner, assignId, assignCommunicationId,
+              new AssignFieldMessage(colony.getDimension(), colony.getID(), farmerPos, field, true, moduleId));
+
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(fields.getOwnedFields().contains(field),
+                  "AssignField message did not assign the FarmField to the Farmer");
+                helper.assertTrue(farmer.getID().equals(field.getBuildingId()),
+                  "AssignField message stored the wrong Farmer owner: " + field.getBuildingId());
+                helper.assertTrue(channel.getMessageCache().getIfPresent(assignCommunicationId) == null,
+                  "AssignField envelope remained in the split-packet cache");
+                dispatchServerMessage(channel, server, owner, assignId, freeCommunicationId,
+                  new AssignFieldMessage(colony.getDimension(), colony.getID(), farmerPos, field, false, moduleId));
+
+                helper.runAfterDelay(1, () ->
+                {
+                    helper.assertTrue(fields.getOwnedFields().isEmpty() && !field.isTaken(),
+                      "AssignField message did not free the FarmField");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(freeCommunicationId) == null,
+                      "AssignField free envelope remained in the split-packet cache");
+                    helper.succeed();
+                });
+            });
         });
     }
 

@@ -8,7 +8,10 @@ import com.minecolonies.coremod.colony.buildings.modules.FieldsModule;
 import com.minecolonies.coremod.colony.fields.registry.FieldDataManager;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import io.netty.buffer.Unpooled;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +53,25 @@ public class AssignFieldMessage extends AbstractBuildingServerMessage<IBuilding>
     public AssignFieldMessage(final IBuildingView building, final IField field, final boolean assign, final int moduleID)
     {
         super(building);
+        this.assign = assign;
+        this.fieldData = FieldDataManager.fieldToBuffer(field);
+        this.moduleID = moduleID;
+    }
+
+    /**
+     * Creates a server-bound field assignment message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId target building position
+     * @param field the field to assign or free
+     * @param assign assign if true, free if false
+     * @param moduleID field-module runtime id
+     */
+    public AssignFieldMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final IField field, final boolean assign, final int moduleID)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.assign = assign;
         this.fieldData = FieldDataManager.fieldToBuffer(field);
         this.moduleID = moduleID;

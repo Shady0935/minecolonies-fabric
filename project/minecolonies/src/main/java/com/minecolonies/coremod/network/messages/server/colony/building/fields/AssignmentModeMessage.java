@@ -6,7 +6,10 @@ import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.FieldsModule;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +38,23 @@ public class AssignmentModeMessage extends AbstractBuildingServerMessage<IBuildi
     public AssignmentModeMessage(@NotNull final IBuildingView building, final boolean assignmentMode , final int runtimeID)
     {
         super(building);
+        this.assignmentMode = assignmentMode;
+        this.id = runtimeID;
+    }
+
+    /**
+     * Creates a server-bound assignment-mode message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId target building position
+     * @param assignmentMode whether field assignment should be manual
+     * @param runtimeID field-module runtime id
+     */
+    public AssignmentModeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final boolean assignmentMode, final int runtimeID)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.assignmentMode = assignmentMode;
         this.id = runtimeID;
     }
