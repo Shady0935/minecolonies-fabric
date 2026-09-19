@@ -73,6 +73,7 @@ import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestRe
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
 import com.minecolonies.coremod.colony.workorders.WorkOrderMiner;
+import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.entity.ai.citizen.miner.MinerLevel;
 import com.minecolonies.coremod.network.NetworkChannel;
@@ -101,6 +102,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.BuildReq
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.CourierHiringModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.GiveToolMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableEntityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableItemMessage;
@@ -3023,6 +3025,57 @@ public final class MineColoniesGameTests implements FabricGameTest
                     });
                 });
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerGiveToolMessageBindsToolToBuilding(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().clearContent();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Give Tool Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S give-tool fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S give-tool fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S give-tool fixture Town Hall was not registered");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S give-tool fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, GiveToolMessage.class);
+        helper.assertTrue(messageId > 0, "GiveTool message was not registered");
+        final int communicationId = 0x47544F4C;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new GiveToolMessage(colony.getDimension(), colony.getID(), townHall, Items.COMPASS));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final ItemStack tool = owner.getMainHandItem();
+            helper.assertTrue(tool.getItem() == Items.COMPASS,
+              "GiveTool message did not select the requested tool in the hotbar");
+            final CompoundTag toolTag = tool.getTag();
+            helper.assertTrue(toolTag != null, "GiveTool message did not attach tool metadata");
+            helper.assertTrue(townHall.equals(BlockPosUtil.read(toolTag, "pos")),
+              "GiveTool message stored the wrong building position");
+            helper.assertTrue(toolTag.getInt("id") == colony.getID(),
+              "GiveTool message stored the wrong colony id");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "GiveTool envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 

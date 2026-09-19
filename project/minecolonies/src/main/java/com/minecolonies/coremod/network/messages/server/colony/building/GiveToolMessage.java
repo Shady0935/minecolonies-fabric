@@ -6,11 +6,14 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_ID;
@@ -42,6 +45,20 @@ public class GiveToolMessage extends AbstractBuildingServerMessage<AbstractBuild
     public GiveToolMessage(final IBuildingView building, final Item item)
     {
         super(building);
+        this.item = item;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client-side building view.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param buildingId  the building position.
+     * @param item        the tool to give.
+     */
+    public GiveToolMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId, final Item item)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.item = item;
     }
 
