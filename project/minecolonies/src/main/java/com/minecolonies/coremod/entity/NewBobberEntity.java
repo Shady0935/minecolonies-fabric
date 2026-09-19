@@ -50,6 +50,7 @@ import java.util.List;
 public class NewBobberEntity extends Projectile implements IEntityAdditionalSpawnData
 {
     private static final EntityDataAccessor<Integer> DATA_HOOKED_ENTITY = SynchedEntityData.defineId(NewBobberEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_ANGLER_ID = SynchedEntityData.defineId(NewBobberEntity.class, EntityDataSerializers.INT);
     public  static final int                    XP_PER_CATCH       = 2;
     private              boolean                inGround;
     private              int                    ticksInGround;
@@ -103,6 +104,8 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
     public void setAngler(final EntityCitizen citizen, final int luck, final int lureSpeed)
     {
         this.angler = citizen;
+        this.anglerId = citizen.getId();
+        this.getEntityData().set(DATA_ANGLER_ID, this.anglerId);
         final float pitch = (float) (Math.random()*40.0-10.0);
         final float yaw = this.angler.getYRot();
         final float cowYaw = Mth.cos(-yaw * ((float) Math.PI / 180F) - (float) Math.PI);
@@ -130,6 +133,7 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
     protected void defineSynchedData()
     {
         this.getEntityData().define(DATA_HOOKED_ENTITY, 0);
+        this.getEntityData().define(DATA_ANGLER_ID, -1);
     }
 
     public void onSyncedDataUpdated(final EntityDataAccessor<?> key)
@@ -138,6 +142,18 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
         {
             final int i = this.getEntityData().get(DATA_HOOKED_ENTITY);
             this.caughtEntity = i > 0 ? this.level().getEntity(i - 1) : null;
+        }
+        else if (DATA_ANGLER_ID.equals(key))
+        {
+            this.anglerId = this.getEntityData().get(DATA_ANGLER_ID);
+            if (this.level().isClientSide && this.anglerId > -1)
+            {
+                final Entity entity = this.level().getEntity(this.anglerId);
+                if (entity instanceof EntityCitizen citizen)
+                {
+                    this.angler = citizen;
+                }
+            }
         }
 
         super.onSyncedDataUpdated(key);
@@ -201,7 +217,11 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
             {
                 if (anglerId > -1)
                 {
-                    angler = (EntityCitizen) level().getEntity(anglerId);
+                    final Entity entity = level().getEntity(anglerId);
+                    if (entity instanceof EntityCitizen citizen)
+                    {
+                        angler = citizen;
+                    }
                 }
             }
             else
@@ -590,6 +610,14 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
     }
 
     /**
+     * Returns the synchronized entity id used to reconnect the client-side hook to its citizen.
+     */
+    public int getAnglerId()
+    {
+        return this.anglerId;
+    }
+
+    /**
      * Returns false if this Entity is a boss, true otherwise.
      */
     public boolean canChangeDimensions()
@@ -624,6 +652,7 @@ public class NewBobberEntity extends Projectile implements IEntityAdditionalSpaw
         if (citizenId != -1)
         {
             anglerId = citizenId;
+            this.getEntityData().set(DATA_ANGLER_ID, citizenId);
         }
     }
 

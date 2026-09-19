@@ -7,6 +7,7 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
@@ -19,6 +20,7 @@ import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
+import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
@@ -548,9 +550,10 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        final BlockPos townHall = helper.absolutePos(new BlockPos(160, 1, 160));
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
         level.getChunkAt(townHall);
-        helper.setBlock(new BlockPos(160, 1, 160), ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         final BlockEntity blockEntity = level.getBlockEntity(townHall);
         helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
           "Explosion protection Town Hall did not create a colony-building block entity");
@@ -626,6 +629,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     public void networkCodecsAndSplitEnvelopeRoundTrip(final GameTestHelper helper)
     {
         final NetworkChannel channel = Network.getNetwork();
+        final ServerLevel level = helper.getLevel();
         helper.assertTrue(isMessageRegistered(channel, ServerUUIDMessage.class),
           "Server UUID message was not registered");
         helper.assertTrue(isMessageRegistered(channel, GlobalQuestSyncMessage.class),
@@ -634,6 +638,16 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Build-window message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, SaveStructureNBTMessage.class),
           "Scan-save message was not registered on the server");
+
+        final EntityCitizen citizen = (EntityCitizen) ModEntities.CITIZEN.create(level);
+        helper.assertTrue(citizen != null, "Fishing hook fixture could not create a citizen entity");
+        level.addFreshEntity(citizen);
+        final NewBobberEntity sourceHook = new NewBobberEntity(ModEntities.FISHHOOK, level);
+        sourceHook.setAngler(citizen, 0, 0);
+        final NewBobberEntity syncedHook = new NewBobberEntity(ModEntities.FISHHOOK, level);
+        syncedHook.getEntityData().assignValues(sourceHook.getEntityData().getNonDefaultValues());
+        helper.assertTrue(syncedHook.getAnglerId() == citizen.getId(),
+          "Fabric fishing-hook spawn data did not preserve the angler entity id");
 
         final OpenDecoBuildWindowMessage original = new OpenDecoBuildWindowMessage(
           new BlockPos(11, 64, -7), Constants.DEFAULT_STYLE, "fundamentals/townhall1.blueprint",
