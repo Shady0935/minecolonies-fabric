@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /** Small mappings for Forge convenience hooks absent from the 1.20.1 API. */
 public final class FabricVanillaCompat
@@ -185,9 +186,13 @@ public final class FabricVanillaCompat
         {
             return null;
         }
+        final Field field = findField(target.getClass(), name);
+        if (field == null)
+        {
+            return null;
+        }
         try
         {
-            final Field field = target.getClass().getDeclaredField(name);
             field.setAccessible(true);
             final Object value = field.get(target);
             return type.isInstance(value) ? type.cast(value) : null;
@@ -204,9 +209,13 @@ public final class FabricVanillaCompat
         {
             return;
         }
+        final Field field = findField(target.getClass(), name);
+        if (field == null)
+        {
+            return;
+        }
         try
         {
-            final Field field = target.getClass().getDeclaredField(name);
             field.setAccessible(true);
             field.set(target, value);
         }
@@ -214,5 +223,27 @@ public final class FabricVanillaCompat
         {
             // Access transformers/mappings may expose this field directly on another runtime.
         }
+    }
+
+    /**
+     * Find a mapped Minecraft field on the concrete class or one of its parents.
+     * Vanilla keeps several of the fields used by the Forge compatibility layer
+     * on a superclass, while callers pass a concrete entity/block implementation.
+     */
+    @Nullable
+    private static Field findField(final Class<?> type, final String name)
+    {
+        for (Class<?> current = type; current != null; current = current.getSuperclass())
+        {
+            try
+            {
+                return current.getDeclaredField(name);
+            }
+            catch (NoSuchFieldException ignored)
+            {
+                // Continue with the next Minecraft superclass.
+            }
+        }
+        return null;
     }
 }
