@@ -69,8 +69,9 @@ completed.
   mode, Miner level repair, work-order priority/removal, residence
   assignment/unassignment, free-interaction permission changes, Builder
   inventory transfer, minimum-stock module updates, Guard Tower entity filter
-  updates, Smeltery item-filter updates, GiveTool inventory binding and
-  citizen-inventory transfer are covered by the latest 62-test GameTest run
+  updates, Smeltery item-filter updates, GiveTool inventory binding,
+  citizen-inventory transfer and single-citizen recall are covered by the
+  latest 63-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -91,7 +92,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 62-test Fabric GameTest run
+  is covered by the latest 63-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -198,6 +199,9 @@ completed.
 - [x] `TransferItemsToCitizenRequestMessage` now exposes a server-bound
   constructor and its C2S route moves live inventory items to a citizen and
   consumes the transferred amount from the owner
+- [x] `RecallSingleCitizenMessage` now exposes a server-bound constructor and
+  its C2S route updates the citizen last position and teleports it to the
+  Town Hall's safe spawn point
 - [x] Server-side warehouse/courier registration resolves the Colonial storage
   blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
   modules, and registers the Warehouse, Delivery and Pickup resolvers; actual
@@ -262,8 +266,8 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 62-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 61-test core batch covers event-dispatch
+- [x] Latest 63-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 62-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -292,9 +296,10 @@ completed.
   Smeltery item-filter add/remove/reset,
   GiveTool inventory binding,
   citizen inventory transfer,
+  single-citizen recall,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-citizen-inventory-retry.log`
+  `logs/minecolonies-gametest-c2s-recall-citizen.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

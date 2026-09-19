@@ -11,7 +11,9 @@ import com.minecolonies.coremod.util.TeleportHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import com.minecolonies.fabric.network.NetworkEvent;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -46,6 +48,21 @@ public class RecallSingleCitizenMessage extends AbstractBuildingServerMessage<IB
     {
         super(building);
         this.citizenId = citizenid;
+    }
+
+    /**
+     * Creates a server-bound recall request without requiring a client-side building view.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param buildingId  the target building position.
+     * @param citizenId   the citizen to recall.
+     */
+    public RecallSingleCitizenMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int citizenId)
+    {
+        super(dimensionId, colonyId, buildingId);
+        this.citizenId = citizenId;
     }
 
     @Override

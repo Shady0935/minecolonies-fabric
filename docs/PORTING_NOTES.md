@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 62-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 63-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -390,6 +390,12 @@ inventory, verifies the source is consumed and confirms split-cache cleanup.
 The citizen inventory GUI and worker logistics cycle remain manual validation
 items.
 
+A thirty-second companion C2S fixture serializes `RecallSingleCitizenMessage`
+against a real Town Hall and live citizen. It moves the citizen away, recalls
+it through the server executor, verifies the safe spawn point and persisted
+last position, and confirms split-cache cleanup. Navigation and the Town Hall
+citizen GUI remain manual validation items.
+
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
 the level-one house blueprint, assigns a live citizen through
@@ -454,7 +460,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 62-test run therefore resolves the structure without
+the building; the latest 63-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -560,6 +566,7 @@ serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `ResetFilterableItemMessage`,
 `GiveToolMessage`,
 `TransferItemsToCitizenRequestMessage`,
+`RecallSingleCitizenMessage`,
 `FarmFieldRegistrationMessage`,
 `FarmFieldUpdateSeedMessage` and `FarmFieldPlotResizeMessage`,
 wraps each in the
@@ -580,16 +587,16 @@ Quarry hiring-mode transition and Miner level repair work-order creation. The
 work-order priority and removal transitions, residence assignment and
 unassignment, free-interaction block/position permission changes, Builder
 inventory transfer, minimum-stock module updates, Guard Tower entity-filter
-updates, Smeltery item-filter add/remove/reset, GiveTool inventory binding and
-citizen inventory transfer are also covered. The
+updates, Smeltery item-filter add/remove/reset, GiveTool inventory binding,
+citizen inventory transfer and single-citizen recall are also covered. The
 far-away colony fixtures use disjoint coordinate bands so concurrent GameTest
 execution does not depend on whichever fixture claims the first candidate.
 The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-citizen-inventory-retry.log`; it reports
-`All 62 required tests passed` (61 core tests plus one entity batch test).
+`logs/minecolonies-gametest-c2s-recall-citizen.log`; it reports
+`All 63 required tests passed` (62 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test
