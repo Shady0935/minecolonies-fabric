@@ -959,8 +959,9 @@ public final class MineColoniesGameTests implements FabricGameTest
         final JobBuilder job = citizen.getJob(JobBuilder.class);
         helper.assertTrue(job != null, "Builder navigation fixture did not create a Builder job");
         final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
-        final TestBuilderAI builderAI = new TestBuilderAI(job);
-        builderAI.setWorkFrom(buildTarget);
+        helper.assertTrue(entity.getCitizenJobHandler().getWorkAI() instanceof EntityAIStructureBuilder,
+          "Builder navigation fixture did not retain the assigned Builder AI");
+        final EntityAIStructureBuilder builderAI = (EntityAIStructureBuilder) entity.getCitizenJobHandler().getWorkAI();
         citizen.setWorking(true);
 
         helper.runAfterDelay(160, () ->

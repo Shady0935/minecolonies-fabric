@@ -231,7 +231,7 @@ direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
 Evidence for the combined 84-test run is in
-`logs/minecolonies-gametest-builder-navigation-fix1.log`; the earlier
+`logs/minecolonies-gametest-builder-navigation-fix2.log`; the earlier
 worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`.
 Client rendering, full CitizenAI scheduling and longer multi-step work cycles
 remain manual or pending.
