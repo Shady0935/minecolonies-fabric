@@ -131,6 +131,10 @@ completed.
   blueprint and registers the order in `WorkManager`; a live citizen can be
   assigned to `JobBuilder`, and `BuildingBuilder.searchWorkOrder()` persists
   the work-order claim; Builder AI, placement and resource logistics remain open
+- [x] Server-side residence registration resolves the Colonial house blueprint,
+  assigns a live citizen through `LivingBuildingModule` and preserves the
+  citizen-to-home relationship; automatic housing ticks, sleep/navigation and
+  housing GUI interaction remain open
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -155,12 +159,13 @@ completed.
    replacement, bow-hook compatibility semantics, cancellable gameplay-event
    semantics, the hostile-spawn position veto and explosion entity-policy
    semantics, fishing-hook angler spawn-state synchronization, builder
-   work-order registration and live `JobBuilder` claim selection, research
-   selection/progression/effect application, and University researcher
-   assignment/worker-tick progression
+   work-order registration and live `JobBuilder` claim selection, residence
+   registration and citizen-home assignment, research selection/progression/
+   effect application, and University researcher assignment/worker-tick
+   progression
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 17-test Fabric GameTest batch passes with clean saves for all three
+- [x] Latest 18-test Fabric GameTest batch passes with clean saves for all three
   dimensions; research-cycle evidence is in
   `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload

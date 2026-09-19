@@ -1,7 +1,7 @@
 # Next steps
 
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
-colony fixture, builder work-order/assignment, research-manager and University worker-tick
+colony fixture, builder work-order/assignment, residence assignment, research-manager and University worker-tick
 checkpoints are now
 complete:
 `runDatagen` is reproducible with
