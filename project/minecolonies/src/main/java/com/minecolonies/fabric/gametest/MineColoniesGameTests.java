@@ -16,6 +16,9 @@ import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.pathfinding.IPathJob;
+import com.minecolonies.api.entity.pathfinding.PathFindingStatus;
+import com.minecolonies.api.entity.pathfinding.PathResult;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.items.ModItems;
@@ -890,6 +893,75 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(entity.getCitizenJobHandler().getWorkAI().getState() != null,
               "Citizen high-level AI did not tick the assigned worker AI");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 700)
+    public void citizenNavigationUsesColonyBackedEntity(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeStart = new BlockPos(3, 1, 3);
+        final BlockPos relativeTarget = new BlockPos(10, 1, 3);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos start = helper.absolutePos(relativeStart);
+        final BlockPos target = helper.absolutePos(relativeTarget);
+        for (int x = 0; x <= 14; x++)
+        {
+            for (int z = 0; z <= 6; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Citizen Navigation GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Citizen navigation fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Citizen navigation fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Citizen navigation fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, start);
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Citizen navigation fixture could not create a live colony citizen");
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        helper.runAfterDelay(120, () ->
+        {
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Colony citizen did not reach ACTIVE_SERVER before navigation: "
+                + entity.getEntityStateController().getState());
+            final PathResult<? extends IPathJob> pathResult = entity.getNavigation()
+              .moveToXYZ(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, 1.0D);
+            helper.assertTrue(pathResult != null, "Colony-backed navigation did not create a path request");
+            entity.getCitizenAI().setCurrentDelay(600);
+            helper.succeedWhen(() ->
+            {
+                helper.assertTrue(pathResult.getStatus() == PathFindingStatus.COMPLETE,
+                  "Colony-backed navigation did not complete: status=" + pathResult.getStatus()
+                    + "; computing=" + pathResult.isCalculatingPath()
+                    + "; destination=" + entity.getNavigation().getDestination()
+                    + "; position=" + entity.blockPosition()
+                    + "; pathLength=" + (pathResult.hasPath() ? pathResult.getPathLength() : -1)
+                    + "; nextNode=" + (pathResult.hasPath() ? pathResult.getPath().getNextNodeIndex() : -1)
+                    + "; pathEnd=" + (pathResult.hasPath() ? pathResult.getPath().getEndNode() : null)
+                    + "; ticks=" + entity.getTicksExisted());
+                helper.assertTrue(pathResult.isPathReachingDestination(),
+                  "Colony-backed navigation completed without reaching its target");
+                helper.assertTrue(entity.blockPosition().distManhattan(target) <= 2,
+                  "Colony citizen stopped too far from the navigation target: " + entity.blockPosition()
+                    + "; target=" + target
+                    + "; pathEnd=" + (pathResult.hasPath() ? pathResult.getPath().getEndNode() : null));
+            });
         });
     }
 
@@ -1949,26 +2021,44 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        // Keep this fixture outside the compact area reused by previous
-        // GameTest runs; old colony protection listeners must not overlap it.
-        final BlockPos relativeTownHall = new BlockPos(96, 1, 96);
+        BlockPos relativeTownHall = null;
+        for (int offset = 256; offset <= 8192 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "Protection fixture could not find an unclaimed Town Hall position");
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
-        level.getChunkAt(townHall);
+        final int townHallChunkX = townHall.getX() >> 4;
+        final int townHallChunkZ = townHall.getZ() >> 4;
+        level.setChunkForced(townHallChunkX, townHallChunkZ, true);
+        level.getChunk(townHallChunkX, townHallChunkZ);
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         final BlockEntity blockEntity = level.getBlockEntity(townHall);
         helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
           "Protection fixture Town Hall did not create a colony-building block entity");
 
-        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
         final IColony colony = IColonyManager.getInstance().createColony(
           level, townHall, owner, "Fabric Protection GameTest Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "Protection fixture colony was not created");
+        helper.assertTrue(colony.getPermissions().hasPermission(owner, Action.ACCESS_HUTS),
+          "Protection fixture owner did not receive Access Huts permission: uuid=" + owner.getUUID()
+            + "; profile=" + owner.getGameProfile().getId()
+            + "; rank=" + colony.getPermissions().getRank(owner).getName());
         final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
         hut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
         hut.setBlueprintPath("fundamentals/townhall1.blueprint");
-        colony.getBuildingManager().addNewBuilding(hut, level);
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(hut, level) != null,
+          "Protection fixture Town Hall was not registered");
+        helper.assertTrue(IColonyManager.getInstance().getIColony(level, townHall) == colony,
+          "Protection fixture Town Hall resolved to a different colony after registration");
 
-        final ServerPlayer stranger = helper.makeMockServerPlayerInLevel();
+        final ServerPlayer stranger = makeNonCreativeServerPlayer(level);
         final BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(townHall), Direction.UP, townHall, false);
         final InteractionResult denied = UseBlockCallback.EVENT.invoker().interact(
           stranger, level, InteractionHand.MAIN_HAND, hit);

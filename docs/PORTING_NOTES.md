@@ -187,7 +187,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 81-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 82-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -220,9 +220,16 @@ normal `waitForRequests()` path for completed deliveries.
 The citizen-cycle fixture now lets the registered `EntityCitizen` tick through
 its normal server entity controller: it reaches `ACTIVE_SERVER`, constructs
 the high-level `CitizenAI`, selects `WORKING` for an assigned `JobBuilder` and
-ticks the real `EntityAIStructureBuilder`. Evidence is in
-`logs/minecolonies-gametest-citizen-ai-fix1.log`; client rendering, pathfinding
-and longer multi-step scheduling remain manual or pending.
+ticks the real `EntityAIStructureBuilder`. A colony-backed companion invokes
+the real advanced navigator and waits for the path result to complete at the
+target; the navigator now preserves `PathResult.COMPLETE` when its finish path
+is stopped. The same checkpoint uses a forced, exact Town Hall chunk for the
+protection callback, so the owner/outsider decision resolves against the
+intended colony. Evidence for the combined 82-test run is in
+`logs/minecolonies-gametest-citizen-navigation-fix1.log` and the earlier
+worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`;
+client rendering, full CitizenAI scheduling and longer multi-step work cycles
+remain manual or pending.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric

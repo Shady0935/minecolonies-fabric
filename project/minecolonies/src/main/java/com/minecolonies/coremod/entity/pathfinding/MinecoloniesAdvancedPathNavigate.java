@@ -933,7 +933,12 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
      */
     private void onPathFinish()
     {
+        final PathResult<AbstractPathJob> finishedResult = pathResult;
         stop();
+        if (finishedResult != null)
+        {
+            finishedResult.setStatus(PathFindingStatus.COMPLETE);
+        }
     }
 
     public void recomputePath() {}
@@ -950,10 +955,14 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
     @Override
     public void stop()
     {
+        final boolean reachedDestination = pathResult != null
+          && path != null
+          && path.isDone()
+          && pathResult.isPathReachingDestination();
         if (pathResult != null)
         {
             pathResult.cancel();
-            pathResult.setStatus(PathFindingStatus.CANCELLED);
+            pathResult.setStatus(reachedDestination ? PathFindingStatus.COMPLETE : PathFindingStatus.CANCELLED);
             pathResult = null;
         }
 

@@ -58,10 +58,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   non-persistent projectile types are expected to discard during reload; this
   does not replace the pending combat, rendering or restart-migration
   checks.
-  It does not yet cover automatic housing capture, citizen sleep/navigation,
+  It does not yet cover automatic housing capture or citizen sleep scheduling,
   multi-request resolution/delivery, automatic logistics inventory transfer
   beyond the focused rack-backed cycle, courier navigation, Builder pathfinding,
-  full CitizenAI navigation/scheduling and larger construction, miner shaft
+  full CitizenAI scheduling/work-cycle navigation and larger construction, miner shaft
   construction, ore/mining AI and resource delivery, farmer crop
   growth/harvesting AI and field placement, a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
@@ -113,12 +113,13 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 - Authenticated in-game interaction with BlockUI screens (including an actual
   rendered entity/block hook overlay), full Builder pathfinding/larger
-  placement, full citizen navigation/work cycles, logistics,
+  placement, full citizen work cycles/scheduling, logistics,
   automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. The focused server-side
-  CitizenAI/Builder worker tick cycle is covered by GameTest, but full
-  navigation and longer work cycles remain pending. Server-side
+  CitizenAI/Builder worker tick cycle and a colony-backed advanced-navigation
+  completion are covered by GameTest, but full scheduling and longer work
+  cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
