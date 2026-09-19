@@ -139,6 +139,10 @@ completed.
   blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
   modules, and registers the Warehouse, Delivery and Pickup resolvers; actual
   request resolution, inventory transfer and courier AI remain open
+- [x] Server-side Miner registration resolves the Colonial level-one mine
+  blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
+  select and persist a `WorkOrderMiner` claim; mining AI, shaft/ore behavior,
+  placement and resource logistics remain open
 - [ ] BlockUI screens and client-to-server gameplay actions
 
 ## Validation
@@ -166,10 +170,10 @@ completed.
    work-order registration and live `JobBuilder` claim selection, residence
    registration and citizen-home assignment, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
-   and warehouse/courier resolver wiring
+   warehouse/courier resolver wiring, and Miner work-order/claim selection
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 19-test Fabric GameTest batch passes with clean saves for all three
+- [x] Latest 20-test Fabric GameTest batch passes with clean saves for all three
   dimensions; research-cycle evidence is in
   `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload

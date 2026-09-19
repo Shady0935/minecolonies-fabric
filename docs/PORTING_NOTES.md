@@ -187,6 +187,13 @@ blueprints, assigns a live `JobDeliveryman` citizen to the courier and
 logistics wiring; request creation/resolution, inventory transfer, courier
 navigation and the client logistics GUI remain open.
 
+The miner fixture follows the same real building-registration path for a
+Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen
+to `JobMiner`, creates a persistent `WorkOrderMiner` through the colony
+`WorkManager` and verifies that `BuildingMiner.searchWorkOrder()` selects the
+order and persists the citizen claim. Mine-shaft construction, ore/mining AI,
+placement, resource delivery and the miner GUI remain open.
+
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond
 cost, advances the configured branch progress, records completion and verifies
@@ -207,13 +214,13 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 19-test run therefore resolves the structure without
+the building; the latest 20-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The latest 19-test GameTest batch resolves all four
+retained `ResearchListener`. The latest 20-test GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`; its
 research-cycle fixture also covers item-cost consumption, progress completion,

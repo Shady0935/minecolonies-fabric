@@ -32,15 +32,17 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
   ownership permissions, blueprint lookup, builder work-order registration,
   live `JobBuilder` assignment and work-order claim selection, colony NBT
-  round-trip, and residence registration with a citizen-home relationship.
+  round-trip, residence registration with a citizen-home relationship, and
+  miner work-order registration with live `JobMiner` claim selection.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
   It does not yet cover automatic housing capture, citizen sleep/navigation,
   request creation/resolution, inventory transfer, courier navigation, Builder
-  AI/material requests/placement, a client opening the Town Hall GUI, citizen
-  rendering/work AI, every custom entity family after restart, or DataFixer
-  migration for old entity data. A dedicated restart probe does
+  AI/material requests/placement, miner shaft construction, ore/mining AI and
+  resource delivery, a client opening the Town Hall GUI, citizen rendering/work
+  AI, every custom entity family after restart, or DataFixer migration for old
+  entity data. A dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
   with colony/citizen NBT.
 - The server-side research manager and University building now have an
@@ -82,12 +84,14 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 ## Validation still pending
 
 - BlockUI screens, Builder AI and placement, citizen work cycles, logistics,
-  automatic housing/sleep behavior, University researcher AI/GUI, and raids
+  automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
+  University researcher AI/GUI, and raids
   still need a real in-game interaction pass. Server-side
   Town Hall, colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
-  warehouse/courier resolver wiring and the University worker-tick path have
+  warehouse/courier resolver wiring, Miner work-order/claim selection and the
+  University worker-tick path have
   automated GameTest fixtures; request delivery and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
