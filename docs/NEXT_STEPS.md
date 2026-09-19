@@ -16,8 +16,8 @@ Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool
 inventory binding, citizen-inventory transfer, single-citizen recall,
 assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes,
 colony color/help and spy-hiring routes, citizen-inventory menu opening,
-request-state updates, building pickup, force pickup, and warehouse
-sort/upgrade routes, and
+request-state updates, building pickup, force pickup, warehouse sort/upgrade,
+Enchanter station assignment and Postbox request routes, and
 University worker-tick checkpoints are now
 complete:
 `runDatagen` is reproducible with
@@ -25,11 +25,11 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 71
+real visitor entity. The latest clean Fabric GameTest run passes all 73
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
-inherited listener dispatch. Its 70-test core batch also exercises real
+inherited listener dispatch. Its 72-test core batch also exercises real
 client-to-server Town Hall rename, colony foundation, direct Town Hall
 placement, hut/building rename, colony style settings, colony allocation/flag
 settings, Builder delivery priority, Farmer field assignment/settings,
@@ -56,6 +56,8 @@ request-state updates,
 building pickup,
 force pickup,
 warehouse sort/upgrade,
+Enchanter station assignment,
+Postbox request creation,
 deconstructed-building style,
 FarmField configuration,
 Builder work-order creation/selection,
@@ -75,7 +77,7 @@ The following work remains, in order:
    representative server/client network coverage, including the real
      client-to-server Town Hall rename, colony foundation, direct Town Hall
       placement, hut/building rename, Builder work-order creation/selection,
-       decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, and University research actions, fishing-hook and citizen
+       decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, Enchanter station assignment, Postbox request creation, and University research actions, fishing-hook and citizen
      coverage to every
    client-bound family; the seven registered menu opening buffers now have an
    automated contract test. The dedicated restart probe already confirms

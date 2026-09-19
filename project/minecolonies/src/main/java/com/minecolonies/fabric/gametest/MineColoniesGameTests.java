@@ -58,13 +58,16 @@ import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
 import com.minecolonies.coremod.colony.buildings.modules.QuarryModule;
 import com.minecolonies.coremod.colony.buildings.modules.WarehouseModule;
+import com.minecolonies.coremod.colony.buildings.modules.EnchanterStationsModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingFarmer;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingGuardTower;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingEnchanter;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
@@ -152,6 +155,8 @@ import com.minecolonies.coremod.network.messages.server.colony.citizen.RecallSin
 import com.minecolonies.coremod.network.messages.server.colony.citizen.TransferItemsToCitizenRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.RecallCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.ToggleRecipeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.enchanter.EnchanterWorkerSetMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.postbox.PostBoxRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.warehouse.SortWarehouseMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.warehouse.UpgradeWarehouseMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
@@ -3580,6 +3585,151 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "UpgradeWarehouse envelope remained in the split-packet cache");
                 helper.succeed();
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerEnchanterWorkerSetMessageUpdatesStations(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeEnchanter = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos enchanterPos = helper.absolutePos(relativeEnchanter);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeEnchanter, ModBlocks.blockHutEnchanter);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Enchanter Stations Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S enchanter fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S enchanter fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S enchanter fixture Town Hall was not registered");
+
+        final BlockEntity enchanterEntity = level.getBlockEntity(enchanterPos);
+        helper.assertTrue(enchanterEntity instanceof TileEntityColonyBuilding,
+          "C2S enchanter fixture did not create an Enchanter block entity");
+        final TileEntityColonyBuilding enchanterHut = (TileEntityColonyBuilding) enchanterEntity;
+        enchanterHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        enchanterHut.setBlueprintPath("mystic/enchanterstower1.blueprint");
+        enchanterHut.setSchematicName("enchanterstower1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(enchanterHut, level);
+        helper.assertTrue(registered instanceof BuildingEnchanter,
+          "C2S enchanter fixture registered the wrong building: " + registered);
+        final BuildingEnchanter enchanter = (BuildingEnchanter) registered;
+        final EnchanterStationsModule stations = enchanter.getFirstModuleOccurance(EnchanterStationsModule.class);
+        helper.assertTrue(stations != null && stations.getBuildingsToGatherFrom().isEmpty(),
+          "C2S enchanter fixture did not initialize its station module");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S enchanter fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, EnchanterWorkerSetMessage.class);
+        helper.assertTrue(messageId > 0, "EnchanterWorkerSet message was not registered");
+        final int addCommunicationId = 0x454E4131;
+        dispatchServerMessage(channel, server, owner, messageId, addCommunicationId,
+          new EnchanterWorkerSetMessage(colony.getDimension(), colony.getID(), enchanterPos, townHall, true));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(stations.getBuildingsToGatherFrom().contains(townHall),
+              "EnchanterWorkerSet add message did not register the target building");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(addCommunicationId) == null,
+              "EnchanterWorkerSet add envelope remained in the split-packet cache");
+            final int removeCommunicationId = 0x454E4132;
+            dispatchServerMessage(channel, server, owner, messageId, removeCommunicationId,
+              new EnchanterWorkerSetMessage(colony.getDimension(), colony.getID(), enchanterPos, townHall, false));
+            helper.runAfterDelay(2, () ->
+            {
+                helper.assertTrue(!stations.getBuildingsToGatherFrom().contains(townHall),
+                  "EnchanterWorkerSet remove message did not clear the target building");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                  "EnchanterWorkerSet remove envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerPostBoxRequestMessageCreatesStackRequest(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativePostBox = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos postBoxPos = helper.absolutePos(relativePostBox);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativePostBox, ModBlocks.blockPostBox);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Postbox Request Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S postbox fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S postbox fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S postbox fixture Town Hall was not registered");
+
+        final BlockEntity postBoxEntity = level.getBlockEntity(postBoxPos);
+        helper.assertTrue(postBoxEntity instanceof TileEntityColonyBuilding,
+          "C2S postbox fixture did not create a Postbox block entity");
+        final TileEntityColonyBuilding postBoxHut = (TileEntityColonyBuilding) postBoxEntity;
+        postBoxHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        postBoxHut.setBlueprintPath("");
+        postBoxHut.setSchematicName("postbox");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(postBoxHut, level);
+        helper.assertTrue(registered instanceof PostBox,
+          "C2S postbox fixture registered the wrong building: " + registered);
+        final PostBox postBox = (PostBox) registered;
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S postbox fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, PostBoxRequestMessage.class);
+        helper.assertTrue(messageId > 0, "PostBoxRequest message was not registered");
+        final int communicationId = 0x50425251;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new PostBoxRequestMessage(colony.getDimension(), colony.getID(), postBoxPos,
+            new ItemStack(Items.COBBLESTONE), 3, false));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(postBox.getOpenRequests(-1).size() == 1,
+              "PostBoxRequest message did not create the postbox request");
+            final Stack request = (Stack) postBox.getOpenRequests(-1).iterator().next().getRequest();
+            helper.assertTrue(request.getCount() == 3 && request.getMinimumCount() == 3,
+              "PostBoxRequest message created the wrong Stack request quantities");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "PostBoxRequest envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 
