@@ -3,6 +3,8 @@ package com.minecolonies.coremod.network.messages.server.colony;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 
 /**
@@ -32,6 +34,19 @@ public class ColonyStructureStyleMessage extends AbstractColonyServerMessage
     public ColonyStructureStyleMessage(final IColony colony, final String pack)
     {
         super(colony);
+        this.pack = pack;
+    }
+
+    /**
+     * Creates a server-bound structure-style message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param pack selected structure pack
+     */
+    public ColonyStructureStyleMessage(final ResourceKey<Level> dimensionId, final int colonyId, final String pack)
+    {
+        super(dimensionId, colonyId);
         this.pack = pack;
     }
 

@@ -74,6 +74,9 @@ import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
@@ -1890,6 +1893,57 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerColonyStyleMessagesUpdateStyles(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Style Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S colony-style fixture colony was not created");
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S colony-style fixture has no running server");
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int nameStyleId = findMessageId(channel, ColonyNameStyleMessage.class);
+        final int structureStyleId = findMessageId(channel, ColonyStructureStyleMessage.class);
+        final int textureStyleId = findMessageId(channel, ColonyTextureStyleMessage.class);
+        helper.assertTrue(nameStyleId > 0, "ColonyNameStyle message was not registered");
+        helper.assertTrue(structureStyleId > 0, "ColonyStructureStyle message was not registered");
+        helper.assertTrue(textureStyleId > 0, "ColonyTextureStyle message was not registered");
+
+        final int nameCommunicationId = 0x43534E4D;
+        final int structureCommunicationId = 0x4353534D;
+        final int textureCommunicationId = 0x4353544D;
+        dispatchServerMessage(channel, server, owner, nameStyleId, nameCommunicationId,
+          new ColonyNameStyleMessage(colony.getDimension(), colony.getID(), "c2s_name_style"));
+        dispatchServerMessage(channel, server, owner, structureStyleId, structureCommunicationId,
+          new ColonyStructureStyleMessage(colony.getDimension(), colony.getID(), "c2s_structure_style"));
+        dispatchServerMessage(channel, server, owner, textureStyleId, textureCommunicationId,
+          new ColonyTextureStyleMessage(colony.getDimension(), colony.getID(), "c2s_texture_style"));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue("c2s_name_style".equals(colony.getNameStyle()),
+              "ColonyNameStyle message did not update the colony name style: " + colony.getNameStyle());
+            helper.assertTrue("c2s_structure_style".equals(colony.getStructurePack()),
+              "ColonyStructureStyle message did not update the structure pack: " + colony.getStructurePack());
+            helper.assertTrue("c2s_texture_style".equals(colony.getTextureStyleId()),
+              "ColonyTextureStyle message did not update the texture style: " + colony.getTextureStyleId());
+            helper.assertTrue(channel.getMessageCache().getIfPresent(nameCommunicationId) == null,
+              "ColonyNameStyle envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(structureCommunicationId) == null,
+              "ColonyStructureStyle envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(textureCommunicationId) == null,
+              "ColonyTextureStyle envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerResearchMessageStartsResearch(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2450,6 +2504,22 @@ public final class MineColoniesGameTests implements FabricGameTest
         finally
         {
             buffer.release();
+        }
+    }
+
+    private static void dispatchServerMessage(final NetworkChannel channel, final MinecraftServer server,
+      final ServerPlayer player, final int messageId, final int communicationId, final IMessage message)
+    {
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(message));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            channel.getRawChannel().handleServerPacket(server, player, packet);
+        }
+        finally
+        {
+            packet.release();
         }
     }
 

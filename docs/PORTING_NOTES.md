@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 34-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 35-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -222,6 +222,12 @@ and verifies the building custom name plus split-cache cleanup. The added
 constructor is a server-bound transport aid; the normal client building-view
 constructor remains unchanged. This validates the building GUI action's server
 route while the actual BlockUI screen remains manual.
+
+A fourth companion C2S fixture serializes `ColonyNameStyleMessage`,
+`ColonyStructureStyleMessage` and `ColonyTextureStyleMessage` in three real
+split envelopes. It verifies owner-permission dispatch, mutation of the live
+colony's name, structure-pack and texture-style values, and cleanup of all
+three split-cache entries. The colony banner/style GUI remains manual.
 
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
@@ -287,7 +293,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 34-test run therefore resolves the structure without
+the building; the latest 35-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -365,7 +371,8 @@ server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
 serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
-`DecorationBuildRequestMessage` and `HutRenameMessage`,
+`DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
+`ColonyStructureStyleMessage` and `ColonyTextureStyleMessage`,
 wraps each in the
 real split envelope, sends them
 through `SimpleChannel`'s server dispatch boundary and verifies the deferred
@@ -375,12 +382,13 @@ in-progress state, Town Hall repair-work-order creation/claiming by the
 requested Builder, Builder work-order selection for the citizen job, direct
 Town Hall placement with item consumption and blueprint resolution, and
 decoration work-order creation with asynchronous blueprint resolution and
-rotation/mirror preservation, plus building custom-name mutation. The research,
+rotation/mirror preservation, building custom-name mutation and colony-style
+updates. The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-hut-rename-fixed.log`; it reports
-`All 34 required tests passed` (33 core tests plus one entity batch test).
+`logs/minecolonies-gametest-c2s-colony-style.log`; it reports
+`All 35 required tests passed` (34 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test
