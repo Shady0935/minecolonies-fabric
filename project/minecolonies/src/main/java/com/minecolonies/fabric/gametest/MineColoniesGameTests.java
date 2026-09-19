@@ -35,6 +35,7 @@ import com.minecolonies.api.research.util.ResearchState;
 import com.minecolonies.api.research.util.ResearchConstants;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
+import com.minecolonies.api.tileentities.TileEntityRack;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.NbtTagConstants;
 import com.minecolonies.api.util.constant.TypeConstants;
@@ -95,6 +96,7 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.EntityUtils;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.entity.ai.citizen.miner.MinerLevel;
+import com.minecolonies.coremod.tileentities.TileEntityWareHouse;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
@@ -849,9 +851,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos relativeWarehouse = new BlockPos(10, 1, 2);
         final BlockPos relativeDeliveryman = new BlockPos(14, 1, 2);
+        final BlockPos relativeRack = new BlockPos(16, 1, 2);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
         final BlockPos deliverymanPos = helper.absolutePos(relativeDeliveryman);
+        final BlockPos rackPos = helper.absolutePos(relativeRack);
         for (int x = 0; x <= 18; x++)
         {
             for (int z = 0; z <= 4; z++)
@@ -889,6 +893,11 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Warehouse fixture registered the wrong building implementation: " + warehouseBuilding);
         helper.assertTrue(warehouseBuilding.getBuildingLevel() >= 1,
           "Warehouse fixture did not resolve its level-one blueprint");
+        helper.setBlock(relativeRack, ModBlocks.blockRack);
+        final BlockEntity rackEntity = level.getBlockEntity(rackPos);
+        helper.assertTrue(rackEntity instanceof TileEntityRack,
+          "Warehouse fixture did not create a rack block entity");
+        ((BuildingWareHouse) warehouseBuilding).registerBlockPosition(ModBlocks.blockRack, rackPos, level);
 
         final BlockEntity deliverymanEntity = level.getBlockEntity(deliverymanPos);
         helper.assertTrue(deliverymanEntity instanceof TileEntityColonyBuilding,
@@ -923,6 +932,24 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Warehouse courier module did not retain the assigned deliveryman");
         helper.assertTrue(((BuildingWareHouse) warehouseBuilding).canAccessWareHouse(citizen),
           "Assigned deliveryman could not access the warehouse");
+
+        final TileEntityWareHouse warehouseTile = (TileEntityWareHouse) ((BuildingWareHouse) warehouseBuilding).getTileEntity();
+        helper.assertTrue(warehouseTile != null,
+          "Warehouse building did not expose its warehouse tile entity");
+        final AbstractEntityCitizen courier = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < courier.getInventoryCitizen().getSlots(); slot++)
+        {
+            courier.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        courier.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.WHEAT, 16));
+        warehouseTile.dumpInventoryIntoWareHouse(courier.getInventoryCitizen());
+        final TileEntityRack rack = (TileEntityRack) rackEntity;
+        helper.assertTrue(courier.getInventoryCitizen().getStackInSlot(0).isEmpty(),
+          "Warehouse dump did not remove the transferred stack from the courier");
+        helper.assertTrue(rack.getCount(new ItemStack(Items.WHEAT), true, false) == 16,
+          "Warehouse rack did not receive the courier stack");
+        helper.assertTrue(warehouseTile.hasMatchingItemStackInWarehouse(new ItemStack(Items.WHEAT), 16, true),
+          "Warehouse lookup did not find the transferred stack");
 
         final java.util.Collection<IRequestResolver<?>> resolvers = warehouseBuilding.createResolvers();
         helper.assertTrue(resolvers.stream().anyMatch(resolver -> resolver instanceof WarehouseRequestResolver),

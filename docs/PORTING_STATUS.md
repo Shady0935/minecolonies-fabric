@@ -229,8 +229,9 @@ completed.
   Fabric `ContainerCitizenInventory` menu
 - [x] Server-side warehouse/courier registration resolves the Colonial storage
   blueprints, assigns a live `JobDeliveryman` to the courier and warehouse
-  modules, and registers the Warehouse, Delivery and Pickup resolvers; actual
-  request resolution, inventory transfer and courier AI remain open
+  modules, registers the Warehouse, Delivery and Pickup resolvers, and verifies
+  a real rack-backed courier inventory transfer plus warehouse lookup; request
+  creation/resolution, courier AI and logistics GUI remain open
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
   select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
@@ -239,7 +240,9 @@ completed.
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
-  harvesting AI, placement and farming GUI remain open
+  full work-cycle/navigation, placement and farming GUI remain open; the
+  focused harvest routine now verifies crop drops, inventory insertion and
+  mature-crop reset
 - [x] Server-side Guard Tower registration resolves the Colonial level-one
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live
@@ -287,8 +290,9 @@ completed.
     inventory transfer, minimum-stock module updates, Guard Tower entity
     filter updates, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
-   warehouse/courier resolver wiring, Miner work-order/claim selection, and
-   Farmer field registration/assignment, plus Guard Tower blueprint registration
+   warehouse/courier resolver wiring and rack-backed inventory transfer,
+   Miner work-order/claim selection, Farmer field registration/assignment and
+   the focused farmer harvest routine, plus Guard Tower blueprint registration
    and knight-guard assignment, plantation-field work-order toggling, rally-banner
    guard-state updates, and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
@@ -333,12 +337,13 @@ completed.
   warehouse sort and storage-upgrade routes,
   Enchanter station assignment and Postbox request creation,
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
-  build-tool inventory swapping,
+  build-tool inventory swapping, warehouse rack-backed courier transfer and
+  farmer harvest drops,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-plantation-rally-fix6.log`
+  `logs/minecolonies-gametest-warehouse-transfer-fix1.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

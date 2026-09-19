@@ -517,9 +517,12 @@ their real `TileEntityColonyBuilding` entries, resolves the level-one storage
 blueprints, assigns a live `JobDeliveryman` citizen to the courier and
 `CourierAssignmentModule`, and verifies warehouse access plus the
 `WarehouseRequestResolver`, `DeliveryRequestResolver` and
-`PickupRequestResolver` registrations. This validates the server-side
-logistics wiring; request creation/resolution, inventory transfer, courier
-navigation and the client logistics GUI remain open.
+`PickupRequestResolver` registrations. It also registers a real rack through
+`BuildingWareHouse`, transfers a wheat stack from the live courier inventory
+through `TileEntityWareHouse.dumpInventoryIntoWareHouse` and verifies the
+stored quantity through both the rack and warehouse lookup APIs. This validates
+the server-side storage path; request creation/resolution, courier navigation
+and the client logistics GUI remain open.
 
 The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen
@@ -532,8 +535,10 @@ The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
 `FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
 `FarmerFieldsModule` then retains the field and its owning building ID. Crop
-growth/harvesting AI, field placement, resource delivery and the farming GUI
-remain manual validation items.
+growth, full work-cycle/navigation, field placement, resource delivery and the
+farming GUI remain manual validation items. A focused companion invokes the
+real `EntityAIWorkFarmer` harvest routine against a mature wheat crop and
+verifies that the drop reaches the citizen inventory and the crop resets.
 
 The guard fixture registers a Colonial Guard Tower through its real building
 entry, resolves `military/guardtower1.blueprint`, verifies the default guard
