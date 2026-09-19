@@ -35,13 +35,16 @@ import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingFarmer;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
+import com.minecolonies.coremod.colony.jobs.JobFarmer;
 import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
+import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
@@ -716,6 +719,87 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void farmerRegistersAndAssignsSeededField(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
+        final BlockPos relativeField = new BlockPos(15, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        final BlockPos fieldPos = helper.absolutePos(relativeField);
+        for (int x = 0; x <= 18; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+        helper.setBlock(relativeField, ModBlocks.blockScarecrow);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Farmer GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Farmer fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Farmer fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "Farmer fixture did not create a farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(registered instanceof BuildingFarmer,
+          "Farmer fixture registered the wrong building implementation: " + registered);
+        final BuildingFarmer farmer = (BuildingFarmer) registered;
+        helper.assertTrue(farmer.getBuildingLevel() >= 1,
+          "Farmer fixture did not resolve its level-one farm blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FarmField field = FarmField.create(fieldPos);
+        field.setSeed(new ItemStack(Items.WHEAT));
+        helper.assertTrue(field.isValidPlacement(colony),
+          "Farmer fixture field does not have a valid scarecrow placement");
+        helper.assertTrue(colony.getBuildingManager().addField(field),
+          "Farmer fixture field was not registered in the colony");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, farmerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Farmer fixture could not create a live farmer citizen");
+        final WorkerBuildingModule workerModule = farmer.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.farmer.get());
+        helper.assertTrue(workerModule != null, "Farmer worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Farmer worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobFarmer,
+          "Farmer assignment did not create the farmer job");
+
+        final BuildingFarmer.FarmerFieldsModule fields = farmer.getFirstModuleOccurance(
+          BuildingFarmer.FarmerFieldsModule.class);
+        helper.assertTrue(fields.canAssignField(field),
+          "Farmer fields module rejected a seeded farm field");
+        fields.assignField(field);
+        helper.assertTrue(fields.getOwnedFields().contains(field),
+          "Farmer fields module did not retain the assigned field");
+        helper.assertTrue(field.getBuildingId().equals(farmer.getID()),
+          "Farmer field assignment did not persist the owning building");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void citizenSpawnRegistersAndSerializesEntityData(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -935,6 +1019,17 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(colony.hasBuilding("tavern", 1, false),
           "Visitor fixture colony did not expose its tavern to conversion logic");
 
+        final AtomicBoolean conversionCanceled = new AtomicBoolean();
+        final Object conversionProbe = new Object()
+        {
+            @SubscribeEvent
+            public void observe(final com.minecolonies.fabric.event.entity.living.LivingConversionEvent.Pre event)
+            {
+                conversionCanceled.set(event.isCanceled());
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(conversionProbe);
+
         final BlockPos conversionPos = townHall.above(2);
         helper.assertTrue(IColonyManager.getInstance().getIColony(level, conversionPos) == colony,
           "Visitor conversion position did not resolve to the fixture colony");
@@ -943,29 +1038,37 @@ public final class MineColoniesGameTests implements FabricGameTest
         owner.teleportTo(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
         helper.runAfterDelay(1, () ->
         {
-            final net.minecraft.world.entity.monster.ZombieVillager previous =
-              EntityType.ZOMBIE_VILLAGER.create(level);
-            final Mob converted = EntityType.VILLAGER.create(level);
-            helper.assertTrue(previous != null && converted != null, "Visitor conversion entities could not be created");
-            previous.setPos(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
-            converted.setPos(previous.getX(), previous.getY(), previous.getZ());
-            final Set<Integer> visitorsBefore = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
-            helper.assertTrue(level.addFreshEntity(previous), "Zombie Villager could not be added to the conversion fixture");
+            try
+            {
+                final net.minecraft.world.entity.monster.ZombieVillager previous =
+                  EntityType.ZOMBIE_VILLAGER.create(level);
+                final Mob converted = EntityType.VILLAGER.create(level);
+                helper.assertTrue(previous != null && converted != null, "Visitor conversion entities could not be created");
+                previous.setPos(conversionPos.getX() + 0.5, conversionPos.getY(), conversionPos.getZ() + 0.5);
+                converted.setPos(previous.getX(), previous.getY(), previous.getZ());
+                final Set<Integer> visitorsBefore = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
+                helper.assertTrue(level.addFreshEntity(previous), "Zombie Villager could not be added to the conversion fixture");
 
-            ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
+                ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
 
-            helper.assertTrue(converted.isRemoved(), "Tavern conversion left the vanilla candidate alive");
-            final Set<Integer> visitorsAfter = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
-            visitorsAfter.removeAll(visitorsBefore);
-            helper.assertTrue(visitorsAfter.size() == 1,
-              "Tavern conversion did not create exactly one visitor: " + visitorsAfter);
-            final int visitorId = visitorsAfter.iterator().next();
-            final var visitorData = colony.getVisitorManager().getVisitor(visitorId);
-            helper.assertTrue(visitorData != null && visitorData.getHomeBuilding() == tavern,
-              "Converted visitor was not assigned to the registered tavern");
-            helper.assertTrue(visitorData.getEntity().isPresent() && visitorData.getEntity().get() instanceof VisitorCitizen,
-              "Tavern conversion did not spawn a VisitorCitizen entity");
-            helper.succeed();
+                helper.assertTrue(conversionCanceled.get(), "Tavern conversion event was not canceled by the retained handler");
+                helper.assertTrue(converted.isRemoved(), "Tavern conversion left the vanilla candidate alive");
+                final Set<Integer> visitorsAfter = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
+                visitorsAfter.removeAll(visitorsBefore);
+                helper.assertTrue(visitorsAfter.size() == 1,
+                  "Tavern conversion did not create exactly one visitor: " + visitorsAfter);
+                final int visitorId = visitorsAfter.iterator().next();
+                final var visitorData = colony.getVisitorManager().getVisitor(visitorId);
+                helper.assertTrue(visitorData != null && visitorData.getHomeBuilding() == tavern,
+                  "Converted visitor was not assigned to the registered tavern");
+                helper.assertTrue(visitorData.getEntity().isPresent() && visitorData.getEntity().get() instanceof VisitorCitizen,
+                  "Tavern conversion did not spawn a VisitorCitizen entity");
+                helper.succeed();
+            }
+            finally
+            {
+                MinecraftForge.EVENT_BUS.unregister(conversionProbe);
+            }
         });
     }
 

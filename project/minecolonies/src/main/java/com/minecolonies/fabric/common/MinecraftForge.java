@@ -7,8 +7,8 @@ import com.minecolonies.fabric.event.SubscribeEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /** Lightweight in-process event bus used by the Fabric port. */
@@ -22,8 +22,14 @@ public final class MinecraftForge
 
     public static final class EventBus
     {
-        private final List<Object> listeners = new ArrayList<>();
-        private final List<Consumer<Object>> consumers = new ArrayList<>();
+        /**
+         * GameTest and lifecycle callbacks can register colony-scoped listeners
+         * while another server callback is dispatching an event. Copy-on-write
+         * keeps registration/removal deterministic without exposing a mutable
+         * ArrayList during dispatch.
+         */
+        private final List<Object> listeners = new CopyOnWriteArrayList<>();
+        private final List<Consumer<Object>> consumers = new CopyOnWriteArrayList<>();
 
         public void register(final Object listener)
         {
