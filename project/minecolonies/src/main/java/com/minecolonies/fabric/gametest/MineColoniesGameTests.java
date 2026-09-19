@@ -89,6 +89,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyl
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleJobMessage;
+import com.minecolonies.coremod.network.messages.server.colony.WorkOrderChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
@@ -2101,6 +2102,67 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + builder.getPickUpPriority());
                 helper.assertTrue(channel.getMessageCache().getIfPresent(decreaseCommunicationId) == null,
                   "ChangeDeliveryPriority decrease envelope remained in the split-packet cache");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerWorkOrderChangeMessageUpdatesAndRemovesOrder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Work Order Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S work-order fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S work-order fixture did not create a Town Hall block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding building = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(building != null, "C2S work-order fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+        final WorkOrderBuilding order = WorkOrderBuilding.create(WorkOrderType.BUILD, building);
+        colony.getWorkManager().addWorkOrder(order, false);
+        helper.assertTrue(order.getID() > 0, "C2S work-order fixture did not assign an order id");
+        helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == order,
+          "C2S work-order fixture did not register the order");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S work-order fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, WorkOrderChangeMessage.class);
+        helper.assertTrue(messageId > 0, "WorkOrderChange message was not registered");
+        final int priorityCommunicationId = 0x574F5050;
+        dispatchServerMessage(channel, server, owner, messageId, priorityCommunicationId,
+          new WorkOrderChangeMessage(colony.getDimension(), colony.getID(), order.getID(), false, 7));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == order,
+              "WorkOrderChange priority update removed the work order");
+            helper.assertTrue(order.getPriority() == 7,
+              "WorkOrderChange message did not update the work-order priority");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(priorityCommunicationId) == null,
+              "WorkOrderChange priority envelope remained in the split-packet cache");
+            final int removeCommunicationId = 0x574F524D;
+            dispatchServerMessage(channel, server, owner, messageId, removeCommunicationId,
+              new WorkOrderChangeMessage(colony.getDimension(), colony.getID(), order.getID(), true, 0));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == null,
+                  "WorkOrderChange remove message did not remove the work order");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+                  "WorkOrderChange remove envelope remained in the split-packet cache");
                 helper.succeed();
             });
         });

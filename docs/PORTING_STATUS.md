@@ -67,7 +67,8 @@ completed.
   marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring
   mode, creative citizen skill adjustment, Courier hiring mode and Quarry
   hiring mode, and Miner level repair are covered by the latest 53-test
-  GameTest run
+  GameTest run; work-order priority and removal are now covered by the latest
+  54-test run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -88,7 +89,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 53-test Fabric GameTest run
+  is covered by the latest 54-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -233,8 +234,8 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 53-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 52-test core batch covers event-dispatch
+- [x] Latest 54-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 53-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -254,9 +255,10 @@ completed.
   Courier hiring-mode transitions,
   Quarry hiring-mode transitions,
   Miner level repair work-order creation,
+  work-order priority updates and removal,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-miner-repair.log`
+  `logs/minecolonies-gametest-c2s-work-order-change.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

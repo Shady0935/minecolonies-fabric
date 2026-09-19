@@ -4,6 +4,8 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +48,24 @@ public class WorkOrderChangeMessage extends AbstractColonyServerMessage
     public WorkOrderChangeMessage(@NotNull final IBuildingView building, final int workOrderId, final boolean removeWorkOrder, final int priority)
     {
         super(building.getColony());
+        this.workOrderId = workOrderId;
+        this.removeWorkOrder = removeWorkOrder;
+        this.priority = priority;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId     colony dimension
+     * @param colonyId        colony id
+     * @param workOrderId     work order to update
+     * @param removeWorkOrder whether to remove the order
+     * @param priority        replacement priority
+     */
+    public WorkOrderChangeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final int workOrderId,
+      final boolean removeWorkOrder, final int priority)
+    {
+        super(dimensionId, colonyId);
         this.workOrderId = workOrderId;
         this.removeWorkOrder = removeWorkOrder;
         this.priority = priority;

@@ -9,18 +9,18 @@ Miner-level selection, Guard Tower patrol-mine assignment, building dirty
 marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode
 transitions, creative citizen skill adjustment, Courier hiring-mode and Quarry
 hiring-mode transitions, Miner level repair and
-University worker-tick checkpoints are now
+work-order priority/removal and University worker-tick checkpoints are now
 complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 53
+real visitor entity. The latest clean Fabric GameTest run passes all 54
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
-inherited listener dispatch. Its 52-test core batch also exercises real
+inherited listener dispatch. Its 53-test core batch also exercises real
 client-to-server Town Hall rename, colony foundation, direct Town Hall
 placement, hut/building rename, colony style settings, colony allocation/flag
 settings, Builder delivery priority, Farmer field assignment/settings,
@@ -29,6 +29,7 @@ building dirty marking, colony move-in policy, citizen pause/resume, Farmer hire
 creative citizen skill adjustment,
 Courier and Quarry hiring-mode transitions,
 Miner level repair work-order creation,
+work-order priority/removal,
 deconstructed-building style,
 FarmField configuration,
 Builder work-order creation/selection,
