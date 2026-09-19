@@ -70,6 +70,7 @@ import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
+import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
@@ -2140,6 +2141,68 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "BuilderSelectWorkOrder envelope remained in the split-packet cache");
                 helper.succeed();
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerDirectPlaceMessagePlacesTownHall(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S direct-place fixture could not find an unclaimed Town Hall position");
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final ItemStack townHallStack = new ItemStack(ModBlocks.blockHutTownHall.asItem());
+        owner.getInventory().add(townHallStack.copy());
+        StructurePacks.selectedPack = StructurePacks.getStructurePack(Constants.DEFAULT_STYLE);
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, DirectPlaceMessage.class);
+        helper.assertTrue(messageId > 0, "DirectPlace message was not registered");
+        final DirectPlaceMessage original = new DirectPlaceMessage(
+          ModBlocks.blockHutTownHall.defaultBlockState(), townHall, townHallStack);
+        final int communicationId = 0x44504C43;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            final MinecraftServer server = level.getServer();
+            helper.assertTrue(server != null, "C2S direct-place fixture has no running server");
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(20, () ->
+        {
+            helper.assertTrue(level.getBlockState(townHall).getBlock() == ModBlocks.blockHutTownHall,
+              "DirectPlace message did not place the Town Hall block");
+            final BlockEntity blockEntity = level.getBlockEntity(townHall);
+            helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+              "DirectPlace message did not create the Town Hall block entity");
+            final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) blockEntity;
+            helper.assertTrue(Constants.DEFAULT_STYLE.equals(hut.getPackName()),
+              "DirectPlace message did not preserve the selected structure pack");
+            helper.assertTrue("fundamentals/townhall1.blueprint".equals(hut.getBlueprintPath()),
+              "DirectPlace message did not resolve the Town Hall blueprint path: " + hut.getBlueprintPath());
+            helper.assertTrue(owner.getInventory().countItem(ModBlocks.blockHutTownHall.asItem()) == 0,
+              "DirectPlace message did not consume the Town Hall item");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "DirectPlace envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 

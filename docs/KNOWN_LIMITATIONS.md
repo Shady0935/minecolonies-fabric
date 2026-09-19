@@ -31,7 +31,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   next load, so this does not validate colony-backed citizen persistence.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
   ownership permissions, blueprint lookup, the real C2S `BuildRequestMessage`
-  repair and `BuilderSelectWorkOrderMessage` selection routes, builder
+  repair and `BuilderSelectWorkOrderMessage` selection routes, the real C2S
+  `DirectPlaceMessage` Town Hall placement route with item consumption and
+  blueprint resolution, builder
   work-order registration, live `JobBuilder` assignment and work-order claim
   selection, colony NBT
   round-trip, residence registration with a citizen-home relationship, and
@@ -112,10 +114,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage`,
-  `BuildRequestMessage`, `BuilderSelectWorkOrderMessage` and
-  `TryResearchMessage` actions now cross the Fabric
+  `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`,
+  `DirectPlaceMessage` and `TryResearchMessage` actions now cross the Fabric
   split envelope, reach the server executor and mutate the owner
-  colony/work-order/research state;
+  colony/work-order/research state or place the Town Hall and resolve its
+  blueprint;
   the common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,
   but their visual/client behavior still needs an in-game interaction pass.
