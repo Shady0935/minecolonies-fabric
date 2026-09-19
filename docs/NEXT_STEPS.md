@@ -1,7 +1,8 @@
 # Next steps
 
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
-colony fixture and builder work-order checkpoints are now complete:
+colony fixture, builder work-order and research-manager checkpoints are now
+complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
@@ -13,8 +14,9 @@ The following work remains, in order:
 1. Run a real gameplay pass with an authenticated client or a repeatable
    offline test profile: place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, warehouse and
-   research cycle. Include an inventory/GUI visual check for the custom spear
-   renderer.
+   research cycle. The server-side research manager path is automated, so the
+   remaining research work here is the real University/researcher/GUI cycle.
+   Include an inventory/GUI visual check for the custom spear renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative network, fishing-hook and citizen coverage to every
    client-bound family; the seven registered menu opening buffers now have an

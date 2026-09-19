@@ -90,6 +90,10 @@ completed.
 - [x] The default research reload produces four usable branches, representative
   branch-qualified research IDs and the citizen-cap effect through
   `IGlobalResearchTree`; the complete University gameplay cycle remains open
+- [x] Server-side research selection consumes the configured item cost,
+  advances `civilian/ambition` to completion and applies its
+  `effects/blockhutmysticalsite` effect; University worker assignment and GUI
+  interaction remain open
 - [x] MineColonies' Forge-shaped conventional item/block tag references resolve
   at runtime through native Fabric datagen; dedicated startup and `/reload`
   report no missing-tag errors
@@ -147,12 +151,13 @@ completed.
    replacement, bow-hook compatibility semantics, cancellable gameplay-event
    semantics, the hostile-spawn position veto and explosion entity-policy
    semantics, fishing-hook angler spawn-state synchronization and builder
-   work-order registration
+   work-order registration, and research selection/progression/effect
+   application
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 14-test Fabric GameTest batch passes with clean saves for all three
-  dimensions; builder-order evidence is in
-  `logs/minecolonies-gametest-builder-order.log`
+- [x] Latest 15-test Fabric GameTest batch passes with clean saves for all three
+  dimensions; research-cycle evidence is in
+  `logs/minecolonies-gametest-research-cycle.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

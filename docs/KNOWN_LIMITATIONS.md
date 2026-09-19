@@ -38,6 +38,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   DataFixer migration for old entity data. A dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
   with colony/citizen NBT.
+- The server-side research manager now has an automated selection/progression
+  fixture: a non-creative player pays the datapack cost, research completes and
+  its effect is applied. This does not cover a real University building with an
+  assigned researcher, researcher work speed, University GUI interaction or
+  client research packets.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
@@ -71,9 +76,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 ## Validation still pending
 
 - BlockUI screens, Builder AI and placement, citizen work cycles, logistics,
-  research and raids still need a real in-game interaction pass. Server-side
+  University assignment/GUI, and raids still need a real in-game interaction
+  pass. Server-side
   Town Hall, colony creation, builder work-order registration and colony-backed
-  citizen registration have automated GameTest fixtures; the dedicated restart
+  citizen registration and the research manager selection/progression path have
+  automated GameTest fixtures; the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
