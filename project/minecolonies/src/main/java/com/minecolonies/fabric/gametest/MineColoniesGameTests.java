@@ -100,6 +100,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureSt
 import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ChangeFreeToInteractBlockMessage;
 import com.minecolonies.coremod.network.messages.server.colony.HireSpiesMessage;
+import com.minecolonies.coremod.network.messages.server.colony.OpenInventoryMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TeamColonyColorChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
@@ -192,6 +193,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import com.minecolonies.api.inventory.container.ContainerCraftingFurnace;
+import com.minecolonies.api.inventory.container.ContainerCitizenInventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -3290,6 +3292,53 @@ public final class MineColoniesGameTests implements FabricGameTest
               "GiveTool message stored the wrong colony id");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "GiveTool envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerOpenInventoryMessageOpensCitizenMenu(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Open Inventory Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S open-inventory fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S open-inventory fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S open-inventory fixture Town Hall was not registered");
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S open-inventory fixture could not create a live citizen");
+        final AbstractEntityCitizen citizenEntity = citizen.getEntity().get();
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S open-inventory fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, OpenInventoryMessage.class);
+        helper.assertTrue(messageId > 0, "OpenInventory message was not registered");
+        final int communicationId = 0x4F50494E;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new OpenInventoryMessage(colony.getDimension(), colony.getID(), "C2S Citizen Inventory", citizenEntity.getId()));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(owner.containerMenu instanceof ContainerCitizenInventory,
+              "OpenInventory message did not open the citizen inventory menu");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "OpenInventory envelope remained in the split-packet cache");
+            owner.closeContainer();
             helper.succeed();
         });
     }
