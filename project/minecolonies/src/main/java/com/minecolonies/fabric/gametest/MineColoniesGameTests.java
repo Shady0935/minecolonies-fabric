@@ -41,6 +41,7 @@ import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentMo
 import com.minecolonies.coremod.colony.buildings.modules.BuildingModules;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
+import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
@@ -95,6 +96,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.fields.F
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldUpdateSeedMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignFieldMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignmentModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerSetLevelMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
@@ -2431,6 +2433,79 @@ public final class MineColoniesGameTests implements FabricGameTest
               "ReactivateBuilding message left the hut marked as deactivated");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "ReactivateBuilding envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerMinerSetLevelMessageUpdatesMiner(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeMiner = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos minerPos = helper.absolutePos(relativeMiner);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeMiner, ModBlocks.blockHutMiner);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Miner Level Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S miner-level fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S miner-level fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S miner-level fixture Town Hall was not registered");
+
+        final BlockEntity minerEntity = level.getBlockEntity(minerPos);
+        helper.assertTrue(minerEntity instanceof TileEntityColonyBuilding,
+          "C2S miner-level fixture did not create a Miner block entity");
+        final TileEntityColonyBuilding minerHut = (TileEntityColonyBuilding) minerEntity;
+        minerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
+        minerHut.setSchematicName("mine1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(minerHut, level);
+        helper.assertTrue(registered instanceof BuildingMiner,
+          "C2S miner-level fixture registered the wrong building: " + registered);
+        final BuildingMiner miner = (BuildingMiner) registered;
+        final MinerLevelManagementModule levels = miner.getModule(BuildingModules.MINER_LEVELS);
+        helper.assertTrue(levels != null, "C2S miner-level fixture did not register the level module");
+        final CompoundTag before = new CompoundTag();
+        levels.serializeNBT(before);
+        helper.assertTrue(before.getInt("currentLevel") == 0,
+          "C2S miner-level fixture did not start at level zero");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S miner-level fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, MinerSetLevelMessage.class);
+        helper.assertTrue(messageId > 0, "MinerSetLevel message was not registered");
+        final int communicationId = 0x4D4C564C;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new MinerSetLevelMessage(colony.getDimension(), colony.getID(), minerPos, 2));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final CompoundTag after = new CompoundTag();
+            levels.serializeNBT(after);
+            helper.assertTrue(after.getInt("currentLevel") == 2,
+              "MinerSetLevel message did not persist the selected level");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "MinerSetLevel envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

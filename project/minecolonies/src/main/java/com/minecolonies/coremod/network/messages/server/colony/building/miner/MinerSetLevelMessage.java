@@ -7,6 +7,9 @@ import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementMod
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +37,21 @@ public class MinerSetLevelMessage extends AbstractBuildingServerMessage<Building
     public MinerSetLevelMessage(@NotNull final IBuildingView building, final int level)
     {
         super(building);
+        this.level = level;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  target miner position
+     * @param level       level index to select
+     */
+    public MinerSetLevelMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final int level)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.level = level;
     }
 
