@@ -99,7 +99,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
   still need a real in-game interaction pass. Server-side
-  Town Hall, colony creation, builder work-order registration and live
+  Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
   warehouse/courier resolver wiring, Miner work-order/claim selection, Farmer
@@ -109,9 +109,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
-  block interaction. Real `TownHallRenameMessage` and `TryResearchMessage`
-  actions now cross the Fabric split envelope, reach the server executor and
-  mutate the owner colony/research state;
+  block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage` and
+  `TryResearchMessage` actions now cross the Fabric split envelope, reach the
+  server executor and mutate the owner colony/research state;
   the common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,
   but their visual/client behavior still needs an in-game interaction pass.

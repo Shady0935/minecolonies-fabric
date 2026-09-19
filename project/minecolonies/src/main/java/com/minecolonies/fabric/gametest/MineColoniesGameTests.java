@@ -68,6 +68,7 @@ import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
+import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
@@ -1911,6 +1912,71 @@ public final class MineColoniesGameTests implements FabricGameTest
               "C2S research message did not register the selected research as in progress");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "C2S research envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerCreateColonyMessageCreatesColony(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(512, 1, 512);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        for (int x = 510; x <= 514; x++)
+        {
+            for (int z = 510; z <= 514; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S colony fixture Town Hall did not create a building block entity");
+        helper.assertTrue(IColonyManager.getInstance().getIColonyByOwner(level, owner) == null,
+          "C2S colony fixture owner unexpectedly already owns a colony");
+        helper.assertTrue(IColonyManager.getInstance().isFarEnoughFromColonies(level, townHall),
+          "C2S colony fixture position is not available for a new colony");
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, CreateColonyMessage.class);
+        helper.assertTrue(messageId > 0, "CreateColony message was not registered");
+        final CreateColonyMessage original = new CreateColonyMessage(
+          townHall, false, "Fabric C2S Colony", Constants.DEFAULT_STYLE, "fundamentals/townhall1.blueprint");
+        final int communicationId = 0x43434F4C;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            final MinecraftServer server = level.getServer();
+            helper.assertTrue(server != null, "C2S colony fixture has no running server");
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(1, () ->
+        {
+            final IColony colony = IColonyManager.getInstance().getIColonyByOwner(level, owner);
+            helper.assertTrue(colony != null, "CreateColony message did not create an owner colony");
+            helper.assertTrue("Fabric C2S Colony".equals(colony.getName()),
+              "CreateColony message used the wrong colony name: " + colony.getName());
+            final IBuilding registeredTownHall = colony.getBuildingManager().getBuilding(townHall);
+            helper.assertTrue(registeredTownHall != null,
+              "CreateColony message did not register the Town Hall building");
+            final TileEntityColonyBuilding hut = (TileEntityColonyBuilding) townHallEntity;
+            helper.assertTrue(Constants.DEFAULT_STYLE.equals(hut.getPackName()),
+              "CreateColony message did not select the requested structure pack");
+            helper.assertTrue("fundamentals/townhall1.blueprint".equals(hut.getBlueprintPath()),
+              "CreateColony message did not preserve the requested blueprint path");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "CreateColony envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

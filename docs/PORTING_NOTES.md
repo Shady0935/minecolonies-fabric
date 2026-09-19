@@ -147,7 +147,7 @@ methods using Forge's `HIGHEST` through `LOWEST` priorities. GameTests create
 and remove colony-scoped permission listeners while other fixtures dispatch
 gameplay callbacks; stable snapshots preserve the upstream listener semantics
 without concurrent `ArrayList` races. A dedicated probe covers priority order
-and an inherited handler, and the latest 28-test core batch exercises this under
+and an inherited handler, and the latest 29-test core batch exercises this under
 concurrent colony fixtures.
 
 Projectile impacts now have a narrow cancellable Fabric bridge through
@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 29-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 30-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -256,13 +256,13 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 29-test run therefore resolves the structure without
+the building; the latest 30-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
 The same Fabric server-data reload builds the default research tree through the
-retained `ResearchListener`. The latest 28-test core GameTest batch resolves all four
+retained `ResearchListener`. The latest 29-test core GameTest batch resolves all four
 default branches, representative research IDs using their full branch paths,
 branch metadata and the citizen-cap effect through `IGlobalResearchTree`; its
 research-cycle fixture also covers item-cost consumption, progress completion,
@@ -332,14 +332,16 @@ envelope: a packet received by the server is marked as originating on the
 client, while a packet received by the client is marked as originating on the
 server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
-serializes `TownHallRenameMessage` and `TryResearchMessage`, wraps each in the
-real split envelope, sends them through `SimpleChannel`'s server dispatch
-boundary and verifies the deferred server-executor actions, owner permission,
-colony-name mutation, non-creative research cost and in-progress state. The
-research fixture registers the test player with a real `SERVERBOUND` connection
-so normal colony-view packets are sent during setup. Evidence is in
-`logs/minecolonies-gametest-c2s-research.log`; the complete run reports
-`All 29 required tests passed` (28 core tests plus one entity batch test).
+serializes `TownHallRenameMessage`, `CreateColonyMessage` and
+`TryResearchMessage`, wraps each in the real split envelope, sends them through
+`SimpleChannel`'s server dispatch boundary and verifies the deferred
+server-executor actions, owner permission, colony-name mutation, Town Hall
+foundation with its requested pack/blueprint, non-creative research cost and
+in-progress state. The research and colony-foundation fixtures register the
+test player with a real `SERVERBOUND` connection so normal colony-view packets
+are sent during setup. Evidence is in
+`logs/minecolonies-gametest-c2s-create-colony.log`; the complete run reports
+`All 30 required tests passed` (29 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

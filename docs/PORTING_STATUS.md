@@ -58,8 +58,9 @@ completed.
 - [x] Client-bound message codecs are server-loadable; visual execution is
   isolated behind the client bridge while preserving the upstream message IDs
 - [x] Real client-to-server split envelopes reach colony handlers on the
-  server executor; the owner-permission path, Town Hall rename and University
-  research actions are covered by the latest 29-test GameTest run
+  server executor; the owner-permission path, Town Hall rename, colony
+  foundation and University research actions are covered by the latest
+  30-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -76,11 +77,11 @@ completed.
   `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
 - [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
   honors Forge priority order and discovers inherited listener methods, so
-  colony-scoped registration/removal cannot race event dispatch; the 28-test
+  colony-scoped registration/removal cannot race event dispatch; the 29-test
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 29-test Fabric GameTest run
+  is covered by the latest 30-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -191,7 +192,8 @@ completed.
 - [x] Automated resource serialization coverage: a recursive JSON parse covered
   1,462 source plus generated JSON files with zero parse failures
 - [x] Network transport smoke coverage for login/server-to-client packets plus
-  real Town Hall rename and University research client-to-server actions
+  real Town Hall rename, colony foundation and University research
+  client-to-server actions
 - [x] Extended screen-handler registrations and server-to-client opening-buffer
   forwarding are covered for all seven registered MineColonies menu types
 - [x] Fabric GameTest suite covers registry bootstrap, Colonial pack discovery,
@@ -203,7 +205,8 @@ completed.
    bow-hook compatibility semantics, cancellable gameplay-event
    semantics, the hostile-spawn position veto and explosion entity-policy
    semantics, fishing-hook angler spawn-state synchronization, real
-   client-to-server Town Hall rename and University research actions, builder
+   client-to-server Town Hall rename, colony foundation and University research
+   actions, builder
    work-order registration and live `JobBuilder` claim selection, residence
    registration and citizen-home assignment, research selection/progression/
    effect application, University researcher assignment/worker-tick progression,
@@ -212,13 +215,13 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 29-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 28-test core batch covers event-dispatch
+- [x] Latest 30-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 29-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
-  cancellation/rod damage, the real client-to-server Town Hall rename and
-  University research envelopes, all custom entity NBT reload contracts and
-  populated-tavern conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-research.log`
+  cancellation/rod damage, the real client-to-server Town Hall rename,
+  colony foundation and University research envelopes, all custom entity NBT
+  reload contracts and populated-tavern conversion; evidence is in
+  `logs/minecolonies-gametest-c2s-create-colony.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
