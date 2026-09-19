@@ -13,6 +13,7 @@ import com.minecolonies.coremod.util.TeleportHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,18 @@ public class RecallCitizenHutMessage extends AbstractBuildingServerMessage<IBuil
     public RecallCitizenHutMessage(@NotNull final AbstractBuildingView building)
     {
         super(building);
+    }
+
+    /**
+     * Creates a server-bound recall request without requiring a client-side building view.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param buildingId  the building position.
+     */
+    public RecallCitizenHutMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override

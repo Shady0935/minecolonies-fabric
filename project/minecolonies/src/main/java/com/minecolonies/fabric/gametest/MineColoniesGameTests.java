@@ -109,6 +109,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.AssignFi
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableItemMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.MarkBuildingDirtyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.QuarryHiringModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.RecallCitizenHutMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ResetFilterableItemMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.TransferItemsRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AddMinimumStockToBuildingModuleMessage;
@@ -131,6 +132,7 @@ import com.minecolonies.coremod.network.messages.server.colony.citizen.AdjustSki
 import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.RecallSingleCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.TransferItemsToCitizenRequestMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.worker.RecallCitizenMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -3212,6 +3214,122 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "RecallSingleCitizen envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerRecallCitizenMessagesTeleportAssignedBuilder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Recall Assigned Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S recall-assigned fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S recall-assigned fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S recall-assigned fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "C2S recall-assigned fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding builder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(builder instanceof BuildingBuilder,
+          "C2S recall-assigned fixture registered the wrong building: " + builder);
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null, "C2S recall-assigned fixture Builder worker module was not registered");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S recall-assigned fixture could not create a live citizen");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "C2S recall-assigned fixture Builder rejected the citizen assignment");
+        final AbstractEntityCitizen citizenEntity = citizen.getEntity().get();
+        citizenEntity.setNoAi(true);
+        final BlockPos expectedSpawn = EntityUtils.getSpawnPoint(level, builderPos);
+        helper.assertTrue(expectedSpawn != null, "C2S recall-assigned fixture found no valid Builder spawn point");
+        final BlockPos away = builderPos.offset(12, 0, 8);
+        citizenEntity.moveTo(away.getX() + 0.5D, away.getY(), away.getZ() + 0.5D, 0.0F, 0.0F);
+        helper.assertTrue(!citizenEntity.blockPosition().equals(expectedSpawn),
+          "C2S recall-assigned fixture citizen was not moved away before the packet route");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S recall-assigned fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int recallMessageId = findMessageId(channel, RecallCitizenMessage.class);
+        final int hutRecallMessageId = findMessageId(channel, RecallCitizenHutMessage.class);
+        helper.assertTrue(recallMessageId > 0, "RecallCitizen message was not registered");
+        helper.assertTrue(hutRecallMessageId > 0, "RecallCitizenHut message was not registered");
+        final int recallCommunicationId = 0x5243414C;
+        // Let the newly spawned citizen tick before the packet exercises the recall path.
+        helper.runAfterDelay(5, () ->
+        {
+            final AbstractEntityCitizen readyCitizen = citizen.getEntity().orElse(null);
+            helper.assertTrue(readyCitizen != null && readyCitizen.getTicksExisted() > 0,
+              "C2S recall-assigned fixture citizen was not alive long enough for a stable recall route");
+            readyCitizen.setNoAi(true);
+            readyCitizen.setPos(away.getX() + 0.5D, away.getY(), away.getZ() + 0.5D);
+            dispatchServerMessage(channel, server, owner, recallMessageId, recallCommunicationId,
+              new RecallCitizenMessage(colony.getDimension(), colony.getID(), builderPos));
+
+            helper.runAfterDelay(2, () ->
+            {
+                final AbstractEntityCitizen firstRecalledCitizen = citizen.getEntity().orElse(null);
+                helper.assertTrue(firstRecalledCitizen != null && firstRecalledCitizen.blockPosition().equals(expectedSpawn),
+                  "RecallCitizen message did not teleport the assigned citizen to the Builder spawn point: "
+                    + (firstRecalledCitizen == null ? "entity missing" : firstRecalledCitizen.blockPosition())
+                    + " expected " + expectedSpawn);
+                helper.assertTrue(channel.getMessageCache().getIfPresent(recallCommunicationId) == null,
+                  "RecallCitizen envelope remained in the split-packet cache");
+                helper.assertTrue(builder.getAllAssignedCitizen().contains(citizen),
+                  "RecallCitizen message unexpectedly removed the citizen from the Builder assignment");
+                final AbstractEntityCitizen hutCitizenEntity = citizen.getEntity().orElse(null);
+                helper.assertTrue(hutCitizenEntity != null, "Assigned citizen entity was missing before RecallCitizenHut message");
+                hutCitizenEntity.setNoAi(true);
+                hutCitizenEntity.setPos(away.getX() + 0.5D, away.getY(), away.getZ() + 0.5D);
+                helper.assertTrue(!hutCitizenEntity.blockPosition().equals(expectedSpawn),
+                  "C2S recall-assigned fixture citizen could not be moved away for the hut recall");
+                final int hutRecallCommunicationId = 0x52434854;
+                dispatchServerMessage(channel, server, owner, hutRecallMessageId, hutRecallCommunicationId,
+                  new RecallCitizenHutMessage(colony.getDimension(), colony.getID(), builderPos));
+                helper.runAfterDelay(2, () ->
+                {
+                    final AbstractEntityCitizen recalledCitizen = citizen.getEntity().orElse(null);
+                    helper.assertTrue(recalledCitizen != null && recalledCitizen.blockPosition().equals(expectedSpawn),
+                      "RecallCitizenHut message did not teleport the assigned citizen to the Builder spawn point: "
+                        + (recalledCitizen == null ? "entity missing" : recalledCitizen.blockPosition()) + " expected " + expectedSpawn
+                        + " assigned=" + builder.getAllAssignedCitizen().size());
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(hutRecallCommunicationId) == null,
+                      "RecallCitizenHut envelope remained in the split-packet cache");
+                    helper.succeed();
+                });
+            });
         });
     }
 

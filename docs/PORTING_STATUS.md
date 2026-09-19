@@ -70,8 +70,8 @@ completed.
   assignment/unassignment, free-interaction permission changes, Builder
   inventory transfer, minimum-stock module updates, Guard Tower entity filter
   updates, Smeltery item-filter updates, GiveTool inventory binding,
-  citizen-inventory transfer and single-citizen recall are covered by the
-  latest 63-test GameTest run
+  citizen-inventory transfer, single-citizen recall and assigned-citizen
+  worker/hut recall are covered by the latest 64-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -92,7 +92,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 63-test Fabric GameTest run
+  is covered by the latest 64-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -266,8 +266,8 @@ completed.
    and knight-guard assignment and RaidManager event eligibility/registration
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 63-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 62-test core batch covers event-dispatch
+- [x] Latest 64-test Fabric GameTest run passes with clean saves for all three
+  dimensions; its 63-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -297,9 +297,10 @@ completed.
   GiveTool inventory binding,
   citizen inventory transfer,
   single-citizen recall,
+  assigned-citizen worker/hut recall,
   all custom entity NBT reload contracts and populated-tavern
   conversion; evidence is in
-  `logs/minecolonies-gametest-c2s-recall-citizen.log`
+  `logs/minecolonies-gametest-c2s-recall-assigned-stable.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

@@ -14,7 +14,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import com.minecolonies.fabric.network.NetworkEvent;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +54,18 @@ public class RecallCitizenMessage extends AbstractBuildingServerMessage<IBuildin
     public RecallCitizenMessage(final IBuildingView building)
     {
         super(building);
+    }
+
+    /**
+     * Creates a server-bound recall request without requiring a client-side building view.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param buildingId  the building position.
+     */
+    public RecallCitizenMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
     }
 
     @Override
