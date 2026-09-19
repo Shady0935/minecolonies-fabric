@@ -1,5 +1,6 @@
 package com.minecolonies.fabric.gametest;
 
+import com.mojang.authlib.GameProfile;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
@@ -12,7 +13,10 @@ import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.inventory.ModContainers;
 import com.minecolonies.api.network.IMessage;
 import com.minecolonies.api.network.PacketUtils;
+import com.minecolonies.api.research.IGlobalResearch;
 import com.minecolonies.api.research.IGlobalResearchTree;
+import com.minecolonies.api.research.ILocalResearch;
+import com.minecolonies.api.research.util.ResearchState;
 import com.minecolonies.api.research.util.ResearchConstants;
 import com.minecolonies.api.tileentities.TileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
@@ -79,6 +83,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import com.minecolonies.fabric.LogicalSide;
@@ -138,6 +143,90 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Unlockable research entries were not parsed");
         helper.assertTrue(tree.hasResearchEffect(ResearchConstants.CITIZEN_CAP),
           "Default citizen-cap research effect was not registered");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void researchSelectionConsumesCostAndCompletes(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final Player player = new Player(level, townHall, 0.0F,
+          new GameProfile(UUID.randomUUID(), "research-test-player"))
+        {
+            @Override
+            public boolean isSpectator()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isCreative()
+            {
+                return false;
+            }
+
+            @Override
+            public void displayClientMessage(final net.minecraft.network.chat.Component message, final boolean overlay)
+            {
+            }
+
+            @Override
+            public void playNotifySound(final net.minecraft.sounds.SoundEvent sound, final net.minecraft.sounds.SoundSource source,
+              final float volume, final float pitch)
+            {
+            }
+        };
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        helper.assertTrue(!player.isCreative(), "Research fixture player unexpectedly remained creative");
+        player.getInventory().clearContent();
+        player.getInventory().setItem(0, new ItemStack(Items.DIAMOND));
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Research GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Research fixture colony was not created");
+
+        final IGlobalResearchTree tree = IGlobalResearchTree.getInstance();
+        final ResourceLocation branch = new ResourceLocation(Constants.MOD_ID, "civilian");
+        final ResourceLocation researchId = new ResourceLocation(Constants.MOD_ID, "civilian/ambition");
+        final IGlobalResearch research = tree.getResearch(branch, researchId);
+        helper.assertTrue(research != null, "Research fixture entry was not loaded");
+        helper.assertTrue(research.canResearch(1, colony.getResearchManager().getResearchTree()),
+          "Level-one research was not eligible for a fresh colony");
+        helper.assertTrue(player.getInventory().countItem(Items.DIAMOND) == 1,
+          "Research fixture did not start with exactly one diamond");
+
+        colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, research);
+        final ILocalResearch localResearch = colony.getResearchManager().getResearchTree().getResearch(branch, researchId);
+        helper.assertTrue(localResearch != null, "Research selection did not create local research state");
+        helper.assertTrue(localResearch.getState() == ResearchState.IN_PROGRESS,
+          "Selected research did not enter the in-progress state");
+        helper.assertTrue(player.getInventory().countItem(Items.DIAMOND) == 0,
+          "Research selection did not consume its diamond cost");
+        helper.assertTrue(colony.getResearchManager().getResearchTree().getResearchInProgress().size() == 1,
+          "Selected research was not registered as in progress");
+
+        final int requiredProgress = tree.getBranchData(branch).getBaseTime(research.getDepth());
+        helper.assertTrue(requiredProgress > 0, "Research branch returned an invalid progress requirement");
+        for (int progress = 0; progress < requiredProgress; progress++)
+        {
+            final boolean completed = localResearch.research(
+              colony.getResearchManager().getResearchEffects(), colony.getResearchManager().getResearchTree());
+            helper.assertTrue(completed == (progress + 1 == requiredProgress),
+              "Research completion signal did not match its configured progress requirement");
+        }
+
+        helper.assertTrue(localResearch.getState() == ResearchState.FINISHED,
+          "Research did not reach the finished state");
+        helper.assertTrue(colony.getResearchManager().getResearchTree().getResearchInProgress().isEmpty(),
+          "Finished research remained in the in-progress list");
+        helper.assertTrue(colony.getResearchManager().getResearchTree().hasCompletedResearch(researchId),
+          "Finished research was not recorded as completed");
+        helper.assertTrue(colony.getResearchManager().getResearchEffects().getEffectStrength(
+          new ResourceLocation(Constants.MOD_ID, "effects/blockhutmysticalsite")) > 0,
+          "Finished research did not apply its configured effect");
         helper.succeed();
     }
 
