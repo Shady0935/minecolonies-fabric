@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.colonyEvents.EventStatus;
 import com.minecolonies.api.colony.colonyEvents.IColonyRaidEvent;
@@ -34,6 +35,7 @@ import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.entity.SpearEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
+import com.minecolonies.coremod.colony.workorders.WorkOrderDecoration;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
@@ -70,6 +72,7 @@ import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
+import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
@@ -2202,6 +2205,96 @@ public final class MineColoniesGameTests implements FabricGameTest
               "DirectPlace message did not consume the Town Hall item");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "DirectPlace envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 240)
+    public void clientToServerDecorationBuildRequestCreatesWorkOrder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S decoration fixture could not find an unclaimed colony position");
+        final BlockPos relativeDecoration = relativeTownHall.offset(1, 0, 0);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos decoration = helper.absolutePos(relativeDecoration);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeDecoration.below(), Blocks.STONE);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Decoration Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S decoration fixture colony was not created");
+        // Keep the far-away blueprint footprint resident while the async server callback validates it.
+        final int decorationChunkX = decoration.getX() >> 4;
+        final int decorationChunkZ = decoration.getZ() >> 4;
+        for (int chunkX = decorationChunkX - 6; chunkX <= decorationChunkX + 6; chunkX++)
+        {
+            for (int chunkZ = decorationChunkZ - 6; chunkZ <= decorationChunkZ + 6; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
+                level.getChunk(chunkX, chunkZ);
+            }
+        }
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, decoration, 4, level, true);
+        helper.assertTrue(IColonyManager.getInstance().getColonyByPosFromDim(level.dimension(), decoration) == colony,
+          "C2S decoration fixture target was not inside the owner colony");
+        helper.assertTrue(colony.getPermissions().hasPermission(owner, Action.MANAGE_HUTS),
+          "C2S decoration fixture owner did not receive Manage Huts permission");
+
+        final String blueprintPath = "fundamentals/townhall1.blueprint";
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, DecorationBuildRequestMessage.class);
+        helper.assertTrue(messageId > 0, "DecorationBuildRequest message was not registered");
+        final DecorationBuildRequestMessage original = new DecorationBuildRequestMessage(
+          WorkOrderType.BUILD, decoration, Constants.DEFAULT_STYLE, blueprintPath,
+          level.dimension(), Rotation.CLOCKWISE_90, true, BlockPos.ZERO);
+        final int communicationId = 0x4445434F;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            final MinecraftServer server = level.getServer();
+            helper.assertTrue(server != null, "C2S decoration fixture has no running server");
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(160, () ->
+        {
+            final WorkOrderDecoration order = colony.getWorkManager().getWorkOrdersOfType(WorkOrderDecoration.class).stream()
+              .filter(candidate -> candidate.getLocation().equals(decoration))
+              .findFirst()
+              .orElse(null);
+            helper.assertTrue(order != null,
+              "DecorationBuildRequest message did not create the decoration work order");
+            helper.assertTrue(order.getWorkOrderType() == WorkOrderType.BUILD,
+              "DecorationBuildRequest message created the wrong work-order type: " + order.getWorkOrderType());
+            helper.assertTrue(Constants.DEFAULT_STYLE.equals(order.getStructurePack()),
+              "DecorationBuildRequest message used the wrong structure pack: " + order.getStructurePack());
+            helper.assertTrue(blueprintPath.equals(order.getStructurePath()),
+              "DecorationBuildRequest message used the wrong blueprint path: " + order.getStructurePath());
+            helper.assertTrue(order.getRotation() == Rotation.CLOCKWISE_90.ordinal(),
+              "DecorationBuildRequest message lost the requested rotation: " + order.getRotation());
+            helper.assertTrue(order.isMirrored(), "DecorationBuildRequest message lost the mirror flag");
+            helper.assertTrue(order.getTargetLevel() == 1,
+              "DecorationBuildRequest message created the wrong target level: " + order.getTargetLevel());
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "DecorationBuildRequest envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

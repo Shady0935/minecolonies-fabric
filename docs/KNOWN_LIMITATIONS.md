@@ -33,7 +33,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   ownership permissions, blueprint lookup, the real C2S `BuildRequestMessage`
   repair and `BuilderSelectWorkOrderMessage` selection routes, the real C2S
   `DirectPlaceMessage` Town Hall placement route with item consumption and
-  blueprint resolution, builder
+  blueprint resolution, and the real C2S `DecorationBuildRequestMessage`
+  route with asynchronous blueprint resolution and decoration work-order
+  registration, builder
   work-order registration, live `JobBuilder` assignment and work-order claim
   selection, colony NBT
   round-trip, residence registration with a citizen-home relationship, and
@@ -115,7 +117,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - Client-to-server gameplay packets have not been driven through every GUI or
   block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage`,
   `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`,
-  `DirectPlaceMessage` and `TryResearchMessage` actions now cross the Fabric
+  `DirectPlaceMessage`, `DecorationBuildRequestMessage` and
+  `TryResearchMessage` actions now cross the Fabric
   split envelope, reach the server executor and mutate the owner
   colony/work-order/research state or place the Town Hall and resolve its
   blueprint;
