@@ -30,8 +30,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
   next load, so this does not validate colony-backed citizen persistence.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
-  ownership permissions, blueprint lookup, builder work-order registration,
-  live `JobBuilder` assignment and work-order claim selection, colony NBT
+  ownership permissions, blueprint lookup, the real C2S `BuildRequestMessage`
+  repair route, builder work-order registration, live `JobBuilder` assignment
+  and work-order claim selection, colony NBT
   round-trip, residence registration with a citizen-home relationship, and
   miner work-order registration with live `JobMiner` claim selection, plus
   farmer field registration with live `JobFarmer` assignment and Guard Tower
@@ -109,9 +110,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
-  block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage` and
-  `TryResearchMessage` actions now cross the Fabric split envelope, reach the
-  server executor and mutate the owner colony/research state;
+  block interaction. Real `TownHallRenameMessage`, `CreateColonyMessage`,
+  `BuildRequestMessage` and `TryResearchMessage` actions now cross the Fabric
+  split envelope, reach the server executor and mutate the owner
+  colony/work-order/research state;
   the common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,
   but their visual/client behavior still needs an in-game interaction pass.

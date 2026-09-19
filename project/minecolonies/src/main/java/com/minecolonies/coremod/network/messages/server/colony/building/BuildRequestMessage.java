@@ -7,6 +7,8 @@ import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMe
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,6 +57,23 @@ public class BuildRequestMessage extends AbstractBuildingServerMessage<IBuilding
     public BuildRequestMessage(@NotNull final IBuildingView building, final Mode mode, final BlockPos builder)
     {
         super(building);
+        this.mode = mode;
+        this.builder = builder;
+    }
+
+    /**
+     * Creates a server-bound build request without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId target building position
+     * @param mode requested work-order mode
+     * @param builder builder position to assign, or {@link BlockPos#ZERO}
+     */
+    public BuildRequestMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+                               final Mode mode, final BlockPos builder)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.mode = mode;
         this.builder = builder;
     }

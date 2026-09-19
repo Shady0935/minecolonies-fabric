@@ -71,6 +71,7 @@ import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
@@ -1921,11 +1922,21 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        final BlockPos relativeTownHall = new BlockPos(512, 1, 512);
-        final BlockPos townHall = helper.absolutePos(relativeTownHall);
-        for (int x = 510; x <= 514; x++)
+        BlockPos relativeTownHall = null;
+        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
         {
-            for (int z = 510; z <= 514; z++)
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S colony fixture could not find an unclaimed colony position");
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 2; x++)
+        {
+            for (int z = relativeTownHall.getZ() - 2; z <= relativeTownHall.getZ() + 2; z++)
             {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
             }
@@ -1977,6 +1988,125 @@ public final class MineColoniesGameTests implements FabricGameTest
               "CreateColony message did not preserve the requested blueprint path");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "CreateColony envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerBuildRequestCreatesRepairWorkOrder(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S Builder fixture could not find an unclaimed colony position");
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos relativeCitizenSpawn = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeTownHall.offset(relativeBuilder.getX() - 2, 0, relativeBuilder.getZ() - 2));
+        for (int x = relativeCitizenSpawn.getX() - 1; x <= relativeCitizenSpawn.getX() + 1; x++)
+        {
+            for (int z = relativeCitizenSpawn.getZ() - 1; z <= relativeCitizenSpawn.getZ() + 1; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 10; x++)
+        {
+            for (int z = relativeTownHall.getZ() - 2; z <= relativeTownHall.getZ() + 2; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final BlockPos builderRelativePos = relativeTownHall.offset(relativeBuilder.getX() - 2, 0, relativeBuilder.getZ() - 2);
+        helper.setBlock(builderRelativePos, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Builder Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S Builder fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S Builder fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S Builder fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "C2S Builder fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding registeredBuilder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(registeredBuilder instanceof BuildingBuilder,
+          "C2S Builder fixture registered the wrong building implementation: " + registeredBuilder);
+        helper.assertTrue(registeredBuilder.getBuildingLevel() >= 1,
+          "C2S Builder fixture did not resolve a level-one Builder blueprint");
+        final BuildingBuilder builder = (BuildingBuilder) registeredBuilder;
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(
+          null, level, helper.absolutePos(relativeCitizenSpawn).above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S Builder fixture could not create a live builder citizen");
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null, "C2S Builder worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "C2S Builder worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobBuilder,
+          "C2S Builder assignment did not create the builder job");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final IBuilding target = colony.getBuildingManager().getBuilding(townHall);
+        helper.assertTrue(target != null && !target.hasWorkOrder(),
+          "C2S Builder fixture target unexpectedly started with a work order");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, BuildRequestMessage.class);
+        helper.assertTrue(messageId > 0, "BuildRequest message was not registered");
+        final BuildRequestMessage original = new BuildRequestMessage(
+          colony.getDimension(), colony.getID(), townHall, BuildRequestMessage.Mode.REPAIR, builderPos);
+        final int communicationId = 0x4255494C;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            final MinecraftServer server = level.getServer();
+            helper.assertTrue(server != null, "C2S Builder fixture has no running server");
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(1, () ->
+        {
+            final WorkOrderBuilding order = colony.getWorkManager().getWorkOrdersOfType(WorkOrderBuilding.class).stream()
+              .filter(candidate -> candidate.getLocation().equals(townHall))
+              .findFirst()
+              .orElse(null);
+            helper.assertTrue(order != null, "BuildRequest message did not create the Town Hall work order");
+            helper.assertTrue(order.getWorkOrderType() == WorkOrderType.REPAIR,
+              "BuildRequest message created the wrong work-order type: " + order.getWorkOrderType());
+            helper.assertTrue(builderPos.equals(order.getClaimedBy()),
+              "BuildRequest message did not assign the requested Builder position");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "BuildRequest envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
