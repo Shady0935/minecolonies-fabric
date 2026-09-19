@@ -174,7 +174,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 68-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 71-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -431,6 +431,23 @@ request token through the split envelope, changes the request to
 retains the updated state while the split-cache entry is cleaned. Full request
 resolution, delivery and logistics behavior remain manual validation items.
 
+A thirty-eighth companion C2S fixture serializes `BuildPickUpMessage` against a
+real Town Hall. It removes the registered building and block, returns the hut
+item to the owner with the colony and building-level NBT bindings, and confirms
+split-cache cleanup.
+
+A thirty-ninth companion C2S fixture serializes `ForcePickupMessage` against a
+real Town Hall. It creates an open `Pickup` request through the building request
+manager and confirms that the split-cache entry is cleaned; deliveryman
+resolution and courier behavior remain manual validation items.
+
+A fortieth companion C2S fixture serializes `SortWarehouseMessage` and
+`UpgradeWarehouseMessage` against a real level-three Colonial warehouse. It
+routes sorting through the warehouse combined inventory, increments the storage
+upgrade module, consumes the owner's emerald block and confirms both envelope
+entries are cleaned. Physical rack contents and the full courier logistics
+cycle remain manual validation items.
+
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
 the level-one house blueprint, assigns a live citizen through
@@ -495,7 +512,7 @@ Structurize's server pack loader is connected to Fabric's
 styles, so the Colonial and Original packs are available before gameplay
 looks up a blueprint. The explosion-protection GameTest also assigns the real
 `Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
-the building; the latest 68-test run therefore resolves the structure without
+the building; the latest 71-test run therefore resolves the structure without
 Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
@@ -640,8 +657,8 @@ The research,
 colony-foundation and Builder fixtures
 register the test player with a real `SERVERBOUND` connection so normal
 colony-view packets are sent during setup. Evidence for the complete run is in
-`logs/minecolonies-gametest-c2s-request-state-retry.log`; it reports
-`All 68 required tests passed` (67 core tests plus one entity batch test).
+`logs/minecolonies-gametest-c2s-pickup-warehouse.log`; it reports
+`All 71 required tests passed` (70 core tests plus one entity batch test).
 
 The local smoke test logged the player into a dedicated server and delivered
 the login-time `ServerUUIDMessage` without decoder/channel errors. The test

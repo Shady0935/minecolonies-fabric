@@ -57,6 +57,7 @@ import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
 import com.minecolonies.coremod.colony.buildings.modules.QuarryModule;
+import com.minecolonies.coremod.colony.buildings.modules.WarehouseModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
@@ -111,10 +112,12 @@ import com.minecolonies.coremod.network.messages.server.colony.ToggleJobMessage;
 import com.minecolonies.coremod.network.messages.server.colony.WorkOrderChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.BuildPickUpMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.CourierHiringModeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.GiveToolMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.ForcePickupMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HireFireMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.OpenCraftingGUIMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.AssignFilterableEntityMessage;
@@ -149,6 +152,8 @@ import com.minecolonies.coremod.network.messages.server.colony.citizen.RecallSin
 import com.minecolonies.coremod.network.messages.server.colony.citizen.TransferItemsToCitizenRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.RecallCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.worker.ToggleRecipeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.warehouse.SortWarehouseMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.warehouse.UpgradeWarehouseMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -3394,6 +3399,187 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "UpdateRequestState envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerBuildPickUpMessageReturnsBuildingItem(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().clearContent();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Build Pickup Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S build-pickup fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S build-pickup fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding building = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(building != null, "C2S build-pickup fixture Town Hall was not registered");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S build-pickup fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, BuildPickUpMessage.class);
+        helper.assertTrue(messageId > 0, "BuildPickUp message was not registered");
+        final int communicationId = 0x42505550;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new BuildPickUpMessage(colony.getDimension(), colony.getID(), townHall));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(level.getBlockState(townHall).isAir(),
+              "BuildPickUp message did not remove the Town Hall block");
+            helper.assertTrue(colony.getBuildingManager().getBuilding(townHall) == null,
+              "BuildPickUp message did not remove the Town Hall from the building manager");
+            final ItemStack pickedUp = owner.getInventory().items.stream()
+              .filter(stack -> stack.getItem() == ModBlocks.blockHutTownHall.asItem())
+              .findFirst().orElse(ItemStack.EMPTY);
+            helper.assertTrue(!pickedUp.isEmpty(),
+              "BuildPickUp message did not return the Town Hall item to the owner");
+            helper.assertTrue(pickedUp.getTag() != null && pickedUp.getTag().getInt("colony") == colony.getID(),
+              "BuildPickUp message returned an item without the colony binding");
+            helper.assertTrue(pickedUp.getTag().getInt("otherLevel") == building.getBuildingLevel(),
+              "BuildPickUp message returned an item without the building level");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "BuildPickUp envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerForcePickupMessageCreatesPickupRequest(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Force Pickup Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S force-pickup fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S force-pickup fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding building = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(building != null, "C2S force-pickup fixture Town Hall was not registered");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S force-pickup fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ForcePickupMessage.class);
+        helper.assertTrue(messageId > 0, "ForcePickup message was not registered");
+        final int communicationId = 0x46505550;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new ForcePickupMessage(colony.getDimension(), colony.getID(), townHall));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(building.getOpenRequestsByRequestableType().containsKey(TypeConstants.PICKUP),
+              "ForcePickup message did not register a pickup request type");
+            helper.assertTrue(!building.getOpenRequestsByRequestableType().get(TypeConstants.PICKUP).isEmpty(),
+              "ForcePickup message did not create an open pickup request");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "ForcePickup envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerWarehouseMessagesUpdateStorage(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeWarehouse = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().clearContent();
+        owner.getInventory().add(new ItemStack(Blocks.EMERALD_BLOCK));
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Warehouse Messages Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S warehouse fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S warehouse fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S warehouse fixture Town Hall was not registered");
+
+        final BlockEntity warehouseEntity = level.getBlockEntity(warehousePos);
+        helper.assertTrue(warehouseEntity instanceof TileEntityColonyBuilding,
+          "C2S warehouse fixture did not create a warehouse block entity");
+        final TileEntityColonyBuilding warehouseHut = (TileEntityColonyBuilding) warehouseEntity;
+        warehouseHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        warehouseHut.setBlueprintPath("craftsmanship/storage/warehouse1.blueprint");
+        warehouseHut.setSchematicName("warehouse1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(warehouseHut, level);
+        helper.assertTrue(registered instanceof BuildingWareHouse,
+          "C2S warehouse fixture registered the wrong building: " + registered);
+        final BuildingWareHouse warehouse = (BuildingWareHouse) registered;
+        warehouse.setBuildingLevel(3);
+        final WarehouseModule storage = warehouse.getFirstModuleOccurance(WarehouseModule.class);
+        helper.assertTrue(storage != null && storage.getStorageUpgrade() == 0,
+          "C2S warehouse fixture did not initialize its storage module");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S warehouse fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int sortMessageId = findMessageId(channel, SortWarehouseMessage.class);
+        final int upgradeMessageId = findMessageId(channel, UpgradeWarehouseMessage.class);
+        helper.assertTrue(sortMessageId > 0, "SortWarehouse message was not registered");
+        helper.assertTrue(upgradeMessageId > 0, "UpgradeWarehouse message was not registered");
+        final int sortCommunicationId = 0x57534F52;
+        dispatchServerMessage(channel, server, owner, sortMessageId, sortCommunicationId,
+          new SortWarehouseMessage(colony.getDimension(), colony.getID(), warehousePos));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(channel.getMessageCache().getIfPresent(sortCommunicationId) == null,
+              "SortWarehouse envelope remained in the split-packet cache");
+            final int upgradeCommunicationId = 0x57555047;
+            dispatchServerMessage(channel, server, owner, upgradeMessageId, upgradeCommunicationId,
+              new UpgradeWarehouseMessage(colony.getDimension(), colony.getID(), warehousePos));
+            helper.runAfterDelay(2, () ->
+            {
+                helper.assertTrue(storage.getStorageUpgrade() == 1,
+                  "UpgradeWarehouse message did not increment the storage upgrade");
+                helper.assertTrue(owner.getInventory().countItem(Blocks.EMERALD_BLOCK.asItem()) == 0,
+                  "UpgradeWarehouse message did not consume the emerald block");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(upgradeCommunicationId) == null,
+                  "UpgradeWarehouse envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 
