@@ -7,6 +7,8 @@ import com.minecolonies.coremod.colony.buildings.views.AbstractBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +41,19 @@ public class RestartCitizenMessage extends AbstractColonyServerMessage
     public RestartCitizenMessage(@NotNull final AbstractBuildingView building, final int citizenID)
     {
         super(building.getColony());
+        this.citizenID = citizenID;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param citizenID citizen to restart
+     */
+    public RestartCitizenMessage(final ResourceKey<Level> dimensionId, final int colonyId, final int citizenID)
+    {
+        super(dimensionId, colonyId);
         this.citizenID = citizenID;
     }
 

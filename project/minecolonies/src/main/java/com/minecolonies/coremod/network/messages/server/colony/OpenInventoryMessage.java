@@ -11,9 +11,11 @@ import com.minecolonies.api.util.CompatibilityUtils;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.network.NetworkHooks;
@@ -79,6 +81,38 @@ public class OpenInventoryMessage extends AbstractColonyServerMessage
         inventoryType = InventoryType.INVENTORY_CHEST;
         name = "";
         tePos = building.getID();
+    }
+
+    /**
+     * Creates a server-bound citizen-inventory message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param name custom citizen inventory name
+     * @param id citizen entity id
+     */
+    public OpenInventoryMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+                                @NotNull final String name, final int id)
+    {
+        super(dimensionId, colonyId);
+        inventoryType = InventoryType.INVENTORY_CITIZEN;
+        this.name = name;
+        this.entityID = id;
+    }
+
+    /**
+     * Creates a server-bound rack/grave inventory message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param tePos inventory block position
+     */
+    public OpenInventoryMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos tePos)
+    {
+        super(dimensionId, colonyId);
+        inventoryType = InventoryType.INVENTORY_CHEST;
+        name = "";
+        this.tePos = tePos;
     }
 
     @Override

@@ -99,8 +99,11 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMe
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ChangeFreeToInteractBlockMessage;
+import com.minecolonies.coremod.network.messages.server.colony.HireSpiesMessage;
+import com.minecolonies.coremod.network.messages.server.colony.TeamColonyColorChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ToggleHelpMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleJobMessage;
 import com.minecolonies.coremod.network.messages.server.colony.WorkOrderChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
@@ -166,6 +169,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
+import net.minecraft.ChatFormatting;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -2156,6 +2160,62 @@ public final class MineColoniesGameTests implements FabricGameTest
               "ToggleJob envelope remained in the split-packet cache");
             helper.assertTrue(channel.getMessageCache().getIfPresent(flagCommunicationId) == null,
               "ColonyFlagChange envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerColonyControlMessagesUpdateColorHelpAndSpies(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().add(new ItemStack(Items.GOLD_INGOT, 5));
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Colony Control Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S colony-control fixture colony was not created");
+        final boolean initialPrintProgress = colony.getProgressManager().isPrintingProgress();
+        final ChatFormatting targetColor = ChatFormatting.AQUA;
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S colony-control fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int helpId = findMessageId(channel, ToggleHelpMessage.class);
+        final int colorId = findMessageId(channel, TeamColonyColorChangeMessage.class);
+        final int spiesId = findMessageId(channel, HireSpiesMessage.class);
+        helper.assertTrue(helpId > 0, "ToggleHelp message was not registered");
+        helper.assertTrue(colorId > 0, "TeamColonyColorChange message was not registered");
+        helper.assertTrue(spiesId > 0, "HireSpies message was not registered");
+
+        final int helpCommunicationId = 0x434F4C48;
+        final int colorCommunicationId = 0x434F4C43;
+        final int spiesCommunicationId = 0x434F4C53;
+        dispatchServerMessage(channel, server, owner, helpId, helpCommunicationId,
+          new ToggleHelpMessage(colony.getDimension(), colony.getID()));
+        dispatchServerMessage(channel, server, owner, colorId, colorCommunicationId,
+          new TeamColonyColorChangeMessage(colony.getDimension(), colony.getID(), targetColor.ordinal()));
+        dispatchServerMessage(channel, server, owner, spiesId, spiesCommunicationId,
+          new HireSpiesMessage(colony.getDimension(), colony.getID()));
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(colony.getProgressManager().isPrintingProgress() != initialPrintProgress,
+              "ToggleHelp message did not toggle colony progress notifications");
+            helper.assertTrue(colony.getTeamColonyColor() == targetColor,
+              "TeamColonyColorChange message did not update the colony team color");
+            helper.assertTrue(colony.getRaiderManager().areSpiesEnabled(),
+              "HireSpies message did not enable colony spies");
+            helper.assertTrue(owner.getInventory().countItem(Items.GOLD_INGOT) == 0,
+              "HireSpies message did not consume the gold cost");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(helpCommunicationId) == null,
+              "ToggleHelp envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(colorCommunicationId) == null,
+              "TeamColonyColorChange envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(spiesCommunicationId) == null,
+              "HireSpies envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

@@ -4,6 +4,8 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +30,17 @@ public class ToggleHelpMessage extends AbstractColonyServerMessage
     public ToggleHelpMessage(@NotNull final IColonyView colony)
     {
         super(colony);
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     */
+    public ToggleHelpMessage(final ResourceKey<Level> dimensionId, final int colonyId)
+    {
+        super(dimensionId, colonyId);
     }
 
     @Override

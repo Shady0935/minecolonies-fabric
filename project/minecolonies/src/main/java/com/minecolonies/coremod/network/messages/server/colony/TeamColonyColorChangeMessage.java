@@ -6,6 +6,8 @@ import com.minecolonies.api.colony.event.ColonyInformationChangedEvent;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.ChatFormatting;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +39,19 @@ public class TeamColonyColorChangeMessage extends AbstractColonyServerMessage
     public TeamColonyColorChangeMessage(final int colorOrdinal, @NotNull final IBuildingView building)
     {
         super(building.getColony());
+        this.colorOrdinal = colorOrdinal;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param colorOrdinal color ordinal to set
+     */
+    public TeamColonyColorChangeMessage(final ResourceKey<Level> dimensionId, final int colonyId, final int colorOrdinal)
+    {
+        super(dimensionId, colonyId);
         this.colorOrdinal = colorOrdinal;
     }
 

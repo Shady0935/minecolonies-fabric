@@ -7,6 +7,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.inventory.InvWrapper;
 import com.minecolonies.fabric.network.NetworkEvent;
 
@@ -24,6 +26,17 @@ public class HireSpiesMessage extends AbstractColonyServerMessage
     public HireSpiesMessage(final IColony colony)
     {
         super(colony);
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     */
+    public HireSpiesMessage(final ResourceKey<Level> dimensionId, final int colonyId)
+    {
+        super(dimensionId, colonyId);
     }
 
     @Override

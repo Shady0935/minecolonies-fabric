@@ -8,6 +8,8 @@ import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +52,24 @@ public class UpdateRequestStateMessage extends AbstractColonyServerMessage
     public UpdateRequestStateMessage(final IColony colony, final IToken<?> requestId, final RequestState state, final ItemStack itemStack)
     {
         super(colony);
+        this.token = requestId;
+        this.state = state;
+        this.itemStack = itemStack;
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param requestId request token
+     * @param state request state
+     * @param itemStack involved item stack for overruled requests
+     */
+    public UpdateRequestStateMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+                                     final IToken<?> requestId, final RequestState state, final ItemStack itemStack)
+    {
+        super(dimensionId, colonyId);
         this.token = requestId;
         this.state = state;
         this.itemStack = itemStack;

@@ -6,7 +6,9 @@ import com.minecolonies.coremod.entity.mobs.EntityMercenary;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +24,17 @@ public class HireMercenaryMessage extends AbstractColonyServerMessage
     public HireMercenaryMessage(final IColony colony)
     {
         super(colony);
+    }
+
+    /**
+     * Creates a server-bound message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     */
+    public HireMercenaryMessage(final ResourceKey<Level> dimensionId, final int colonyId)
+    {
+        super(dimensionId, colonyId);
     }
 
     @Nullable
