@@ -31,7 +31,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   next load, so this does not validate colony-backed citizen persistence.
 - The Fabric GameTest now covers server-side Colonial Town Hall creation,
   ownership permissions, blueprint lookup, builder work-order registration,
-  colony NBT round-trip and a
+  live `JobBuilder` assignment and work-order claim selection, colony NBT
+  round-trip and a
   colony-backed `EntityCitizen`/`CitizenData` round-trip. It does not yet
   cover Builder AI/material requests/placement, a client opening the Town Hall
   GUI, citizen rendering/work AI, every custom entity family after restart, or
@@ -79,8 +80,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - BlockUI screens, Builder AI and placement, citizen work cycles, logistics,
   University researcher AI/GUI, and raids still need a real in-game interaction
   pass. Server-side
-  Town Hall, colony creation, builder work-order registration and colony-backed
-  citizen registration, research manager selection/progression and the
+  Town Hall, colony creation, builder work-order registration and live
+  `JobBuilder` claim selection, colony-backed citizen registration, research
+  manager selection/progression and the
   University worker-tick path have automated GameTest fixtures; the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
