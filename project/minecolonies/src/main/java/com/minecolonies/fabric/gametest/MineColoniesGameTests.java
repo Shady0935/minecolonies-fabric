@@ -87,6 +87,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyFlagChangeM
 import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyleMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ChangeFreeToInteractBlockMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleJobMessage;
@@ -2128,6 +2129,70 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(flagCommunicationId) == null,
               "ColonyFlagChange envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerChangeFreeToInteractMessageUpdatesPermissions(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos freePosition = helper.absolutePos(new BlockPos(7, 1, 7));
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        helper.assertTrue(!owner.isCreative(), "C2S free-interaction fixture owner remained creative");
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Free Interaction Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S free-interaction fixture colony was not created");
+        helper.assertTrue(colony instanceof Colony, "C2S free-interaction fixture used an unexpected colony implementation");
+        final Colony colonyData = (Colony) colony;
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S free-interaction fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ChangeFreeToInteractBlockMessage.class);
+        helper.assertTrue(messageId > 0, "ChangeFreeToInteractBlock message was not registered");
+        final int addBlockCommunicationId = 0x46524942;
+        final int addPositionCommunicationId = 0x46524950;
+        dispatchServerMessage(channel, server, owner, messageId, addBlockCommunicationId,
+          new ChangeFreeToInteractBlockMessage(colony.getDimension(), colony.getID(),
+            Blocks.CHEST, ChangeFreeToInteractBlockMessage.MessageType.ADD_BLOCK));
+        dispatchServerMessage(channel, server, owner, messageId, addPositionCommunicationId,
+          new ChangeFreeToInteractBlockMessage(colony.getDimension(), colony.getID(),
+            freePosition, ChangeFreeToInteractBlockMessage.MessageType.ADD_BLOCK));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(colonyData.getFreeBlocks().contains(Blocks.CHEST),
+              "ChangeFreeToInteractBlock message did not add the free block");
+            helper.assertTrue(colonyData.getFreePositions().contains(freePosition),
+              "ChangeFreeToInteractBlock message did not add the free position");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(addBlockCommunicationId) == null,
+              "ChangeFreeToInteractBlock block-add envelope remained in the split-packet cache");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(addPositionCommunicationId) == null,
+              "ChangeFreeToInteractBlock position-add envelope remained in the split-packet cache");
+            final int removeBlockCommunicationId = 0x46524952;
+            final int removePositionCommunicationId = 0x46524953;
+            dispatchServerMessage(channel, server, owner, messageId, removeBlockCommunicationId,
+              new ChangeFreeToInteractBlockMessage(colony.getDimension(), colony.getID(),
+                Blocks.CHEST, ChangeFreeToInteractBlockMessage.MessageType.REMOVE_BLOCK));
+            dispatchServerMessage(channel, server, owner, messageId, removePositionCommunicationId,
+              new ChangeFreeToInteractBlockMessage(colony.getDimension(), colony.getID(),
+                freePosition, ChangeFreeToInteractBlockMessage.MessageType.REMOVE_BLOCK));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(!colonyData.getFreeBlocks().contains(Blocks.CHEST),
+                  "ChangeFreeToInteractBlock message did not remove the free block");
+                helper.assertTrue(!colonyData.getFreePositions().contains(freePosition),
+                  "ChangeFreeToInteractBlock message did not remove the free position");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removeBlockCommunicationId) == null,
+                  "ChangeFreeToInteractBlock block-remove envelope remained in the split-packet cache");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(removePositionCommunicationId) == null,
+                  "ChangeFreeToInteractBlock position-remove envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 

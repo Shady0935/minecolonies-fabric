@@ -10,7 +10,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.registry.FabricRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,24 @@ public class ChangeFreeToInteractBlockMessage extends AbstractColonyServerMessag
     }
 
     /**
+     * Message creation to add or remove a freely interactable block on the server.
+     *
+     * @param dimensionId the colony dimension
+     * @param colonyId    the colony id
+     * @param block       the block state to change
+     * @param type        add or remove the block
+     */
+    public ChangeFreeToInteractBlockMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      @NotNull final Block block, @NotNull final MessageType type)
+    {
+        super(dimensionId, colonyId);
+        this.pos = new BlockPos(0, 0, 0);
+        this.block = block.defaultBlockState();
+        this.type = type;
+        this.mode = MessageMode.BLOCK;
+    }
+
+    /**
      * Message creation to add a new freely interactable position to the colony.
      *
      * @param colony Colony the position can be interacted with in.
@@ -74,6 +94,24 @@ public class ChangeFreeToInteractBlockMessage extends AbstractColonyServerMessag
     public ChangeFreeToInteractBlockMessage(@NotNull final IColonyView colony, @NotNull final BlockPos pos, @NotNull final MessageType type)
     {
         super(colony);
+        this.pos = pos;
+        this.block = Blocks.DIRT.defaultBlockState();
+        this.type = type;
+        this.mode = MessageMode.LOCATION;
+    }
+
+    /**
+     * Message creation to add or remove a freely interactable position on the server.
+     *
+     * @param dimensionId the colony dimension
+     * @param colonyId    the colony id
+     * @param pos         the position to change
+     * @param type        add or remove the position
+     */
+    public ChangeFreeToInteractBlockMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      @NotNull final BlockPos pos, @NotNull final MessageType type)
+    {
+        super(dimensionId, colonyId);
         this.pos = pos;
         this.block = Blocks.DIRT.defaultBlockState();
         this.type = type;
