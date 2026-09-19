@@ -109,10 +109,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
-  block interaction. The common codecs for the client-bound colony, particle,
+  block interaction. One real `TownHallRenameMessage` now crosses the Fabric
+  split envelope, reaches the server executor and changes the owner colony;
+  the common codecs for the client-bound colony, particle,
   audio, pathfinding, build-window and scan messages are now server-load safe,
   but their visual/client behavior still needs an in-game interaction pass.
-  The transport itself has a login/server-to-client smoke pass, including
+  The transport also has a login/server-to-client smoke pass, including
   `ServerUUIDMessage`; the seven registered MineColonies menu types also have
   automated extended-opening-buffer forwarding coverage. GUI rendering and
   interaction are still pending.

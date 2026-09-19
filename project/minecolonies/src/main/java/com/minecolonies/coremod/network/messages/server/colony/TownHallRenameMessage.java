@@ -6,6 +6,8 @@ import com.minecolonies.api.colony.event.ColonyInformationChangedEvent;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,20 @@ public class TownHallRenameMessage extends AbstractColonyServerMessage
     public TownHallRenameMessage(@NotNull final IColonyView colony, final String name)
     {
         super(colony);
-        this.name = (name.length() <= MAX_NAME_LENGTH) ? name : name.substring(0, SUBSTRING_LENGTH);
+        this.name = normalizeName(name);
+    }
+
+    /**
+     * Creates a server-bound rename message without requiring a client colony view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param name requested new name
+     */
+    public TownHallRenameMessage(final ResourceKey<Level> dimensionId, final int colonyId, final String name)
+    {
+        super(dimensionId, colonyId);
+        this.name = normalizeName(name);
     }
 
     @Override
@@ -54,7 +69,7 @@ public class TownHallRenameMessage extends AbstractColonyServerMessage
     @Override
     protected void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer, final IColony colony)
     {
-        name = (name.length() <= MAX_NAME_LENGTH) ? name : name.substring(0, SUBSTRING_LENGTH);
+        name = normalizeName(name);
         colony.setName(name);
 
         if (ctxIn.getSender() != null)
@@ -66,5 +81,10 @@ public class TownHallRenameMessage extends AbstractColonyServerMessage
         {
             MinecraftForge.EVENT_BUS.post(new ColonyInformationChangedEvent(colony, ColonyInformationChangedEvent.Type.NAME));
         }
+    }
+
+    private static String normalizeName(final String name)
+    {
+        return (name.length() <= MAX_NAME_LENGTH) ? name : name.substring(0, SUBSTRING_LENGTH);
     }
 }

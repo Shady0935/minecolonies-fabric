@@ -76,7 +76,7 @@ public final class SimpleChannel
         }
 
         final boolean registered = ServerPlayNetworking.registerGlobalReceiver(id,
-          (server, player, handler, buffer, responseSender) -> handleServer(server, player, buffer));
+          (server, player, handler, buffer, responseSender) -> handleServerPacket(server, player, buffer));
         if (!registered && !ServerPlayNetworking.getGlobalReceivers().contains(id))
         {
             throw new IllegalStateException("Unable to register MineColonies server packet channel " + id);
@@ -84,8 +84,14 @@ public final class SimpleChannel
         serverReceiverRegistered = true;
     }
 
-    /** Dispatch the single Fabric channel packet on the server network thread. */
-    private void handleServer(final MinecraftServer server, final ServerPlayer sender, final FriendlyByteBuf buffer)
+    /**
+     * Dispatch the single Fabric channel packet on the server network thread.
+     *
+     * <p>The public boundary is also used by the Fabric GameTest harness so the
+     * registered receiver and the deterministic integration fixture exercise the
+     * same decode path.</p>
+     */
+    public void handleServerPacket(final MinecraftServer server, final ServerPlayer sender, final FriendlyByteBuf buffer)
     {
         final Registration<?> registration = registrations.get(0);
         if (registration == null)
@@ -94,7 +100,10 @@ public final class SimpleChannel
             return;
         }
 
-        final NetworkEvent.Context context = new NetworkEvent.Context(sender, LogicalSide.SERVER, server::execute);
+        // A packet received by the server originated on the client.  The
+        // Forge-shaped split envelope uses this origin to reject messages
+        // addressed to the wrong logical side and to expose isLogicalServer.
+        final NetworkEvent.Context context = new NetworkEvent.Context(sender, LogicalSide.CLIENT, server::execute);
         decodeAndConsume(registration, buffer, context);
     }
 
@@ -108,7 +117,8 @@ public final class SimpleChannel
             return;
         }
 
-        final NetworkEvent.Context context = new NetworkEvent.Context(null, LogicalSide.CLIENT, clientExecutor);
+        // A packet received by the client originated on the server.
+        final NetworkEvent.Context context = new NetworkEvent.Context(null, LogicalSide.SERVER, clientExecutor);
         decodeAndConsume(registration, buffer, context);
     }
 

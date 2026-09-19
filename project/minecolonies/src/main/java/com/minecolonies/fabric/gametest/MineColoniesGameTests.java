@@ -69,6 +69,7 @@ import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessa
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
+import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -100,6 +101,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -1773,6 +1775,49 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
           "Completed split packet was not removed from the cache");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerEnvelopeReachesColonyHandler(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Envelope Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S fixture colony was not created");
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S fixture has no running server");
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TownHallRenameMessage.class);
+        helper.assertTrue(messageId > 0, "Town Hall rename message was not registered");
+        final TownHallRenameMessage original = new TownHallRenameMessage(
+          colony.getDimension(), colony.getID(), "C2S Routed Colony");
+        final int communicationId = 0x43525348;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue("C2S Routed Colony".equals(colony.getName()),
+              "C2S envelope did not execute the Town Hall rename handler: " + colony.getName());
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "C2S envelope remained in the split-packet cache");
+            helper.succeed();
+        });
     }
 
     private static Player makeNonCreativeResearchPlayer(final ServerLevel level, final BlockPos position)
