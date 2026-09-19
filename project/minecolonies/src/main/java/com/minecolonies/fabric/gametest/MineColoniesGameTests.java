@@ -75,6 +75,7 @@ import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.HutRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
@@ -1831,6 +1832,64 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerHutRenameMessageRenamesBuilding(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Hut Rename Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S hut rename fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S hut rename fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding registeredTownHall = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(registeredTownHall != null && colony.hasTownHall(),
+          "C2S hut rename fixture Town Hall was not registered");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S hut rename fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, HutRenameMessage.class);
+        helper.assertTrue(messageId > 0, "HutRename message was not registered");
+        final HutRenameMessage original = new HutRenameMessage(
+          colony.getDimension(), colony.getID(), townHall, "C2S Renamed Town Hall");
+        final int communicationId = 0x4852544E;
+        final SplitPacketMessage envelope = new SplitPacketMessage(
+          communicationId, 0, true, messageId, encode(original));
+        final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.wrappedBuffer(encode(envelope)));
+        try
+        {
+            channel.getRawChannel().handleServerPacket(server, owner, packet);
+        }
+        finally
+        {
+            packet.release();
+        }
+
+        helper.runAfterDelay(1, () ->
+        {
+            final IBuilding renamedTownHall = colony.getBuildingManager().getBuilding(townHall);
+            helper.assertTrue(renamedTownHall != null
+              && "C2S Renamed Town Hall".equals(renamedTownHall.getCustomName()),
+              "HutRename message did not rename the resolved building: "
+                + (renamedTownHall == null ? null : renamedTownHall.getCustomName()));
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "HutRename envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerResearchMessageStartsResearch(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2153,7 +2212,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
         BlockPos relativeTownHall = null;
-        for (int offset = 512; offset <= 16384 && relativeTownHall == null; offset += 256)
+        for (int offset = 32768; offset <= 49152 && relativeTownHall == null; offset += 256)
         {
             final BlockPos candidate = new BlockPos(offset, 1, offset);
             if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
@@ -2168,6 +2227,17 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ItemStack townHallStack = new ItemStack(ModBlocks.blockHutTownHall.asItem());
         owner.getInventory().add(townHallStack.copy());
         StructurePacks.selectedPack = StructurePacks.getStructurePack(Constants.DEFAULT_STYLE);
+        // Keep this no-colony fixture isolated from concurrent colony-creation tests and resident for the async callback.
+        final int townHallChunkX = townHall.getX() >> 4;
+        final int townHallChunkZ = townHall.getZ() >> 4;
+        for (int chunkX = townHallChunkX - 2; chunkX <= townHallChunkX + 2; chunkX++)
+        {
+            for (int chunkZ = townHallChunkZ - 2; chunkZ <= townHallChunkZ + 2; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
+                level.getChunk(chunkX, chunkZ);
+            }
+        }
 
         final NetworkChannel channel = Network.getNetwork();
         final int messageId = findMessageId(channel, DirectPlaceMessage.class);
@@ -2189,7 +2259,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             packet.release();
         }
 
-        helper.runAfterDelay(20, () ->
+        helper.runAfterDelay(160, () ->
         {
             helper.assertTrue(level.getBlockState(townHall).getBlock() == ModBlocks.blockHutTownHall,
               "DirectPlace message did not place the Town Hall block");

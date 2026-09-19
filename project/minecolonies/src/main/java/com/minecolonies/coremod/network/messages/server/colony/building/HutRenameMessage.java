@@ -4,7 +4,10 @@ import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +38,21 @@ public class HutRenameMessage extends AbstractBuildingServerMessage<IBuilding>
     public HutRenameMessage(@NotNull final IBuildingView building, final String name)
     {
         super(building);
+        this.name = name;
+    }
+
+    /**
+     * Creates a server-bound rename message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId building position
+     * @param name new building name
+     */
+    public HutRenameMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final BlockPos buildingId, final String name)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.name = name;
     }
 

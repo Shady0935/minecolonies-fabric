@@ -134,8 +134,7 @@ public class DirectPlaceMessage implements IMessage
                     {
                         return;
                     }
-                    String fullPath = blueprint.getFilePath().toString();
-                    fullPath = fullPath.replace(StructurePacks.selectedPack.getPath().toString() + "/", "");
+                    String fullPath = StructurePacks.selectedPack.getSubPath(blueprint.getFilePath()).replace("\\", "/");
                     ((TileEntityColonyBuilding) tileEntity).setBlueprintPath(fullPath + "/" + blueprint.getFileName().substring(0, blueprint.getFileName().length() - 1) + "1.blueprint");
                     state.getBlock().setPlacedBy(world, pos, state, player, stack);
 
