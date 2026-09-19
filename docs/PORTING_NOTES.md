@@ -170,7 +170,10 @@ Structurize's server pack loader is connected to Fabric's
 `SERVER_STARTING` callback. Its mod-resource scan also descends through the
 `blueprints/minecolonies/<style>` layout used by the official MineColonies
 styles, so the Colonial and Original packs are available before gameplay
-looks up a blueprint. Client-bound network messages used during join and chunk
+looks up a blueprint. The explosion-protection GameTest also assigns the real
+`Colonial/fundamentals/townhall1.blueprint` to its Town Hall before registering
+the building; the latest 12-test run therefore resolves the structure without
+Structurize directory-read or rotation errors. Client-bound network messages used during join and chunk
 claim now keep their common codecs server-loadable and delegate visual work to
 the client bridge by reflection; their upstream message IDs remain stable.
 
