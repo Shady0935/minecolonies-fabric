@@ -56,15 +56,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
-  does not replace the pending AI, combat, rendering or restart-migration
+  does not replace the pending combat, rendering or restart-migration
   checks.
   It does not yet cover automatic housing capture, citizen sleep/navigation,
   multi-request resolution/delivery, automatic logistics inventory transfer
   beyond the focused rack-backed cycle, courier navigation, Builder pathfinding,
-  full CitizenAI tick orchestration and larger construction, miner shaft
+  full CitizenAI navigation/scheduling and larger construction, miner shaft
   construction, ore/mining AI and resource delivery, farmer crop
   growth/harvesting AI and field placement, a
-  client opening the Town Hall GUI, citizen rendering/work AI, hostile entity
+  client opening the Town Hall GUI, citizen rendering/full work-cycle
+  navigation, hostile entity
   AI/combat/rendering after restart, or DataFixer migration for old entity data. A
   dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
@@ -112,16 +113,18 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 - Authenticated in-game interaction with BlockUI screens (including an actual
   rendered entity/block hook overlay), full Builder pathfinding/larger
-  placement, citizen work cycles, logistics,
+  placement, full citizen navigation/work cycles, logistics,
   automatic housing/sleep behavior, miner shaft/ore behavior and mining AI,
   farmer crop/harvest behavior, University researcher AI/GUI, and raids
-  still need a real in-game interaction pass. Server-side
+  still need a real in-game interaction pass. The focused server-side
+  CitizenAI/Builder worker tick cycle is covered by GameTest, but full
+  navigation and longer work cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
   warehouse/courier resolver wiring, the focused deterministic Builder
   material-request/pickup and one-block placement path through the real worker
-  AI state machine (full CitizenAI scheduling/navigation is still pending),
+  AI state machine (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
   Farmer field assignment, Guard Tower/knight assignment, RaidManager event
   registration and the University worker-tick path have automated GameTest

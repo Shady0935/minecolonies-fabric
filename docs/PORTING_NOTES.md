@@ -187,7 +187,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 80-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 81-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
@@ -216,6 +216,13 @@ pending. Larger multi-stage construction and BlockUI interaction remain open.
 The shared worker state machine also guards the missing-item event from
 re-entering `NEEDS_ITEM` while that state is already waiting, preserving the
 normal `waitForRequests()` path for completed deliveries.
+
+The citizen-cycle fixture now lets the registered `EntityCitizen` tick through
+its normal server entity controller: it reaches `ACTIVE_SERVER`, constructs
+the high-level `CitizenAI`, selects `WORKING` for an assigned `JobBuilder` and
+ticks the real `EntityAIStructureBuilder`. Evidence is in
+`logs/minecolonies-gametest-citizen-ai-fix1.log`; client rendering, pathfinding
+and longer multi-step scheduling remain manual or pending.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric
@@ -822,9 +829,10 @@ their registered type identity and exercise an NBT reload. The two custom
 projectile types whose upstream `save` implementation deliberately returns
 `false` are expected to discard during reload; all other registered types must
 retain their position. This closes the registration/constructor/persistence
-contract for the complete current entity list without claiming that hostile AI,
-citizen work AI, combat, restart migration or client rendering have been
-exercised.
+contract for the complete current entity list. The separate citizen-cycle
+fixture covers server-side `CitizenAI` initialization and assigned Builder
+worker ticking; hostile AI, combat, restart migration and client rendering
+remain separate validation items.
 
 The container-opening bridge had a separate Forge semantic that the first Fabric
 implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`

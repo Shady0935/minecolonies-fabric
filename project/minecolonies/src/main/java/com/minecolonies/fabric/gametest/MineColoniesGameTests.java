@@ -90,6 +90,8 @@ import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetti
 import com.minecolonies.coremod.colony.managers.RaidManager;
 import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
+import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
+import com.minecolonies.api.entity.ai.statemachine.states.EntityState;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
@@ -813,6 +815,82 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(structure.getStage() == null,
           "Builder structure handler did not finish all placement stages");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 400)
+    public void citizenRunsAssignedWorkerAI(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        for (int x = 0; x <= 14; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Citizen AI GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Citizen AI fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Citizen AI fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Citizen AI fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "Citizen AI fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(registered instanceof BuildingBuilder,
+          "Citizen AI fixture registered the wrong building implementation: " + registered);
+        final BuildingBuilder builder = (BuildingBuilder) registered;
+        helper.assertTrue(builder.getBuildingLevel() >= 1,
+          "Citizen AI fixture did not resolve its level-one Builder blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Citizen AI fixture could not create a live citizen");
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null && workerModule.assignCitizen(citizen),
+          "Citizen AI fixture could not assign the Builder citizen");
+        helper.assertTrue(citizen.getJob() instanceof JobBuilder,
+          "Citizen AI fixture assignment did not create a Builder job");
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        helper.assertTrue(entity.getCitizenJobHandler().getWorkAI() instanceof EntityAIStructureBuilder,
+          "Citizen AI fixture assignment did not create the Builder worker AI");
+        citizen.setWorking(true);
+
+        helper.runAfterDelay(260, () ->
+        {
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Citizen entity did not reach ACTIVE_SERVER through normal entity ticks: "
+                + entity.getEntityStateController().getState());
+            helper.assertTrue(entity.getCitizenAI().getState() == CitizenAIState.WORKING,
+              "Citizen high-level AI did not enter WORKING: " + entity.getCitizenAI().getState());
+            helper.assertTrue(entity.getCitizenJobHandler().getWorkAI().getState() != null,
+              "Citizen high-level AI did not tick the assigned worker AI");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
