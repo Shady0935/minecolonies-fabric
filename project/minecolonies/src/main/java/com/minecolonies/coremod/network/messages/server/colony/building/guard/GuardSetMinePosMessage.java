@@ -7,6 +7,8 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +55,34 @@ public class GuardSetMinePosMessage extends AbstractBuildingServerMessage<Abstra
         super(building);
     }
 
+    /**
+     * Creates a server-bound message to select a mine without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  guard-tower position
+     * @param minePos     miner position to patrol
+     */
+    public GuardSetMinePosMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final BlockPos minePos)
+    {
+        super(dimensionId, colonyId, buildingId);
+        this.minePos = minePos;
+        this.hasMinePos = true;
+    }
+
+    /**
+     * Creates a server-bound message to clear the guard's assigned mine.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId    colony id
+     * @param buildingId  guard-tower position
+     */
+    public GuardSetMinePosMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId)
+    {
+        super(dimensionId, colonyId, buildingId);
+    }
+
     @Override
     public void fromBytesOverride(@NotNull final FriendlyByteBuf buf)
     {
@@ -76,15 +106,13 @@ public class GuardSetMinePosMessage extends AbstractBuildingServerMessage<Abstra
     @Override
     public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer, final IColony colony, final AbstractBuildingGuards building)
     {
-        final IBuilding miner;
-        if (this.minePos == null)
+        if (!this.hasMinePos)
         {
-            miner = building.getColony().getBuildingManager().getBuilding(building.getMinePos());
+            building.setMinePos(null);
+            return;
         }
-        else
-        {
-            miner = building.getColony().getBuildingManager().getBuilding(this.minePos);
-        }
+
+        final IBuilding miner = building.getColony().getBuildingManager().getBuilding(this.minePos);
         if (miner instanceof BuildingMiner)
         {
             building.setMinePos(this.minePos);

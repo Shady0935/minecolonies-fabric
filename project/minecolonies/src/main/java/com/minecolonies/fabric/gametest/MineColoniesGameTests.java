@@ -96,6 +96,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.fields.F
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldUpdateSeedMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignFieldMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.AssignmentModeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.guard.GuardSetMinePosMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.miner.MinerSetLevelMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.university.TryResearchMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
@@ -2507,6 +2508,97 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "MinerSetLevel envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerGuardSetMinePosMessageUpdatesPatrolMine(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeMiner = new BlockPos(10, 1, 2);
+        final BlockPos relativeGuardTower = new BlockPos(14, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos minerPos = helper.absolutePos(relativeMiner);
+        final BlockPos guardTowerPos = helper.absolutePos(relativeGuardTower);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeMiner, ModBlocks.blockHutMiner);
+        helper.setBlock(relativeGuardTower, ModBlocks.blockHutGuardTower);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Guard Mine Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S guard-mine fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S guard-mine fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S guard-mine fixture Town Hall was not registered");
+
+        final BlockEntity minerEntity = level.getBlockEntity(minerPos);
+        helper.assertTrue(minerEntity instanceof TileEntityColonyBuilding,
+          "C2S guard-mine fixture did not create a Miner block entity");
+        final TileEntityColonyBuilding minerHut = (TileEntityColonyBuilding) minerEntity;
+        minerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
+        minerHut.setSchematicName("mine1");
+        final IBuilding registeredMiner = colony.getBuildingManager().addNewBuilding(minerHut, level);
+        helper.assertTrue(registeredMiner instanceof BuildingMiner,
+          "C2S guard-mine fixture registered the wrong miner: " + registeredMiner);
+
+        final BlockEntity guardTowerEntity = level.getBlockEntity(guardTowerPos);
+        helper.assertTrue(guardTowerEntity instanceof TileEntityColonyBuilding,
+          "C2S guard-mine fixture did not create a Guard Tower block entity");
+        final TileEntityColonyBuilding guardTowerHut = (TileEntityColonyBuilding) guardTowerEntity;
+        guardTowerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        guardTowerHut.setBlueprintPath("military/guardtower1.blueprint");
+        guardTowerHut.setSchematicName("guardtower1");
+        final IBuilding registeredGuard = colony.getBuildingManager().addNewBuilding(guardTowerHut, level);
+        helper.assertTrue(registeredGuard instanceof BuildingGuardTower,
+          "C2S guard-mine fixture registered the wrong guard tower: " + registeredGuard);
+        final BuildingGuardTower guardTower = (BuildingGuardTower) registeredGuard;
+        helper.assertTrue(guardTower.getMinePos() == null,
+          "C2S guard-mine fixture unexpectedly started with an assigned mine");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S guard-mine fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, GuardSetMinePosMessage.class);
+        helper.assertTrue(messageId > 0, "GuardSetMinePos message was not registered");
+        final int setCommunicationId = 0x474D5345;
+        dispatchServerMessage(channel, server, owner, messageId, setCommunicationId,
+          new GuardSetMinePosMessage(colony.getDimension(), colony.getID(), guardTowerPos, minerPos));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(minerPos.equals(guardTower.getMinePos()),
+              "GuardSetMinePos message did not assign the Miner as patrol target");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(setCommunicationId) == null,
+              "GuardSetMinePos assignment envelope remained in the split-packet cache");
+            final int clearCommunicationId = 0x474D434C;
+            dispatchServerMessage(channel, server, owner, messageId, clearCommunicationId,
+              new GuardSetMinePosMessage(colony.getDimension(), colony.getID(), guardTowerPos));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(guardTower.getMinePos() == null,
+                  "GuardSetMinePos clear message did not remove the patrol target");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(clearCommunicationId) == null,
+                  "GuardSetMinePos clear envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 
