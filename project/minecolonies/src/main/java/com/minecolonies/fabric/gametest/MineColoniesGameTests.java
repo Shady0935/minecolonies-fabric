@@ -128,6 +128,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.universi
 import com.minecolonies.coremod.network.messages.server.colony.ToggleMoveInMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.AdjustSkillCitizenMessage;
 import com.minecolonies.coremod.network.messages.server.colony.citizen.PauseCitizenMessage;
+import com.minecolonies.coremod.network.messages.server.colony.citizen.TransferItemsToCitizenRequestMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.minecolonies.fabric.common.MinecraftForge;
@@ -3075,6 +3076,74 @@ public final class MineColoniesGameTests implements FabricGameTest
               "GiveTool message stored the wrong colony id");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "GiveTool envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerTransferItemsToCitizenMovesInventory(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.getInventory().clearContent();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Citizen Inventory Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S citizen-inventory fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S citizen-inventory fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S citizen-inventory fixture Town Hall was not registered");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "C2S citizen-inventory fixture could not create a live citizen");
+        final AbstractEntityCitizen citizenEntity = citizen.getEntity().get();
+        final int quantity = 7;
+        final ItemStack transferStack = new ItemStack(Items.COBBLESTONE, quantity);
+        helper.assertTrue(owner.getInventory().add(transferStack.copy()),
+          "C2S citizen-inventory fixture could not seed the owner inventory");
+        helper.assertTrue(owner.getInventory().countItem(Items.COBBLESTONE) == quantity,
+          "C2S citizen-inventory fixture did not seed the requested item quantity");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S citizen-inventory fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TransferItemsToCitizenRequestMessage.class);
+        helper.assertTrue(messageId > 0, "TransferItemsToCitizenRequest message was not registered");
+        final int communicationId = 0x54434954;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new TransferItemsToCitizenRequestMessage(colony.getDimension(), colony.getID(), citizen.getId(),
+            transferStack, quantity));
+
+        helper.runAfterDelay(1, () ->
+        {
+            int storedCount = 0;
+            for (int slot = 0; slot < citizenEntity.getInventoryCitizen().getSlots(); slot++)
+            {
+                final ItemStack storedStack = citizenEntity.getInventoryCitizen().getStackInSlot(slot);
+                if (storedStack.is(Items.COBBLESTONE))
+                {
+                    storedCount += storedStack.getCount();
+                }
+            }
+            helper.assertTrue(storedCount == quantity,
+              "TransferItemsToCitizenRequest message did not move the requested items into the citizen inventory: "
+                + storedCount);
+            helper.assertTrue(owner.getInventory().countItem(Items.COBBLESTONE) == 0,
+              "TransferItemsToCitizenRequest message did not remove the transferred items from the owner");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "TransferItemsToCitizenRequest envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

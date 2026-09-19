@@ -10,9 +10,11 @@ import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.network.messages.server.AbstractColonyServerMessage;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +64,24 @@ public class TransferItemsToCitizenRequestMessage extends AbstractColonyServerMe
     {
         super(colony);
         this.citizenId = citizenDataView.getId();
+        this.itemStack = itemStack;
+        this.quantity = quantity;
+    }
+
+    /**
+     * Creates a server-bound transfer request from stable colony identifiers.
+     *
+     * @param dimensionId the colony dimension.
+     * @param colonyId    the colony id.
+     * @param citizenId   the citizen receiving the items.
+     * @param itemStack   the item to transfer.
+     * @param quantity    the requested quantity.
+     */
+    public TransferItemsToCitizenRequestMessage(final ResourceKey<Level> dimensionId, final int colonyId,
+      final int citizenId, final ItemStack itemStack, final int quantity)
+    {
+        super(dimensionId, colonyId);
+        this.citizenId = citizenId;
         this.itemStack = itemStack;
         this.quantity = quantity;
     }
