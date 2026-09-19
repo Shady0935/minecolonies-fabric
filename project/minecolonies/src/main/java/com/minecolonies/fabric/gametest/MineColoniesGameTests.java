@@ -29,12 +29,21 @@ import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
+import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
+import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
+import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
+import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
+import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
+import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
+import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
@@ -533,6 +542,99 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Residence living module did not retain the assigned citizen");
         helper.assertTrue(citizen.getHomeBuilding() == residence,
           "Residence assignment did not update the citizen home building");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void warehouseRegistersCourierAndRequestResolvers(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeWarehouse = new BlockPos(10, 1, 2);
+        final BlockPos relativeDeliveryman = new BlockPos(14, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
+        final BlockPos deliverymanPos = helper.absolutePos(relativeDeliveryman);
+        for (int x = 0; x <= 18; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
+        helper.setBlock(relativeDeliveryman, ModBlocks.blockHutDeliveryman);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Warehouse GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Warehouse fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Warehouse fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity warehouseEntity = level.getBlockEntity(warehousePos);
+        helper.assertTrue(warehouseEntity instanceof TileEntityColonyBuilding,
+          "Warehouse fixture did not create a warehouse block entity");
+        final TileEntityColonyBuilding warehouseHut = (TileEntityColonyBuilding) warehouseEntity;
+        warehouseHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        warehouseHut.setBlueprintPath("craftsmanship/storage/warehouse1.blueprint");
+        warehouseHut.setSchematicName("warehouse1");
+        final IBuilding warehouseBuilding = colony.getBuildingManager().addNewBuilding(warehouseHut, level);
+        helper.assertTrue(warehouseBuilding instanceof BuildingWareHouse,
+          "Warehouse fixture registered the wrong building implementation: " + warehouseBuilding);
+        helper.assertTrue(warehouseBuilding.getBuildingLevel() >= 1,
+          "Warehouse fixture did not resolve its level-one blueprint");
+
+        final BlockEntity deliverymanEntity = level.getBlockEntity(deliverymanPos);
+        helper.assertTrue(deliverymanEntity instanceof TileEntityColonyBuilding,
+          "Warehouse fixture did not create a deliveryman block entity");
+        final TileEntityColonyBuilding deliverymanHut = (TileEntityColonyBuilding) deliverymanEntity;
+        deliverymanHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        deliverymanHut.setBlueprintPath("craftsmanship/storage/courier1.blueprint");
+        deliverymanHut.setSchematicName("courier1");
+        final IBuilding deliverymanBuilding = colony.getBuildingManager().addNewBuilding(deliverymanHut, level);
+        helper.assertTrue(deliverymanBuilding instanceof BuildingDeliveryman,
+          "Warehouse fixture registered the wrong deliveryman implementation: " + deliverymanBuilding);
+        helper.assertTrue(deliverymanBuilding.getBuildingLevel() >= 1,
+          "Warehouse fixture did not resolve its level-one courier blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, deliverymanPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Warehouse fixture could not create a live courier citizen");
+        final WorkerBuildingModule courierWork = deliverymanBuilding.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.delivery.get());
+        helper.assertTrue(courierWork instanceof DeliverymanAssignmentModule,
+          "Deliveryman worker module was not registered");
+        helper.assertTrue(courierWork.assignCitizen(citizen),
+          "Deliveryman worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobDeliveryman,
+          "Deliveryman assignment did not create the deliveryman job");
+
+        final CourierAssignmentModule couriers = warehouseBuilding.getFirstModuleOccurance(CourierAssignmentModule.class);
+        helper.assertTrue(couriers.assignCitizen(citizen),
+          "Warehouse courier module rejected the assigned deliveryman");
+        helper.assertTrue(couriers.hasAssignedCitizen(citizen),
+          "Warehouse courier module did not retain the assigned deliveryman");
+        helper.assertTrue(((BuildingWareHouse) warehouseBuilding).canAccessWareHouse(citizen),
+          "Assigned deliveryman could not access the warehouse");
+
+        final java.util.Collection<IRequestResolver<?>> resolvers = warehouseBuilding.createResolvers();
+        helper.assertTrue(resolvers.stream().anyMatch(resolver -> resolver instanceof WarehouseRequestResolver),
+          "Warehouse request resolver was not registered");
+        helper.assertTrue(resolvers.stream().anyMatch(resolver -> resolver instanceof DeliveryRequestResolver),
+          "Warehouse delivery resolver was not registered");
+        helper.assertTrue(resolvers.stream().anyMatch(resolver -> resolver instanceof PickupRequestResolver),
+          "Warehouse pickup resolver was not registered");
         helper.succeed();
     }
 
