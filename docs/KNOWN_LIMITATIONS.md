@@ -121,8 +121,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
   proxy plus a live assigned Builder `BUILDING_STEP` placement/consumption
-  cycle are covered by GameTest, but automatic work-order scheduling/selection,
-  full work-order pathfinding, larger construction and longer work cycles remain
+  cycle and automatic order claim are covered by GameTest, but full work-order
+  pathfinding, larger construction and longer post-selection work cycles remain
   pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research

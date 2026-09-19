@@ -628,7 +628,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = BUILDER_TEST_BATCH, timeoutTicks = 500)
     public void builderAssignsRegisteredWorkOrderToCitizen(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -694,13 +694,21 @@ public final class MineColoniesGameTests implements FabricGameTest
         colony.getWorkManager().addWorkOrder(order, false);
         helper.assertTrue(order.getID() > 0, "Builder assignment order did not receive a persistent id");
         helper.assertTrue(order.canBeMadeBy(job), "Builder assignment order rejected the assigned builder job");
-
-        builder.searchWorkOrder();
-        helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
-          "Builder did not select the registered work order");
-        helper.assertTrue(order.isClaimedBy(citizen),
-          "Builder did not persist the work-order claim for its citizen");
-        helper.succeed();
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        citizen.setWorking(true);
+        helper.runAfterDelay(160, () ->
+        {
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Builder assignment citizen did not reach ACTIVE_SERVER: "
+                + entity.getEntityStateController().getState());
+            helper.assertTrue(entity.getCitizenAI().getState() == CitizenAIState.WORKING,
+              "Builder assignment citizen did not enter WORKING: " + entity.getCitizenAI().getState());
+            helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
+              "Builder did not automatically select the registered work order");
+            helper.assertTrue(order.isClaimedBy(citizen),
+              "Builder did not persist the automatically selected work-order claim for its citizen");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

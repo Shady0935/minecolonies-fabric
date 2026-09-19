@@ -195,19 +195,19 @@ completed.
   receives it through Warehouse/Courier and ticks the real
   `EntityAIStructureBuilder` through request pickup, Builder Hut transfer and
   `BUILDING_STEP`, placing the block and consuming the resource; deterministic
-  position setup covers the known fixture route while full work-cycle
-  scheduling, larger construction and GUI interaction remain open. A companion
+  position setup covers the known fixture route while full post-selection
+  work-cycle scheduling, larger construction and GUI interaction remain open. A companion
   Builder fixture also drives the real construction-site navigation helper with
   a live citizen and verifies arrival within the work radius. A companion citizen-cycle
   fixture now ticks a registered `EntityCitizen` through `ACTIVE_SERVER`,
   high-level `CitizenAI.WORKING` and the assigned Builder worker AI
 - [x] A dedicated live-assigned Builder fixture now persists a `WorkOrderBuilding`
-  in the colony `WorkManager`, associates it with the actual `JobBuilder`, and
-  drives the normal `CitizenAI` tick path through the assigned
+  in the colony `WorkManager`; normal `CitizenAI` ticks automatically select and
+  claim it on the actual `JobBuilder`, then drive the assigned
   `EntityAIStructureBuilder` and a `BUILDING_STEP`; a custom one-block blueprint
-  is placed and its stone is consumed before the handler finishes. Automatic
-  work-order scheduling/selection, pathfinding over larger structures and the
-  full logistics-backed construction cycle remain open
+  is placed and its stone is consumed before the handler finishes. Pathfinding
+  over larger structures and the full logistics-backed construction cycle remain
+  open
 - [x] Colony-backed citizen advanced navigation reaches a real target and
   preserves the completed `PathResult` status; a companion fixture routes the
   citizen around a solid two-block barrier and verifies a real detour in the
@@ -339,7 +339,7 @@ completed.
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
 - [x] Latest 85-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 83-test core batch covers event-dispatch
+  dimensions; its 82-test core batch covers event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
