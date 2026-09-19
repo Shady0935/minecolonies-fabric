@@ -359,10 +359,13 @@ migration guarantee until upstream defines those schemas.
 
 The Fabric GameTest registry fixture now enumerates the target registry and
 verifies all 25 MineColonies custom entity types can be constructed, retain
-their registered type identity and serialize their position NBT. This closes
-the registration/constructor/serialization contract for the complete current
-entity list without claiming that hostile AI, citizen work AI, combat,
-restart migration or client rendering have been exercised.
+their registered type identity and exercise an NBT reload. The two custom
+projectile types whose upstream `save` implementation deliberately returns
+`false` are expected to discard during reload; all other registered types must
+retain their position. This closes the registration/constructor/persistence
+contract for the complete current entity list without claiming that hostile AI,
+citizen work AI, combat, restart migration or client rendering have been
+exercised.
 
 The container-opening bridge had a separate Forge semantic that the first Fabric
 implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`

@@ -12,8 +12,9 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean Fabric GameTest batch passes all 25
-required tests, covers construction/position-NBT serialization for all 25
-currently registered custom entity types and verifies Forge event priority plus
+required tests, covers construction and NBT reload behavior for all 25
+currently registered custom entity types (including the two intentional
+non-persistent projectile cases), and verifies Forge event priority plus
 inherited listener dispatch; entity AI, combat and client rendering are still
 open.
 The following work remains, in order:

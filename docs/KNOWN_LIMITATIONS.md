@@ -40,10 +40,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
-  A complete registry fixture also instantiates and serializes all 25 current
-  MineColonies custom entity types. This verifies registration and basic NBT
-  construction only; it does not replace the pending AI, combat, rendering or
-  restart-migration checks.
+  A complete registry fixture instantiates all 25 current MineColonies custom
+  entity types and exercises their NBT reload behavior. The two upstream
+  non-persistent projectile types are expected to discard during reload; this
+  does not replace the pending AI, combat, rendering or restart-migration
+  checks.
   It does not yet cover automatic housing capture, citizen sleep/navigation,
   request creation/resolution, inventory transfer, courier navigation, Builder
   AI/material requests/placement, miner shaft construction, ore/mining AI and

@@ -112,8 +112,10 @@ completed.
 - [x] Citizen entity creation, colony registration and citizen-data NBT
   round-trip exercised by Fabric GameTest
 - [x] All 25 registered MineColonies custom entity types instantiate, preserve
-  their registry identity and serialize position NBT in Fabric GameTest;
-  entity AI, combat and rendering remain separate validation work
+  their registry identity and exercise the NBT reload contract in Fabric
+  GameTest; the two upstream non-persistent projectile types intentionally
+  discard on reload, while entity AI, combat and rendering remain separate
+  validation work
 - [ ] Citizen rendering/work cycle and hostile custom entities exercised
 - [x] Town Hall and colony creation exercised server-side by Fabric GameTest
 - [x] Colony protection callback denies unauthorized Town Hall access and
@@ -197,8 +199,9 @@ completed.
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
 - [x] Latest 25-test Fabric GameTest batch passes with clean saves for all three
-  dimensions; event-dispatch evidence is in
-  `logs/minecolonies-gametest-event-priority.log`
+  dimensions; the run covers event-dispatch priority/inheritance, all custom
+  entity NBT reload contracts and populated-tavern conversion; evidence is in
+  `logs/minecolonies-gametest-entity-persistence.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

@@ -30,7 +30,9 @@ import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
+import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
+import com.minecolonies.coremod.entity.SpearEntity;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.CourierAssignmentModule;
 import com.minecolonies.coremod.colony.buildings.modules.DeliverymanAssignmentModule;
@@ -76,6 +78,7 @@ import com.minecolonies.fabric.event.EventPriority;
 import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
 import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
+import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
 import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import com.minecolonies.fabric.event.entity.player.EntityItemPickupEvent;
@@ -140,6 +143,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class MineColoniesGameTests implements FabricGameTest
 {
     private static final String TEST_BATCH = "minecolonies_fabric_port";
+    private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
 
     public MineColoniesGameTests()
     {
@@ -153,8 +157,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
-    public void customEntityTypesInstantiateAndSerialize(final GameTestHelper helper)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = ENTITY_TEST_BATCH, timeoutTicks = 200)
+    public void customEntityTypesInstantiateAndReload(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
         int customEntityCount = 0;
@@ -174,7 +178,21 @@ public final class MineColoniesGameTests implements FabricGameTest
             final CompoundTag serialized = entity.saveWithoutId(new CompoundTag());
             helper.assertTrue(serialized.contains("Pos"), "Custom entity did not serialize its position: " + id);
             helper.assertTrue(entity.getType() == entityType, "Entity type mismatch after construction: " + id);
+            final Entity reloaded = entityType.create(level);
+            helper.assertTrue(reloaded != null, "Could not create NBT reload instance for " + id);
+            reloaded.load(serialized);
+            if (entity instanceof CustomArrowEntity || entity instanceof SpearEntity)
+            {
+                helper.assertTrue(reloaded.isRemoved(),
+                  "Non-persistent projectile did not discard during NBT reload: " + id);
+            }
+            else
+            {
+                helper.assertTrue(reloaded.blockPosition().equals(entity.blockPosition()),
+                  "Custom entity changed position during NBT reload: " + id);
+            }
             entity.discard();
+            reloaded.discard();
             customEntityCount++;
         }
 
@@ -1264,8 +1282,40 @@ public final class MineColoniesGameTests implements FabricGameTest
             final Set<Integer> visitorsBefore = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
             helper.assertTrue(level.addFreshEntity(previous), "Zombie Villager could not be added to the conversion fixture");
 
-            ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
+            // Other GameTests share this server world and may finish their
+            // direct colony setup after this fixture was initialized.  The
+            // conversion handler resolves the colony from the owning-colony
+            // chunk entry, so refresh this fixture's completed Town Hall claim
+            // at the actual conversion boundary and verify that lookup before
+            // dispatching the Fabric callback.
+            ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 0, level, true);
+            final IColony resolvedColony = IColonyManager.getInstance().getIColony(level, conversionPos);
+            helper.assertTrue(resolvedColony == colony && resolvedColony.hasBuilding("tavern", 1, false),
+              "Visitor conversion chunk no longer resolves to its tavern colony: " + resolvedColony);
 
+            final AtomicBoolean conversionCanceled = new AtomicBoolean(false);
+            final Object conversionProbe = new Object()
+            {
+                @SubscribeEvent(priority = EventPriority.LOWEST)
+                public void observe(final LivingConversionEvent.Pre event)
+                {
+                    if (event.getEntity() == previous)
+                    {
+                        conversionCanceled.set(event.isCanceled());
+                    }
+                }
+            };
+            MinecraftForge.EVENT_BUS.register(conversionProbe);
+            try
+            {
+                ServerLivingEntityEvents.MOB_CONVERSION.invoker().onConversion(previous, converted, true);
+            }
+            finally
+            {
+                MinecraftForge.EVENT_BUS.unregister(conversionProbe);
+            }
+
+            helper.assertTrue(conversionCanceled.get(), "Tavern conversion event was not canceled by the retained handler");
             helper.assertTrue(converted.isRemoved(), "Tavern conversion left the vanilla candidate alive");
             final Set<Integer> visitorsAfter = new HashSet<>(colony.getVisitorManager().getCivilianDataMap().keySet());
             visitorsAfter.removeAll(visitorsBefore);
