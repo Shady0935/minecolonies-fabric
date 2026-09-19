@@ -9,8 +9,11 @@ import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.SettingsModule;
 import com.minecolonies.coremod.colony.buildings.modules.settings.SettingKey;
 import com.minecolonies.coremod.network.messages.server.AbstractBuildingServerMessage;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import com.minecolonies.fabric.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,6 +54,25 @@ public class TriggerSettingMessage extends AbstractBuildingServerMessage<Abstrac
     public TriggerSettingMessage(final IBuildingView building, final ISettingKey<?> key, final ISetting value, final int moduleID)
     {
         super(building);
+        this.key = key.getUniqueId();
+        this.value = value;
+        this.moduleID = moduleID;
+    }
+
+    /**
+     * Creates a server-bound setting message without requiring a client building view.
+     *
+     * @param dimensionId colony dimension
+     * @param colonyId colony id
+     * @param buildingId target building position
+     * @param key unique setting key
+     * @param value new setting value
+     * @param moduleID settings-module runtime id
+     */
+    public TriggerSettingMessage(final ResourceKey<Level> dimensionId, final int colonyId, final BlockPos buildingId,
+      final ISettingKey<?> key, final ISetting value, final int moduleID)
+    {
+        super(dimensionId, colonyId, buildingId);
         this.key = key.getUniqueId();
         this.value = value;
         this.moduleID = moduleID;

@@ -55,6 +55,7 @@ import com.minecolonies.coremod.colony.jobs.JobFarmer;
 import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
+import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
 import com.minecolonies.coremod.colony.managers.RaidManager;
 import com.minecolonies.coremod.colony.fields.FarmField;
@@ -86,6 +87,7 @@ import com.minecolonies.coremod.network.messages.server.colony.building.HutRenam
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.BuildingSetStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.ChangeDeliveryPriorityMessage;
+import com.minecolonies.coremod.network.messages.server.colony.building.TriggerSettingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.builder.BuilderSelectWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldPlotResizeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.building.fields.FarmFieldRegistrationMessage;
@@ -2295,6 +2297,76 @@ public final class MineColoniesGameTests implements FabricGameTest
                     helper.succeed();
                 });
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerTriggerSettingMessageUpdatesFarmer(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Farmer Settings Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S farmer-settings fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S farmer-settings fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "C2S farmer-settings fixture did not create a Farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(registered instanceof BuildingFarmer,
+          "C2S farmer-settings fixture registered the wrong building: " + registered);
+        final BuildingFarmer farmer = (BuildingFarmer) registered;
+        helper.assertTrue(farmer.requestFertilizer(),
+          "C2S farmer-settings fixture did not start with fertilizer requests enabled");
+        final int settingsModuleId = BuildingModules.FARMER_SETTINGS.getRuntimeID();
+        helper.assertTrue(farmer.getModule(settingsModuleId) != null,
+          "C2S farmer-settings fixture runtime module id did not resolve its settings module");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S farmer-settings fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TriggerSettingMessage.class);
+        helper.assertTrue(messageId > 0, "TriggerSetting message was not registered");
+        final int communicationId = 0x46525447;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new TriggerSettingMessage(colony.getDimension(), colony.getID(), farmerPos,
+            BuildingFarmer.FERTILIZE, new BoolSetting(false), settingsModuleId));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(!farmer.requestFertilizer(),
+              "TriggerSetting message did not disable Farmer fertilizer requests");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "TriggerSetting envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 
