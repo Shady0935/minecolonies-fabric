@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The latest 92-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`.
+in `logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -248,7 +248,7 @@ Farmer navigation test, one isolated Miner mining-cycle test, one isolated autom
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
 guard combat test, one entity batch and one focused real raider long-route /
 fallback test) is in
-`logs/minecolonies-gametest-raider-long-route-92-green-20260920.log`; this run also
+`logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`; this run also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric container-change bridge reassigns
 the request when the sword arrives, and confirms that the knight retrieves it
@@ -569,8 +569,10 @@ A forty-seventh companion C2S fixture serializes
 isolated Colonial Guard Tower. It preserves the serialized `StaticLocation`,
 activates and deactivates the banner through the server executor, updates and
 clears the tower's rally target, removes the tower from the banner list and
-confirms every split-cache entry is cleaned. Sustained guard navigation,
-equipment, raids and combat remain manual validation items.
+confirms every split-cache entry is cleaned. Full guard navigation, broader
+request-driven equipment, raids outside the controlled fixture and client
+interaction remain manual validation items; the controlled guard/raid combat
+paths are covered by the latest two-impact GameTest checkpoint.
 
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
@@ -651,8 +653,8 @@ its guard roster. A focused companion equips the level-one sword/leather gear,
 and lets
 `searchNearbyTarget` discover the nearby hostile. The real threat table then
 passes its validity/range checks and `EntityAIKnight`/`KnightCombatAI` verifies
-the hostile hit. Sustained guard navigation, broader ambient target search,
-full request-driven equipment provisioning and longer guard combat remain
+two distinct hostile health transitions. Sustained guard navigation, broader
+ambient target search and full request-driven equipment provisioning remain
 manual validation items.
 
 The raid fixture raises a real colony above `RaidManager.MIN_REQUIRED_RAIDLEVEL`
@@ -671,8 +673,10 @@ raid path has no waypoints. The same fixture completes a synthetic asynchronous
 path after the event is active and verifies that `HordeRaidEvent.onUpdate()`
 publishes the resulting waypoints. The real `RaidManager` fixture then lets a
 generated raider advance from its spawn position after those waypoints arrive
-before driving the short-range combat phase. Sustained raid combat remains a
-manual validation item.
+before driving the controlled combat phase. The fixture now requires two
+distinct citizen health transitions from the selected spawned raider, so
+sustained raid combat is covered server-side; long-range behavior beyond the
+fixture and client interaction remain manual validation items.
 
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond
@@ -923,8 +927,9 @@ projectile types whose upstream `save` implementation deliberately returns
 retain their position. This closes the registration/constructor/persistence
 contract for the complete current entity list. The separate citizen-cycle
 fixture covers server-side `CitizenAI` initialization and assigned Builder
-worker ticking; long-range hostile AI/navigation, sustained combat, restart
-migration and client rendering remain separate validation items.
+worker ticking; long-range hostile AI/navigation, restart migration and client
+rendering remain separate validation items. Controlled guard and raid combat
+now have dedicated two-impact coverage.
 
 The container-opening bridge had a separate Forge semantic that the first Fabric
 implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`

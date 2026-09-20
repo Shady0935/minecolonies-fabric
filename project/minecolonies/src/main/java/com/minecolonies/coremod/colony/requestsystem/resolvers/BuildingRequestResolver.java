@@ -13,11 +13,15 @@ import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.api.util.constant.TypeConstants;
 import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.core.AbstractBuildingDependentRequestResolver;
+import com.minecolonies.fabric.capability.CapabilityHooks;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import com.minecolonies.fabric.capability.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -196,6 +200,24 @@ public class BuildingRequestResolver extends AbstractBuildingDependentRequestRes
     {
         final Set<ICapabilityProvider> tileEntities = Sets.newHashSet();
         tileEntities.add(building.getTileEntity());
+        // Forge exposed registered building containers through the capability
+        // lookup used by this resolver. The Fabric bridge has no attached
+        // capability list on AbstractBuilding, so include every loaded
+        // registered container explicitly (racks, chests, and the building
+        // tile itself). Without this, a valid request can stay IN_PROGRESS
+        // forever even though the building inventory scan sees the item.
+        final var world = building.getColony().getWorld();
+        for (final BlockPos pos : building.getContainers())
+        {
+            if (WorldUtil.isBlockLoaded(world, pos))
+            {
+                final BlockEntity entity = world.getBlockEntity(pos);
+                if (entity != null)
+                {
+                    tileEntities.add(CapabilityHooks.asProvider(entity));
+                }
+            }
+        }
         tileEntities.removeIf(Objects::isNull);
         return tileEntities;
     }

@@ -1,6 +1,6 @@
 # Porting status
 
-Checkpoint: 2026-09-19. A checked item is verified in the target workspace;
+Checkpoint: 2026-09-20. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually
 completed.
@@ -151,10 +151,10 @@ completed.
   their registry identity and exercise the NBT reload contract in Fabric
   GameTest; the two upstream non-persistent projectile types intentionally
   discard on reload; focused farmer, guard autonomous-target-search/combat,
-  real guard-versus-barbarian response, short-range raider `AttackMoveAI` and
-  `RaiderWalkAI` empty-waypoint fallback paths are covered, while full work
-  cycles, sustained raid combat and client rendering
-  remain separate validation work
+  real guard-versus-barbarian response, two-impact guard/raid combat,
+  short-range raider `AttackMoveAI` and `RaiderWalkAI` empty-waypoint fallback
+  paths are covered, while full work cycles, long-range hostile navigation and
+  client rendering remain separate validation work
 - [x] Server-side `CitizenAI` initialization and an assigned Builder worker
   cycle exercised through normal entity ticks; a colony-backed citizen also
   computes and follows a real advanced-navigation path to a target while
@@ -313,8 +313,8 @@ completed.
   cycle; a companion fixture registers a real MineColonies barbarian raider,
   lets the guard discover it through the threat search and verifies knight
   damage. Full guard navigation/long-running ambient target search, broader
-  resolver-driven equipment workflows and sustained guard/raider combat remain
-  open
+  resolver-driven equipment workflows remain open; controlled two-impact guard
+  combat is covered by the latest GameTest checkpoint
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point, advances the
   real HordeRaidEvent through spawn and `PREPARING`/`PROGRESSING` lifecycle,
@@ -326,7 +326,8 @@ completed.
   guard-versus-barbarian response is covered by the companion guard fixture;
   `HordeRaidEvent` also publishes waypoints when its asynchronous path completes
   after the event starts, and the real `RaidManager` fixture observes a spawned
-  raider advancing from its route origin; sustained raid combat remains open
+  raider advancing from its route origin; the controlled combat phase requires
+  two distinct health transitions and passes in the latest GameTest checkpoint
 - [ ] BlockUI screens and remaining client-to-server gameplay actions
 
 ## Validation
@@ -443,7 +444,7 @@ completed.
   delayed asynchronous raid path publishes waypoints during a later event tick,
   a real spawned raider advances from its route origin, and a real guard damages
   a registered barbarian raider; evidence is in
-  `logs/minecolonies-gametest-raider-long-route-92-green-20260920.log`
+  `logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

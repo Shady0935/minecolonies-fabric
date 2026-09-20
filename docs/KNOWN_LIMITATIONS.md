@@ -63,8 +63,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
-  does not replace the pending sustained raid combat,
-  rendering or restart-migration checks.
+  does not replace the rendering or restart-migration checks.
   It does not yet cover multi-request resolution/delivery, automatic logistics
   inventory transfer beyond the focused rack-backed cycle, courier navigation,
   full Builder work-order pathfinding and
@@ -75,8 +74,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   autonomous tree-search/replanting cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
-  navigation, long-range hostile-entity target search/navigation, sustained
-  AI/combat/rendering after restart, or DataFixer migration for old entity data. A
+  navigation, long-range hostile-entity target search/navigation, combat and
+  rendering after restart, or DataFixer migration for old entity data. A
   dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
   with colony/citizen NBT.
@@ -138,11 +137,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   search/replanting, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard navigation and long-running ambient target search beyond the
-  covered short-range barbarian response,
-  broader request-driven guard equipment (the current checkpoint covers one
-  late-arriving sword request from a registered storage chest and its normal
-  pickup path), and sustained raid combat
-  still need a real in-game interaction pass. The focused server-side
+  covered short-range barbarian response, and broader request-driven guard
+  equipment (the current checkpoint covers one late-arriving sword request from
+  a registered storage chest and its normal pickup path) still need a real
+  in-game interaction pass. Controlled sustained guard and raid combat now have
+  automated two-impact GameTest coverage. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
   proxy plus a live assigned Builder `BUILDING_STEP` placement/consumption
@@ -211,7 +210,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-raider-long-route-92-green-20260920.log`. The
+  `logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

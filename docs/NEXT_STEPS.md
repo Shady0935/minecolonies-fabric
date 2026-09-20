@@ -26,7 +26,7 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 91
+real visitor entity. The latest clean Fabric GameTest run passes all 92
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
@@ -74,11 +74,11 @@ Researcher bookshelf navigation/study/mana, short-range Farmer
 harvest/navigation and Guard autonomous-target-search/combat cycles with a
 late-arriving registered-chest sword request and normal pickup, plus the
 registered-raider `AttackMoveAI` short-range target/damage path, the
-`RaiderWalkAI` direct-target fallback when waypoints are empty and a real
-`JobKnight` response against a registered MineColonies barbarian raider. Full
-entity work cycles, sustained guard navigation/ambient target search, broader
-request-driven equipment provisioning, sustained raid combat, plus client
-rendering, are still open.
+`RaiderWalkAI` direct-target fallback when waypoints are empty, a real
+`JobKnight` response against a registered MineColonies barbarian raider and
+two-impact sustained guard/raid combat fixtures. Full entity work cycles,
+sustained guard navigation/ambient target search, broader request-driven
+equipment provisioning and client rendering are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable
