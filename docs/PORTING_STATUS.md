@@ -95,6 +95,11 @@ completed.
   focused GameTest: a registered Town Hall receives the real envelope and
   spawns the expected colony-linked mercenary group; evidence is in
   `logs/minecolonies-gametest-mercenary-1-green-20260920.xml`
+- [x] `InteractionResponse` and `InteractionClose` are covered through the
+  real C2S envelope against a live citizen interaction handler; both server
+  callbacks fire and both split-cache entries are cleared. Evidence is in
+  `logs/minecolonies-gametest-interaction-1-green-20260920.xml`; the citizen
+  interaction GUI remains a manual validation item
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest

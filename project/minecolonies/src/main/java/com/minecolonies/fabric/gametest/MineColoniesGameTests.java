@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.minecolonies.api.blocks.ModBlocks;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.colonyEvents.EventStatus;
@@ -62,6 +63,7 @@ import com.minecolonies.coremod.entity.ai.citizen.lumberjack.EntityAIWorkLumberj
 import com.minecolonies.coremod.entity.ai.citizen.lumberjack.Tree;
 import com.minecolonies.coremod.entity.ai.citizen.research.EntityAIWorkResearcher;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
+import com.minecolonies.coremod.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.entity.SpearEntity;
@@ -153,6 +155,8 @@ import com.minecolonies.coremod.network.messages.server.colony.OpenInventoryMess
 import com.minecolonies.coremod.network.messages.server.colony.TeamColonyColorChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TeleportToColonyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.HireMercenaryMessage;
+import com.minecolonies.coremod.network.messages.server.colony.InteractionClose;
+import com.minecolonies.coremod.network.messages.server.colony.InteractionResponse;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHelpMessage;
@@ -237,6 +241,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -7693,6 +7698,95 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerInteractionMessagesReachCitizenHandler(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 123904; offset <= 140288 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S interaction fixture could not find an unclaimed colony position");
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final int townHallChunkX = townHall.getX() >> 4;
+        final int townHallChunkZ = townHall.getZ() >> 4;
+        level.setChunkForced(townHallChunkX, townHallChunkZ, true);
+        level.getChunk(townHallChunkX, townHallChunkZ);
+        for (int x = relativeTownHall.getX() - 2; x <= relativeTownHall.getX() + 2; x++)
+        {
+            for (int z = relativeTownHall.getZ() - 2; z <= relativeTownHall.getZ() + 2; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        owner.teleportTo(townHall.getX() + 0.5D, townHall.getY() + 1.0D, townHall.getZ() + 0.5D);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Interaction Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S interaction fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S interaction fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "C2S interaction fixture Town Hall was not registered");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        helper.runAfterDelay(2, () ->
+        {
+            helper.assertTrue(WorldUtil.isEntityBlockLoaded(level, townHall.above()),
+              "C2S interaction fixture Town Hall chunk is not entity-ticking");
+            final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+            helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+              "C2S interaction fixture could not create a live citizen");
+            final Component key = Component.literal("fabric.test.interaction");
+            final TestInteraction interaction = new TestInteraction(key);
+            citizen.triggerInteraction(interaction);
+
+            final MinecraftServer server = level.getServer();
+            helper.assertTrue(server != null, "C2S interaction fixture has no running server");
+            final NetworkChannel channel = Network.getNetwork();
+            final int responseMessageId = findMessageId(channel, InteractionResponse.class);
+            final int closeMessageId = findMessageId(channel, InteractionClose.class);
+            helper.assertTrue(responseMessageId > 0 && closeMessageId > 0,
+              "Citizen interaction messages were not registered");
+            final int responseCommunicationId = 0x49525452;
+            dispatchServerMessage(channel, server, owner, responseMessageId, responseCommunicationId,
+              new InteractionResponse(colony.getID(), citizen.getId(), colony.getDimension(), key, 0));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(interaction.responseTriggered,
+                  "InteractionResponse message did not reach the citizen handler");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(responseCommunicationId) == null,
+                  "InteractionResponse envelope remained in the split-packet cache");
+                final int closeCommunicationId = 0x49525443;
+                dispatchServerMessage(channel, server, owner, closeMessageId, closeCommunicationId,
+                  new InteractionClose(colony.getID(), citizen.getId(), colony.getDimension(), key));
+                helper.runAfterDelay(1, () ->
+                {
+                    helper.assertTrue(interaction.closed,
+                      "InteractionClose message did not close the citizen handler");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(closeCommunicationId) == null,
+                      "InteractionClose envelope remained in the split-packet cache");
+                    level.setChunkForced(townHallChunkX, townHallChunkZ, false);
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerBuildRequestCreatesRepairWorkOrder(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -8116,6 +8210,29 @@ public final class MineColoniesGameTests implements FabricGameTest
         finally
         {
             packet.release();
+        }
+    }
+
+    private static final class TestInteraction extends StandardInteraction
+    {
+        private boolean responseTriggered;
+        private boolean closed;
+
+        private TestInteraction(final Component inquiry)
+        {
+            super(inquiry, ChatPriority.CHITCHAT);
+        }
+
+        @Override
+        public void onServerResponseTriggered(final int responseId, final Player player, final ICitizenData data)
+        {
+            responseTriggered = true;
+        }
+
+        @Override
+        public void onClosed()
+        {
+            closed = true;
         }
     }
 

@@ -305,6 +305,13 @@ colony-linked mercenary group near the Town Hall and clears the split envelope;
 the one-test report is in
 `logs/minecolonies-gametest-mercenary-1-green-20260920.xml`.
 
+A focused C2S fixture also registers a live citizen interaction handler,
+serializes `InteractionResponse` and `InteractionClose` through the real split
+envelope, verifies the handler's server response and close callbacks, and
+confirms both cache entries are removed. Evidence is in
+`logs/minecolonies-gametest-interaction-1-green-20260920.xml`; the citizen
+interaction GUI remains a manual validation item.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real
@@ -823,7 +830,7 @@ server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
 serializes `TownHallRenameMessage`, `CreateColonyMessage`,
 `ColonyDeleteOwnMessage`, `TeleportToColonyMessage`, `HireMercenaryMessage`,
-`TryResearchMessage`,
+`InteractionResponse`, `InteractionClose`, `TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
 `DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
 `ColonyStructureStyleMessage`, `ColonyTextureStyleMessage`,
