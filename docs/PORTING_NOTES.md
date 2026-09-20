@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The current 87-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-guard-combat-green-87.log`.
+in `logs/minecolonies-gametest-guard-threat-selection-green-87.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,10 +243,10 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 87-test run (82 core tests, one isolated
+Evidence for the latest combined 87-test run (81 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
 sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-guard-combat-green-87.log`; the earlier
+`logs/minecolonies-gametest-guard-threat-selection-green-87.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -620,9 +620,11 @@ entry, resolves `military/guardtower1.blueprint`, verifies the default guard
 position and patrol task, locates the knight `GuardBuildingModule` and assigns
 a live citizen to `JobKnight`. The building then exposes that citizen through
 its guard roster. A focused companion equips the level-one sword/leather gear,
-enters the real `EntityAIKnight`/`KnightCombatAI` attack state and verifies a
-hostile hit. Full guard navigation/target search, request-driven equipment
-provisioning, raids and sustained combat remain manual validation items.
+enters `NO_TARGET`, selects the nearby hostile through the real threat-table
+and validity/range checks, then verifies the `EntityAIKnight`/`KnightCombatAI`
+hostile hit. Full guard navigation/ambient target search, request-driven
+equipment provisioning, raids and sustained combat remain manual validation
+items.
 
 The raid fixture raises a real colony above `RaidManager.MIN_REQUIRED_RAIDLEVEL`
 with live citizens, verifies the forced barbarian `IColonyRaidEvent` and its

@@ -2329,9 +2329,9 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(knightAI.hasTool(), "Knight combat fixture sword was not recognized by the guard AI");
         knightAI.equipInventoryArmor();
         knightAI.resetAI();
-        // Enter the real combat state directly so this fixture isolates the
-        // KnightCombatAI attack path from patrol scheduling.
-        knightAI.registerTarget(new AIOneTimeEventTarget(CombatAIStates.ATTACKING));
+        // Enter the real target-selection state so the threat table and the
+        // KnightCombatAI validity/range checks run before the attack path.
+        knightAI.registerTarget(new AIOneTimeEventTarget(CombatAIStates.NO_TARGET));
         final int[] combatTicks = {0};
         helper.onEachTick(() ->
         {

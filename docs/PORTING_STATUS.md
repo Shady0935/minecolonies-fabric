@@ -146,7 +146,8 @@ completed.
 - [x] All 25 registered MineColonies custom entity types instantiate, preserve
   their registry identity and exercise the NBT reload contract in Fabric
   GameTest; the two upstream non-persistent projectile types intentionally
-  discard on reload, while entity AI, combat and rendering remain separate
+  discard on reload; focused farmer and guard AI/combat paths are covered,
+  while full work cycles, raid behavior and client rendering remain separate
   validation work
 - [x] Server-side `CitizenAI` initialization and an assigned Builder worker
   cycle exercised through normal entity ticks; a colony-backed citizen also
@@ -287,9 +288,10 @@ completed.
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live
   `JobKnight` assignment in the guard roster; a focused real
-  `EntityAIKnight`/`KnightCombatAI` cycle equips the level-one guard and damages
-  a hostile target. Full guard navigation/target search, request-driven
-  equipment provisioning, raids and sustained combat remain open
+  `EntityAIKnight`/`KnightCombatAI` cycle selects a nearby hostile from the
+  guard threat table, equips the level-one guard and damages the target.
+  Full guard navigation/ambient target search, request-driven equipment
+  provisioning, raids and sustained combat remain open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point and rejects
   new events after colony raid events are disabled; raid spawning, navigation,
@@ -344,7 +346,7 @@ completed.
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
 - [x] Latest 87-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 82-test core batch plus the isolated housing, Builder,
+  dimensions; its 81-test core batch plus the isolated housing, Builder,
   sleep/wake and entity batches cover event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
@@ -390,13 +392,14 @@ completed.
   build-tool inventory swapping, warehouse rack-backed courier transfer and
   normal Builder material-request/resolver delivery,
   miner stone drops and the real `EntityAIWorkFarmer` harvest/drop cycle,
-  plus the focused real `EntityAIKnight`/`KnightCombatAI` hostile-hit cycle,
+  plus the focused real `EntityAIKnight`/`KnightCombatAI` threat-selection and
+  hostile-hit cycle,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-guard-combat-green-87.log`
+  `logs/minecolonies-gametest-guard-threat-selection-green-87.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
