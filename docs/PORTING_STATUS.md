@@ -306,9 +306,11 @@ completed.
   `searchNearbyTarget` discover a nearby hostile, records it in the guard
   threat table, applies validity/range checks, equips the level-one guard and
   damages the target; the same clean fixture registers a vanilla storage chest
-  and verifies sword retrieval through the corrected `retrieveToolInHut` path.
-  Full guard navigation/long-running ambient target search, resolver-driven
-  equipment requests, raids and sustained combat remain open
+  creates a normal sword `Tool` request while that chest is empty, verifies
+  the Fabric container-update bridge reassigns the request when the sword
+  arrives, and confirms normal request delivery before the autonomous combat
+  cycle. Full guard navigation/long-running ambient target search, broader
+  resolver-driven equipment workflows, raids and sustained combat remain open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point and rejects
   new events after colony raid events are disabled; raid spawning, navigation,
@@ -422,7 +424,7 @@ completed.
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-guard-equipment-91-green-20260919.log`
+  `logs/minecolonies-gametest-guard-equipment-91-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

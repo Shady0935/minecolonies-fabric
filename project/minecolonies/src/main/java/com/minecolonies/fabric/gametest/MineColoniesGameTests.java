@@ -30,6 +30,7 @@ import com.minecolonies.api.colony.requestsystem.location.ILocation;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.request.RequestState;
 import com.minecolonies.api.colony.requestsystem.requestable.Stack;
+import com.minecolonies.api.colony.requestsystem.requestable.Tool;
 import com.minecolonies.api.colony.requestsystem.requestable.deliveryman.Delivery;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.crafting.IRecipeStorage;
@@ -114,6 +115,7 @@ import com.minecolonies.coremod.colony.requestsystem.locations.StaticLocation;
 import com.minecolonies.coremod.colony.workorders.WorkOrderMiner;
 import com.minecolonies.coremod.items.ItemBannerRallyGuards;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.EntityUtils;
 import com.minecolonies.coremod.util.ChunkDataHelper;
 import com.minecolonies.coremod.entity.ai.citizen.miner.MinerLevel;
@@ -2729,7 +2731,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = GUARD_TEST_BATCH, timeoutTicks = 260)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = GUARD_TEST_BATCH, timeoutTicks = 420)
     public void guardTowerAssignsKnightGuardToCitizen(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2816,36 +2818,93 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(equipmentEntity instanceof ChestBlockEntity,
           "Guard equipment fixture could not create its storage chest");
         guardTower.addContainerPosition(equipmentChestPos);
-        ((ChestBlockEntity) equipmentEntity).setItem(0, new ItemStack(Items.STONE_SWORD));
+        final ChestBlockEntity equipmentChest = (ChestBlockEntity) equipmentEntity;
 
         guardTower.cancelAllRequestsOfCitizen(citizen);
         final JobKnight knightJob = citizen.getJob(JobKnight.class);
         helper.assertTrue(knightJob != null, "Guard assignment did not retain the knight job instance");
         final EntityAIKnight knightAI = (EntityAIKnight) knightJob.getWorkerAI();
         helper.assertTrue(knightAI != null, "Knight assignment did not create the guard worker AI");
-        helper.assertTrue(knightAI.retrieveToolInHut(ToolType.SWORD, 0),
-          "Knight did not retrieve its sword from the registered guard storage chest");
-        helper.assertTrue(countItem(guardCitizen, Items.STONE_SWORD) == 1,
-          "Knight storage retrieval did not move the sword into the citizen inventory");
-        guardCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        helper.assertTrue(knightAI.checkForToolOrWeapon(ToolType.SWORD),
+          "Knight did not enter the missing-sword request path");
+        final IRequest<?> swordRequest = guardTower.getOpenRequests(citizen.getId()).stream()
+          .filter(request -> request.getRequest() instanceof Tool
+                              && ((Tool) request.getRequest()).getToolClass().equals(ToolType.SWORD))
+          .findFirst()
+          .orElse(null);
+        helper.assertTrue(swordRequest != null,
+          "Knight did not create an open sword request while its registered storage was empty");
+        equipmentChest.setItem(0, new ItemStack(Items.STONE_SWORD));
+        helper.assertTrue(InventoryUtils.getCountFromBuilding(guardTower, itemStack -> itemStack.is(Items.STONE_SWORD)) == 1,
+          "Building request inventory scan did not count the sword in the registered vanilla chest");
 
         final Mob hostile = EntityType.ZOMBIE.create(level);
         helper.assertTrue(hostile != null, "Guard combat fixture could not create a zombie target");
         hostile.setNoAi(true);
         hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
-        guardCitizen.setLastHurtByMob(hostile);
-        helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its zombie target");
+        final java.lang.reflect.Method lookForRequests;
+        try
+        {
+            lookForRequests = com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIBasic.class.getDeclaredMethod("lookForRequests");
+            lookForRequests.setAccessible(true);
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            helper.assertTrue(false, "Guard equipment request fixture could not access the request pickup state: " + exception);
+            return;
+        }
 
-        helper.assertTrue(knightAI.hasTool(), "Knight combat fixture sword was not recognized by the guard AI");
-        knightAI.equipInventoryArmor();
-        knightAI.resetAI();
-        // Enter the real target-selection state so searchNearbyTarget discovers
-        // the nearby hostile instead of consuming a pre-seeded threat entry.
-        knightAI.registerTarget(new AIOneTimeEventTarget(CombatAIStates.NO_TARGET));
+        final boolean[] equipmentReady = {false};
+        final boolean[] hostileAdded = {false};
+        final int[] equipmentTicks = {0};
         final boolean[] searchFound = {false};
         final int[] combatTicks = {0};
         helper.onEachTick(() ->
         {
+            if (!equipmentReady[0])
+            {
+                try
+                {
+                    lookForRequests.invoke(knightAI);
+                }
+                catch (final ReflectiveOperationException exception)
+                {
+                    helper.assertTrue(false, "Guard equipment request pickup failed: " + exception);
+                    return;
+                }
+
+                equipmentTicks[0]++;
+                if (countItem(guardCitizen, Items.STONE_SWORD) == 1 && equipmentChest.getItem(0).isEmpty())
+                {
+                    equipmentReady[0] = true;
+                    guardCitizen.getCitizenItemHandler().setMainHeldItem(0);
+                    helper.assertTrue(swordRequest.getState() == RequestState.COMPLETED || swordRequest.getState() == RequestState.RECEIVED,
+                      "Knight sword request did not complete after pickup: " + swordRequest.getState());
+                    helper.assertTrue(knightAI.hasTool(), "Knight request pickup did not provide a usable sword");
+                    knightAI.equipInventoryArmor();
+                    knightAI.resetAI();
+                    // Enter the real target-selection state so searchNearbyTarget discovers
+                    // the nearby hostile instead of consuming a pre-seeded threat entry.
+                    knightAI.registerTarget(new AIOneTimeEventTarget(CombatAIStates.NO_TARGET));
+                }
+                else if (equipmentTicks[0] >= 180)
+                {
+                    helper.assertTrue(false,
+                      "Knight sword request did not move the tool from the registered chest: requestState="
+                        + swordRequest.getState() + "; chest=" + equipmentChest.getItem(0)
+                        + "; citizenSwordCount=" + countItem(guardCitizen, Items.STONE_SWORD));
+                }
+                return;
+            }
+
+            if (!hostileAdded[0])
+            {
+                guardCitizen.setLastHurtByMob(hostile);
+                helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its zombie target");
+                hostileAdded[0] = true;
+                return;
+            }
+
             if (!searchFound[0] && guardCitizen.getThreatTable().getTargetMob() == hostile)
             {
                 searchFound[0] = true;

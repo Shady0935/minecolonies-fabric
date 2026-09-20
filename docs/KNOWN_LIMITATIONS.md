@@ -134,8 +134,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   search/replanting, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard target search/navigation,
-  full request-driven guard equipment (the current checkpoint covers direct
-  retrieval from a registered storage chest), and raids
+  broader request-driven guard equipment (the current checkpoint covers one
+  late-arriving sword request from a registered storage chest and its normal
+  pickup path), and raids
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation

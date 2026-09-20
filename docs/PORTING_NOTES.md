@@ -247,10 +247,12 @@ Evidence for the latest combined 91-test run (83 core tests, one isolated
 Farmer navigation test, one isolated Miner mining-cycle test, one isolated automatic-housing test, two isolated
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
 guard combat test and one entity batch) is in
-`logs/minecolonies-gametest-guard-equipment-91-green-20260919.log`; this run also
-registers a real vanilla storage chest and verifies that the knight retrieves its
-sword through the normal `retrieveToolInHut` path before the autonomous combat
-cycle. The earlier
+`logs/minecolonies-gametest-guard-equipment-91-green-20260920.log`; this run also
+registers a real vanilla storage chest, creates a normal sword `Tool` request
+while that chest is empty, verifies the Fabric container-change bridge reassigns
+the request when the sword arrives, and confirms that the knight retrieves it
+through the normal request-delivery path before the autonomous combat cycle.
+The earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -639,8 +641,9 @@ entry, resolves `military/guardtower1.blueprint`, verifies the default guard
 position and patrol task, locates the knight `GuardBuildingModule` and assigns
 a live citizen to `JobKnight`. The building then exposes that citizen through
 its guard roster. A focused companion equips the level-one sword/leather gear,
-including a sword retrieved from a registered vanilla storage chest through the
-normal tool-retrieval path, enters `NO_TARGET` without a pre-seeded threat entry,
+  including a sword delivered from a registered vanilla storage chest through the
+  normal request path after a late container update, enters `NO_TARGET` without a
+  pre-seeded threat entry,
 and lets
 `searchNearbyTarget` discover the nearby hostile. The real threat table then
 passes its validity/range checks and `EntityAIKnight`/`KnightCombatAI` verifies

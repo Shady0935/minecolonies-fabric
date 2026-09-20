@@ -27,6 +27,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -40,6 +41,7 @@ import com.minecolonies.fabric.capability.Capability;
 import com.minecolonies.fabric.capability.ForgeCapabilities;
 import com.minecolonies.fabric.util.LazyOptional;
 import com.minecolonies.fabric.inventory.IItemHandlerModifiable;
+import com.minecolonies.fabric.inventory.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -593,6 +595,13 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
                                 {
                                     handlers.add(((AbstractTileEntityRack) te).getInventory());
                                     ((AbstractTileEntityRack) te).setBuildingPos(this.getBlockPos());
+                                }
+                                else if (te instanceof Container container)
+                                {
+                                    // Vanilla containers are valid building storage too. Keep
+                                    // them in the combined handler so request delivery and the
+                                    // worker AI see the same inventory as direct chest retrieval.
+                                    handlers.add(new InvWrapper(container));
                                 }
                                 else
                                 {

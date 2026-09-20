@@ -35,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static com.minecolonies.api.util.constant.TranslationConstants.MESSAGE_INFO_PLAYER_INVENTORY_FULL_HOTBAR_INSERT;
 import com.minecolonies.fabric.capability.ForgeCapabilities;
+import com.minecolonies.fabric.capability.CapabilityHooks;
 
 /**
  * Utility methods for the inventories.
@@ -752,7 +753,7 @@ public class InventoryUtils
                 }
                 else if (entity instanceof ChestBlockEntity)
                 {
-                    totalCount += getItemCountInProvider(entity, itemStack -> ItemStackUtils.compareItemStacksIgnoreStackSize(itemStack, stack.getItemStack(), !stack.ignoreDamageValue(), !stack.ignoreNBT() ));
+                    totalCount += getItemCountInProvider(CapabilityHooks.asProvider(entity), itemStack -> ItemStackUtils.compareItemStacksIgnoreStackSize(itemStack, stack.getItemStack(), !stack.ignoreDamageValue(), !stack.ignoreNBT() ));
                 }
 
                 if (totalCount > count)
@@ -785,6 +786,10 @@ public class InventoryUtils
                 if (entity instanceof TileEntityRack)
                 {
                     totalCount += ((TileEntityRack) entity).getItemCount(stack);
+                }
+                else if (entity instanceof ChestBlockEntity)
+                {
+                    totalCount += getItemCountInProvider(CapabilityHooks.asProvider(entity), stack);
                 }
 
                 if (totalCount > count)
@@ -839,7 +844,7 @@ public class InventoryUtils
                 }
                 else if (entity instanceof ChestBlockEntity)
                 {
-                    totalCount += getItemCountInProvider(entity, itemStack -> ItemStackUtils.compareItemStacksIgnoreStackSize(itemStack, stack.getItemStack()));
+                    totalCount += getItemCountInProvider(CapabilityHooks.asProvider(entity), itemStack -> ItemStackUtils.compareItemStacksIgnoreStackSize(itemStack, stack.getItemStack()));
                 }
             }
         }
@@ -892,6 +897,10 @@ public class InventoryUtils
                 if (entity instanceof TileEntityRack)
                 {
                     totalCount += ((TileEntityRack) entity).getItemCount(predicate);
+                }
+                else if (entity instanceof ChestBlockEntity)
+                {
+                    totalCount += getItemCountInProvider(CapabilityHooks.asProvider(entity), predicate);
                 }
             }
         }
