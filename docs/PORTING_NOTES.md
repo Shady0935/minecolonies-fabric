@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The latest 92-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`.
+in `logs/minecolonies-gametest-container-bridge-full-92-green-20260920.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -248,10 +248,11 @@ Farmer navigation test, one isolated Miner mining-cycle test, one isolated autom
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
 guard combat test, one entity batch and one focused real raider long-route /
 fallback test) is in
-`logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`; this run also
+`logs/minecolonies-gametest-container-bridge-full-92-green-20260920.log`; this run also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
-while that chest is empty, verifies the Fabric container-change bridge reassigns
-the request when the sword arrives, and confirms that the knight retrieves it
+while that chest is empty, verifies the Fabric `setItem` mixin callback and
+deferred end-of-tick retry reassign the request when the sword arrives, and
+confirms that the knight retrieves it
 through the normal request-delivery path before the autonomous combat cycle.
 The same clean run advances the forced barbarian event through its real
 `PREPARING`/`PROGRESSING` lifecycle and lets a registered raider's
@@ -648,7 +649,8 @@ position and patrol task, locates the knight `GuardBuildingModule` and assigns
 a live citizen to `JobKnight`. The building then exposes that citizen through
 its guard roster. A focused companion equips the level-one sword/leather gear,
   including a sword delivered from a registered vanilla storage chest through the
-  normal request path after a late container update, enters `NO_TARGET` without a
+  normal request path after the automatic `setItem` container bridge update,
+  enters `NO_TARGET` without a
   pre-seeded threat entry,
 and lets
 `searchNearbyTarget` discover the nearby hostile. The real threat table then

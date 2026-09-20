@@ -308,8 +308,9 @@ completed.
   threat table, applies validity/range checks, equips the level-one guard and
   damages the target; the same clean fixture registers a vanilla storage chest
   creates a normal sword `Tool` request while that chest is empty, verifies
-  the Fabric container-update bridge reassigns the request when the sword
-  arrives, and confirms normal request delivery before the autonomous combat
+  the Fabric `setItem` container bridge automatically reassigns the request
+  through its deferred end-of-tick retry when the sword arrives, and confirms
+  normal request delivery before the autonomous combat
   cycle; a companion fixture registers a real MineColonies barbarian raider,
   lets the guard discover it through the threat search and verifies knight
   damage. Full guard navigation/long-running ambient target search, broader
@@ -444,7 +445,7 @@ completed.
   delayed asynchronous raid path publishes waypoints during a later event tick,
   a real spawned raider advances from its route origin, and a real guard damages
   a registered barbarian raider; evidence is in
-  `logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`
+  `logs/minecolonies-gametest-container-bridge-full-92-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

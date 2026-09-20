@@ -24,6 +24,7 @@ import com.minecolonies.fabric.event.level.LevelEvent;
 import com.minecolonies.fabric.event.server.ServerAboutToStartEvent;
 import com.minecolonies.fabric.event.server.ServerStartedEvent;
 import com.minecolonies.fabric.event.server.ServerStoppingEvent;
+import com.minecolonies.fabric.inventory.ContainerUpdateHooks;
 import com.minecolonies.fabric.lifecycle.FabricGameplayHooks;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import com.minecolonies.fabric.event.entity.EntityAttributeCreationEvent;
@@ -82,6 +83,7 @@ public final class MineColoniesFabric implements ModInitializer
 
         registerVanillaRegistryListeners();
         registerFabricLifecycleHooks();
+        ContainerUpdateHooks.registerServerTick();
         postRegister(FabricRegistries.Keys.BLOCKS, FabricRegistries.BLOCKS);
         postRegister(FabricRegistries.Keys.ENTITY_TYPES, FabricRegistries.ENTITY_TYPES);
         postRegister(FabricRegistries.Keys.ITEMS, FabricRegistries.ITEMS);

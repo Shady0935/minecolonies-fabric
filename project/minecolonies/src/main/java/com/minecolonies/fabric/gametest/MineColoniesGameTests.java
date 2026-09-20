@@ -2834,6 +2834,7 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Guard equipment fixture could not create its storage chest");
         guardTower.addContainerPosition(equipmentChestPos);
         final ChestBlockEntity equipmentChest = (ChestBlockEntity) equipmentEntity;
+        equipmentChest.clearContent();
 
         guardTower.cancelAllRequestsOfCitizen(citizen);
         final JobKnight knightJob = citizen.getJob(JobKnight.class);
@@ -2852,9 +2853,6 @@ public final class MineColoniesGameTests implements FabricGameTest
         equipmentChest.setItem(0, new ItemStack(Items.STONE_SWORD));
         helper.assertTrue(InventoryUtils.getCountFromBuilding(guardTower, itemStack -> itemStack.is(Items.STONE_SWORD)) == 1,
           "Building request inventory scan did not count the sword in the registered vanilla chest");
-        final IToken<?> reassignedSwordRequest = colony.getRequestManager().reassignRequest(swordRequest.getId(), List.of());
-        helper.assertTrue(reassignedSwordRequest != null,
-          "Knight sword request could not be reassigned after the registered chest received the weapon");
 
         final BarbarianRaidEvent guardRaidEvent = new BarbarianRaidEvent(colony);
         final Horde guardHorde = new Horde(3);
@@ -2891,12 +2889,46 @@ public final class MineColoniesGameTests implements FabricGameTest
         final boolean[] equipmentReady = {false};
         final boolean[] hostileAdded = {false};
         final int[] equipmentTicks = {0};
+        final int[] resolverTicks = {0};
+        final boolean[] resolverReady = {false};
         final boolean[] searchFound = {false};
         final int[] damageEvents = {0};
         final float[] lastHostileHealth = {initialHostileHealth};
         final int[] combatTicks = {0};
         helper.onEachTick(() ->
         {
+            if (!resolverReady[0])
+            {
+                resolverTicks[0]++;
+                try
+                {
+                    resolverReady[0] = colony.getRequestManager().getResolverForRequest(swordRequest.getId())
+                      instanceof com.minecolonies.coremod.colony.requestsystem.resolvers.BuildingRequestResolver;
+                }
+                catch (final IllegalArgumentException ignored)
+                {
+                    // The request can be between resolver assignments during
+                    // the deferred container-update bridge.
+                }
+
+                if (!resolverReady[0])
+                {
+                    String resolverName = "unassigned";
+                    try
+                    {
+                        resolverName = colony.getRequestManager().getResolverForRequest(swordRequest.getId()).getClass().getSimpleName();
+                    }
+                    catch (final IllegalArgumentException ignored)
+                    {
+                        // Keep the timeout assertion useful while assignment settles.
+                    }
+                    helper.assertTrue(resolverTicks[0] < 500,
+                      "Registered container update did not reassign the sword request to the guard-tower resolver: "
+                        + resolverName);
+                    return;
+                }
+            }
+
             if (!equipmentReady[0])
             {
                 try

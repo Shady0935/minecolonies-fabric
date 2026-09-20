@@ -138,8 +138,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   AI navigation/work-speed and GUI,
   full guard navigation and long-running ambient target search beyond the
   covered short-range barbarian response, and broader request-driven guard
-  equipment (the current checkpoint covers one late-arriving sword request from
-  a registered storage chest and its normal pickup path) still need a real
+  equipment (the current checkpoint covers one automatically reassigned
+  late-arriving sword request from a registered storage chest and its normal
+  pickup path) still need a real
   in-game interaction pass. Controlled sustained guard and raid combat now have
   automated two-impact GameTest coverage. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
@@ -210,7 +211,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-sustained-combat-92-green-20260920.log`. The
+  `logs/minecolonies-gametest-container-bridge-full-92-green-20260920.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues
