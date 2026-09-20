@@ -318,6 +318,15 @@ The real server handler completes that advancement for the registered player
 and clears the split envelope; evidence is in
 `logs/minecolonies-gametest-gui-trigger-1-green-20260920.xml`.
 
+A focused C2S fixture also serializes `OpenGuiWindowTriggerMessage` with a
+temporary server-side `open_gui_window` advancement criterion. The normal
+handler reaches `AdvancementTriggers.OPEN_GUI_WINDOW`, the matching window
+resource completes the criterion and the split envelope is cleared; evidence
+is in `logs/minecolonies-gametest-open-gui-trigger-1-green-20260920.xml`. A
+full search of generated/runtime advancement resources found no shipped
+`open_gui_window` consumer, so the actual GUI opening remains a manual
+validation item.
+
 A companion C2S fixture serializes `TransferRecipeCraftingTeachingMessage`
 through the same split envelope with a live server-side
 `ContainerCraftingFurnace`. The normal handler places the transferred item in

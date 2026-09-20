@@ -2,6 +2,8 @@ package com.minecolonies.fabric.gametest;
 
 import com.mojang.authlib.GameProfile;
 import com.minecolonies.api.blocks.ModBlocks;
+import com.minecolonies.api.advancements.AdvancementTriggers;
+import com.minecolonies.api.advancements.open_gui_window.OpenGuiWindowCriterionInstance;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
@@ -140,6 +142,7 @@ import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
 import com.minecolonies.coremod.network.messages.server.ClickGuiButtonTriggerMessage;
+import com.minecolonies.coremod.network.messages.server.OpenGuiWindowTriggerMessage;
 import com.minecolonies.coremod.network.messages.server.PlantationFieldBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.ReactivateBuildingMessage;
 import com.minecolonies.coremod.network.messages.server.RemoveFromRallyingListMessage;
@@ -244,6 +247,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.Criterion;
+import net.minecraft.advancements.CriterionTrigger;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -7820,6 +7826,50 @@ public final class MineColoniesGameTests implements FabricGameTest
               "ClickGuiButtonTrigger message did not complete the matching advancement criterion");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "ClickGuiButtonTrigger envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerOpenGuiWindowTriggerCompletesCriterion(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S GUI-open fixture has no running server");
+
+        final String windowResource = Constants.MOD_ID + ":gametest/open_window";
+        final OpenGuiWindowCriterionInstance criterionInstance =
+          new OpenGuiWindowCriterionInstance(windowResource);
+        final ResourceLocation advancementId = new ResourceLocation(Constants.MOD_ID, "gametest/open_gui_window");
+        final Advancement advancement = new Advancement(
+          advancementId,
+          null,
+          null,
+          AdvancementRewards.EMPTY,
+          Map.of("opened", new Criterion(criterionInstance)),
+          new String[][]{{"opened"}},
+          false);
+        final AdvancementProgress before = owner.getAdvancements().getOrStartProgress(advancement);
+        helper.assertTrue(!before.isDone(), "C2S GUI-open criterion was already complete");
+        final CriterionTrigger.Listener<OpenGuiWindowCriterionInstance> listener =
+          new CriterionTrigger.Listener<>(criterionInstance, advancement, "opened");
+        AdvancementTriggers.OPEN_GUI_WINDOW.addPlayerListener(owner.getAdvancements(), listener);
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, OpenGuiWindowTriggerMessage.class);
+        helper.assertTrue(messageId > 0, "OpenGuiWindowTrigger message was not registered");
+        final int communicationId = 0x4F504547;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new OpenGuiWindowTriggerMessage(windowResource));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final AdvancementProgress progress = owner.getAdvancements().getOrStartProgress(advancement);
+            helper.assertTrue(progress.isDone(),
+              "OpenGuiWindowTrigger message did not complete the matching criterion");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "OpenGuiWindowTrigger envelope remained in the split-packet cache");
             helper.succeed();
         });
     }

@@ -104,6 +104,11 @@ completed.
   the matching `check_out_guide` advancement completes and the split-cache
   entry is cleared. Evidence is in
   `logs/minecolonies-gametest-gui-trigger-1-green-20260920.xml`
+- [x] `OpenGuiWindowTriggerMessage` is covered through the real C2S envelope
+  with a dynamically registered `open_gui_window` criterion: the matching
+  resource completes the criterion and clears the split-cache entry. Evidence
+  is in `logs/minecolonies-gametest-open-gui-trigger-1-green-20260920.xml`;
+  no shipped MineColonies advancement currently consumes this trigger
 - [x] `TransferRecipeCraftingTeachingMessage` is covered through the real C2S
   envelope against a server-side `ContainerCraftingFurnace`: the furnace input
   is updated, the stack count is normalized and the split-cache entry is
