@@ -66,7 +66,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   larger construction, full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
   placement and longer harvest navigation/resource delivery beyond the focused
-  worker-AI cycle, a
+  worker-AI cycle, a Lumberjack autonomous tree-search/replanting cycle,
+  tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
   navigation, full hostile-entity target search/navigation, sustained
   AI/combat/rendering after restart, or DataFixer migration for old entity data. A
@@ -79,6 +80,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   configured worker ticks complete the research and its effect is applied. This
   does not cover researcher AI walking/mana recovery, work-speed scaling,
   University GUI interaction or the broader set of client research packets.
+- The Lumberjack worker cycle is now covered with a valid three-log tree,
+  normal citizen ticks and a level-compatible stone axe. The fixture uses the
+  `Minecolonies Original` pack because the Colonial 1.20.1 pack lacks the
+  level-one Lumberjack blueprint. Full autonomous tree search/pathfinding,
+  replanting, resource delivery and GUI interaction remain unverified.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
@@ -119,7 +125,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
-  delivery, University researcher AI/GUI, full guard target search/navigation,
+  delivery, Lumberjack tree search/replanting, University researcher AI/GUI,
+  full guard target search/navigation,
   request-driven guard equipment, and raids
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
@@ -136,7 +143,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   AI state machine, including the live assigned-order `BUILDING_STEP` route
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
-  Farmer field assignment, Guard Tower/knight assignment plus the focused
+  Farmer field assignment, Lumberjack registration/assignment and focused
+  three-log worker cycle, Guard Tower/knight assignment plus the focused
   knight autonomous target-selection/hostile-hit path, RaidManager event registration and the University
   worker-tick path have automated GameTest fixtures; multi-request logistics,
   full Builder work-order navigation and the dedicated restart
@@ -182,11 +190,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 87-test GameTest run still logs the upstream-style warning that
+- The latest 88-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-guard-search-combat-green-87.log`. The
+  `logs/minecolonies-gametest-lumberjack-green-88.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

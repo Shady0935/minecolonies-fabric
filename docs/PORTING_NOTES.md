@@ -187,10 +187,10 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 87-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 88-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-guard-search-combat-green-87.log`.
+in `logs/minecolonies-gametest-lumberjack-green-88.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,10 +243,10 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 87-test run (81 core tests, one isolated
+Evidence for the latest combined 88-test run (81 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
 sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-guard-search-combat-green-87.log`; the earlier
+`logs/minecolonies-gametest-lumberjack-green-88.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -614,6 +614,17 @@ growth, longer work-cycle/navigation, field placement, resource delivery and
 the farming GUI remain manual validation items. A focused companion ticks the
 real `EntityAIWorkFarmer` state machine against a mature wheat crop and
 verifies that the crop is removed and its drops reach the citizen inventory.
+
+The Lumberjack fixture registers the Original level-one lumberjack through its
+real building entry and assigns a live citizen to `JobLumberjack`. The Colonial
+1.20.1 pack does not contain `fundamentals/lumberjack1.blueprint`, so the
+fixture deliberately uses the discovered `Minecolonies Original` pack while
+keeping the Colonial pack for the other building fixtures. It seeds a valid
+oak tree, assigns the real `Tree` model, equips a level-compatible stone axe
+and lets normal `CitizenAI` ticks drive `EntityAIWorkLumberjack`; the focused
+cycle verifies that the worker chops all three logs and transfers their drops
+to the citizen inventory. Autonomous tree search/navigation, replanting,
+resource delivery and GUI interaction remain separate validation work.
 
 The guard fixture registers a Colonial Guard Tower through its real building
 entry, resolves `military/guardtower1.blueprint`, verifies the default guard

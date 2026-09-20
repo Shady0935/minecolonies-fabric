@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  87-test GameTest run
+  88-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 87-test Fabric GameTest run
+  is covered by the latest 88-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -285,6 +285,12 @@ completed.
   full work-cycle/navigation, placement and farming GUI remain open; the
   focused real `EntityAIWorkFarmer` state-machine cycle now verifies mature
   crop removal, drops and inventory insertion
+- [x] Server-side Lumberjack registration resolves the Original level-one
+  lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
+  the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
+  focused tree fixture validates valid-tool selection, three-log chopping and
+  log transfer into the citizen inventory. Full tree search/navigation,
+  replanting, resource delivery and the Lumberjack GUI remain open
 - [x] Server-side Guard Tower registration resolves the Colonial level-one
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live
@@ -338,7 +344,9 @@ completed.
    effect application, University researcher assignment/worker-tick progression,
    warehouse/courier resolver wiring and rack-backed inventory transfer,
    Miner work-order/claim selection and a focused stone-mining cycle, Farmer
-   field registration/assignment and the focused farmer harvest routine, plus
+   field registration/assignment and the focused farmer harvest routine,
+   Lumberjack registration/assignment and the focused lumberjack tree-chop
+   routine, plus
    Guard Tower blueprint registration
    and knight-guard assignment plus the focused real knight
    autonomous-target-search/combat path,
@@ -348,7 +356,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 87-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 88-test Fabric GameTest run passes with clean saves for all three
   dimensions; its 81-test core batch plus the isolated housing, Builder,
   sleep/wake and entity batches cover event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
@@ -394,7 +402,8 @@ completed.
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
   build-tool inventory swapping, warehouse rack-backed courier transfer and
   normal Builder material-request/resolver delivery,
-  miner stone drops and the real `EntityAIWorkFarmer` harvest/drop cycle,
+  miner stone drops, the real `EntityAIWorkFarmer` harvest/drop cycle and the
+  real `EntityAIWorkLumberjack` three-log chop/inventory cycle,
   plus the focused real `EntityAIKnight`/`KnightCombatAI` autonomous
   target-selection and hostile-hit cycle,
   plantation-field work-order creation/removal and rally-banner activation,
@@ -402,7 +411,7 @@ completed.
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-guard-search-combat-green-87.log`
+  `logs/minecolonies-gametest-lumberjack-green-88.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

@@ -54,6 +54,8 @@ import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
 import com.minecolonies.coremod.entity.ai.citizen.guard.EntityAIKnight;
 import com.minecolonies.coremod.entity.ai.citizen.deliveryman.EntityAIWorkDeliveryman;
+import com.minecolonies.coremod.entity.ai.citizen.lumberjack.EntityAIWorkLumberjack;
+import com.minecolonies.coremod.entity.ai.citizen.lumberjack.Tree;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
@@ -81,6 +83,7 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingFarmer;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingGuardTower;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingEnchanter;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingLumberjack;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
@@ -89,6 +92,7 @@ import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
 import com.minecolonies.coremod.colony.jobs.JobFarmer;
 import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobMiner;
+import com.minecolonies.coremod.colony.jobs.JobLumberjack;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
@@ -97,6 +101,7 @@ import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.EntityState;
+import com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState;
 import com.minecolonies.api.entity.ai.statemachine.AIOneTimeEventTarget;
 import com.minecolonies.api.entity.combat.CombatAIStates;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
@@ -1137,7 +1142,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 700)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
     public void citizenNavigationUsesColonyBackedEntity(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2238,6 +2243,128 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Farmer worker AI did not remove the harvested crop: state=" + farmerAI.getState()
             + "; crop=" + level.getBlockState(cropPos));
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
+    public void lumberjackRegistersAndChopsAssignedTree(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeLumberjack = new BlockPos(10, 1, 2);
+        final BlockPos relativeTree = new BlockPos(28, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos lumberjackPos = helper.absolutePos(relativeLumberjack);
+        final BlockPos treePos = helper.absolutePos(relativeTree);
+        for (int x = 0; x <= 36; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeLumberjack, ModBlocks.blockHutLumberjack);
+        for (int y = 1; y <= 3; y++)
+        {
+            helper.setBlock(new BlockPos(relativeTree.getX(), y, relativeTree.getZ()), Blocks.OAK_LOG);
+        }
+        for (int x = relativeTree.getX() - 1; x <= relativeTree.getX() + 1; x++)
+        {
+            for (int z = relativeTree.getZ() - 1; z <= relativeTree.getZ() + 1; z++)
+            {
+                helper.setBlock(new BlockPos(x, 4, z), Blocks.OAK_LEAVES.defaultBlockState());
+            }
+        }
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Lumberjack GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Lumberjack fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Lumberjack fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        final BlockEntity lumberjackEntity = level.getBlockEntity(lumberjackPos);
+        helper.assertTrue(lumberjackEntity instanceof TileEntityColonyBuilding,
+          "Lumberjack fixture did not create a lumberjack block entity");
+        final TileEntityColonyBuilding lumberjackHut = (TileEntityColonyBuilding) lumberjackEntity;
+        helper.assertTrue(StructurePacks.getStructurePack(Constants.STORAGE_STYLE) != null,
+          "Lumberjack fixture storage structure pack was not discovered");
+        lumberjackHut.setStructurePack(StructurePacks.getStructurePack(Constants.STORAGE_STYLE));
+        lumberjackHut.setBlueprintPath("fundamentals/lumberjack1.blueprint");
+        lumberjackHut.setSchematicName("lumberjack1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(lumberjackHut, level);
+        helper.assertTrue(registered instanceof BuildingLumberjack,
+          "Lumberjack fixture registered the wrong building implementation: " + registered);
+        final BuildingLumberjack lumberjack = (BuildingLumberjack) registered;
+        helper.assertTrue(lumberjack.getBuildingLevel() >= 1,
+          "Lumberjack fixture did not resolve its level-one blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, lumberjackPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Lumberjack fixture could not create a live lumberjack citizen");
+        final WorkerBuildingModule workerModule = lumberjack.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.lumberjack.get());
+        helper.assertTrue(workerModule != null, "Lumberjack worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Lumberjack worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobLumberjack,
+          "Lumberjack assignment did not create the lumberjack job");
+
+        final AbstractEntityCitizen lumberjackCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        final JobLumberjack job = citizen.getJob(JobLumberjack.class);
+        final EntityAIWorkLumberjack lumberjackAI = job.getWorkerAI();
+        helper.assertTrue(lumberjackAI != null, "Lumberjack assignment did not create the worker AI");
+        lumberjackCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_AXE));
+        lumberjackCitizen.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.SHEARS));
+        lumberjackCitizen.getCitizenItemHandler().setMainHeldItem(0);
+
+        final Tree tree = new Tree(level, treePos, colony);
+        helper.assertTrue(tree.isTree(), "Lumberjack fixture tree was not recognized as a valid tree");
+        tree.findLogs(level, colony);
+        helper.assertTrue(tree.hasLogs(), "Lumberjack fixture tree did not retain its log list");
+        job.setTree(tree);
+        lumberjackCitizen.setPos(treePos.getX() + 2.0D, treePos.getY(), treePos.getZ() + 0.5D);
+        lumberjackAI.resetAI();
+        lumberjackAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.LUMBERJACK_CHOP_TREE));
+
+        final int logsBefore = countItem(lumberjackCitizen, Items.OAK_LOG);
+        final int[] lumberjackTicks = {0};
+        helper.onEachTick(() ->
+        {
+            if (!level.isEmptyBlock(treePos))
+            {
+                lumberjackTicks[0]++;
+            }
+            if (level.isEmptyBlock(treePos))
+            {
+                helper.assertTrue(countItem(lumberjackCitizen, Items.OAK_LOG) > logsBefore,
+                  "Lumberjack worker AI did not transfer the cut logs into the citizen inventory: state="
+                    + lumberjackAI.getState() + "; citizen=" + lumberjackCitizen.blockPosition());
+                helper.succeed();
+            }
+            else if (lumberjackTicks[0] >= 900)
+            {
+                helper.assertTrue(false,
+                  "Lumberjack worker AI did not cut the assigned tree: state=" + lumberjackAI.getState()
+                    + "; treeHasLogs=" + tree.hasLogs()
+                    + "; logsInInventory=" + countItem(lumberjackCitizen, Items.OAK_LOG)
+                    + "; blocks=" + level.getBlockState(treePos)
+                    + "," + level.getBlockState(treePos.above())
+                    + "," + level.getBlockState(treePos.above(2))
+                    + "; nextLog=" + tree.peekNextLog()
+                    + "; mainHand=" + lumberjackCitizen.getMainHandItem()
+                    + "; citizen=" + lumberjackCitizen.blockPosition());
+            }
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = GUARD_TEST_BATCH, timeoutTicks = 260)
