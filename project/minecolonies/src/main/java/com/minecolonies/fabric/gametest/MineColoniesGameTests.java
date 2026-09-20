@@ -52,6 +52,7 @@ import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
+import com.minecolonies.coremod.entity.mobs.EntityMercenary;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
@@ -151,6 +152,7 @@ import com.minecolonies.coremod.network.messages.server.colony.HireSpiesMessage;
 import com.minecolonies.coremod.network.messages.server.colony.OpenInventoryMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TeamColonyColorChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TeleportToColonyMessage;
+import com.minecolonies.coremod.network.messages.server.colony.HireMercenaryMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHelpMessage;
@@ -275,6 +277,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.AABB;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import io.netty.buffer.Unpooled;
@@ -7621,6 +7624,71 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "Allowed TeleportToColony envelope remained in the split-packet cache");
                 helper.succeed();
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerHireMercenarySpawnsColonyMercenaries(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 106496; offset <= 122880 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S mercenary fixture could not find an unclaimed colony position");
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        for (int x = relativeTownHall.getX() - 4; x <= relativeTownHall.getX() + 4; x++)
+        {
+            for (int z = relativeTownHall.getZ() - 4; z <= relativeTownHall.getZ() + 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Mercenary Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S mercenary fixture colony was not created");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "C2S mercenary fixture Town Hall did not create a building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding registeredTownHall = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(registeredTownHall != null && colony.hasTownHall(),
+          "C2S mercenary fixture did not register a Town Hall building");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S mercenary fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, HireMercenaryMessage.class);
+        helper.assertTrue(messageId > 0, "HireMercenary message was not registered");
+        final int communicationId = 0x484D4552;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new HireMercenaryMessage(colony.getDimension(), colony.getID()));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final List<EntityMercenary> mercenaries = level.getEntitiesOfClass(
+              EntityMercenary.class, new AABB(townHall).inflate(64.0D));
+            final long colonyMercenaries = mercenaries.stream()
+              .filter(mercenary -> mercenary.getColony() == colony)
+              .count();
+            helper.assertTrue(colonyMercenaries >= 4,
+              "HireMercenary message did not spawn the expected colony mercenaries: " + colonyMercenaries);
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "HireMercenary envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 

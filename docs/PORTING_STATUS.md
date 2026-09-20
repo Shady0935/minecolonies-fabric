@@ -91,6 +91,10 @@ completed.
   both permission branches: a neutral player stays put, while a colony friend
   is teleported near the Town Hall; evidence is in
   `logs/minecolonies-gametest-teleport-1-green-20260920.xml`
+- [x] The owner-permission `HireMercenaryMessage` C2S route is covered by a
+  focused GameTest: a registered Town Hall receives the real envelope and
+  spawns the expected colony-linked mercenary group; evidence is in
+  `logs/minecolonies-gametest-mercenary-1-green-20260920.xml`
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest

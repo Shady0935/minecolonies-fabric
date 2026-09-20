@@ -298,6 +298,13 @@ added at the colony's friend rank is teleported by `TeleportHelper` to a safe
 position near the Town Hall; both split-cache entries are cleared. The one-test
 report is in `logs/minecolonies-gametest-teleport-1-green-20260920.xml`.
 
+The following focused C2S fixture serializes the owner-authorized
+`HireMercenaryMessage` against a registered Town Hall. The normal server
+handler invokes `EntityMercenary.spawnMercenariesInColony`, creates the
+colony-linked mercenary group near the Town Hall and clears the split envelope;
+the one-test report is in
+`logs/minecolonies-gametest-mercenary-1-green-20260920.xml`.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real
@@ -815,7 +822,8 @@ client, while a packet received by the client is marked as originating on the
 server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
 serializes `TownHallRenameMessage`, `CreateColonyMessage`,
-`ColonyDeleteOwnMessage`, `TeleportToColonyMessage`, `TryResearchMessage`,
+`ColonyDeleteOwnMessage`, `TeleportToColonyMessage`, `HireMercenaryMessage`,
+`TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
 `DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
 `ColonyStructureStyleMessage`, `ColonyTextureStyleMessage`,
