@@ -56,6 +56,7 @@ import com.minecolonies.coremod.entity.ai.citizen.guard.EntityAIKnight;
 import com.minecolonies.coremod.entity.ai.citizen.deliveryman.EntityAIWorkDeliveryman;
 import com.minecolonies.coremod.entity.ai.citizen.lumberjack.EntityAIWorkLumberjack;
 import com.minecolonies.coremod.entity.ai.citizen.lumberjack.Tree;
+import com.minecolonies.coremod.entity.ai.citizen.research.EntityAIWorkResearcher;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
@@ -546,6 +547,122 @@ public final class MineColoniesGameTests implements FabricGameTest
           new ResourceLocation(Constants.MOD_ID, "effects/blockhutmysticalsite")) > 0,
           "University worker tick did not apply the research effect");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 300)
+    public void researcherAIStudiesAtRegisteredBookshelf(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeUniversity = new BlockPos(10, 1, 2);
+        final BlockPos relativeBookshelf = new BlockPos(13, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos universityPos = helper.absolutePos(relativeUniversity);
+        final BlockPos bookshelfPos = helper.absolutePos(relativeBookshelf);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeUniversity, ModBlocks.blockHutUniversity);
+        helper.setBlock(relativeBookshelf, Blocks.BOOKSHELF);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Researcher AI GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Researcher AI fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Researcher AI fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Researcher AI fixture Town Hall was not registered");
+
+        final BlockEntity universityEntity = level.getBlockEntity(universityPos);
+        helper.assertTrue(universityEntity instanceof TileEntityColonyBuilding,
+          "Researcher AI fixture did not create a University block entity");
+        final TileEntityColonyBuilding universityHut = (TileEntityColonyBuilding) universityEntity;
+        universityHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        universityHut.setBlueprintPath("education/university1.blueprint");
+        universityHut.setSchematicName("university1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(universityHut, level);
+        helper.assertTrue(registered instanceof BuildingUniversity,
+          "Researcher AI fixture registered the wrong University implementation: " + registered);
+        final BuildingUniversity university = (BuildingUniversity) registered;
+        helper.assertTrue(university.getBuildingLevel() >= 1,
+          "Researcher AI fixture did not resolve its level-one blueprint");
+        university.registerBlockPosition(Blocks.BOOKSHELF, bookshelfPos, level);
+        helper.assertTrue(bookshelfPos.equals(university.getRandomBookShelf()),
+          "Researcher AI fixture did not retain its registered bookshelf");
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, universityPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Researcher AI fixture could not create a live researcher citizen");
+        final WorkerBuildingModule researcherModule = university.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.researcher.get());
+        helper.assertTrue(researcherModule != null, "Researcher AI module was not registered");
+        helper.assertTrue(researcherModule.assignCitizen(citizen),
+          "Researcher AI module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobResearch,
+          "Researcher AI assignment did not create the researcher job");
+
+        final Player player = makeNonCreativeResearchPlayer(level, townHall);
+        player.getInventory().setItem(0, new ItemStack(Items.DIAMOND));
+        final IGlobalResearchTree tree = IGlobalResearchTree.getInstance();
+        final ResourceLocation branch = new ResourceLocation(Constants.MOD_ID, "civilian");
+        final ResourceLocation researchId = new ResourceLocation(Constants.MOD_ID, "civilian/ambition");
+        final IGlobalResearch research = tree.getResearch(branch, researchId);
+        helper.assertTrue(research != null && research.canResearch(1, colony.getResearchManager().getResearchTree()),
+          "Researcher AI fixture was not eligible to start research");
+        colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, research);
+
+        final ILocalResearch localResearch = colony.getResearchManager().getResearchTree().getResearch(branch, researchId);
+        helper.assertTrue(localResearch != null && localResearch.getState() == ResearchState.IN_PROGRESS,
+          "Researcher AI fixture did not enter the in-progress state");
+        final AbstractEntityCitizen researcherCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        final JobResearch job = citizen.getJob(JobResearch.class);
+        final EntityAIWorkResearcher researcherAI = job.getWorkerAI();
+        helper.assertTrue(researcherAI != null, "Researcher assignment did not create the worker AI");
+        job.processOfflineTime(100000L);
+        helper.assertTrue(job.getCurrentMana() > 0, "Researcher fixture could not accumulate study mana");
+        final int manaBefore = job.getCurrentMana();
+        final int progressBefore = localResearch.getProgress();
+
+        researcherCitizen.setPos(bookshelfPos.getX() - 2.0D, bookshelfPos.getY(), bookshelfPos.getZ() + 0.5D);
+        researcherAI.resetAI();
+        researcherAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.STUDY));
+
+        final int[] researcherTicks = {0};
+        helper.onEachTick(() ->
+        {
+            researcherTicks[0]++;
+            if (job.getCurrentMana() < manaBefore)
+            {
+                helper.assertTrue(localResearch.getProgress() > progressBefore || localResearch.getState() == ResearchState.FINISHED,
+                  "Researcher AI consumed mana without advancing research: state=" + researcherAI.getState()
+                    + "; progress=" + localResearch.getProgress()
+                    + "; citizen=" + researcherCitizen.blockPosition());
+                helper.succeed();
+            }
+            else if (researcherTicks[0] >= 280)
+            {
+                helper.assertTrue(false,
+                  "Researcher AI did not study at the registered bookshelf: state=" + researcherAI.getState()
+                    + "; mana=" + job.getCurrentMana()
+                    + "; progress=" + localResearch.getProgress()
+                    + "; target=" + university.getRandomBookShelf()
+                    + "; citizen=" + researcherCitizen.blockPosition()
+                    + "; navigationDone=" + researcherCitizen.getNavigation().isDone());
+            }
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

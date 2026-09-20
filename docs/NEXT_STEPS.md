@@ -19,18 +19,18 @@ colony color/help and spy-hiring routes, citizen-inventory menu opening,
 request-state updates, building pickup, force pickup, warehouse sort/upgrade,
 Enchanter station assignment, Postbox request, citizen-restart scheduling,
 resource-scroll warehouse snapshot and build-tool inventory routes, and
-University worker-tick checkpoints are now
+University worker-tick and focused researcher study/mana checkpoints are now
 complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 88
+real visitor entity. The latest clean Fabric GameTest run passes all 89
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
-inherited listener dispatch. Its 81-test core batch also exercises real
+inherited listener dispatch. Its 83-test core batch also exercises real
 client-to-server Town Hall rename, colony foundation, direct Town Hall
 placement, hut/building rename, colony style settings, colony allocation/flag
 settings, Builder delivery priority, Farmer field assignment/settings,
@@ -68,8 +68,8 @@ deconstructed-building style,
 FarmField configuration,
 Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
-plus focused Farmer harvest, Lumberjack three-log chopping and Guard
-autonomous-target-search/combat cycles.
+plus focused Farmer harvest, Lumberjack three-log chopping, Researcher
+study/mana and Guard autonomous-target-search/combat cycles.
 Full entity work cycles, sustained guard navigation/ambient target search,
 equipment provisioning, raids and client rendering are still open.
 The following work remains, in order:
@@ -78,9 +78,9 @@ The following work remains, in order:
    offline test profile: place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
    Guard Tower, warehouse and research cycle. The server-side research manager and
-   University worker-tick
-   paths are automated, so the remaining research work here is the real
-   researcher AI/walking and GUI cycle.
+   University worker-tick and focused researcher study/mana paths are
+   automated, so the remaining research work here is long-range researcher
+   AI/walking, work-speed scaling and the GUI cycle.
    Include an inventory/GUI visual check for the custom spear renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative server/client network coverage, including the real

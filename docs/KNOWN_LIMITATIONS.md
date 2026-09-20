@@ -77,9 +77,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - The server-side research manager and University building now have an
   automated selection/progression fixture: a non-creative player pays the
   datapack cost, a real University receives a live `JobResearch` citizen, its
-  configured worker ticks complete the research and its effect is applied. This
-  does not cover researcher AI walking/mana recovery, work-speed scaling,
-  University GUI interaction or the broader set of client research packets.
+  configured worker ticks complete the research and its effect is applied. A
+  focused companion also runs `EntityAIWorkResearcher` at a registered
+  bookshelf, consumes stored mana and advances research through normal
+  `CitizenAI` ticks. Long-range bookshelf navigation, work-speed scaling,
+  University GUI interaction and the broader set of client research packets
+  remain uncovered.
 - The Lumberjack worker cycle is now covered with a valid three-log tree,
   normal citizen ticks and a level-compatible stone axe. The fixture uses the
   `Minecolonies Original` pack because the Colonial 1.20.1 pack lacks the
@@ -125,7 +128,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
-  delivery, Lumberjack tree search/replanting, University researcher AI/GUI,
+  delivery, Lumberjack tree search/replanting, long-range University researcher
+  AI navigation/work-speed and GUI,
   full guard target search/navigation,
   request-driven guard equipment, and raids
   still need a real in-game interaction pass. The focused server-side
@@ -146,7 +150,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   Farmer field assignment, Lumberjack registration/assignment and focused
   three-log worker cycle, Guard Tower/knight assignment plus the focused
   knight autonomous target-selection/hostile-hit path, RaidManager event registration and the University
-  worker-tick path have automated GameTest fixtures; multi-request logistics,
+  worker-tick plus focused researcher study/mana paths have automated GameTest
+  fixtures; multi-request logistics,
   full Builder work-order navigation and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
@@ -190,11 +195,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 88-test GameTest run still logs the upstream-style warning that
+- The latest 89-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-lumberjack-green-88.log`. The
+  `logs/minecolonies-gametest-researcher-green-89.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

@@ -187,10 +187,10 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 88-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 89-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-lumberjack-green-88.log`.
+in `logs/minecolonies-gametest-researcher-green-89.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,10 +243,10 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 88-test run (81 core tests, one isolated
+Evidence for the latest combined 89-test run (83 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
-sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-lumberjack-green-88.log`; the earlier
+sleep/wake test, one isolated knight-guard combat test and one entity batch)
+is in `logs/minecolonies-gametest-researcher-green-89.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -653,8 +653,12 @@ cost, advances the configured branch progress, records completion and verifies
 the `minecolonies:effects/blockhutmysticalsite` effect. The same fixture now
 registers a real Colonial University, assigns a live citizen to `JobResearch`
 and drives the configured progress through repeated `BuildingUniversity`
-server-side worker ticks. Researcher AI walking/mana behavior, work-speed
-scaling and the client GUI remain manual validation items.
+server-side worker ticks. A focused companion registers a real bookshelf,
+preloads researcher mana, positions the live citizen at the study site and
+lets normal `CitizenAI` ticks run `EntityAIWorkResearcher`; it verifies that
+the AI consumes mana and advances the in-progress research. Long-range
+bookshelf navigation, work-speed scaling and the client GUI remain manual
+validation items.
 
 The same shutdown pass exposed that colony serialization can run after the
 world reference has been detached. `AbstractSchematicProvider.getRotation()`
