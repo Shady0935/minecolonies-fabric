@@ -150,6 +150,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyDeleteOwnMe
 import com.minecolonies.coremod.network.messages.server.colony.HireSpiesMessage;
 import com.minecolonies.coremod.network.messages.server.colony.OpenInventoryMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TeamColonyColorChangeMessage;
+import com.minecolonies.coremod.network.messages.server.colony.TeleportToColonyMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TownHallRenameMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHousingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ToggleHelpMessage;
@@ -7559,6 +7560,67 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "ColonyDeleteOwn envelope remained in the split-packet cache");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerTeleportToColonyHonorsFriendPermission(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 86016; offset <= 102400 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S teleport fixture could not find an unclaimed colony position");
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Teleport Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S teleport fixture colony was not created");
+
+        final ServerPlayer traveler = makeNonCreativeServerPlayer(level);
+        final BlockPos beforeTeleport = helper.absolutePos(new BlockPos(0, 3, 0));
+        traveler.teleportTo(level, beforeTeleport.getX() + 0.5D, beforeTeleport.getY(),
+          beforeTeleport.getZ() + 0.5D, 0.0F, 0.0F);
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S teleport fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TeleportToColonyMessage.class);
+        helper.assertTrue(messageId > 0, "TeleportToColony message was not registered");
+        final TeleportToColonyMessage message = new TeleportToColonyMessage(colony.getDimension(), colony.getID());
+        final int deniedCommunicationId = 0x5450444E;
+        dispatchServerMessage(channel, server, traveler, messageId, deniedCommunicationId, message);
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(traveler.blockPosition().distManhattan(beforeTeleport) <= 2,
+              "Neutral player was teleported to a colony without friendship permission");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(deniedCommunicationId) == null,
+              "Denied TeleportToColony envelope remained in the split-packet cache");
+            helper.assertTrue(colony.getPermissions().addPlayer(
+                traveler.getGameProfile(), colony.getPermissions().getRankFriend()),
+              "C2S teleport fixture could not add the traveler as a colony friend");
+
+            final int allowedCommunicationId = 0x5450414C;
+            dispatchServerMessage(channel, server, traveler, messageId, allowedCommunicationId,
+              new TeleportToColonyMessage(colony.getDimension(), colony.getID()));
+            helper.runAfterDelay(1, () ->
+            {
+                helper.assertTrue(traveler.blockPosition().distManhattan(townHall) <= 12,
+                  "Friend TeleportToColony route did not move the player near the Town Hall");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(allowedCommunicationId) == null,
+                  "Allowed TeleportToColony envelope remained in the split-packet cache");
+                helper.succeed();
+            });
         });
     }
 

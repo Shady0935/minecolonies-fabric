@@ -1,7 +1,7 @@
 # Next steps
 
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
-colony fixture, owned-colony deletion, builder work-order/assignment, residence assignment and
+colony fixture, owned-colony deletion, colony teleport permission, builder work-order/assignment, residence assignment and
 unassignment,
 warehouse/courier resolver wiring, Miner work-order/assignment, Farmer field
 assignment, Guard Tower/knight assignment, RaidManager eligibility/event
@@ -30,8 +30,9 @@ real visitor entity. The latest clean Fabric GameTest run passes all 92
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
-inherited listener dispatch. A focused follow-up also passes the real
-`ColonyDeleteOwnMessage` route and verifies full owner-colony cleanup. Its
+inherited listener dispatch. Focused follow-ups also pass the real
+`ColonyDeleteOwnMessage` and `TeleportToColonyMessage` routes, verifying full
+owner-colony cleanup and neutral/friend teleport permission. Its
 83-test core batch plus isolated Farmer
 navigation and Miner mining-cycle batches also exercise real
 client-to-server Town Hall rename, colony foundation, direct Town Hall

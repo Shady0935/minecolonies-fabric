@@ -292,6 +292,12 @@ completed envelope is removed from the message cache. The one-test follow-up
 is green in `logs/minecolonies-gametest-colony-delete-1-green-20260920.xml`;
 the Town Hall deletion UI remains a manual validation item.
 
+The next focused C2S fixture serializes `TeleportToColonyMessage` twice against
+the same colony. A neutral player is rejected without moving, while a player
+added at the colony's friend rank is teleported by `TeleportHelper` to a safe
+position near the Town Hall; both split-cache entries are cleared. The one-test
+report is in `logs/minecolonies-gametest-teleport-1-green-20260920.xml`.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real
@@ -809,7 +815,7 @@ client, while a packet received by the client is marked as originating on the
 server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
 serializes `TownHallRenameMessage`, `CreateColonyMessage`,
-`ColonyDeleteOwnMessage`, `TryResearchMessage`,
+`ColonyDeleteOwnMessage`, `TeleportToColonyMessage`, `TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
 `DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
 `ColonyStructureStyleMessage`, `ColonyTextureStyleMessage`,
