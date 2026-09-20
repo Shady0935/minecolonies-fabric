@@ -48,6 +48,7 @@ import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.NbtTagConstants;
 import com.minecolonies.api.util.constant.ToolType;
 import com.minecolonies.api.util.constant.TypeConstants;
+import com.minecolonies.api.util.constant.WindowConstants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
@@ -138,6 +139,7 @@ import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
+import com.minecolonies.coremod.network.messages.server.ClickGuiButtonTriggerMessage;
 import com.minecolonies.coremod.network.messages.server.PlantationFieldBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.ReactivateBuildingMessage;
 import com.minecolonies.coremod.network.messages.server.RemoveFromRallyingListMessage;
@@ -239,6 +241,8 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -7783,6 +7787,38 @@ public final class MineColoniesGameTests implements FabricGameTest
                     helper.succeed();
                 });
             });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerClickGuiButtonTriggerCompletesAdvancement(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S GUI-trigger fixture has no running server");
+        final ResourceLocation advancementId = new ResourceLocation(Constants.MOD_ID, "minecolonies/check_out_guide");
+        final Advancement advancement = server.getAdvancements().getAdvancement(advancementId);
+        helper.assertTrue(advancement != null, "C2S GUI-trigger advancement was not loaded: " + advancementId);
+        final AdvancementProgress before = owner.getAdvancements().getOrStartProgress(advancement);
+        helper.assertTrue(!before.isDone(), "C2S GUI-trigger advancement was already complete");
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ClickGuiButtonTriggerMessage.class);
+        helper.assertTrue(messageId > 0, "ClickGuiButtonTrigger message was not registered");
+        final int communicationId = 0x434C4943;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new ClickGuiButtonTriggerMessage(WindowConstants.GUIDE_CONFIRM,
+            Constants.MOD_ID + WindowConstants.GUIDE_RESOURCE_SUFFIX));
+
+        helper.runAfterDelay(1, () ->
+        {
+            final AdvancementProgress progress = owner.getAdvancements().getOrStartProgress(advancement);
+            helper.assertTrue(progress.isDone(),
+              "ClickGuiButtonTrigger message did not complete the matching advancement criterion");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "ClickGuiButtonTrigger envelope remained in the split-packet cache");
+            helper.succeed();
         });
     }
 

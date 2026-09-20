@@ -312,6 +312,12 @@ confirms both cache entries are removed. Evidence is in
 `logs/minecolonies-gametest-interaction-1-green-20260920.xml`; the citizen
 interaction GUI remains a manual validation item.
 
+Another focused C2S fixture serializes `ClickGuiButtonTriggerMessage` with the
+same button/resource pair used by the generated `check_out_guide` advancement.
+The real server handler completes that advancement for the registered player
+and clears the split envelope; evidence is in
+`logs/minecolonies-gametest-gui-trigger-1-green-20260920.xml`.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real
@@ -830,7 +836,8 @@ server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
 serializes `TownHallRenameMessage`, `CreateColonyMessage`,
 `ColonyDeleteOwnMessage`, `TeleportToColonyMessage`, `HireMercenaryMessage`,
-`InteractionResponse`, `InteractionClose`, `TryResearchMessage`,
+`InteractionResponse`, `InteractionClose`, `ClickGuiButtonTriggerMessage`,
+`TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
 `DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
 `ColonyStructureStyleMessage`, `ColonyTextureStyleMessage`,

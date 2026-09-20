@@ -1,7 +1,7 @@
 # Next steps
 
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
-colony fixture, owned-colony deletion, colony teleport permission, mercenary hiring, citizen interaction response/close, builder work-order/assignment, residence assignment and
+colony fixture, owned-colony deletion, colony teleport permission, mercenary hiring, citizen interaction response/close, GUI button advancement trigger, builder work-order/assignment, residence assignment and
 unassignment,
 warehouse/courier resolver wiring, Miner work-order/assignment, Farmer field
 assignment, Guard Tower/knight assignment, RaidManager eligibility/event
@@ -36,6 +36,8 @@ owner-colony cleanup and neutral/friend teleport permission; the focused
 `HireMercenaryMessage` route also creates a real colony-linked mercenary group,
 and the focused citizen interaction route delivers both response and close
 callbacks to a live handler.
+The focused GUI button route also completes the generated `check_out_guide`
+advancement through its real server handler.
 Its
 83-test core batch plus isolated Farmer
 navigation and Miner mining-cycle batches also exercise real
