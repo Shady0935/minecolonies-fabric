@@ -49,7 +49,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   miner work-order registration with live `JobMiner` claim selection, plus
   farmer field registration with live `JobFarmer` assignment and Guard Tower
   registration with live `JobKnight` assignment and guard-roster persistence,
-  plus a focused real `EntityAIKnight`/`KnightCombatAI` hostile-hit cycle and
+  plus a focused real `EntityAIKnight`/`KnightCombatAI` autonomous
+  nearby-target-search/hostile-hit cycle and
   `RaidManager` eligibility/barbarian-event registration.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
@@ -136,7 +137,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
   Farmer field assignment, Guard Tower/knight assignment plus the focused
-  knight threat-selection/hostile-hit path, RaidManager event registration and the University
+  knight autonomous target-selection/hostile-hit path, RaidManager event registration and the University
   worker-tick path have automated GameTest fixtures; multi-request logistics,
   full Builder work-order navigation and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
@@ -185,7 +186,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-guard-threat-selection-green-87.log`. The
+  `logs/minecolonies-gametest-guard-search-combat-green-87.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The current 87-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-guard-threat-selection-green-87.log`.
+in `logs/minecolonies-gametest-guard-search-combat-green-87.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -246,7 +246,7 @@ callback, so the owner/outsider decision resolves against the intended colony.
 Evidence for the latest combined 87-test run (81 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
 sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-guard-threat-selection-green-87.log`; the earlier
+`logs/minecolonies-gametest-guard-search-combat-green-87.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -559,8 +559,8 @@ A forty-seventh companion C2S fixture serializes
 isolated Colonial Guard Tower. It preserves the serialized `StaticLocation`,
 activates and deactivates the banner through the server executor, updates and
 clears the tower's rally target, removes the tower from the banner list and
-confirms every split-cache entry is cleaned. Guard navigation, equipment,
-raids and combat remain manual validation items.
+confirms every split-cache entry is cleaned. Sustained guard navigation,
+equipment, raids and combat remain manual validation items.
 
 The residence fixture registers a real Colonial house through the same
 `BuildingEntry` and `TileEntityColonyBuilding` path used by gameplay, resolves
@@ -620,18 +620,21 @@ entry, resolves `military/guardtower1.blueprint`, verifies the default guard
 position and patrol task, locates the knight `GuardBuildingModule` and assigns
 a live citizen to `JobKnight`. The building then exposes that citizen through
 its guard roster. A focused companion equips the level-one sword/leather gear,
-enters `NO_TARGET`, selects the nearby hostile through the real threat-table
-and validity/range checks, then verifies the `EntityAIKnight`/`KnightCombatAI`
-hostile hit. Full guard navigation/ambient target search, request-driven
-equipment provisioning, raids and sustained combat remain manual validation
-items.
+enters `NO_TARGET` without a pre-seeded threat entry, and lets
+`searchNearbyTarget` discover the nearby hostile. The real threat table then
+passes its validity/range checks and `EntityAIKnight`/`KnightCombatAI` verifies
+the hostile hit. Sustained guard navigation, broader ambient target search,
+request-driven equipment provisioning, raids and longer combat remain manual
+validation items.
 
 The raid fixture raises a real colony above `RaidManager.MIN_REQUIRED_RAIDLEVEL`
-with live citizens, verifies the forced barbarian `IColonyRaidEvent` and its
-calculated spawn point, then disables colony raid events and confirms new raid
-requests return `CANNOT_RAID`. This covers manager eligibility and event
-registration; raider spawning, navigation, guard response and combat outcomes
-remain manual validation items.
+with live citizens, chooses a Town Hall position isolated from existing colony
+claims, builds a continuous valid-ground annulus for randomized spawn-direction
+sampling, verifies the forced barbarian `IColonyRaidEvent` and its calculated
+spawn point, then disables colony raid events and confirms new raid requests
+return `CANNOT_RAID`. This covers manager eligibility and event registration;
+raider spawning, navigation, guard response and combat outcomes remain manual
+validation items.
 
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond

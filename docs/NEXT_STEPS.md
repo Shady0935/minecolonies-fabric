@@ -68,9 +68,9 @@ deconstructed-building style,
 FarmField configuration,
 Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
-plus focused Farmer harvest and Guard threat-selection/combat cycles. Full entity
-work cycles, guard navigation/equipment provisioning/raids and client rendering
-are still open.
+plus focused Farmer harvest and Guard autonomous-target-search/combat cycles.
+Full entity work cycles, sustained guard navigation/ambient target search,
+equipment provisioning, raids and client rendering are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable

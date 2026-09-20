@@ -1080,6 +1080,11 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(entity.getCitizenAI().getState() == CitizenAIState.WORKING,
               "Builder structure-step citizen did not enter WORKING: " + entity.getCitizenAI().getState());
 
+            // The work-order validator checks every chunk touched by the real
+            // Builder blueprint. Re-apply the claim around the order origin
+            // after the delayed citizen bootstrap so pending chunk storage has
+            // been materialized before the order is added.
+            ChunkDataHelper.staticClaimInRange(colony.getID(), true, builderPos, 4, level, true);
             final WorkOrderBuilding order = WorkOrderBuilding.create(WorkOrderType.BUILD, builder);
             colony.getWorkManager().addWorkOrder(order, false);
             helper.assertTrue(order.getID() > 0,
@@ -2318,9 +2323,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(hostile != null, "Guard combat fixture could not create a zombie target");
         hostile.setNoAi(true);
         hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
-        hostile.setHealth(1.0F);
+        guardCitizen.setLastHurtByMob(hostile);
         helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its zombie target");
-        guardCitizen.getThreatTable().addThreat(hostile, 100);
 
         final JobKnight knightJob = citizen.getJob(JobKnight.class);
         helper.assertTrue(knightJob != null, "Guard assignment did not retain the knight job instance");
@@ -2329,13 +2333,22 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(knightAI.hasTool(), "Knight combat fixture sword was not recognized by the guard AI");
         knightAI.equipInventoryArmor();
         knightAI.resetAI();
-        // Enter the real target-selection state so the threat table and the
-        // KnightCombatAI validity/range checks run before the attack path.
+        // Enter the real target-selection state so searchNearbyTarget discovers
+        // the nearby hostile instead of consuming a pre-seeded threat entry.
         knightAI.registerTarget(new AIOneTimeEventTarget(CombatAIStates.NO_TARGET));
+        final boolean[] searchFound = {false};
         final int[] combatTicks = {0};
         helper.onEachTick(() ->
         {
-            if (!hostile.isAlive())
+            if (!searchFound[0] && guardCitizen.getThreatTable().getTargetMob() == hostile)
+            {
+                searchFound[0] = true;
+                // Keep the entity alive while the autonomous search runs, then
+                // make the next combat tick prove the real attack path.
+                hostile.setHealth(1.0F);
+            }
+
+            if (searchFound[0] && !hostile.isAlive())
             {
                 helper.succeed();
                 return;
@@ -2343,15 +2356,23 @@ public final class MineColoniesGameTests implements FabricGameTest
 
             knightAI.tick();
             combatTicks[0]++;
-            if (!hostile.isAlive())
+            if (!searchFound[0] && guardCitizen.getThreatTable().getTargetMob() == hostile)
+            {
+                searchFound[0] = true;
+                hostile.setHealth(1.0F);
+            }
+            if (searchFound[0] && !hostile.isAlive())
             {
                 helper.succeed();
+                return;
             }
-            else if (combatTicks[0] >= 220)
+            if (combatTicks[0] >= 220)
             {
                 helper.assertTrue(false,
-                  "Knight worker AI did not damage the configured hostile: state=" + knightAI.getState()
+                  "Knight worker AI did not " + (searchFound[0] ? "damage the discovered hostile" : "discover the nearby hostile through searchNearbyTarget")
+                    + ": state=" + knightAI.getState()
                     + "; guard=" + guardCitizen.blockPosition()
+                    + "; threat=" + guardCitizen.getThreatTable().getTargetMob()
                     + "; hostile=" + hostile.blockPosition());
             }
         });
@@ -2364,12 +2385,22 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ServerLevel level = helper.getLevel();
         final boolean previousMobSpawning = level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING);
         level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(true, level.getServer());
-        // Keep the raid colony in an isolated region.  The Fabric GameTest
+        // Keep the raid colony in an isolated region. The Fabric GameTest
         // runner places all empty templates in one shared server world, so
         // the small default fixture coordinates can otherwise make
         // RaidManager's legitimate other-colony guard reject outward spawn
         // candidates near another fixture.
-        final BlockPos relativeTownHall = new BlockPos(256, 1, 256);
+        BlockPos relativeTownHall = null;
+        for (int offset = 256; offset <= 8192 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "Raider fixture could not find an isolated Town Hall position");
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final int forcedChunkRadius = 12;
         final int townHallChunkX = townHall.getX() >> 4;
@@ -2392,23 +2423,19 @@ public final class MineColoniesGameTests implements FabricGameTest
             }
         }
         // RaidManager advances in three-chunk steps and then resolves the
-        // nearest solid floor.  Keep those real lookup rings inside the
-        // deterministic GameTest world instead of relying on generated terrain
-        // outside the entity-ticking fixture area.
-        for (final int radius : new int[] {48, 96, 144})
+        // nearest solid floor. Keep a continuous annulus under the complete
+        // forced search corridor so the random direction cannot land between
+        // sparse hand-placed lookup rings.
+        for (int x = relativeTownHall.getX() - 180; x <= relativeTownHall.getX() + 180; x++)
         {
-            for (int x = relativeTownHall.getX() - radius - 4; x <= relativeTownHall.getX() + radius + 4; x++)
+            for (int z = relativeTownHall.getZ() - 180; z <= relativeTownHall.getZ() + 180; z++)
             {
-                for (int z = relativeTownHall.getZ() - radius - 4; z <= relativeTownHall.getZ() + radius + 4; z++)
+                final int dx = x - relativeTownHall.getX();
+                final int dz = z - relativeTownHall.getZ();
+                final int distanceSquared = dx * dx + dz * dz;
+                if (distanceSquared >= 32 * 32 && distanceSquared <= 176 * 176)
                 {
-                    final int dx = x - relativeTownHall.getX();
-                    final int dz = z - relativeTownHall.getZ();
-                    final int distanceSquared = dx * dx + dz * dz;
-                    if (distanceSquared >= (radius - 4) * (radius - 4)
-                      && distanceSquared <= (radius + 4) * (radius + 4))
-                    {
-                        helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
-                    }
+                    helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
                 }
             }
         }
