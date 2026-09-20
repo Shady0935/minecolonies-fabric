@@ -328,6 +328,12 @@ validates the server branch used by recipe teaching; the optional JEI client
 integration remains excluded from the Fabric runtime and needs visual/manual
 validation when that dependency is ported.
 
+The companion crafting fixture also exercises both `ContainerCrafting` shapes:
+the 2x2 server mapping receives the compact keys produced by the client
+handler, while the 3x3 variant receives all nine slots. Both messages cross
+the real split envelope and clear their cache entries; evidence is in
+`logs/minecolonies-gametest-crafting-transfer-1-green-20260920.xml`.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real

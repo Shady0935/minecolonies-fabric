@@ -110,6 +110,11 @@ completed.
   cleared. Evidence is in
   `logs/minecolonies-gametest-recipe-transfer-1-green-20260920.xml`; JEI's
   optional visual transfer remains a manual validation item
+- [x] The same recipe-transfer message is covered against both server-side
+  `ContainerCrafting` variants: the compact 2x2 mapping and all nine 3x3 slots
+  are populated through real split envelopes and both cache entries are
+  cleared. Evidence is in
+  `logs/minecolonies-gametest-crafting-transfer-1-green-20260920.xml`
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest

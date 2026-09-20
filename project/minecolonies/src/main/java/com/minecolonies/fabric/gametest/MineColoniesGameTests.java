@@ -263,6 +263,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import com.minecolonies.api.inventory.container.ContainerCraftingFurnace;
+import com.minecolonies.api.inventory.container.ContainerCrafting;
 import com.minecolonies.api.inventory.container.ContainerCitizenInventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -7856,6 +7857,76 @@ public final class MineColoniesGameTests implements FabricGameTest
               "TransferRecipeCraftingTeaching envelope remained in the split-packet cache");
             owner.closeContainer();
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerTransferRecipeTeachingMessageUpdatesCraftingMenus(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final BlockPos buildingPos = helper.absolutePos(new BlockPos(2, 1, 2));
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S recipe-transfer crafting fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TransferRecipeCraftingTeachingMessage.class);
+        helper.assertTrue(messageId > 0, "TransferRecipeCraftingTeaching message was not registered");
+
+        final ContainerCrafting compactMenu = new ContainerCrafting(1, owner.getInventory(), false, buildingPos, 0);
+        owner.containerMenu = compactMenu;
+        final Map<Integer, ItemStack> compactStacks = Map.of(
+          0, new ItemStack(Items.APPLE),
+          1, new ItemStack(Items.CARROT),
+          3, new ItemStack(Items.WHEAT),
+          4, new ItemStack(Items.POTATO));
+        final int compactCommunicationId = 0x54524332;
+        dispatchServerMessage(channel, server, owner, messageId, compactCommunicationId,
+          new TransferRecipeCraftingTeachingMessage(compactStacks, false));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(compactMenu.getSlot(1).getItem().is(Items.APPLE),
+              "Incomplete recipe transfer did not populate compact slot 0");
+            helper.assertTrue(compactMenu.getSlot(2).getItem().is(Items.CARROT),
+              "Incomplete recipe transfer did not populate compact slot 1");
+            helper.assertTrue(compactMenu.getSlot(3).getItem().is(Items.WHEAT),
+              "Incomplete recipe transfer did not map compact slot 2");
+            helper.assertTrue(compactMenu.getSlot(4).getItem().is(Items.POTATO),
+              "Incomplete recipe transfer did not map compact slot 3");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(compactCommunicationId) == null,
+              "Incomplete recipe-transfer envelope remained in the split-packet cache");
+
+            final ContainerCrafting completeMenu = new ContainerCrafting(2, owner.getInventory(), true, buildingPos, 0);
+            owner.containerMenu = completeMenu;
+            final Map<Integer, ItemStack> completeStacks = Map.ofEntries(
+              Map.entry(0, new ItemStack(Items.OAK_LOG)),
+              Map.entry(1, new ItemStack(Items.BIRCH_LOG)),
+              Map.entry(2, new ItemStack(Items.SPRUCE_LOG)),
+              Map.entry(3, new ItemStack(Items.JUNGLE_LOG)),
+              Map.entry(4, new ItemStack(Items.ACACIA_LOG)),
+              Map.entry(5, new ItemStack(Items.DARK_OAK_LOG)),
+              Map.entry(6, new ItemStack(Items.MANGROVE_LOG)),
+              Map.entry(7, new ItemStack(Items.CHERRY_LOG)),
+              Map.entry(8, new ItemStack(Items.CRIMSON_STEM)));
+            final int completeCommunicationId = 0x54524333;
+            dispatchServerMessage(channel, server, owner, messageId, completeCommunicationId,
+              new TransferRecipeCraftingTeachingMessage(completeStacks, true));
+            helper.runAfterDelay(1, () ->
+            {
+                final net.minecraft.world.item.Item[] expected = {
+                    Items.OAK_LOG, Items.BIRCH_LOG, Items.SPRUCE_LOG,
+                    Items.JUNGLE_LOG, Items.ACACIA_LOG, Items.DARK_OAK_LOG,
+                    Items.MANGROVE_LOG, Items.CHERRY_LOG, Items.CRIMSON_STEM};
+                for (int slot = 0; slot < expected.length; slot++)
+                {
+                    helper.assertTrue(completeMenu.getSlot(slot + 1).getItem().is(expected[slot]),
+                      "Complete recipe transfer did not populate crafting slot " + slot);
+                }
+                helper.assertTrue(channel.getMessageCache().getIfPresent(completeCommunicationId) == null,
+                  "Complete recipe-transfer envelope remained in the split-packet cache");
+                owner.closeContainer();
+                helper.succeed();
+            });
         });
     }
 

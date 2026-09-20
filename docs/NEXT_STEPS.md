@@ -38,9 +38,10 @@ and the focused citizen interaction route delivers both response and close
 callbacks to a live handler.
 The focused GUI button route also completes the generated `check_out_guide`
 advancement through its real server handler.
-The focused recipe-teaching route also reaches the server-side furnace menu
-through the real split envelope, updates and normalizes its input slot, and
-clears the packet cache; JEI's optional client transfer remains pending.
+The focused recipe-teaching routes also reach the server-side furnace and
+crafting menus through real split envelopes, update the furnace input and both
+2x2/3x3 crafting shapes, and clear the packet cache; JEI's optional client
+transfer remains pending.
 Its
 83-test core batch plus isolated Farmer
 navigation and Miner mining-cycle batches also exercise real
