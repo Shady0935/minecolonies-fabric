@@ -88,9 +88,10 @@ public class RaiderWalkAI implements IStateAI
                 targetBlock = raider.getColony().getRaiderManager().getRandomBuilding();
                 walkTimer = raider.level().getGameTime() + TICKS_SECOND * 240;
 
-                final List<BlockPos> wayPoints = ((IColonyRaidEvent) event).getWayPoints();
-                final BlockPos moveToPos = ShipBasedRaiderUtils.chooseWaypointFor(wayPoints, raider.blockPosition(), targetBlock);
-                raider.getNavigation().moveToXYZ(moveToPos.getX(), moveToPos.getY(), moveToPos.getZ(), !moveToPos.equals(targetBlock) && moveToPos.distManhattan(wayPoints.get(0)) > 50 ? 1.8 : 1.1);
+                if (event instanceof IColonyRaidEvent raidEvent && targetBlock != null)
+                {
+                    moveTowardsTarget(raidEvent.getWayPoints(), targetBlock);
+                }
                 walkInBuildingState = false;
                 randomPathResult = null;
             }
@@ -130,14 +131,32 @@ public class RaiderWalkAI implements IStateAI
             }
             else if (raider.getNavigation().isDone() || raider.getNavigation().getDesiredPos() == null)
             {
-                final List<BlockPos> wayPoints = ((IColonyRaidEvent) event).getWayPoints();
-                final BlockPos moveToPos = ShipBasedRaiderUtils.chooseWaypointFor(wayPoints, raider.blockPosition(), targetBlock);
-                raider.getNavigation()
-                  .moveToXYZ(moveToPos.getX(), moveToPos.getY(), moveToPos.getZ(), !moveToPos.equals(targetBlock) && moveToPos.distManhattan(wayPoints.get(0)) > 50 ? 1.8 : 1.1);
+                if (event instanceof IColonyRaidEvent raidEvent && targetBlock != null)
+                {
+                    moveTowardsTarget(raidEvent.getWayPoints(), targetBlock);
+                }
             }
         }
 
         return false;
+    }
+
+    /**
+     * Sends the raider towards the target, falling back to direct navigation
+     * while the asynchronous raid path has no usable waypoints yet.
+     *
+     * @param wayPoints the optional raid path waypoints
+     * @param target the building or colony position to reach
+     */
+    private void moveTowardsTarget(final List<BlockPos> wayPoints, final BlockPos target)
+    {
+        final BlockPos moveToPos = wayPoints.isEmpty()
+          ? target
+          : ShipBasedRaiderUtils.chooseWaypointFor(wayPoints, raider.blockPosition(), target);
+        final boolean distantFromFirstWaypoint = !wayPoints.isEmpty()
+          && !moveToPos.equals(target)
+          && moveToPos.distManhattan(wayPoints.get(0)) > 50;
+        raider.getNavigation().moveToXYZ(moveToPos.getX(), moveToPos.getY(), moveToPos.getZ(), distantFromFirstWaypoint ? 1.8 : 1.1);
     }
 
     protected BlockPos findRandomPositionToWalkTo()

@@ -54,15 +54,17 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   path, and
   `RaidManager` eligibility/barbarian-event registration and the real horde
   spawn plus event-lifecycle transition, including the short-range registered
-  raider `AttackMoveAI` target-selection/damage path against a live citizen.
+  raider `AttackMoveAI` target-selection/damage path against a live citizen,
+  the `RaiderWalkAI` direct-target fallback when waypoints are empty and a
+  real guard-versus-barbarian target-selection/damage path.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
-  does not replace the pending long-range raid navigation, guard response,
-  sustained combat, rendering or restart-migration checks.
+  does not replace the pending long-range raid navigation, sustained combat,
+  rendering or restart-migration checks.
   It does not yet cover multi-request resolution/delivery, automatic logistics
   inventory transfer beyond the focused rack-backed cycle, courier navigation,
   full Builder work-order pathfinding and
@@ -135,10 +137,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   delivery beyond the covered short-range route, Lumberjack tree
   search/replanting, long-range University researcher
   AI navigation/work-speed and GUI,
-  full guard target search/navigation,
+  full guard navigation and long-running ambient target search beyond the
+  covered short-range barbarian response,
   broader request-driven guard equipment (the current checkpoint covers one
   late-arriving sword request from a registered storage chest and its normal
-  pickup path), and raids
+  pickup path), and long-range/sustained raid behavior
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
@@ -204,11 +207,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 91-test GameTest run still logs the upstream-style warning that
+- The latest 92-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-miner-cycle-farmer-91-green-20260919.log`. The
+  `logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

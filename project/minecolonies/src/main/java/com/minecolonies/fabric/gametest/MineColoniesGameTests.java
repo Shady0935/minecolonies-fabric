@@ -101,6 +101,8 @@ import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
 import com.minecolonies.coremod.colony.managers.RaidManager;
+import com.minecolonies.coremod.colony.colonyEvents.raidEvents.barbarianEvent.BarbarianRaidEvent;
+import com.minecolonies.coremod.colony.colonyEvents.raidEvents.barbarianEvent.Horde;
 import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
@@ -2839,10 +2841,26 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(InventoryUtils.getCountFromBuilding(guardTower, itemStack -> itemStack.is(Items.STONE_SWORD)) == 1,
           "Building request inventory scan did not count the sword in the registered vanilla chest");
 
-        final Mob hostile = EntityType.ZOMBIE.create(level);
-        helper.assertTrue(hostile != null, "Guard combat fixture could not create a zombie target");
+        final BarbarianRaidEvent guardRaidEvent = new BarbarianRaidEvent(colony);
+        final Horde guardHorde = new Horde(3);
+        guardHorde.numberOfBosses = 0;
+        guardHorde.numberOfArchers = 0;
+        guardHorde.numberOfRaiders = 1;
+        guardHorde.hordeSize = 1;
+        guardRaidEvent.setHorde(guardHorde);
+        guardRaidEvent.setSpawnPoint(guardTowerPos);
+        guardRaidEvent.setStatus(EventStatus.PROGRESSING);
+        colony.getEventManager().addEvent(guardRaidEvent);
+
+        final AbstractEntityRaiderMob hostile = ModEntities.BARBARIAN.create(level);
+        helper.assertTrue(hostile != null, "Guard combat fixture could not create a barbarian raider target");
         hostile.setNoAi(true);
         hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
+        hostile.setColony(colony);
+        hostile.setEventID(guardRaidEvent.getID());
+        hostile.setHealth(40.0F);
+        guardCitizen.setInvulnerable(true);
+        final float hostileHealth = hostile.getHealth();
         final java.lang.reflect.Method lookForRequests;
         try
         {
@@ -2900,22 +2918,29 @@ public final class MineColoniesGameTests implements FabricGameTest
 
             if (!hostileAdded[0])
             {
+                hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
                 guardCitizen.setLastHurtByMob(hostile);
-                helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its zombie target");
+                helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its barbarian target");
+                hostile.registerWithColony();
                 hostileAdded[0] = true;
                 return;
             }
 
+            // Keep the live raider inside the guard's patrol range while its
+            // target-selection state runs. This also prevents a no-AI fixture
+            // from being displaced by collision before the guard can react.
+            hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
+            guardCitizen.setLastHurtByMob(hostile);
             if (!searchFound[0] && guardCitizen.getThreatTable().getTargetMob() == hostile)
             {
                 searchFound[0] = true;
-                // Keep the entity alive while the autonomous search runs, then
-                // make the next combat tick prove the real attack path.
-                hostile.setHealth(1.0F);
             }
 
-            if (searchFound[0] && !hostile.isAlive())
+            if (searchFound[0] && hostile.getHealth() < hostileHealth)
             {
+                guardRaidEvent.onFinish();
+                guardRaidEvent.setStatus(EventStatus.DONE);
+                guardCitizen.setInvulnerable(false);
                 helper.succeed();
                 return;
             }
@@ -2925,21 +2950,27 @@ public final class MineColoniesGameTests implements FabricGameTest
             if (!searchFound[0] && guardCitizen.getThreatTable().getTargetMob() == hostile)
             {
                 searchFound[0] = true;
-                hostile.setHealth(1.0F);
             }
-            if (searchFound[0] && !hostile.isAlive())
+            if (searchFound[0] && hostile.getHealth() < hostileHealth)
             {
+                guardRaidEvent.onFinish();
+                guardRaidEvent.setStatus(EventStatus.DONE);
+                guardCitizen.setInvulnerable(false);
                 helper.succeed();
                 return;
             }
             if (combatTicks[0] >= 220)
             {
+                guardRaidEvent.onFinish();
+                guardRaidEvent.setStatus(EventStatus.DONE);
+                guardCitizen.setInvulnerable(false);
                 helper.assertTrue(false,
-                  "Knight worker AI did not " + (searchFound[0] ? "damage the discovered hostile" : "discover the nearby hostile through searchNearbyTarget")
+                  "Knight worker AI did not " + (searchFound[0] ? "damage the discovered raider" : "discover the nearby raider through searchNearbyTarget")
                     + ": state=" + knightAI.getState()
                     + "; guard=" + guardCitizen.blockPosition()
                     + "; threat=" + guardCitizen.getThreatTable().getTargetMob()
-                    + "; hostile=" + hostile.blockPosition());
+                    + "; raider=" + hostile.blockPosition()
+                    + "; raiderHealth=" + hostile.getHealth());
             }
         });
     }
@@ -3187,6 +3218,102 @@ public final class MineColoniesGameTests implements FabricGameTest
                 cleanupRaidFixture.run();
             }
         }
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 220)
+    public void raiderWalkFallsBackWithoutRaidWaypoints(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(5, 1, 5);
+        final BlockPos relativeRaider = new BlockPos(18, 1, 5);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos raiderPosition = helper.absolutePos(relativeRaider);
+
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 12; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Raider Navigation GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Raider navigation fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Raider navigation fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+
+        // Keep the event in PROGRESSING without calling onStart(). Its waypoint
+        // list therefore stays empty, matching a raid whose async path has not
+        // completed when RaiderWalkAI gets its first navigation tick.
+        final BarbarianRaidEvent raidEvent = new BarbarianRaidEvent(colony);
+        final Horde horde = new Horde(3);
+        horde.numberOfBosses = 0;
+        horde.numberOfArchers = 0;
+        horde.numberOfRaiders = 1;
+        horde.hordeSize = 1;
+        raidEvent.setHorde(horde);
+        raidEvent.setSpawnPoint(raiderPosition);
+        raidEvent.setStatus(EventStatus.PROGRESSING);
+        colony.getEventManager().addEvent(raidEvent);
+        helper.assertTrue(raidEvent.getWayPoints().isEmpty(),
+          "Navigation fixture unexpectedly received waypoints before path completion");
+
+        final AbstractEntityRaiderMob raider = ModEntities.BARBARIAN.create(level);
+        helper.assertTrue(raider != null, "Raider navigation fixture could not create a barbarian");
+        raider.setPos(raiderPosition.getX() + 0.5D, raiderPosition.getY(), raiderPosition.getZ() + 0.5D);
+        helper.assertTrue(level.addFreshEntity(raider), "Raider navigation fixture could not add the barbarian");
+        raider.setColony(colony);
+        raider.setEventID(raidEvent.getID());
+        raider.registerWithColony();
+        raider.setInvulnerable(false);
+        final double initialDistance = raider.blockPosition().distSqr(townHall);
+        final int[] navigationTicks = {0};
+        final boolean[] routeIssued = {false};
+
+        helper.onEachTick(() ->
+        {
+            navigationTicks[0]++;
+            if (!raider.isAlive())
+            {
+                raidEvent.onFinish();
+                helper.assertTrue(false, "Raider disappeared while testing direct navigation without waypoints");
+                return;
+            }
+
+            if (raider.getNavigation().getDesiredPos() != null || raider.blockPosition().distSqr(townHall) < initialDistance)
+            {
+                routeIssued[0] = true;
+            }
+
+            if (navigationTicks[0] >= 90 && routeIssued[0])
+            {
+                raidEvent.onFinish();
+                raidEvent.setStatus(EventStatus.DONE);
+                helper.succeed();
+                return;
+            }
+
+            if (navigationTicks[0] >= 190)
+            {
+                raidEvent.onFinish();
+                raidEvent.setStatus(EventStatus.DONE);
+                helper.assertTrue(false,
+                  "RaiderWalkAI did not issue a direct route when raid waypoints were empty: position="
+                    + raider.blockPosition() + "; target=" + townHall
+                    + "; navigationDone=" + raider.getNavigation().isDone());
+            }
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

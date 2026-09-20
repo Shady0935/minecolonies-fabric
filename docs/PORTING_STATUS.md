@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  91-test GameTest run
+  92-test GameTest run
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest
@@ -103,7 +103,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 91-test Fabric GameTest run
+  is covered by the latest 92-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -150,10 +150,11 @@ completed.
 - [x] All 25 registered MineColonies custom entity types instantiate, preserve
   their registry identity and exercise the NBT reload contract in Fabric
   GameTest; the two upstream non-persistent projectile types intentionally
-  discard on reload; focused farmer, guard autonomous-target-search/combat and
-  short-range raider `AttackMoveAI` paths are covered, while full work cycles,
-  long-range raid navigation/guard response and client rendering remain separate
-  validation work
+  discard on reload; focused farmer, guard autonomous-target-search/combat,
+  real guard-versus-barbarian response, short-range raider `AttackMoveAI` and
+  `RaiderWalkAI` empty-waypoint fallback paths are covered, while full work
+  cycles, long-range raid navigation/sustained combat and client rendering
+  remain separate validation work
 - [x] Server-side `CitizenAI` initialization and an assigned Builder worker
   cycle exercised through normal entity ticks; a colony-backed citizen also
   computes and follows a real advanced-navigation path to a target while
@@ -309,17 +310,21 @@ completed.
   creates a normal sword `Tool` request while that chest is empty, verifies
   the Fabric container-update bridge reassigns the request when the sword
   arrives, and confirms normal request delivery before the autonomous combat
-  cycle. Full guard navigation/long-running ambient target search, broader
-  resolver-driven equipment workflows, long-range raid navigation/guard response
-  and sustained guard/raider combat remain open
+  cycle; a companion fixture registers a real MineColonies barbarian raider,
+  lets the guard discover it through the threat search and verifies knight
+  damage. Full guard navigation/long-running ambient target search, broader
+  resolver-driven equipment workflows, long-range raid navigation and sustained
+  guard/raider combat remain open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point, advances the
   real HordeRaidEvent through spawn and `PREPARING`/`PROGRESSING` lifecycle,
   verifies each spawned raider is linked to the colony/event, runs a registered
   raider through the real `RaiderMeleeAI`/`AttackMoveAI` threat-selection and
   short-range damage path against a live citizen, and rejects new events after
-  colony raid events are disabled; long-range raid navigation, guard response
-  and sustained raid combat remain open
+  colony raid events are disabled; `RaiderWalkAI` now falls back to direct
+  target movement when asynchronous raid waypoints are empty, and the real
+  guard-versus-barbarian response is covered by the companion guard fixture;
+  long-range raid navigation and sustained raid combat remain open
 - [ ] BlockUI screens and remaining client-to-server gameplay actions
 
 ## Validation
@@ -374,9 +379,10 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 91-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 92-test Fabric GameTest run passes with clean saves for all three
   dimensions; its 83-test core batch plus isolated Farmer, Miner, housing, Builder,
-  sleep/wake and entity batches cover event-dispatch
+  sleep/wake and entity batches, plus the focused raider-navigation fallback,
+  cover event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
@@ -431,8 +437,9 @@ completed.
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture; the
   forced barbarian event also reaches a live citizen through the registered
-  raider combat AI; evidence is in
-  `logs/minecolonies-gametest-raid-combat-91-green-20260920.log`
+  raider combat AI, a no-waypoint raider navigates by direct fallback, and a
+  real guard damages a registered barbarian raider; evidence is in
+  `logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

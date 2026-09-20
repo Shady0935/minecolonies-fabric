@@ -187,10 +187,10 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 91-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The latest 92-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-miner-cycle-farmer-91-green-20260919.log`.
+in `logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,11 +243,12 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 91-test run (83 core tests, one isolated
+Evidence for the latest combined 92-test run (83 core tests, one isolated
 Farmer navigation test, one isolated Miner mining-cycle test, one isolated automatic-housing test, two isolated
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
-guard combat test and one entity batch) is in
-`logs/minecolonies-gametest-raid-combat-91-green-20260920.log`; this run also
+guard combat test, one entity batch and one focused raider-navigation fallback
+test) is in
+`logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`; this run also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric container-change bridge reassigns
 the request when the sword arrives, and confirms that the knight retrieves it
@@ -663,8 +664,11 @@ spawn point, advances the real `HordeRaidEvent` through `PREPARING` and
 moves one registered raider into a short attack path, verifies threat-table
 selection and confirms the real `RaiderMeleeAI`/`AttackMoveAI` damages a live
 citizen, then disables colony raid events and confirms new raid requests
-return `CANNOT_RAID`. Long-range raid navigation, guard response and
-sustained combat remain manual validation items.
+return `CANNOT_RAID`. A companion guard fixture registers a real MineColonies
+barbarian raider, verifies threat discovery and confirms knight damage against
+it. `RaiderWalkAI` also falls back to direct target movement when an asynchronous
+raid path has no waypoints. Long-range raid navigation and sustained combat
+remain manual validation items.
 
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond
