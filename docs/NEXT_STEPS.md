@@ -72,10 +72,11 @@ decoration work-order creation, plantation/rally routes and University research 
 plus focused Farmer harvest, Lumberjack three-log chopping, short-range
 Researcher bookshelf navigation/study/mana, short-range Farmer
 harvest/navigation and Guard autonomous-target-search/combat cycles with a
-late-arriving registered-chest sword request and normal pickup. Full entity
+late-arriving registered-chest sword request and normal pickup, plus the
+registered-raider `AttackMoveAI` short-range target/damage path. Full entity
 work cycles, sustained guard navigation/ambient target search, broader
-request-driven equipment provisioning, raid navigation/guard response/combat
-and client rendering are still open.
+request-driven equipment provisioning, long-range raid navigation/guard
+response/sustained combat and client rendering are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable

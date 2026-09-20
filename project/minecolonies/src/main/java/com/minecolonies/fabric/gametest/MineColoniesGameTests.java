@@ -2944,7 +2944,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 320)
     public void raiderManagerStartsEligibleBarbarianEvent(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2978,6 +2978,24 @@ public final class MineColoniesGameTests implements FabricGameTest
                 level.setChunkForced(chunkX, chunkZ, true);
             }
         }
+        final boolean[] combatCleanupDeferred = {false};
+        final boolean[] combatCleanupDone = {false};
+        final Runnable cleanupRaidFixture = () ->
+        {
+            if (combatCleanupDone[0])
+            {
+                return;
+            }
+            combatCleanupDone[0] = true;
+            level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(previousMobSpawning, level.getServer());
+            for (int cleanupChunkX = townHallChunkX - forcedChunkRadius; cleanupChunkX <= townHallChunkX + forcedChunkRadius; cleanupChunkX++)
+            {
+                for (int cleanupChunkZ = townHallChunkZ - forcedChunkRadius; cleanupChunkZ <= townHallChunkZ + forcedChunkRadius; cleanupChunkZ++)
+                {
+                    level.setChunkForced(cleanupChunkX, cleanupChunkZ, false);
+                }
+            }
+        };
         try
         {
         level.getChunkAt(townHall);
@@ -3021,6 +3039,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         townHallHut.setSchematicName("townhall1");
         colony.getBuildingManager().addNewBuilding(townHallHut, level);
 
+        final AbstractEntityCitizen[] raidTarget = {null};
         for (int i = 0; i < 8; i++)
         {
             final BlockPos citizenPos = new BlockPos(relativeTownHall.getX() + 2 + (i % 4) * 2,
@@ -3028,7 +3047,12 @@ public final class MineColoniesGameTests implements FabricGameTest
             final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, citizenPos);
             helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
               "Raider fixture could not create citizen " + i);
+            if (i == 0)
+            {
+                raidTarget[0] = citizen.getEntity().orElse(null);
+            }
         }
+        helper.assertTrue(raidTarget[0] != null, "Raider fixture did not retain a live citizen target");
 
         final IRaiderManager raiderManager = colony.getRaiderManager();
         helper.assertTrue(raiderManager.getColonyRaidLevel() >= RaidManager.MIN_REQUIRED_RAIDLEVEL,
@@ -3081,24 +3105,86 @@ public final class MineColoniesGameTests implements FabricGameTest
         colony.getEventManager().onColonyTick(colony);
         helper.assertTrue(raidEvent.getStatus() == EventStatus.PROGRESSING,
           "Raider event did not enter PROGRESSING after preparation ticks: " + raidEvent.getStatus());
-        raidEvent.onFinish();
+
+        // Put one registered raider within a short path of a real colony
+        // citizen and seed only the normal threat table. The server entity
+        // tick must then run the ported RaiderMeleeAI/AttackMoveAI path and
+        // damage the citizen; a direct hurt() call would not cover that flow.
+        final AbstractEntityRaiderMob combatRaider = spawnedRaiders.stream()
+          .filter(AbstractEntityRaiderMob.class::isInstance)
+          .map(AbstractEntityRaiderMob.class::cast)
+          .findFirst()
+          .orElse(null);
+        helper.assertTrue(combatRaider != null, "Raider event did not retain a combat-capable raider");
+        final AbstractEntityCitizen targetCitizen = raidTarget[0];
+        targetCitizen.setNoAi(true);
+        targetCitizen.setHealth(targetCitizen.getMaxHealth());
+        combatRaider.setPos(targetCitizen.getX() + 2.0, targetCitizen.getY(), targetCitizen.getZ());
+        combatRaider.setInvulnerable(false);
+        combatRaider.getNavigation().stop();
+        combatRaider.getThreatTable().addThreat(targetCitizen, 100);
+        final float targetHealth = targetCitizen.getHealth();
+        final boolean[] targetSelected = {false};
+        final int[] combatTicks = {0};
+        combatCleanupDeferred[0] = true;
+        helper.onEachTick(() ->
+        {
+            if (combatRaider.getThreatTable().getTargetMob() == targetCitizen)
+            {
+                targetSelected[0] = true;
+            }
+            // Check the health transition before isAlive(): a valid melee hit
+            // can be lethal for a freshly spawned citizen and must still prove
+            // that the autonomous attack path ran.
+            if (targetSelected[0] && targetCitizen.getHealth() < targetHealth)
+            {
+                raidEvent.onFinish();
+                cleanupRaidFixture.run();
+                helper.succeed();
+                return;
+            }
+            if (!combatRaider.isAlive() || !targetCitizen.isAlive())
+            {
+                raidEvent.onFinish();
+                cleanupRaidFixture.run();
+                helper.assertTrue(false,
+                  "Raid combat fixture lost an entity before the attack path completed: raiderAlive="
+                    + combatRaider.isAlive() + "; targetAlive=" + targetCitizen.isAlive()
+                    + "; targetHealth=" + targetCitizen.getHealth());
+                return;
+            }
+
+            combatTicks[0]++;
+            if (targetSelected[0] && targetCitizen.getHealth() < targetHealth)
+            {
+                raidEvent.onFinish();
+                cleanupRaidFixture.run();
+                helper.succeed();
+                return;
+            }
+            if (combatTicks[0] >= 180)
+            {
+                raidEvent.onFinish();
+                cleanupRaidFixture.run();
+                helper.assertTrue(false,
+                  "Raid combat AI did not damage the colony citizen: selected=" + targetSelected[0]
+                    + "; raider=" + combatRaider.blockPosition()
+                    + "; target=" + targetCitizen.blockPosition()
+                    + "; health=" + targetCitizen.getHealth());
+            }
+        });
 
         raiderManager.setCanHaveRaiderEvents(false);
         helper.assertTrue(!raiderManager.canRaid(true),
           "Raider manager ignored the disabled colony raid-events flag");
         helper.assertTrue(raiderManager.raiderEvent("barbarian", true, false) == IRaiderManager.RaidSpawnResult.CANNOT_RAID,
           "Raider manager started an event after colony raid-events were disabled");
-        helper.succeed();
         }
         finally
         {
-            level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(previousMobSpawning, level.getServer());
-            for (int chunkX = townHallChunkX - forcedChunkRadius; chunkX <= townHallChunkX + forcedChunkRadius; chunkX++)
+            if (!combatCleanupDeferred[0])
             {
-                for (int chunkZ = townHallChunkZ - forcedChunkRadius; chunkZ <= townHallChunkZ + forcedChunkRadius; chunkZ++)
-                {
-                    level.setChunkForced(chunkX, chunkZ, false);
-                }
+                cleanupRaidFixture.run();
             }
         }
     }

@@ -247,11 +247,14 @@ Evidence for the latest combined 91-test run (83 core tests, one isolated
 Farmer navigation test, one isolated Miner mining-cycle test, one isolated automatic-housing test, two isolated
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
 guard combat test and one entity batch) is in
-`logs/minecolonies-gametest-raid-spawn-91-green-20260920.log`; this run also
+`logs/minecolonies-gametest-raid-combat-91-green-20260920.log`; this run also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric container-change bridge reassigns
 the request when the sword arrives, and confirms that the knight retrieves it
 through the normal request-delivery path before the autonomous combat cycle.
+The same clean run advances the forced barbarian event through its real
+`PREPARING`/`PROGRESSING` lifecycle and lets a registered raider's
+`RaiderMeleeAI`/`AttackMoveAI` select and damage a live citizen at short range.
 The earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
@@ -656,10 +659,12 @@ with live citizens, chooses a Town Hall position isolated from existing colony
 claims, builds a continuous valid-ground annulus for randomized spawn-direction
 sampling, verifies the forced barbarian `IColonyRaidEvent` and its calculated
 spawn point, advances the real `HordeRaidEvent` through `PREPARING` and
-`PROGRESSING`, confirms each spawned raider is linked to the colony/event, then
-disables colony raid events and confirms new raid requests return
-`CANNOT_RAID`. Raid navigation, guard response and combat outcomes remain
-manual validation items.
+`PROGRESSING`, confirms each spawned raider is linked to the colony/event,
+moves one registered raider into a short attack path, verifies threat-table
+selection and confirms the real `RaiderMeleeAI`/`AttackMoveAI` damages a live
+citizen, then disables colony raid events and confirms new raid requests
+return `CANNOT_RAID`. Long-range raid navigation, guard response and
+sustained combat remain manual validation items.
 
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond
@@ -910,8 +915,8 @@ projectile types whose upstream `save` implementation deliberately returns
 retain their position. This closes the registration/constructor/persistence
 contract for the complete current entity list. The separate citizen-cycle
 fixture covers server-side `CitizenAI` initialization and assigned Builder
-worker ticking; hostile AI, combat, restart migration and client rendering
-remain separate validation items.
+worker ticking; long-range hostile AI/navigation, sustained combat, restart
+migration and client rendering remain separate validation items.
 
 The container-opening bridge had a separate Forge semantic that the first Fabric
 implementation did not preserve: `NetworkHooks.openScreen(provider, writer)`

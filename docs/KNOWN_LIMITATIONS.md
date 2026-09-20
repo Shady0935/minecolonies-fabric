@@ -53,15 +53,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   nearby-target-search/hostile-hit cycle and registered-chest sword retrieval
   path, and
   `RaidManager` eligibility/barbarian-event registration and the real horde
-  spawn plus event-lifecycle transition.
+  spawn plus event-lifecycle transition, including the short-range registered
+  raider `AttackMoveAI` target-selection/damage path against a live citizen.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
-  does not replace the pending combat, rendering or restart-migration
-  checks.
+  does not replace the pending long-range raid navigation, guard response,
+  sustained combat, rendering or restart-migration checks.
   It does not yet cover multi-request resolution/delivery, automatic logistics
   inventory transfer beyond the focused rack-backed cycle, courier navigation,
   full Builder work-order pathfinding and
@@ -72,7 +73,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   autonomous tree-search/replanting cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
-  navigation, full hostile-entity target search/navigation, sustained
+  navigation, long-range hostile-entity target search/navigation, sustained
   AI/combat/rendering after restart, or DataFixer migration for old entity data. A
   dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
