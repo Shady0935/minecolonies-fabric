@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The current 90-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-farmer-navigation-green-90.log`.
+in `logs/minecolonies-gametest-miner-ai-order-farmer-batch-green-90.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,10 +243,11 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 90-test run (84 core tests, one isolated
-automatic-housing test, two isolated Builder tests, one isolated residence
-sleep/wake test, one isolated knight-guard combat test and one entity batch)
-is in `logs/minecolonies-gametest-farmer-navigation-green-90.log`; the earlier
+Evidence for the latest combined 90-test run (83 core tests, one isolated
+Farmer navigation test, one isolated automatic-housing test, two isolated
+Builder tests, one isolated residence sleep/wake test, one isolated knight-
+guard combat test and one entity batch) is in
+`logs/minecolonies-gametest-miner-ai-order-farmer-batch-green-90.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -599,12 +600,13 @@ multi-request scheduling and the client logistics GUI remain open.
 The miner fixture follows the same real building-registration path for a
 Colonial miner, resolves `fundamentals/mine1.blueprint`, assigns a live citizen
 to `JobMiner`, creates a persistent `WorkOrderMiner` through the colony
-`WorkManager` and verifies that `BuildingMiner.searchWorkOrder()` selects the
-order and persists the citizen claim. A focused companion equips the level-one
-miner with a stone pickaxe, runs the real `EntityAIStructureMiner.doMining()`
-cycle against a stone block and verifies both block removal and cobblestone
-delivery. Mine-shaft construction, ore selection, navigation, resource
-delivery and the miner GUI remain open.
+`WorkManager` and verifies that normal `EntityAIStructureMiner` startup ticks
+select the order and persist the citizen claim. The Fabric port now records the
+claim when that AI attaches the order, matching the building-search contract.
+A focused companion equips the level-one miner with a stone pickaxe, runs the
+real `EntityAIStructureMiner.doMining()` cycle against a stone block and
+verifies both block removal and cobblestone delivery. Mine-shaft construction,
+ore selection, navigation, resource delivery and the miner GUI remain open.
 
 The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
@@ -614,7 +616,9 @@ growth, longer work-cycle/navigation, field placement, resource delivery and
 the farming GUI remain manual validation items. Focused companions tick the
 real `EntityAIWorkFarmer` state machine against a mature wheat crop, verifying
 both direct harvest/drop transfer and a short-range route from the farm building
-to the assigned field through normal `CitizenAI` ticks.
+to the assigned field through normal `CitizenAI` ticks. The longer navigation
+fixture runs in its own Farmer GameTest batch so it cannot be overwritten by
+concurrent Builder or housing construction fixtures.
 
 The Lumberjack fixture registers the Original level-one lumberjack through its
 real building entry and assigns a live citizen to `JobLumberjack`. The Colonial

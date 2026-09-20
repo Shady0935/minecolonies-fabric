@@ -278,12 +278,13 @@ completed.
   scheduling and logistics GUI remain open. Evidence:
   `logs/minecolonies-gametest-builder-ai-state-fix8.log`
 - [x] Server-side Miner registration resolves the Colonial level-one mine
-  blueprint, assigns a live `JobMiner` and lets `BuildingMiner.searchWorkOrder()`
-  select and persist a `WorkOrderMiner` claim; ladder-tag lookup now tolerates
-  a temporarily unavailable building BlockEntity during world rehydration; a
-  focused level-one mining cycle now verifies stone removal and drop delivery
-  through `EntityAIStructureMiner`; shaft construction, ore behavior, placement
-  and resource logistics remain open
+  blueprint, assigns a live `JobMiner` and lets normal
+  `EntityAIStructureMiner` startup ticks select and persist a `WorkOrderMiner`
+  claim; the AI now records the claim when it attaches the order, and
+  ladder-tag lookup tolerates a temporarily unavailable building BlockEntity
+  during world rehydration. A focused level-one mining cycle verifies stone
+  removal and drop delivery through `EntityAIStructureMiner`; shaft
+  construction, ore behavior, placement and resource logistics remain open
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
@@ -363,7 +364,7 @@ completed.
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
 - [x] Latest 90-test Fabric GameTest run passes with clean saves for all three
-  dimensions; its 84-test core batch plus the isolated housing, Builder,
+  dimensions; its 83-test core batch plus isolated Farmer, housing, Builder,
   sleep/wake and entity batches cover event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
@@ -419,7 +420,7 @@ completed.
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-farmer-navigation-green-90.log`
+  `logs/minecolonies-gametest-miner-ai-order-farmer-batch-green-90.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

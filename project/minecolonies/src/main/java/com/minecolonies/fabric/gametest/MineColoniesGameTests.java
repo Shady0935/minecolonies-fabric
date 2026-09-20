@@ -286,6 +286,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class MineColoniesGameTests implements FabricGameTest
 {
     private static final String TEST_BATCH = "minecolonies_fabric_port";
+    private static final String FARMER_TEST_BATCH = "minecolonies_fabric_farmer_port";
     private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
     private static final String HOUSING_TEST_BATCH = "minecolonies_fabric_housing_port";
@@ -2211,6 +2212,10 @@ public final class MineColoniesGameTests implements FabricGameTest
         minerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
         minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
         minerHut.setSchematicName("mine1");
+        final Map<BlockPos, List<String>> minerTags = new java.util.HashMap<>();
+        minerTags.put(BlockPos.ZERO, List.of("cobble"));
+        minerTags.put(new BlockPos(1, 0, 0), List.of("ladder"));
+        minerHut.setPositionedTags(minerTags);
         final IBuilding registered = colony.getBuildingManager().addNewBuilding(minerHut, level);
         helper.assertTrue(registered instanceof BuildingMiner,
           "Miner fixture registered the wrong building implementation: " + registered);
@@ -2237,9 +2242,16 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(order.getID() > 0, "Miner work order did not receive a persistent id");
         helper.assertTrue(order.canBeMadeBy(job), "Miner work order rejected the assigned miner job");
 
-        miner.searchWorkOrder();
+        final EntityAIStructureMiner minerAI = job.getWorkerAI();
+        helper.assertTrue(minerAI != null, "Miner assignment did not create the worker AI");
+        minerAI.resetAI();
+        for (int tick = 0; tick < 120 && !job.hasWorkOrder(); tick++)
+        {
+            minerAI.tick();
+        }
         helper.assertTrue(job.hasWorkOrder() && job.getWorkOrder() == order,
-          "Miner did not select the registered mine work order");
+          "Miner AI did not select the registered mine work order through its normal startup: state="
+            + minerAI.getState());
         helper.assertTrue(order.isClaimedBy(citizen),
           "Miner did not persist the work-order claim for its citizen");
 
@@ -2369,7 +2381,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_TEST_BATCH, timeoutTicks = 1000)
     public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");

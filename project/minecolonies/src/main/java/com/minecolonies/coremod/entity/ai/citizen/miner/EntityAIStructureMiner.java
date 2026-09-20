@@ -167,7 +167,9 @@ public class EntityAIStructureMiner extends AbstractEntityAIStructureWithWorkOrd
             final List<WorkOrderMiner> list = building.getColony().getWorkManager().getOrderedList(WorkOrderMiner.class, building.getPosition());
             if (!list.isEmpty())
             {
-                job.setWorkOrder(list.get(0));
+                final WorkOrderMiner workOrder = list.get(0);
+                job.setWorkOrder(workOrder);
+                workOrder.setClaimedBy(worker.getCitizenData());
                 return LOAD_STRUCTURE;
             }
         }

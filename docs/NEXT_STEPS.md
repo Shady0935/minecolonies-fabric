@@ -30,7 +30,8 @@ real visitor entity. The latest clean Fabric GameTest run passes all 90
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
-inherited listener dispatch. Its 84-test core batch also exercises real
+inherited listener dispatch. Its 83-test core batch plus an isolated Farmer
+navigation batch also exercise real
 client-to-server Town Hall rename, colony foundation, direct Town Hall
 placement, hut/building rename, colony style settings, colony allocation/flag
 settings, Builder delivery priority, Farmer field assignment/settings,
