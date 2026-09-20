@@ -187,10 +187,10 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The current 89-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The current 90-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-researcher-green-89.log`.
+in `logs/minecolonies-gametest-farmer-navigation-green-90.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -243,10 +243,10 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 89-test run (83 core tests, one isolated
+Evidence for the latest combined 90-test run (84 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
 sleep/wake test, one isolated knight-guard combat test and one entity batch)
-is in `logs/minecolonies-gametest-researcher-green-89.log`; the earlier
+is in `logs/minecolonies-gametest-farmer-navigation-green-90.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -611,9 +611,10 @@ resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
 `FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
 `FarmerFieldsModule` then retains the field and its owning building ID. Crop
 growth, longer work-cycle/navigation, field placement, resource delivery and
-the farming GUI remain manual validation items. A focused companion ticks the
-real `EntityAIWorkFarmer` state machine against a mature wheat crop and
-verifies that the crop is removed and its drops reach the citizen inventory.
+the farming GUI remain manual validation items. Focused companions tick the
+real `EntityAIWorkFarmer` state machine against a mature wheat crop, verifying
+both direct harvest/drop transfer and a short-range route from the farm building
+to the assigned field through normal `CitizenAI` ticks.
 
 The Lumberjack fixture registers the Original level-one lumberjack through its
 real building entry and assigns a live citizen to `JobLumberjack`. The Colonial

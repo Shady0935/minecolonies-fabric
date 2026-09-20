@@ -65,8 +65,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   full Builder work-order pathfinding and
   larger construction, full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
-  placement and longer harvest navigation/resource delivery beyond the focused
-  worker-AI cycle, a Lumberjack autonomous tree-search/replanting cycle,
+  placement and longer/multi-cell harvest navigation/resource delivery beyond
+  the focused worker-AI and short-range navigation cycles, a Lumberjack
+  autonomous tree-search/replanting cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
   navigation, full hostile-entity target search/navigation, sustained
@@ -128,7 +129,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
-  delivery, Lumberjack tree search/replanting, long-range University researcher
+  delivery beyond the covered short-range route, Lumberjack tree
+  search/replanting, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard target search/navigation,
   request-driven guard equipment, and raids
@@ -147,8 +149,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   AI state machine, including the live assigned-order `BUILDING_STEP` route
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
-  Farmer field assignment, Lumberjack registration/assignment and focused
-  three-log worker cycle, Guard Tower/knight assignment plus the focused
+  Farmer field assignment plus focused short-range harvest/navigation,
+  Lumberjack registration/assignment and focused three-log worker cycle, Guard
+  Tower/knight assignment plus the focused
   knight autonomous target-selection/hostile-hit path, RaidManager event registration and the University
   worker-tick plus focused researcher study/mana paths have automated GameTest
   fixtures; multi-request logistics,
@@ -195,11 +198,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 89-test GameTest run still logs the upstream-style warning that
+- The latest 90-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-researcher-green-89.log`. The
+  `logs/minecolonies-gametest-farmer-navigation-green-90.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

@@ -2370,6 +2370,116 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
+    public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
+        final BlockPos relativeField = new BlockPos(15, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        final BlockPos fieldPos = helper.absolutePos(relativeField);
+        for (int x = 0; x <= 18; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+        helper.setBlock(relativeField, ModBlocks.blockScarecrow);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Farmer Navigation GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Farmer navigation fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Farmer navigation fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Farmer navigation fixture Town Hall was not registered");
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "Farmer navigation fixture did not create a farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(registered instanceof BuildingFarmer,
+          "Farmer navigation fixture registered the wrong building implementation: " + registered);
+        final BuildingFarmer farmer = (BuildingFarmer) registered;
+        helper.assertTrue(farmer.getBuildingLevel() >= 1,
+          "Farmer navigation fixture did not resolve its level-one farm blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FarmField field = FarmField.create(fieldPos);
+        field.setSeed(new ItemStack(Items.WHEAT));
+        field.setFieldStage(FarmField.Stage.PLANTED);
+        helper.assertTrue(field.isValidPlacement(colony),
+          "Farmer navigation fixture field does not have a valid scarecrow placement");
+        helper.assertTrue(colony.getBuildingManager().addField(field),
+          "Farmer navigation fixture field was not registered in the colony");
+
+        final BlockPos cropPos = fieldPos.east();
+        level.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, farmerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Farmer navigation fixture could not create a live farmer citizen");
+        final WorkerBuildingModule workerModule = farmer.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.farmer.get());
+        helper.assertTrue(workerModule != null, "Farmer navigation worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Farmer navigation worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobFarmer,
+          "Farmer navigation assignment did not create the farmer job");
+
+        final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        final EntityAIWorkFarmer farmerAI = (EntityAIWorkFarmer) citizen.getJob(JobFarmer.class).getWorkerAI();
+        helper.assertTrue(farmerAI != null, "Farmer navigation assignment did not create the worker AI");
+        farmerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_HOE));
+        farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        farmerCitizen.setPos(farmerPos.getX() + 0.5D, farmerPos.getY() + 1.0D, farmerPos.getZ() + 0.5D);
+        final int startingX = farmerCitizen.blockPosition().getX();
+        final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
+        farmerAI.resetAI();
+        farmerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.PREPARING));
+
+        final int[] farmerTicks = {0};
+        helper.onEachTick(() ->
+        {
+            farmerTicks[0]++;
+            if (level.isEmptyBlock(cropPos))
+            {
+                helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) > wheatBefore,
+                  "Farmer worker AI did not transfer navigation harvest drops into the citizen inventory: state="
+                    + farmerAI.getState() + "; farmer=" + farmerCitizen.blockPosition());
+                helper.assertTrue(farmerCitizen.blockPosition().getX() > startingX,
+                  "Farmer worker AI harvested without navigating from its starting position: startX=" + startingX
+                    + "; farmer=" + farmerCitizen.blockPosition());
+                helper.succeed();
+            }
+            else if (farmerTicks[0] >= 900)
+            {
+                helper.assertTrue(false,
+                  "Farmer worker AI did not navigate to and harvest the assigned crop: state=" + farmerAI.getState()
+                    + "; crop=" + level.getBlockState(cropPos)
+                    + "; farmer=" + farmerCitizen.blockPosition()
+                    + "; navigationDone=" + farmerCitizen.getNavigation().isDone());
+            }
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
     public void lumberjackRegistersAndChopsAssignedTree(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
