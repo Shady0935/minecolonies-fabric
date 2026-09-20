@@ -995,7 +995,7 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
                 }
                 else if (entity instanceof ChestBlockEntity)
                 {
-                    if (retrieveToolInTileEntity(building.getTileEntity(), toolType, minimalLevel, building.getMaxToolLevel()))
+                    if (retrieveToolInTileEntity(entity, toolType, minimalLevel, building.getMaxToolLevel()))
                     {
                         return true;
                     }

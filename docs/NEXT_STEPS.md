@@ -71,10 +71,10 @@ Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
 plus focused Farmer harvest, Lumberjack three-log chopping, short-range
 Researcher bookshelf navigation/study/mana, short-range Farmer
-harvest/navigation and Guard autonomous-target-search/
-combat cycles.
-Full entity work cycles, sustained guard navigation/ambient target search,
-equipment provisioning, raids and client rendering are still open.
+harvest/navigation and Guard autonomous-target-search/combat cycles with
+registered-chest sword retrieval. Full entity work cycles, sustained guard
+navigation/ambient target search, full request-driven equipment provisioning,
+raids and client rendering are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable

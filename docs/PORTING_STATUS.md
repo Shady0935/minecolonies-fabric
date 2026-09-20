@@ -305,8 +305,10 @@ completed.
   `EntityAIKnight`/`KnightCombatAI` cycle enters `NO_TARGET`, lets
   `searchNearbyTarget` discover a nearby hostile, records it in the guard
   threat table, applies validity/range checks, equips the level-one guard and
-  damages the target. Full guard navigation/long-running ambient target search,
-  request-driven equipment provisioning, raids and sustained combat remain open
+  damages the target; the same clean fixture registers a vanilla storage chest
+  and verifies sword retrieval through the corrected `retrieveToolInHut` path.
+  Full guard navigation/long-running ambient target search, resolver-driven
+  equipment requests, raids and sustained combat remain open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point and rejects
   new events after colony raid events are disabled; raid spawning, navigation,
@@ -413,14 +415,14 @@ completed.
   navigation cycle and the
   real `EntityAIWorkLumberjack` three-log chop/inventory cycle, the focused
   `EntityAIWorkResearcher` bookshelf navigation/study/mana cycle,
-  plus the focused real `EntityAIKnight`/`KnightCombatAI` autonomous
-  target-selection and hostile-hit cycle,
+  plus the focused real `EntityAIKnight`/`KnightCombatAI` registered-chest tool
+  retrieval, autonomous target-selection and hostile-hit cycle,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-miner-cycle-farmer-91-green-20260919.log`
+  `logs/minecolonies-gametest-guard-equipment-91-green-20260919.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

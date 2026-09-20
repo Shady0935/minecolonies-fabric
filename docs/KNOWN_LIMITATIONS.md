@@ -50,7 +50,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   farmer field registration with live `JobFarmer` assignment and Guard Tower
   registration with live `JobKnight` assignment and guard-roster persistence,
   plus a focused real `EntityAIKnight`/`KnightCombatAI` autonomous
-  nearby-target-search/hostile-hit cycle and
+  nearby-target-search/hostile-hit cycle and registered-chest sword retrieval
+  path, and
   `RaidManager` eligibility/barbarian-event registration.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
@@ -133,7 +134,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   search/replanting, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard target search/navigation,
-  request-driven guard equipment, and raids
+  full request-driven guard equipment (the current checkpoint covers direct
+  retrieval from a registered storage chest), and raids
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation

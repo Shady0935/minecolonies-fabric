@@ -247,7 +247,10 @@ Evidence for the latest combined 91-test run (83 core tests, one isolated
 Farmer navigation test, one isolated Miner mining-cycle test, one isolated automatic-housing test, two isolated
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
 guard combat test and one entity batch) is in
-`logs/minecolonies-gametest-miner-cycle-farmer-91-green-20260919.log`; the earlier
+`logs/minecolonies-gametest-guard-equipment-91-green-20260919.log`; this run also
+registers a real vanilla storage chest and verifies that the knight retrieves its
+sword through the normal `retrieveToolInHut` path before the autonomous combat
+cycle. The earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -636,12 +639,14 @@ entry, resolves `military/guardtower1.blueprint`, verifies the default guard
 position and patrol task, locates the knight `GuardBuildingModule` and assigns
 a live citizen to `JobKnight`. The building then exposes that citizen through
 its guard roster. A focused companion equips the level-one sword/leather gear,
-enters `NO_TARGET` without a pre-seeded threat entry, and lets
+including a sword retrieved from a registered vanilla storage chest through the
+normal tool-retrieval path, enters `NO_TARGET` without a pre-seeded threat entry,
+and lets
 `searchNearbyTarget` discover the nearby hostile. The real threat table then
 passes its validity/range checks and `EntityAIKnight`/`KnightCombatAI` verifies
 the hostile hit. Sustained guard navigation, broader ambient target search,
-request-driven equipment provisioning, raids and longer combat remain manual
-validation items.
+full request-driven equipment provisioning, raids and longer combat remain
+manual validation items.
 
 The raid fixture raises a real colony above `RaidManager.MIN_REQUIRED_RAIDLEVEL`
 with live citizens, chooses a Town Hall position isolated from existing colony

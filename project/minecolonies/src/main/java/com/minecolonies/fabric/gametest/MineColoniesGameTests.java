@@ -43,6 +43,7 @@ import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
 import com.minecolonies.api.tileentities.TileEntityRack;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.NbtTagConstants;
+import com.minecolonies.api.util.constant.ToolType;
 import com.minecolonies.api.util.constant.TypeConstants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
@@ -246,6 +247,7 @@ import com.minecolonies.api.inventory.container.ContainerCraftingFurnace;
 import com.minecolonies.api.inventory.container.ContainerCitizenInventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BedBlock;
@@ -2799,13 +2801,34 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(hostileList != null, "Guard tower hostile-entity list module was not registered");
 
         final EntityCitizen guardCitizen = (EntityCitizen) citizen.getEntity().get();
-        guardCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_SWORD));
+        for (int slot = 0; slot < guardCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            guardCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
         guardCitizen.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.LEATHER_BOOTS));
         guardCitizen.getInventoryCitizen().setStackInSlot(2, new ItemStack(Items.LEATHER_CHESTPLATE));
         guardCitizen.getInventoryCitizen().setStackInSlot(3, new ItemStack(Items.LEATHER_HELMET));
         guardCitizen.getInventoryCitizen().setStackInSlot(4, new ItemStack(Items.LEATHER_LEGGINGS));
-        guardCitizen.getCitizenItemHandler().setMainHeldItem(0);
+
+        final BlockPos equipmentChestPos = guardTowerPos.east();
+        level.setBlock(equipmentChestPos, Blocks.CHEST.defaultBlockState(), 3);
+        final BlockEntity equipmentEntity = level.getBlockEntity(equipmentChestPos);
+        helper.assertTrue(equipmentEntity instanceof ChestBlockEntity,
+          "Guard equipment fixture could not create its storage chest");
+        guardTower.addContainerPosition(equipmentChestPos);
+        ((ChestBlockEntity) equipmentEntity).setItem(0, new ItemStack(Items.STONE_SWORD));
+
         guardTower.cancelAllRequestsOfCitizen(citizen);
+        final JobKnight knightJob = citizen.getJob(JobKnight.class);
+        helper.assertTrue(knightJob != null, "Guard assignment did not retain the knight job instance");
+        final EntityAIKnight knightAI = (EntityAIKnight) knightJob.getWorkerAI();
+        helper.assertTrue(knightAI != null, "Knight assignment did not create the guard worker AI");
+        helper.assertTrue(knightAI.retrieveToolInHut(ToolType.SWORD, 0),
+          "Knight did not retrieve its sword from the registered guard storage chest");
+        helper.assertTrue(countItem(guardCitizen, Items.STONE_SWORD) == 1,
+          "Knight storage retrieval did not move the sword into the citizen inventory");
+        guardCitizen.getCitizenItemHandler().setMainHeldItem(0);
+
         final Mob hostile = EntityType.ZOMBIE.create(level);
         helper.assertTrue(hostile != null, "Guard combat fixture could not create a zombie target");
         hostile.setNoAi(true);
@@ -2813,10 +2836,6 @@ public final class MineColoniesGameTests implements FabricGameTest
         guardCitizen.setLastHurtByMob(hostile);
         helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its zombie target");
 
-        final JobKnight knightJob = citizen.getJob(JobKnight.class);
-        helper.assertTrue(knightJob != null, "Guard assignment did not retain the knight job instance");
-        final EntityAIKnight knightAI = (EntityAIKnight) knightJob.getWorkerAI();
-        helper.assertTrue(knightAI != null, "Knight assignment did not create the guard worker AI");
         helper.assertTrue(knightAI.hasTool(), "Knight combat fixture sword was not recognized by the guard AI");
         knightAI.equipInventoryArmor();
         knightAI.resetAI();
