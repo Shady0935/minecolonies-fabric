@@ -211,7 +211,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`. The
+  `logs/minecolonies-gametest-raider-late-path-92-green-20260920.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

@@ -246,9 +246,9 @@ callback, so the owner/outsider decision resolves against the intended colony.
 Evidence for the latest combined 92-test run (83 core tests, one isolated
 Farmer navigation test, one isolated Miner mining-cycle test, one isolated automatic-housing test, two isolated
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
-guard combat test, one entity batch and one focused raider-navigation fallback
-test) is in
-`logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`; this run also
+guard combat test, one entity batch and one focused raider-navigation fallback /
+late-path publication test) is in
+`logs/minecolonies-gametest-raider-late-path-92-green-20260920.log`; this run also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric container-change bridge reassigns
 the request when the sword arrives, and confirms that the knight retrieves it
@@ -667,8 +667,10 @@ citizen, then disables colony raid events and confirms new raid requests
 return `CANNOT_RAID`. A companion guard fixture registers a real MineColonies
 barbarian raider, verifies threat discovery and confirms knight damage against
 it. `RaiderWalkAI` also falls back to direct target movement when an asynchronous
-raid path has no waypoints. Long-range raid navigation and sustained combat
-remain manual validation items.
+raid path has no waypoints. The same fixture completes a synthetic asynchronous
+path after the event is active and verifies that `HordeRaidEvent.onUpdate()`
+publishes the resulting waypoints. Long-range raid navigation and sustained
+combat remain manual validation items.
 
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond

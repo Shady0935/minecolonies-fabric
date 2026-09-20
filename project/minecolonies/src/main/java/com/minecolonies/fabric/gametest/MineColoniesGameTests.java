@@ -262,6 +262,7 @@ import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -282,6 +283,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -3269,6 +3271,32 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(raidEvent.getWayPoints().isEmpty(),
           "Navigation fixture unexpectedly received waypoints before path completion");
 
+        // Complete a synthetic path after the event has already entered its
+        // active state. This mirrors the real async path worker finishing
+        // after HordeRaidEvent.onStart() and proves the event publishes the
+        // long route on a later colony tick.
+        final AtomicBoolean latePathComplete = new AtomicBoolean(false);
+        final Path latePath = new Path(List.of(
+          new Node(raiderPosition.getX(), raiderPosition.getY() + 1, raiderPosition.getZ()),
+          new Node(raiderPosition.getX() + 25, raiderPosition.getY() + 1, raiderPosition.getZ()),
+          new Node(raiderPosition.getX() + 50, raiderPosition.getY() + 1, raiderPosition.getZ())),
+          townHall, true);
+        final PathResult<Callable<Path>> delayedSpawnPath = new PathResult<>()
+        {
+            @Override
+            public boolean isDone()
+            {
+                return latePathComplete.get();
+            }
+
+            @Override
+            public Path getPath()
+            {
+                return latePath;
+            }
+        };
+        raidEvent.setSpawnPath(delayedSpawnPath);
+
         final AbstractEntityRaiderMob raider = ModEntities.BARBARIAN.create(level);
         helper.assertTrue(raider != null, "Raider navigation fixture could not create a barbarian");
         raider.setPos(raiderPosition.getX() + 0.5D, raiderPosition.getY(), raiderPosition.getZ() + 0.5D);
@@ -3280,10 +3308,20 @@ public final class MineColoniesGameTests implements FabricGameTest
         final double initialDistance = raider.blockPosition().distSqr(townHall);
         final int[] navigationTicks = {0};
         final boolean[] routeIssued = {false};
+        final boolean[] lateWaypointsReceived = {false};
 
         helper.onEachTick(() ->
         {
             navigationTicks[0]++;
+            if (navigationTicks[0] == 20)
+            {
+                latePathComplete.set(true);
+                raidEvent.onUpdate();
+            }
+            if (latePathComplete.get() && !raidEvent.getWayPoints().isEmpty())
+            {
+                lateWaypointsReceived[0] = true;
+            }
             if (!raider.isAlive())
             {
                 raidEvent.onFinish();
@@ -3296,7 +3334,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 routeIssued[0] = true;
             }
 
-            if (navigationTicks[0] >= 90 && routeIssued[0])
+            if (navigationTicks[0] >= 90 && routeIssued[0] && lateWaypointsReceived[0])
             {
                 raidEvent.onFinish();
                 raidEvent.setStatus(EventStatus.DONE);
@@ -3311,7 +3349,8 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.assertTrue(false,
                   "RaiderWalkAI did not issue a direct route when raid waypoints were empty: position="
                     + raider.blockPosition() + "; target=" + townHall
-                    + "; navigationDone=" + raider.getNavigation().isDone());
+                    + "; navigationDone=" + raider.getNavigation().isDone()
+                    + "; lateWaypoints=" + raidEvent.getWayPoints());
             }
         });
     }

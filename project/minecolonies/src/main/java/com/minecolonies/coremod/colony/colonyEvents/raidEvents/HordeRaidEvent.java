@@ -135,6 +135,11 @@ public abstract class HordeRaidEvent implements IColonyRaidEvent, IColonyCampFir
     private PathResult spawnPathResult;
 
     /**
+     * Whether the asynchronous spawn path has already been consumed.
+     */
+    private boolean spawnPathProcessed = false;
+
+    /**
      * If this was a mercy end.
      */
     private boolean mercyEnd = false;
@@ -346,15 +351,7 @@ public abstract class HordeRaidEvent implements IColonyRaidEvent, IColonyCampFir
     @Override
     public void onStart()
     {
-        if (spawnPathResult != null && spawnPathResult.isDone())
-        {
-            final Path path = spawnPathResult.getPath();
-            if (path != null && path.canReach())
-            {
-                spawnPoint = path.getEndNode().asBlockPos();
-            }
-            this.wayPoints = ShipBasedRaiderUtils.createWaypoints(colony.getWorld(), path, WAYPOINT_SPACING);
-        }
+        updateWaypointsFromSpawnPath();
 
         final BlockPos spawnPos = ShipBasedRaiderUtils.getLoadedPositionTowardsCenter(spawnPoint, colony, MAX_SPAWN_DEVIATION, spawnPoint, MIN_CENTER_DISTANCE, 10);
         if (spawnPos == null)
@@ -422,6 +419,8 @@ public abstract class HordeRaidEvent implements IColonyRaidEvent, IColonyCampFir
     @Override
     public void onUpdate()
     {
+        updateWaypointsFromSpawnPath();
+
         if (status == EventStatus.PREPARING)
         {
             prepareEvent();
@@ -569,6 +568,27 @@ public abstract class HordeRaidEvent implements IColonyRaidEvent, IColonyCampFir
     public List<BlockPos> getWayPoints()
     {
         return wayPoints;
+    }
+
+    /**
+     * Consumes the asynchronous path as soon as it becomes available. The
+     * event can start before the path worker finishes, so waiting only in
+     * {@link #onStart()} leaves every raider without the intended long route.
+     */
+    private void updateWaypointsFromSpawnPath()
+    {
+        if (spawnPathProcessed || spawnPathResult == null || !spawnPathResult.isDone())
+        {
+            return;
+        }
+
+        spawnPathProcessed = true;
+        final Path path = spawnPathResult.getPath();
+        if (status == EventStatus.STARTING && path != null && path.canReach())
+        {
+            spawnPoint = path.getEndNode().asBlockPos();
+        }
+        wayPoints = ShipBasedRaiderUtils.createWaypoints(colony.getWorld(), path, WAYPOINT_SPACING);
     }
 
     /**

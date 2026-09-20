@@ -324,7 +324,9 @@ completed.
   colony raid events are disabled; `RaiderWalkAI` now falls back to direct
   target movement when asynchronous raid waypoints are empty, and the real
   guard-versus-barbarian response is covered by the companion guard fixture;
-  long-range raid navigation and sustained raid combat remain open
+  `HordeRaidEvent` also publishes waypoints when its asynchronous path completes
+  after the event starts; long-range raid navigation and sustained raid combat
+  remain open
 - [ ] BlockUI screens and remaining client-to-server gameplay actions
 
 ## Validation
@@ -437,9 +439,10 @@ completed.
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture; the
   forced barbarian event also reaches a live citizen through the registered
-  raider combat AI, a no-waypoint raider navigates by direct fallback, and a
-  real guard damages a registered barbarian raider; evidence is in
-  `logs/minecolonies-gametest-raider-checkpoint-92-green-20260920.log`
+  raider combat AI, a no-waypoint raider navigates by direct fallback, the
+  delayed asynchronous raid path publishes waypoints during a later event tick,
+  and a real guard damages a registered barbarian raider; evidence is in
+  `logs/minecolonies-gametest-raider-late-path-92-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
