@@ -2374,15 +2374,19 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
-        final BlockPos relativeFarmer = new BlockPos(10, 1, 2);
-        final BlockPos relativeField = new BlockPos(15, 1, 2);
+        // Keep this longer-running worker fixture outside the compact coordinate
+        // bands used by the concurrent Builder and housing tests.  Their
+        // construction tapes can otherwise overwrite a crop while this test is
+        // intentionally waiting for the farmer's real navigation cycle.
+        final BlockPos relativeTownHall = new BlockPos(50, 1, 50);
+        final BlockPos relativeFarmer = new BlockPos(58, 1, 50);
+        final BlockPos relativeField = new BlockPos(63, 1, 50);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
         final BlockPos fieldPos = helper.absolutePos(relativeField);
-        for (int x = 0; x <= 18; x++)
+        for (int x = 48; x <= 66; x++)
         {
-            for (int z = 0; z <= 4; z++)
+            for (int z = 48; z <= 54; z++)
             {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
             }
