@@ -63,7 +63,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
-  does not replace the pending long-range raid navigation, sustained combat,
+  does not replace the pending sustained raid combat,
   rendering or restart-migration checks.
   It does not yet cover multi-request resolution/delivery, automatic logistics
   inventory transfer beyond the focused rack-backed cycle, courier navigation,
@@ -141,7 +141,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   covered short-range barbarian response,
   broader request-driven guard equipment (the current checkpoint covers one
   late-arriving sword request from a registered storage chest and its normal
-  pickup path), and long-range/sustained raid behavior
+  pickup path), and sustained raid combat
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
@@ -211,7 +211,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-raider-late-path-92-green-20260920.log`. The
+  `logs/minecolonies-gametest-raider-long-route-92-green-20260920.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

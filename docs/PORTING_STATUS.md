@@ -153,7 +153,7 @@ completed.
   discard on reload; focused farmer, guard autonomous-target-search/combat,
   real guard-versus-barbarian response, short-range raider `AttackMoveAI` and
   `RaiderWalkAI` empty-waypoint fallback paths are covered, while full work
-  cycles, long-range raid navigation/sustained combat and client rendering
+  cycles, sustained raid combat and client rendering
   remain separate validation work
 - [x] Server-side `CitizenAI` initialization and an assigned Builder worker
   cycle exercised through normal entity ticks; a colony-backed citizen also
@@ -313,8 +313,8 @@ completed.
   cycle; a companion fixture registers a real MineColonies barbarian raider,
   lets the guard discover it through the threat search and verifies knight
   damage. Full guard navigation/long-running ambient target search, broader
-  resolver-driven equipment workflows, long-range raid navigation and sustained
-  guard/raider combat remain open
+  resolver-driven equipment workflows and sustained guard/raider combat remain
+  open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point, advances the
   real HordeRaidEvent through spawn and `PREPARING`/`PROGRESSING` lifecycle,
@@ -325,8 +325,8 @@ completed.
   target movement when asynchronous raid waypoints are empty, and the real
   guard-versus-barbarian response is covered by the companion guard fixture;
   `HordeRaidEvent` also publishes waypoints when its asynchronous path completes
-  after the event starts; long-range raid navigation and sustained raid combat
-  remain open
+  after the event starts, and the real `RaidManager` fixture observes a spawned
+  raider advancing from its route origin; sustained raid combat remains open
 - [ ] BlockUI screens and remaining client-to-server gameplay actions
 
 ## Validation
@@ -441,8 +441,9 @@ completed.
   forced barbarian event also reaches a live citizen through the registered
   raider combat AI, a no-waypoint raider navigates by direct fallback, the
   delayed asynchronous raid path publishes waypoints during a later event tick,
-  and a real guard damages a registered barbarian raider; evidence is in
-  `logs/minecolonies-gametest-raider-late-path-92-green-20260920.log`
+  a real spawned raider advances from its route origin, and a real guard damages
+  a registered barbarian raider; evidence is in
+  `logs/minecolonies-gametest-raider-long-route-92-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

@@ -3149,19 +3149,53 @@ public final class MineColoniesGameTests implements FabricGameTest
           .findFirst()
           .orElse(null);
         helper.assertTrue(combatRaider != null, "Raider event did not retain a combat-capable raider");
+        final BlockPos routeStart = combatRaider.blockPosition();
+        final boolean[] longRoutePublished = {!raidEvent.getWayPoints().isEmpty()};
+        final boolean[] longRouteMoved = {false};
+        final boolean[] combatStarted = {false};
+        final int[] routeTicks = {0};
         final AbstractEntityCitizen targetCitizen = raidTarget[0];
         targetCitizen.setNoAi(true);
         targetCitizen.setHealth(targetCitizen.getMaxHealth());
-        combatRaider.setPos(targetCitizen.getX() + 2.0, targetCitizen.getY(), targetCitizen.getZ());
-        combatRaider.setInvulnerable(false);
-        combatRaider.getNavigation().stop();
-        combatRaider.getThreatTable().addThreat(targetCitizen, 100);
         final float targetHealth = targetCitizen.getHealth();
         final boolean[] targetSelected = {false};
         final int[] combatTicks = {0};
         combatCleanupDeferred[0] = true;
         helper.onEachTick(() ->
         {
+            if (!combatStarted[0])
+            {
+                routeTicks[0]++;
+                if (!raidEvent.getWayPoints().isEmpty())
+                {
+                    longRoutePublished[0] = true;
+                }
+                if (longRoutePublished[0] && combatRaider.blockPosition().distSqr(routeStart) > 16)
+                {
+                    longRouteMoved[0] = true;
+                }
+                if (longRouteMoved[0])
+                {
+                    combatRaider.setPos(targetCitizen.getX() + 2.0, targetCitizen.getY(), targetCitizen.getZ());
+                    combatRaider.setInvulnerable(false);
+                    combatRaider.getNavigation().stop();
+                    combatRaider.getThreatTable().addThreat(targetCitizen, 100);
+                    combatStarted[0] = true;
+                    return;
+                }
+                if (routeTicks[0] >= 120)
+                {
+                    raidEvent.onFinish();
+                    cleanupRaidFixture.run();
+                    helper.assertTrue(false,
+                      "Real raid path did not publish and move a raider: published=" + longRoutePublished[0]
+                        + "; waypoints=" + raidEvent.getWayPoints()
+                        + "; start=" + routeStart + "; current=" + combatRaider.blockPosition()
+                        + "; desired=" + combatRaider.getNavigation().getDesiredPos());
+                }
+                return;
+            }
+
             if (combatRaider.getThreatTable().getTargetMob() == targetCitizen)
             {
                 targetSelected[0] = true;

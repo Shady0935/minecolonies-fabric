@@ -77,8 +77,8 @@ registered-raider `AttackMoveAI` short-range target/damage path, the
 `RaiderWalkAI` direct-target fallback when waypoints are empty and a real
 `JobKnight` response against a registered MineColonies barbarian raider. Full
 entity work cycles, sustained guard navigation/ambient target search, broader
-request-driven equipment provisioning, long-range raid navigation and sustained
-raid combat, plus client rendering, are still open.
+request-driven equipment provisioning, sustained raid combat, plus client
+rendering, are still open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable
