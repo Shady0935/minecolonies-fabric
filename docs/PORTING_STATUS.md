@@ -83,6 +83,10 @@ completed.
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
   92-test GameTest run
+- [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
+  focused follow-up GameTest: the real split envelope deletes the owned
+  colony, removes its dimension-manager entry and clears the packet cache;
+  evidence is in `logs/minecolonies-gametest-colony-delete-1-green-20260920.xml`
 - [x] Fabric extended screen-handler bridge preserves the Forge opening buffers
   for the seven MineColonies citizen, building, rack, grave and crafting menus;
   the registrations and a payload round-trip are covered by GameTest

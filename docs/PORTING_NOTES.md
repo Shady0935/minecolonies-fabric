@@ -284,6 +284,14 @@ asynchronous `fundamentals/townhall1.blueprint` resolution and split-cache
 cleanup. This validates the server packet route; the client GUI and visual
 placement workflow remain manual validation items.
 
+A focused C2S fixture also serializes the zero-payload
+`ColonyDeleteOwnMessage` through the real split envelope. It resolves the
+owner's colony on the server, deletes it through the normal colony manager,
+verifies that the dimension-manager entry is gone and confirms that the
+completed envelope is removed from the message cache. The one-test follow-up
+is green in `logs/minecolonies-gametest-colony-delete-1-green-20260920.xml`;
+the Town Hall deletion UI remains a manual validation item.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real
@@ -800,7 +808,8 @@ envelope: a packet received by the server is marked as originating on the
 client, while a packet received by the client is marked as originating on the
 server. This matters because `SplitPacketMessage` rejects an inner message
 whose execution side does not match its destination. A focused GameTest
-serializes `TownHallRenameMessage`, `CreateColonyMessage`, `TryResearchMessage`,
+serializes `TownHallRenameMessage`, `CreateColonyMessage`,
+`ColonyDeleteOwnMessage`, `TryResearchMessage`,
 `BuildRequestMessage`, `BuilderSelectWorkOrderMessage`, `DirectPlaceMessage`,
 `DecorationBuildRequestMessage`, `HutRenameMessage`, `ColonyNameStyleMessage`,
 `ColonyStructureStyleMessage`, `ColonyTextureStyleMessage`,

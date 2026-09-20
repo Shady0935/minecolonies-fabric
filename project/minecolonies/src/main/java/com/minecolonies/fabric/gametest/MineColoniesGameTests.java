@@ -146,6 +146,7 @@ import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMe
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyTextureStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ChangeFreeToInteractBlockMessage;
+import com.minecolonies.coremod.network.messages.server.colony.ColonyDeleteOwnMessage;
 import com.minecolonies.coremod.network.messages.server.colony.HireSpiesMessage;
 import com.minecolonies.coremod.network.messages.server.colony.OpenInventoryMessage;
 import com.minecolonies.coremod.network.messages.server.colony.TeamColonyColorChangeMessage;
@@ -7511,6 +7512,52 @@ public final class MineColoniesGameTests implements FabricGameTest
               "CreateColony message did not preserve the requested blueprint path");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "CreateColony envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerColonyDeleteOwnMessageDeletesOwnedColony(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        BlockPos relativeTownHall = null;
+        for (int offset = 65536; offset <= 81920 && relativeTownHall == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativeTownHall = candidate;
+            }
+        }
+        helper.assertTrue(relativeTownHall != null,
+          "C2S colony-delete fixture could not find an unclaimed colony position");
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Colony Delete", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S colony-delete fixture colony was not created");
+        helper.assertTrue(IColonyManager.getInstance().getIColonyByOwner(level, owner) == colony,
+          "C2S colony-delete fixture did not register the owner colony");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S colony-delete fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, ColonyDeleteOwnMessage.class);
+        helper.assertTrue(messageId > 0, "ColonyDeleteOwn message was not registered");
+        final int communicationId = 0x43444C54;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new ColonyDeleteOwnMessage());
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(IColonyManager.getInstance().getIColonyByOwner(level, owner) == null,
+              "ColonyDeleteOwn message did not remove the owner colony");
+            helper.assertTrue(IColonyManager.getInstance().getColonyByDimension(colony.getID(), colony.getDimension()) == null,
+              "ColonyDeleteOwn message left the deleted colony in the dimension manager");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "ColonyDeleteOwn envelope remained in the split-packet cache");
             helper.succeed();
         });
     }
