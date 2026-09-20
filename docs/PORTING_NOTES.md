@@ -247,7 +247,7 @@ Evidence for the latest combined 91-test run (83 core tests, one isolated
 Farmer navigation test, one isolated Miner mining-cycle test, one isolated automatic-housing test, two isolated
 Builder tests, one isolated residence sleep/wake test, one isolated knight-
 guard combat test and one entity batch) is in
-`logs/minecolonies-gametest-guard-equipment-91-green-20260920.log`; this run also
+`logs/minecolonies-gametest-raid-spawn-91-green-20260920.log`; this run also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric container-change bridge reassigns
 the request when the sword arrives, and confirms that the knight retrieves it
@@ -648,17 +648,18 @@ and lets
 `searchNearbyTarget` discover the nearby hostile. The real threat table then
 passes its validity/range checks and `EntityAIKnight`/`KnightCombatAI` verifies
 the hostile hit. Sustained guard navigation, broader ambient target search,
-full request-driven equipment provisioning, raids and longer combat remain
+full request-driven equipment provisioning and longer guard combat remain
 manual validation items.
 
 The raid fixture raises a real colony above `RaidManager.MIN_REQUIRED_RAIDLEVEL`
 with live citizens, chooses a Town Hall position isolated from existing colony
 claims, builds a continuous valid-ground annulus for randomized spawn-direction
 sampling, verifies the forced barbarian `IColonyRaidEvent` and its calculated
-spawn point, then disables colony raid events and confirms new raid requests
-return `CANNOT_RAID`. This covers manager eligibility and event registration;
-raider spawning, navigation, guard response and combat outcomes remain manual
-validation items.
+spawn point, advances the real `HordeRaidEvent` through `PREPARING` and
+`PROGRESSING`, confirms each spawned raider is linked to the colony/event, then
+disables colony raid events and confirms new raid requests return
+`CANNOT_RAID`. Raid navigation, guard response and combat outcomes remain
+manual validation items.
 
 The research-cycle fixture selects `minecolonies:civilian/ambition` through the
 real local research tree with a non-creative player, consumes its one-diamond

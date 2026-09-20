@@ -52,7 +52,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   plus a focused real `EntityAIKnight`/`KnightCombatAI` autonomous
   nearby-target-search/hostile-hit cycle and registered-chest sword retrieval
   path, and
-  `RaidManager` eligibility/barbarian-event registration.
+  `RaidManager` eligibility/barbarian-event registration and the real horde
+  spawn plus event-lifecycle transition.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
@@ -155,7 +156,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   Farmer field assignment plus focused short-range harvest/navigation,
   Lumberjack registration/assignment and focused three-log worker cycle, Guard
   Tower/knight assignment plus the focused
-  knight autonomous target-selection/hostile-hit path, RaidManager event registration and the University
+  knight autonomous target-selection/hostile-hit path, RaidManager event
+  registration/spawn lifecycle and the University
   worker-tick plus focused researcher study/mana paths have automated GameTest
   fixtures; multi-request logistics,
   full Builder work-order navigation and the dedicated restart

@@ -16,6 +16,7 @@ import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.mobs.AbstractEntityRaiderMob;
 import com.minecolonies.api.entity.pathfinding.IPathJob;
 import com.minecolonies.api.entity.pathfinding.PathFindingStatus;
 import com.minecolonies.api.entity.pathfinding.PathResult;
@@ -3054,6 +3055,33 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Raider event did not retain its calculated spawn position");
         helper.assertTrue(raidEvent.getStatus() == EventStatus.STARTING,
           "Raider event did not begin in the STARTING state");
+
+        // Advance the real colony-event lifecycle instead of stopping at
+        // registration. HordeRaidEvent.onStart() must spawn and register its
+        // raiders through the Fabric entity bridge, then its normal updates
+        // must release the horde from the preparation campfires.
+        colony.getEventManager().onColonyTick(colony);
+        helper.assertTrue(raidEvent.getStatus() == EventStatus.PREPARING,
+          "Raider event did not enter PREPARING after its start tick: " + raidEvent.getStatus());
+        final List<Entity> spawnedRaiders = raidEvent.getEntities();
+        helper.assertTrue(!spawnedRaiders.isEmpty(),
+          "Raider event did not spawn any entities during its start tick");
+        for (final Entity entity : spawnedRaiders)
+        {
+            helper.assertTrue(entity instanceof AbstractEntityRaiderMob && entity.isAlive(),
+              "Raider event registered an invalid or dead entity: " + entity);
+            final AbstractEntityRaiderMob raider = (AbstractEntityRaiderMob) entity;
+            helper.assertTrue(raider.getColony() == colony,
+              "Spawned raider was not linked to the target colony");
+            helper.assertTrue(raider.getEventID() == raidEvent.getID(),
+              "Spawned raider was not linked to the active raid event");
+        }
+        colony.getEventManager().onColonyTick(colony);
+        colony.getEventManager().onColonyTick(colony);
+        colony.getEventManager().onColonyTick(colony);
+        helper.assertTrue(raidEvent.getStatus() == EventStatus.PROGRESSING,
+          "Raider event did not enter PROGRESSING after preparation ticks: " + raidEvent.getStatus());
+        raidEvent.onFinish();
 
         raiderManager.setCanHaveRaiderEvents(false);
         helper.assertTrue(!raiderManager.canRaid(true),

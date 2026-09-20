@@ -312,9 +312,11 @@ completed.
   cycle. Full guard navigation/long-running ambient target search, broader
   resolver-driven equipment workflows, raids and sustained combat remain open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
-  creates a forced barbarian event with a persisted spawn point and rejects
-  new events after colony raid events are disabled; raid spawning, navigation,
-  guard response and combat outcomes remain open
+  creates a forced barbarian event with a persisted spawn point, advances the
+  real HordeRaidEvent through spawn and `PREPARING`/`PROGRESSING` lifecycle,
+  verifies each spawned raider is linked to the colony/event, and rejects
+  new events after colony raid events are disabled; raid navigation, guard
+  response and combat outcomes remain open
 - [ ] BlockUI screens and remaining client-to-server gameplay actions
 
 ## Validation
@@ -362,7 +364,8 @@ completed.
    and knight-guard assignment plus the focused real knight
    autonomous-target-search/combat path,
    plantation-field work-order toggling, rally-banner
-   guard-state updates, RaidManager event eligibility/registration, and the
+    guard-state updates, RaidManager event eligibility/registration plus the
+   real HordeRaidEvent spawn and `PREPARING`/`PROGRESSING` lifecycle, and the
    focused real Builder two-stage placement/material-consumption path and
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
@@ -424,7 +427,7 @@ completed.
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-guard-equipment-91-green-20260920.log`
+  `logs/minecolonies-gametest-raid-spawn-91-green-20260920.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
