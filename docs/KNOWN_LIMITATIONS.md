@@ -78,11 +78,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   automated selection/progression fixture: a non-creative player pays the
   datapack cost, a real University receives a live `JobResearch` citizen, its
   configured worker ticks complete the research and its effect is applied. A
-  focused companion also runs `EntityAIWorkResearcher` at a registered
-  bookshelf, consumes stored mana and advances research through normal
-  `CitizenAI` ticks. Long-range bookshelf navigation, work-speed scaling,
-  University GUI interaction and the broader set of client research packets
-  remain uncovered.
+  focused companion also runs `EntityAIWorkResearcher` from an offset position
+  to a registered bookshelf, consumes stored mana and advances research through
+  normal `CitizenAI` ticks. Long-range bookshelf selection/navigation,
+  work-speed scaling, University GUI interaction and the broader set of client
+  research packets remain uncovered.
 - The Lumberjack worker cycle is now covered with a valid three-log tree,
   normal citizen ticks and a level-compatible stone axe. The fixture uses the
   `Minecolonies Original` pack because the Colonial 1.20.1 pack lacks the

@@ -549,7 +549,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 300)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1500)
     public void researcherAIStudiesAtRegisteredBookshelf(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -636,10 +636,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         final int manaBefore = job.getCurrentMana();
         final int progressBefore = localResearch.getProgress();
 
-        researcherCitizen.setPos(bookshelfPos.getX() - 2.0D, bookshelfPos.getY(), bookshelfPos.getZ() + 0.5D);
+        researcherCitizen.setPos(bookshelfPos.getX() - 8.0D, bookshelfPos.getY(), bookshelfPos.getZ() + 0.5D);
         researcherAI.resetAI();
         researcherAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.STUDY));
 
+        final int startingX = researcherCitizen.blockPosition().getX();
         final int[] researcherTicks = {0};
         helper.onEachTick(() ->
         {
@@ -650,9 +651,15 @@ public final class MineColoniesGameTests implements FabricGameTest
                   "Researcher AI consumed mana without advancing research: state=" + researcherAI.getState()
                     + "; progress=" + localResearch.getProgress()
                     + "; citizen=" + researcherCitizen.blockPosition());
+                helper.assertTrue(researcherCitizen.blockPosition().getX() > startingX,
+                  "Researcher AI consumed mana without leaving its starting position: startX=" + startingX
+                    + "; citizen=" + researcherCitizen.blockPosition());
+                helper.assertTrue(researcherCitizen.blockPosition().distSqr(bookshelfPos) <= 25,
+                  "Researcher AI consumed mana outside the registered bookshelf range: bookshelf="
+                    + bookshelfPos + "; citizen=" + researcherCitizen.blockPosition());
                 helper.succeed();
             }
-            else if (researcherTicks[0] >= 280)
+            else if (researcherTicks[0] >= 1400)
             {
                 helper.assertTrue(false,
                   "Researcher AI did not study at the registered bookshelf: state=" + researcherAI.getState()

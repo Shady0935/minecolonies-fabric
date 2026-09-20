@@ -131,9 +131,10 @@ completed.
   `effects/blockhutmysticalsite` effect; the real University building can now
   register a researcher and advance that research through its server-side
   worker tick; a focused real `EntityAIWorkResearcher` fixture also registers
-  a bookshelf, consumes stored mana and advances research through normal
-  `CitizenAI` ticks; long-range researcher navigation, work-speed scaling and
-  GUI interaction remain open
+  a bookshelf, navigates a live citizen from an offset position to it,
+  consumes stored mana and advances research through normal `CitizenAI` ticks;
+  long-range researcher navigation, work-speed scaling and GUI interaction
+  remain open
 - [x] MineColonies' Forge-shaped conventional item/block tag references resolve
   at runtime through native Fabric datagen; dedicated startup and `/reload`
   report no missing-tag errors
@@ -408,7 +409,7 @@ completed.
   normal Builder material-request/resolver delivery,
   miner stone drops, the real `EntityAIWorkFarmer` harvest/drop cycle and the
   real `EntityAIWorkLumberjack` three-log chop/inventory cycle, the focused
-  `EntityAIWorkResearcher` bookshelf study/mana cycle,
+  `EntityAIWorkResearcher` bookshelf navigation/study/mana cycle,
   plus the focused real `EntityAIKnight`/`KnightCombatAI` autonomous
   target-selection and hostile-hit cycle,
   plantation-field work-order creation/removal and rally-banner activation,

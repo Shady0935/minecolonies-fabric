@@ -654,10 +654,11 @@ the `minecolonies:effects/blockhutmysticalsite` effect. The same fixture now
 registers a real Colonial University, assigns a live citizen to `JobResearch`
 and drives the configured progress through repeated `BuildingUniversity`
 server-side worker ticks. A focused companion registers a real bookshelf,
-preloads researcher mana, positions the live citizen at the study site and
-lets normal `CitizenAI` ticks run `EntityAIWorkResearcher`; it verifies that
-the AI consumes mana and advances the in-progress research. Long-range
-bookshelf navigation, work-speed scaling and the client GUI remain manual
+preloads researcher mana and places the live citizen eight blocks away from
+the study site. Normal `CitizenAI` ticks run `EntityAIWorkResearcher`; the
+fixture verifies that the citizen navigates into bookshelf range, consumes
+mana and advances the in-progress research. Long-range bookshelf
+selection/navigation, work-speed scaling and the client GUI remain manual
 validation items.
 
 The same shutdown pass exposed that colony serialization can run after the

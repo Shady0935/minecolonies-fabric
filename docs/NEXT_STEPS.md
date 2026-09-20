@@ -68,8 +68,9 @@ deconstructed-building style,
 FarmField configuration,
 Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
-plus focused Farmer harvest, Lumberjack three-log chopping, Researcher
-study/mana and Guard autonomous-target-search/combat cycles.
+plus focused Farmer harvest, Lumberjack three-log chopping, short-range
+Researcher bookshelf navigation/study/mana and Guard autonomous-target-search/
+combat cycles.
 Full entity work cycles, sustained guard navigation/ambient target search,
 equipment provisioning, raids and client rendering are still open.
 The following work remains, in order:
@@ -78,8 +79,8 @@ The following work remains, in order:
    offline test profile: place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
    Guard Tower, warehouse and research cycle. The server-side research manager and
-   University worker-tick and focused researcher study/mana paths are
-   automated, so the remaining research work here is long-range researcher
+   University worker-tick and focused researcher bookshelf navigation/study/mana
+   paths are automated, so the remaining research work here is long-range researcher
    AI/walking, work-speed scaling and the GUI cycle.
    Include an inventory/GUI visual check for the custom spear renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
