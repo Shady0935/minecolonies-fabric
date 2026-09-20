@@ -52,6 +52,7 @@ import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
+import com.minecolonies.coremod.entity.ai.citizen.guard.EntityAIKnight;
 import com.minecolonies.coremod.entity.ai.citizen.deliveryman.EntityAIWorkDeliveryman;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
@@ -96,6 +97,8 @@ import com.minecolonies.coremod.colony.fields.FarmField;
 import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.EntityState;
+import com.minecolonies.api.entity.ai.statemachine.AIOneTimeEventTarget;
+import com.minecolonies.api.entity.combat.CombatAIStates;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
@@ -281,6 +284,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
     private static final String HOUSING_TEST_BATCH = "minecolonies_fabric_housing_port";
     private static final String SLEEP_TEST_BATCH = "minecolonies_fabric_sleep_port";
+    private static final String GUARD_TEST_BATCH = "minecolonies_fabric_guard_port";
 
     public MineColoniesGameTests()
     {
@@ -2231,7 +2235,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = GUARD_TEST_BATCH, timeoutTicks = 260)
     public void guardTowerAssignsKnightGuardToCitizen(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2297,7 +2301,60 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Guard tower knight module did not retain the assigned citizen");
         helper.assertTrue(guardTower.getAllAssignedCitizen().contains(citizen),
           "Guard tower did not expose the assigned citizen through its guard roster");
-        helper.succeed();
+
+        final EntityListModule hostileList = guardTower.getModuleMatching(
+          EntityListModule.class, module -> module.getId().equals("hostiles"));
+        helper.assertTrue(hostileList != null, "Guard tower hostile-entity list module was not registered");
+
+        final EntityCitizen guardCitizen = (EntityCitizen) citizen.getEntity().get();
+        guardCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_SWORD));
+        guardCitizen.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.LEATHER_BOOTS));
+        guardCitizen.getInventoryCitizen().setStackInSlot(2, new ItemStack(Items.LEATHER_CHESTPLATE));
+        guardCitizen.getInventoryCitizen().setStackInSlot(3, new ItemStack(Items.LEATHER_HELMET));
+        guardCitizen.getInventoryCitizen().setStackInSlot(4, new ItemStack(Items.LEATHER_LEGGINGS));
+        guardCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        guardTower.cancelAllRequestsOfCitizen(citizen);
+        final Mob hostile = EntityType.ZOMBIE.create(level);
+        helper.assertTrue(hostile != null, "Guard combat fixture could not create a zombie target");
+        hostile.setNoAi(true);
+        hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
+        hostile.setHealth(1.0F);
+        helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its zombie target");
+        guardCitizen.getThreatTable().addThreat(hostile, 100);
+
+        final JobKnight knightJob = citizen.getJob(JobKnight.class);
+        helper.assertTrue(knightJob != null, "Guard assignment did not retain the knight job instance");
+        final EntityAIKnight knightAI = (EntityAIKnight) knightJob.getWorkerAI();
+        helper.assertTrue(knightAI != null, "Knight assignment did not create the guard worker AI");
+        helper.assertTrue(knightAI.hasTool(), "Knight combat fixture sword was not recognized by the guard AI");
+        knightAI.equipInventoryArmor();
+        knightAI.resetAI();
+        // Enter the real combat state directly so this fixture isolates the
+        // KnightCombatAI attack path from patrol scheduling.
+        knightAI.registerTarget(new AIOneTimeEventTarget(CombatAIStates.ATTACKING));
+        final int[] combatTicks = {0};
+        helper.onEachTick(() ->
+        {
+            if (!hostile.isAlive())
+            {
+                helper.succeed();
+                return;
+            }
+
+            knightAI.tick();
+            combatTicks[0]++;
+            if (!hostile.isAlive())
+            {
+                helper.succeed();
+            }
+            else if (combatTicks[0] >= 220)
+            {
+                helper.assertTrue(false,
+                  "Knight worker AI did not damage the configured hostile: state=" + knightAI.getState()
+                    + "; guard=" + guardCitizen.blockPosition()
+                    + "; hostile=" + hostile.blockPosition());
+            }
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

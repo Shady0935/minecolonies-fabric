@@ -49,7 +49,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   miner work-order registration with live `JobMiner` claim selection, plus
   farmer field registration with live `JobFarmer` assignment and Guard Tower
   registration with live `JobKnight` assignment and guard-roster persistence,
-  plus `RaidManager` eligibility and barbarian-event registration.
+  plus a focused real `EntityAIKnight`/`KnightCombatAI` hostile-hit cycle and
+  `RaidManager` eligibility/barbarian-event registration.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
@@ -66,7 +67,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement and longer harvest navigation/resource delivery beyond the focused
   worker-AI cycle, a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
-  navigation, hostile entity
+  navigation, full hostile-entity target search/navigation, sustained
   AI/combat/rendering after restart, or DataFixer migration for old entity data. A
   dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
@@ -117,7 +118,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
-  delivery, University researcher AI/GUI, and raids
+  delivery, University researcher AI/GUI, full guard target search/navigation,
+  request-driven guard equipment, and raids
   still need a real in-game interaction pass. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
@@ -133,9 +135,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   AI state machine, including the live assigned-order `BUILDING_STEP` route
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
-  Farmer field assignment, Guard Tower/knight assignment, RaidManager event
-  registration and the University worker-tick path have automated GameTest
-  fixtures; multi-request logistics, full Builder work-order navigation and the dedicated restart
+  Farmer field assignment, Guard Tower/knight assignment plus the focused
+  knight hostile-hit path, RaidManager event registration and the University
+  worker-tick path have automated GameTest fixtures; multi-request logistics,
+  full Builder work-order navigation and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.
 - Client-to-server gameplay packets have not been driven through every GUI or
@@ -182,7 +185,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`. The
+  `logs/minecolonies-gametest-guard-combat-green-87.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

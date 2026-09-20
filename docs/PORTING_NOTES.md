@@ -190,7 +190,7 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The current 87-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`.
+in `logs/minecolonies-gametest-guard-combat-green-87.log`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -246,7 +246,7 @@ callback, so the owner/outsider decision resolves against the intended colony.
 Evidence for the latest combined 87-test run (82 core tests, one isolated
 automatic-housing test, two isolated Builder tests, one isolated residence
 sleep/wake test and one entity batch) is in
-`logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`; the earlier
+`logs/minecolonies-gametest-guard-combat-green-87.log`; the earlier
 structure-step evidence remains in
 `logs/minecolonies-gametest-builder-structure-step-fix1.log`; the earlier
 construction-site navigation evidence remains in
@@ -619,8 +619,10 @@ The guard fixture registers a Colonial Guard Tower through its real building
 entry, resolves `military/guardtower1.blueprint`, verifies the default guard
 position and patrol task, locates the knight `GuardBuildingModule` and assigns
 a live citizen to `JobKnight`. The building then exposes that citizen through
-its guard roster. Guard navigation/combat AI, equipment provisioning, raids
-and combat outcomes remain manual validation items.
+its guard roster. A focused companion equips the level-one sword/leather gear,
+enters the real `EntityAIKnight`/`KnightCombatAI` attack state and verifies a
+hostile hit. Full guard navigation/target search, request-driven equipment
+provisioning, raids and sustained combat remain manual validation items.
 
 The raid fixture raises a real colony above `RaidManager.MIN_REQUIRED_RAIDLEVEL`
 with live citizens, verifies the forced barbarian `IColonyRaidEvent` and its

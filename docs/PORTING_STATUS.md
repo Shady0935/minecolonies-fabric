@@ -286,8 +286,10 @@ completed.
 - [x] Server-side Guard Tower registration resolves the Colonial level-one
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live
-  `JobKnight` assignment in the guard roster; guard AI, equipment, raids and
-  combat outcomes remain open
+  `JobKnight` assignment in the guard roster; a focused real
+  `EntityAIKnight`/`KnightCombatAI` cycle equips the level-one guard and damages
+  a hostile target. Full guard navigation/target search, request-driven
+  equipment provisioning, raids and sustained combat remain open
 - [x] Server-side `RaidManager` reaches the minimum eligible colony level,
   creates a forced barbarian event with a persisted spawn point and rejects
   new events after colony raid events are disabled; raid spawning, navigation,
@@ -334,7 +336,8 @@ completed.
    Miner work-order/claim selection and a focused stone-mining cycle, Farmer
    field registration/assignment and the focused farmer harvest routine, plus
    Guard Tower blueprint registration
-   and knight-guard assignment, plantation-field work-order toggling, rally-banner
+   and knight-guard assignment plus the focused real knight combat path,
+   plantation-field work-order toggling, rally-banner
    guard-state updates, RaidManager event eligibility/registration, and the
    focused real Builder two-stage placement/material-consumption path and
    server-side CitizenAI/assigned-worker ticking
@@ -387,12 +390,13 @@ completed.
   build-tool inventory swapping, warehouse rack-backed courier transfer and
   normal Builder material-request/resolver delivery,
   miner stone drops and the real `EntityAIWorkFarmer` harvest/drop cycle,
+  plus the focused real `EntityAIKnight`/`KnightCombatAI` hostile-hit cycle,
   plantation-field work-order creation/removal and rally-banner activation,
   deactivation/removal,
   all custom entity NBT reload contracts, populated-tavern conversion, the
   assigned-residence bed/sleep/wake cycle and automatic housing capture;
   evidence is in
-  `logs/minecolonies-gametest-farmer-ai-citizen-guard-fix-green-87.log`
+  `logs/minecolonies-gametest-guard-combat-green-87.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor
