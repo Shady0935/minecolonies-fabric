@@ -318,6 +318,16 @@ The real server handler completes that advancement for the registered player
 and clears the split envelope; evidence is in
 `logs/minecolonies-gametest-gui-trigger-1-green-20260920.xml`.
 
+A companion C2S fixture serializes `TransferRecipeCraftingTeachingMessage`
+through the same split envelope with a live server-side
+`ContainerCraftingFurnace`. The normal handler places the transferred item in
+the furnace input, normalizes it to one item and clears the packet cache;
+evidence is in
+`logs/minecolonies-gametest-recipe-transfer-1-green-20260920.xml`. This
+validates the server branch used by recipe teaching; the optional JEI client
+integration remains excluded from the Fabric runtime and needs visual/manual
+validation when that dependency is ported.
+
 A second companion C2S fixture serializes `DecorationBuildRequestMessage` in
 the same real split envelope. It keeps the far-away blueprint footprint
 resident while the asynchronous callback runs, then verifies the real

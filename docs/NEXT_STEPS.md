@@ -1,7 +1,7 @@
 # Next steps
 
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
-colony fixture, owned-colony deletion, colony teleport permission, mercenary hiring, citizen interaction response/close, GUI button advancement trigger, builder work-order/assignment, residence assignment and
+colony fixture, owned-colony deletion, colony teleport permission, mercenary hiring, citizen interaction response/close, GUI button advancement trigger, recipe-teaching transfer, builder work-order/assignment, residence assignment and
 unassignment,
 warehouse/courier resolver wiring, Miner work-order/assignment, Farmer field
 assignment, Guard Tower/knight assignment, RaidManager eligibility/event
@@ -38,6 +38,9 @@ and the focused citizen interaction route delivers both response and close
 callbacks to a live handler.
 The focused GUI button route also completes the generated `check_out_guide`
 advancement through its real server handler.
+The focused recipe-teaching route also reaches the server-side furnace menu
+through the real split envelope, updates and normalizes its input slot, and
+clears the packet cache; JEI's optional client transfer remains pending.
 Its
 83-test core batch plus isolated Farmer
 navigation and Miner mining-cycle batches also exercise real

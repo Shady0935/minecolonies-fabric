@@ -146,6 +146,7 @@ import com.minecolonies.coremod.network.messages.server.RemoveFromRallyingListMe
 import com.minecolonies.coremod.network.messages.server.ResourceScrollSaveWarehouseSnapshotMessage;
 import com.minecolonies.coremod.network.messages.server.SwitchBuildingWithToolMessage;
 import com.minecolonies.coremod.network.messages.server.ToggleBannerRallyGuardsMessage;
+import com.minecolonies.coremod.network.messages.server.TransferRecipeCraftingTeachingMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyFlagChangeMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyNameStyleMessage;
 import com.minecolonies.coremod.network.messages.server.colony.ColonyStructureStyleMessage;
@@ -7818,6 +7819,42 @@ public final class MineColoniesGameTests implements FabricGameTest
               "ClickGuiButtonTrigger message did not complete the matching advancement criterion");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "ClickGuiButtonTrigger envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerTransferRecipeTeachingMessageUpdatesFurnaceMenu(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final BlockPos buildingPos = helper.absolutePos(new BlockPos(2, 1, 2));
+        final ContainerCraftingFurnace menu = new ContainerCraftingFurnace(
+          1, owner.getInventory(), buildingPos, 0);
+        owner.containerMenu = menu;
+        helper.assertTrue(owner.containerMenu == menu,
+          "C2S recipe-transfer fixture did not install the furnace crafting menu");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S recipe-transfer fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, TransferRecipeCraftingTeachingMessage.class);
+        helper.assertTrue(messageId > 0, "TransferRecipeCraftingTeaching message was not registered");
+        final int communicationId = 0x54524654;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new TransferRecipeCraftingTeachingMessage(Map.of(0, new ItemStack(Items.COBBLESTONE)), false));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(owner.containerMenu == menu,
+              "TransferRecipeCraftingTeaching message replaced the furnace crafting menu unexpectedly");
+            helper.assertTrue(menu.getSlot(0).getItem().is(Items.COBBLESTONE),
+              "TransferRecipeCraftingTeaching message did not update the furnace input slot");
+            helper.assertTrue(menu.getSlot(0).getItem().getCount() == 1,
+              "TransferRecipeCraftingTeaching message did not normalize the furnace input count");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "TransferRecipeCraftingTeaching envelope remained in the split-packet cache");
+            owner.closeContainer();
             helper.succeed();
         });
     }
