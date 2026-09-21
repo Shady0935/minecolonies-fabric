@@ -2655,9 +2655,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos relativeLumberjack = new BlockPos(10, 1, 2);
         final BlockPos relativeTree = new BlockPos(28, 1, 2);
+        final BlockPos relativeSecondTreeStump = relativeTree.west();
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos lumberjackPos = helper.absolutePos(relativeLumberjack);
         final BlockPos treePos = helper.absolutePos(relativeTree);
+        final BlockPos secondTreeStump = helper.absolutePos(relativeSecondTreeStump);
         for (int x = 0; x <= 36; x++)
         {
             for (int z = 0; z <= 8; z++)
@@ -2666,12 +2668,24 @@ public final class MineColoniesGameTests implements FabricGameTest
             }
         }
         helper.setBlock(new BlockPos(relativeTree.getX(), 0, relativeTree.getZ()), Blocks.DIRT);
+        helper.setBlock(new BlockPos(relativeSecondTreeStump.getX(), 0, relativeSecondTreeStump.getZ()), Blocks.DIRT);
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         helper.setBlock(relativeLumberjack, ModBlocks.blockHutLumberjack);
+        for (int x = relativeTree.getX() - 2; x <= relativeTree.getX() + 2; x++)
+        {
+            for (int y = 1; y <= 4; y++)
+            {
+                for (int z = relativeTree.getZ() - 1; z <= relativeTree.getZ() + 1; z++)
+                {
+                    helper.setBlock(new BlockPos(x, y, z), Blocks.AIR);
+                }
+            }
+        }
         for (int y = 1; y <= 3; y++)
         {
             helper.setBlock(new BlockPos(relativeTree.getX(), y, relativeTree.getZ()), Blocks.OAK_LOG);
         }
+        helper.setBlock(relativeSecondTreeStump, Blocks.OAK_LOG);
         for (int x = relativeTree.getX() - 1; x <= relativeTree.getX() + 1; x++)
         {
             for (int z = relativeTree.getZ() - 1; z <= relativeTree.getZ() + 1; z++)
@@ -2737,6 +2751,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(tree.isTree(), "Lumberjack fixture tree was not recognized as a valid tree");
         tree.findLogs(level, colony);
         helper.assertTrue(tree.hasLogs(), "Lumberjack fixture tree did not retain its log list");
+        helper.assertTrue(tree.getStumpLocations().size() == 2,
+          "Lumberjack fixture did not retain both base stumps: " + tree.getStumpLocations());
         helper.assertTrue(tree.getSapling().is(Items.OAK_SAPLING),
           "Lumberjack fixture did not resolve the tree's oak sapling: " + tree.getSapling());
         for (int x = relativeTree.getX() - 1; x <= relativeTree.getX() + 1; x++)
@@ -2746,49 +2762,50 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.setBlock(new BlockPos(x, 4, z), Blocks.AIR);
             }
         }
+        // The focused three-log fixture covers the full chop/replant cycle; drain this
+        // validated tree's logs here so this companion isolates multi-stump planting.
+        while (tree.hasLogs())
+        {
+            level.setBlockAndUpdate(tree.pollNextLog(), Blocks.AIR.defaultBlockState());
+        }
         job.setTree(tree);
-        lumberjackCitizen.setPos(treePos.getX() + 2.0D, treePos.getY(), treePos.getZ() + 0.5D);
+        lumberjackCitizen.setPos(treePos.getX() + 0.5D, treePos.getY(), treePos.getZ() - 0.5D);
         lumberjackAI.resetAI();
         lumberjackAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.LUMBERJACK_CHOP_TREE));
 
-        final int logsBefore = countItem(lumberjackCitizen, Items.OAK_LOG);
         final int saplingsBefore = countItem(lumberjackCitizen, Items.OAK_SAPLING);
+        helper.assertTrue(saplingsBefore == 1,
+          "Lumberjack multi-stump fixture expected one oak sapling before planting: " + saplingsBefore);
         final int[] lumberjackTicks = {0};
-        final boolean[] treeChopped = {false};
         helper.onEachTick(() ->
         {
             lumberjackTicks[0]++;
-            if (level.isEmptyBlock(treePos) && !treeChopped[0])
-            {
-                treeChopped[0] = true;
-                helper.assertTrue(countItem(lumberjackCitizen, Items.OAK_LOG) > logsBefore,
-                  "Lumberjack worker AI did not transfer the cut logs into the citizen inventory: state="
-                    + lumberjackAI.getState() + "; citizen=" + lumberjackCitizen.blockPosition());
-            }
 
-            if (level.getBlockState(treePos).is(Blocks.OAK_SAPLING))
+            final boolean firstStumpReplanted = level.getBlockState(treePos).is(Blocks.OAK_SAPLING);
+            final boolean secondStumpReplanted = level.getBlockState(secondTreeStump).is(Blocks.OAK_SAPLING);
+            if (firstStumpReplanted || secondStumpReplanted)
             {
-                helper.assertTrue(treeChopped[0],
-                  "Lumberjack replant route placed a sapling before the tree was observed as chopped");
+                helper.assertTrue(firstStumpReplanted ^ secondStumpReplanted,
+                  "Lumberjack replant route planted more than one sapling with one available: "
+                    + level.getBlockState(treePos) + "," + level.getBlockState(secondTreeStump));
                 helper.assertTrue(countItem(lumberjackCitizen, Items.OAK_SAPLING) == saplingsBefore - 1,
                   "Lumberjack replant route did not consume exactly one oak sapling: remaining="
-                    + countItem(lumberjackCitizen, Items.OAK_SAPLING));
+                    + countItem(lumberjackCitizen, Items.OAK_SAPLING)
+                    + "; before=" + saplingsBefore + "; stumps=" + tree.getStumpLocations());
                 helper.succeed();
             }
 
             if (lumberjackTicks[0] >= 950)
             {
                 helper.assertTrue(false,
-                  "Lumberjack worker AI did not cut and replant the assigned tree: state=" + lumberjackAI.getState()
+                  "Lumberjack worker AI did not replant the multi-stump tree: state=" + lumberjackAI.getState()
                     + "; treeHasLogs=" + tree.hasLogs()
-                    + "; logsInInventory=" + countItem(lumberjackCitizen, Items.OAK_LOG)
                     + "; oakSaplings=" + countItem(lumberjackCitizen, Items.OAK_SAPLING)
                     + "; blocks=" + level.getBlockState(treePos)
                     + "," + level.getBlockState(treePos.above())
                     + "," + level.getBlockState(treePos.above(2))
-                    + "; nextLog=" + tree.peekNextLog()
-                    + "; mainHand=" + lumberjackCitizen.getMainHandItem()
-                    + "; citizen=" + lumberjackCitizen.blockPosition());
+                    + "," + level.getBlockState(secondTreeStump)
+                    + "; stumps=" + tree.getStumpLocations());
             }
         });
     }

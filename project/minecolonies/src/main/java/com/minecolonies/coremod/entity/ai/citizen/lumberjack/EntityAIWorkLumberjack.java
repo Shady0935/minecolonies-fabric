@@ -426,6 +426,7 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
             // Check if tree creation was successful
             if (job.getTree().isTree())
             {
+                searchIncrement = 0;
                 job.getTree().findLogs(world, building.shouldRestrict() ? null : building.getColony());
                 return LUMBERJACK_CHOP_TREE;
             }
@@ -471,6 +472,7 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
         {
             job.setTree(null);
             pathResult = null;
+            workFrom = null;
             return START_WORKING;
         }
 
@@ -882,8 +884,13 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
     {
         while (!job.getTree().getStumpLocations().isEmpty())
         {
-            final BlockPos pos = job.getTree().getStumpLocations().get(0);
             final ItemStack sapling = getInventory().getStackInSlot(saplingSlot);
+            if (ItemStackUtils.isEmpty(sapling))
+            {
+                return;
+            }
+
+            final BlockPos pos = job.getTree().getStumpLocations().get(0);
             final Block new_block;
             if (sapling.is(fungi))
             {

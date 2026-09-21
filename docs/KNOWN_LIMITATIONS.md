@@ -71,7 +71,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   construction, ore/mining AI and resource delivery, farmer crop growth, field
   placement and longer/multi-cell harvest navigation/resource delivery beyond
   the focused worker-AI and short-range navigation cycles, a broader
-  Lumberjack autonomous tree-search/replanting cycle,
+  Lumberjack autonomous tree-search/navigation cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
   navigation, long-range hostile-entity target search/navigation, combat and
@@ -94,7 +94,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   level-one Lumberjack blueprint. A focused companion also verifies the real
   vanilla oak-sapling replant route on valid dirt and exact inventory
   consumption; the same fixture confirms vanilla leaves select shears through
-  the Fabric block-tag adaptation. Full autonomous tree search/pathfinding, multi-stump replanting,
+  the Fabric block-tag adaptation. A companion two-stump fixture verifies the
+  planting guard consumes one available sapling once without a free second
+  planting. Full autonomous tree search/pathfinding, broader tree navigation,
   resource delivery and GUI interaction remain unverified.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
@@ -137,7 +139,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
   delivery beyond the covered short-range route, broader Lumberjack tree
-  search/replanting, long-range University researcher
+  search/navigation, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard navigation and long-running ambient target search beyond the
   covered short-range barbarian response, and broader request-driven guard
@@ -161,7 +163,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
   Farmer field assignment plus focused short-range harvest/navigation,
-  Lumberjack registration/assignment and focused three-log worker/replant cycle, Guard
+  Lumberjack registration/assignment, focused three-log worker/replant cycle and
+  the two-stump planting guard, Guard
   Tower/knight assignment plus the focused
   knight autonomous target-selection/hostile-hit path, RaidManager event
   registration/spawn lifecycle and the University

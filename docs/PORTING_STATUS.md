@@ -336,9 +336,10 @@ completed.
   focused tree fixture validates valid-tool selection including vanilla leaves
   as shearable, three-log chopping, log transfer into the citizen inventory
   and replanting one oak sapling on valid vanilla soil, including sapling
-  consumption. Broader tree
-  search/navigation, multi-stump replanting, resource delivery and the
-  Lumberjack GUI remain open
+  consumption. A focused two-stump planting guard also proves that one
+  available sapling is consumed once without planting a free second sapling.
+  Broader tree search/navigation, resource delivery and the Lumberjack GUI
+  remain open
 - [x] Server-side Guard Tower registration resolves the Colonial level-one
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live

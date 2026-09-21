@@ -704,10 +704,13 @@ valid dirt and consumes exactly one sapling. The Fabric adaptation also
 classifies vanilla leaves and wool through block tags while retaining the
 custom shearable marker for modded blocks. Sapling placement uses the
 vanilla `BlockState.canSurvive` contract instead of the unavailable Forge
-`IPlantable` interface. Broader autonomous tree search/navigation,
-multi-stump replanting, resource delivery and GUI interaction remain separate
+`IPlantable` interface. A companion two-stump fixture now isolates the
+planting guard and proves that a single available sapling is consumed once
+without producing a free second planting. Broader autonomous tree
+search/navigation, resource delivery and GUI interaction remain separate
 validation work. Evidence is retained in
-`logs/minecolonies-gametest-lumberjack-shears-replant-1-green-20260920.xml`.
+`logs/minecolonies-gametest-lumberjack-shears-replant-1-green-20260920.xml`
+and `logs/minecolonies-gametest-lumberjack-multistump-1-green-20260920.xml`.
 
 The guard fixture registers a Colonial Guard Tower through its real building
 entry, resolves `military/guardtower1.blueprint`, verifies the default guard

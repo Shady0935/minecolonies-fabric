@@ -86,7 +86,8 @@ FarmField configuration,
 Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
 plus focused Farmer harvest, Lumberjack three-log chopping, vanilla-leaf
-shears selection and oak-sapling replanting, short-range
+shears selection, oak-sapling replanting and the two-stump planting guard,
+short-range
 Researcher bookshelf navigation/study/mana, short-range Farmer
 harvest/navigation and Guard autonomous-target-search/combat cycles with an
 automatic late-arriving registered-chest sword request and normal pickup, plus the
