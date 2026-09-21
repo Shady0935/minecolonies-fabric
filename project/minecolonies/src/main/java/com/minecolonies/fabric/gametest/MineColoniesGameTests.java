@@ -2321,7 +2321,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = MINER_TEST_BATCH, timeoutTicks = 400)
-    public void minerAIUsesSpecializedMiningCycleToMineStone(final GameTestHelper helper)
+    public void minerAIUsesSpecializedMiningCycleToMineStoneAndOre(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -2377,8 +2377,12 @@ public final class MineColoniesGameTests implements FabricGameTest
         level.setBlock(ladderPos, Blocks.LADDER.defaultBlockState(), 3);
         final BlockPos target = ladderPos.above();
         level.setBlock(target, Blocks.STONE.defaultBlockState(), 3);
+        final BlockPos oreTarget = target.east();
+        level.setBlock(oreTarget, Blocks.IRON_ORE.defaultBlockState(), 3);
         helper.assertTrue(level.getBlockState(target).is(Blocks.STONE),
           "Miner AI fixture could not place the absolute shaft target at " + target);
+        helper.assertTrue(level.getBlockState(oreTarget).is(Blocks.IRON_ORE),
+          "Miner AI fixture could not place the vanilla ore target at " + oreTarget);
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, minerPos.above());
@@ -2406,25 +2410,44 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(assignedAI != null, "Miner AI assignment did not create the worker AI");
         final TestMinerAI miningAI = new TestMinerAI(job);
         final int cobblestoneBefore = countItem(minerCitizen, Items.COBBLESTONE);
+        final int ironOreBefore = countItem(minerCitizen, Items.IRON_ORE);
+        final boolean[] stoneMined = {false};
         final int[] minerTicks = {0};
         helper.onEachTick(() ->
         {
             minerTicks[0]++;
-            miningAI.mine(target, minerCitizen.blockPosition());
-            if (level.isEmptyBlock(target))
+            if (!stoneMined[0])
             {
-                helper.assertTrue(countItem(minerCitizen, Items.COBBLESTONE) > cobblestoneBefore,
-                  "Miner AI removed the shaft target without transferring its drop: state=" + miningAI.getState()
-                    + "; citizen=" + minerCitizen.blockPosition());
-                helper.succeed();
+                miningAI.mine(target, minerCitizen.blockPosition());
+                if (level.isEmptyBlock(target))
+                {
+                    helper.assertTrue(countItem(minerCitizen, Items.COBBLESTONE) > cobblestoneBefore,
+                      "Miner AI removed the shaft target without transferring its drop: state=" + miningAI.getState()
+                        + "; citizen=" + minerCitizen.blockPosition());
+                    stoneMined[0] = true;
+                }
             }
-            else if (minerTicks[0] >= 350)
+            else
+            {
+                miningAI.mine(oreTarget, minerCitizen.blockPosition());
+                if (level.isEmptyBlock(oreTarget))
+                {
+                    helper.assertTrue(countItem(minerCitizen, Items.IRON_ORE) > ironOreBefore,
+                      "Miner AI removed the vanilla ore without transferring the Silk Touch drop: state="
+                        + miningAI.getState() + "; citizen=" + minerCitizen.blockPosition()
+                        + "; ironOre=" + countItem(minerCitizen, Items.IRON_ORE));
+                    helper.succeed();
+                }
+            }
+            if (minerTicks[0] >= 350)
             {
                 helper.assertTrue(false,
-                  "Miner specialized mining cycle did not break its target: state=" + miningAI.getState()
-                    + "; target=" + level.getBlockState(target)
+                  "Miner specialized mining cycle did not break both targets: state=" + miningAI.getState()
+                    + "; stone=" + level.getBlockState(target)
+                    + "; ore=" + level.getBlockState(oreTarget)
                     + "; citizen=" + minerCitizen.blockPosition()
-                    + "; cobblestone=" + countItem(minerCitizen, Items.COBBLESTONE));
+                    + "; cobblestone=" + countItem(minerCitizen, Items.COBBLESTONE)
+                    + "; ironOre=" + countItem(minerCitizen, Items.IRON_ORE));
             }
         });
     }

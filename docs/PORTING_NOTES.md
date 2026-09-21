@@ -676,8 +676,12 @@ select the order and persist the citizen claim. The Fabric port now records the
 claim when that AI attaches the order, matching the building-search contract.
 A focused companion equips the level-one miner with a stone pickaxe, runs the
 real `EntityAIStructureMiner.doMining()` cycle against a stone block and
-verifies both block removal and cobblestone delivery. Mine-shaft construction,
-ore selection, navigation, resource delivery and the miner GUI remain open.
+verifies both block removal and cobblestone delivery. The same isolated cycle
+then targets vanilla iron ore, verifies the compatibility ore classification,
+removes the block and delivers an `IRON_ORE` Silk Touch drop. Mine-shaft
+construction, placement, navigation, resource delivery and the miner GUI
+remain open. Evidence is retained in
+`logs/minecolonies-gametest-miner-stone-ore-20260920.xml`.
 
 The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed

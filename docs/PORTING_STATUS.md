@@ -321,8 +321,10 @@ completed.
   claim; the AI now records the claim when it attaches the order, and
   ladder-tag lookup tolerates a temporarily unavailable building BlockEntity
   during world rehydration. A focused level-one mining cycle verifies stone
-  removal and drop delivery through `EntityAIStructureMiner`; shaft
-  construction, ore behavior, placement and resource logistics remain open
+  removal and drop delivery through `EntityAIStructureMiner`; a companion
+  vanilla-iron-ore cycle verifies ore recognition, removal and Silk Touch drop
+  delivery. Shaft construction, placement and resource logistics remain open;
+  evidence: `logs/minecolonies-gametest-miner-stone-ore-20260920.xml`
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,

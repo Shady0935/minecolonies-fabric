@@ -136,7 +136,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - Authenticated in-game interaction with BlockUI screens (including an actual
   rendered entity/block hook overlay), full Builder work-order pathfinding/larger
   placement, full citizen work cycles/scheduling, logistics,
-  miner shaft/ore behavior and mining AI,
+  miner shaft construction and mining placement/resource logistics beyond the
+  covered stone and vanilla-ore AI cycles,
   farmer crop growth/field placement and longer harvest navigation/resource
   delivery beyond the covered short-range route (the direct hoed-field seed
   planting path is covered), broader Lumberjack tree
