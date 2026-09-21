@@ -70,8 +70,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   larger construction, full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
   placement and longer/multi-cell harvest navigation/resource delivery beyond
-  the focused worker-AI and short-range navigation cycles, a Lumberjack
-  autonomous tree-search/replanting cycle,
+  the focused worker-AI and short-range navigation cycles, a broader
+  Lumberjack autonomous tree-search/replanting cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
   navigation, long-range hostile-entity target search/navigation, combat and
@@ -91,8 +91,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - The Lumberjack worker cycle is now covered with a valid three-log tree,
   normal citizen ticks and a level-compatible stone axe. The fixture uses the
   `Minecolonies Original` pack because the Colonial 1.20.1 pack lacks the
-  level-one Lumberjack blueprint. Full autonomous tree search/pathfinding,
-  replanting, resource delivery and GUI interaction remain unverified.
+  level-one Lumberjack blueprint. A focused companion also verifies the real
+  vanilla oak-sapling replant route on valid dirt and exact inventory
+  consumption. Full autonomous tree search/pathfinding, multi-stump replanting,
+  resource delivery and GUI interaction remain unverified.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item
   toss/pickup, while the bucket-use callback posts the retained `FillBucketEvent`
@@ -133,7 +135,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
-  delivery beyond the covered short-range route, Lumberjack tree
+  delivery beyond the covered short-range route, broader Lumberjack tree
   search/replanting, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard navigation and long-running ambient target search beyond the
@@ -158,7 +160,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
   Farmer field assignment plus focused short-range harvest/navigation,
-  Lumberjack registration/assignment and focused three-log worker cycle, Guard
+  Lumberjack registration/assignment and focused three-log worker/replant cycle, Guard
   Tower/knight assignment plus the focused
   knight autonomous target-selection/hostile-hit path, RaidManager event
   registration/spawn lifecycle and the University

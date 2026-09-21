@@ -36,7 +36,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
-import com.minecolonies.fabric.common.IPlantable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -904,7 +903,7 @@ public class EntityAIWorkLumberjack extends AbstractEntityAICrafting<JobLumberja
                 }
             }
 
-            if (!(block instanceof IPlantable plantable && plantable.canSustainPlant(world.getBlockState(pos.below()), world, pos.below(), Direction.UP, plantable))
+            if (!block.defaultBlockState().canSurvive(world, pos)
                   || Objects.equals(world.getBlockState(pos), block.defaultBlockState()))
             {
                 job.getTree().removeStump(pos);

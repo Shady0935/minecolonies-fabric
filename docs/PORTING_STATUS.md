@@ -333,9 +333,11 @@ completed.
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
-  focused tree fixture validates valid-tool selection, three-log chopping and
-  log transfer into the citizen inventory. Full tree search/navigation,
-  replanting, resource delivery and the Lumberjack GUI remain open
+  focused tree fixture validates valid-tool selection, three-log chopping,
+  log transfer into the citizen inventory and replanting one oak sapling on
+  valid vanilla soil, including sapling consumption. Broader tree
+  search/navigation, multi-stump replanting, resource delivery and the
+  Lumberjack GUI remain open
 - [x] Server-side Guard Tower registration resolves the Colonial level-one
   `military/guardtower1.blueprint`, initializes the defense position and patrol
   task, registers the knight `GuardBuildingModule` and persists a live
@@ -407,8 +409,8 @@ completed.
    warehouse/courier resolver wiring and rack-backed inventory transfer,
    Miner work-order/claim selection and a focused stone-mining cycle, Farmer
    field registration/assignment and focused farmer harvest/navigation routines,
-   Lumberjack registration/assignment and the focused lumberjack tree-chop
-   routine, plus
+   Lumberjack registration/assignment, tree-chop/inventory and oak-sapling
+   replant routines, plus
    Guard Tower blueprint registration
    and knight-guard assignment plus the focused real knight
    autonomous-target-search/combat path,
@@ -469,7 +471,7 @@ completed.
   normal Builder material-request/resolver delivery,
   miner stone drops, the real `EntityAIWorkFarmer` harvest/drop and short-range
   navigation cycle and the
-  real `EntityAIWorkLumberjack` three-log chop/inventory cycle, the focused
+  real `EntityAIWorkLumberjack` three-log chop/inventory/replant cycle, the focused
   `EntityAIWorkResearcher` bookshelf navigation/study/mana cycle,
   plus the focused real `EntityAIKnight`/`KnightCombatAI` registered-chest tool
   retrieval, autonomous target-selection and hostile-hit cycle,

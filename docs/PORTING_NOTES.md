@@ -699,8 +699,13 @@ keeping the Colonial pack for the other building fixtures. It seeds a valid
 oak tree, assigns the real `Tree` model, equips a level-compatible stone axe
 and lets normal `CitizenAI` ticks drive `EntityAIWorkLumberjack`; the focused
 cycle verifies that the worker chops all three logs and transfers their drops
-to the citizen inventory. Autonomous tree search/navigation, replanting,
-resource delivery and GUI interaction remain separate validation work.
+to the citizen inventory, then places the resolved vanilla oak sapling on
+valid dirt and consumes exactly one sapling. The Fabric adaptation uses the
+vanilla `BlockState.canSurvive` contract instead of the unavailable Forge
+`IPlantable` interface. Broader autonomous tree search/navigation,
+multi-stump replanting, resource delivery and GUI interaction remain separate
+validation work. Evidence is retained in
+`logs/minecolonies-gametest-lumberjack-replant-1-green-20260920.xml`.
 
 The guard fixture registers a Colonial Guard Tower through its real building
 entry, resolves `military/guardtower1.blueprint`, verifies the default guard

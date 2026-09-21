@@ -2664,6 +2664,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
             }
         }
+        helper.setBlock(new BlockPos(relativeTree.getX(), 0, relativeTree.getZ()), Blocks.DIRT);
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         helper.setBlock(relativeLumberjack, ModBlocks.blockHutLumberjack);
         for (int y = 1; y <= 3; y++)
@@ -2726,38 +2727,52 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(lumberjackAI != null, "Lumberjack assignment did not create the worker AI");
         lumberjackCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_AXE));
         lumberjackCitizen.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.SHEARS));
+        lumberjackCitizen.getInventoryCitizen().setStackInSlot(2, new ItemStack(Items.OAK_SAPLING));
         lumberjackCitizen.getCitizenItemHandler().setMainHeldItem(0);
 
         final Tree tree = new Tree(level, treePos, colony);
         helper.assertTrue(tree.isTree(), "Lumberjack fixture tree was not recognized as a valid tree");
         tree.findLogs(level, colony);
         helper.assertTrue(tree.hasLogs(), "Lumberjack fixture tree did not retain its log list");
+        helper.assertTrue(tree.getSapling().is(Items.OAK_SAPLING),
+          "Lumberjack fixture did not resolve the tree's oak sapling: " + tree.getSapling());
         job.setTree(tree);
         lumberjackCitizen.setPos(treePos.getX() + 2.0D, treePos.getY(), treePos.getZ() + 0.5D);
         lumberjackAI.resetAI();
         lumberjackAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.LUMBERJACK_CHOP_TREE));
 
         final int logsBefore = countItem(lumberjackCitizen, Items.OAK_LOG);
+        final int saplingsBefore = countItem(lumberjackCitizen, Items.OAK_SAPLING);
         final int[] lumberjackTicks = {0};
+        final boolean[] treeChopped = {false};
         helper.onEachTick(() ->
         {
-            if (!level.isEmptyBlock(treePos))
+            lumberjackTicks[0]++;
+            if (level.isEmptyBlock(treePos) && !treeChopped[0])
             {
-                lumberjackTicks[0]++;
-            }
-            if (level.isEmptyBlock(treePos))
-            {
+                treeChopped[0] = true;
                 helper.assertTrue(countItem(lumberjackCitizen, Items.OAK_LOG) > logsBefore,
                   "Lumberjack worker AI did not transfer the cut logs into the citizen inventory: state="
                     + lumberjackAI.getState() + "; citizen=" + lumberjackCitizen.blockPosition());
+            }
+
+            if (level.getBlockState(treePos).is(Blocks.OAK_SAPLING))
+            {
+                helper.assertTrue(treeChopped[0],
+                  "Lumberjack replant route placed a sapling before the tree was observed as chopped");
+                helper.assertTrue(countItem(lumberjackCitizen, Items.OAK_SAPLING) == saplingsBefore - 1,
+                  "Lumberjack replant route did not consume exactly one oak sapling: remaining="
+                    + countItem(lumberjackCitizen, Items.OAK_SAPLING));
                 helper.succeed();
             }
-            else if (lumberjackTicks[0] >= 900)
+
+            if (lumberjackTicks[0] >= 950)
             {
                 helper.assertTrue(false,
-                  "Lumberjack worker AI did not cut the assigned tree: state=" + lumberjackAI.getState()
+                  "Lumberjack worker AI did not cut and replant the assigned tree: state=" + lumberjackAI.getState()
                     + "; treeHasLogs=" + tree.hasLogs()
                     + "; logsInInventory=" + countItem(lumberjackCitizen, Items.OAK_LOG)
+                    + "; oakSaplings=" + countItem(lumberjackCitizen, Items.OAK_SAPLING)
                     + "; blocks=" + level.getBlockState(treePos)
                     + "," + level.getBlockState(treePos.above())
                     + "," + level.getBlockState(treePos.above(2))
