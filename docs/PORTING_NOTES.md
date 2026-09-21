@@ -690,6 +690,10 @@ both direct harvest/drop transfer and a short-range route from the farm building
 to the assigned field through normal `CitizenAI` ticks. The longer navigation
 fixture runs in its own Farmer GameTest batch and keeps its compact layout
 inside the entity-ticking area of the GameTest structure.
+An additional isolated hoed-field fixture drives the real planting transition
+with `WHEAT_SEEDS`, verifies the crop appears on farmland, consumes the seed
+and persists `FarmField.Stage.PLANTED`; its green XML evidence is retained in
+`logs/minecolonies-gametest-farmer-plant-20260920.xml`.
 
 The Lumberjack fixture registers the Original level-one lumberjack through its
 real building entry and assigns a live citizen to `JobLumberjack`. The Colonial

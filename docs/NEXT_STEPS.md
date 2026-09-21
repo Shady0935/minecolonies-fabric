@@ -85,7 +85,7 @@ deconstructed-building style,
 FarmField configuration,
 Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
-plus focused Farmer harvest, Lumberjack three-log chopping, vanilla-leaf
+plus focused Farmer harvest/planting, Lumberjack three-log chopping, vanilla-leaf
 shears selection, oak-sapling replanting and the two-stump planting guard,
 short-range
 Researcher bookshelf navigation/study/mana, short-range Farmer

@@ -329,7 +329,10 @@ completed.
   longer work-cycle/navigation, placement and farming GUI remain open; focused
   real `EntityAIWorkFarmer` cycles verify mature crop removal, drops and
   inventory insertion both directly and after short-range navigation from the
-  farm building through normal `CitizenAI` ticks
+  farm building through normal `CitizenAI` ticks. A focused hoed-field fixture
+  also drives the real planting state, consumes one `WHEAT_SEEDS` stack and
+  advances the field to `PLANTED`; evidence:
+  `logs/minecolonies-gametest-farmer-plant-20260920.xml`
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the

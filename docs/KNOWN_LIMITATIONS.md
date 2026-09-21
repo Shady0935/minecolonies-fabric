@@ -138,7 +138,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft/ore behavior and mining AI,
   farmer crop growth/field placement and longer harvest navigation/resource
-  delivery beyond the covered short-range route, broader Lumberjack tree
+  delivery beyond the covered short-range route (the direct hoed-field seed
+  planting path is covered), broader Lumberjack tree
   search/navigation, long-range University researcher
   AI navigation/work-speed and GUI,
   full guard navigation and long-running ambient target search beyond the
