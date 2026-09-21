@@ -93,7 +93,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `Minecolonies Original` pack because the Colonial 1.20.1 pack lacks the
   level-one Lumberjack blueprint. A focused companion also verifies the real
   vanilla oak-sapling replant route on valid dirt and exact inventory
-  consumption. Full autonomous tree search/pathfinding, multi-stump replanting,
+  consumption; the same fixture confirms vanilla leaves select shears through
+  the Fabric block-tag adaptation. Full autonomous tree search/pathfinding, multi-stump replanting,
   resource delivery and GUI interaction remain unverified.
 - Fabric 1.20.1 has no direct callback equivalent for several retained Forge
   event points. Narrow adapters now cover farmland trampling and item

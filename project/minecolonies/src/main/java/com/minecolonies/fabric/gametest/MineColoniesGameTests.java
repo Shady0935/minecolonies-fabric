@@ -127,6 +127,7 @@ import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.EntityUtils;
 import com.minecolonies.coremod.util.ChunkDataHelper;
+import com.minecolonies.coremod.util.WorkerUtil;
 import com.minecolonies.coremod.entity.ai.citizen.miner.MinerLevel;
 import com.minecolonies.coremod.entity.ai.util.BuildingStructureHandler;
 import com.minecolonies.coremod.tileentities.TileEntityWareHouse;
@@ -2708,6 +2709,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BuildingLumberjack lumberjack = (BuildingLumberjack) registered;
         helper.assertTrue(lumberjack.getBuildingLevel() >= 1,
           "Lumberjack fixture did not resolve its level-one blueprint");
+        helper.assertTrue(WorkerUtil.getBestToolForBlock(level.getBlockState(treePos.above(3)), 0.2F, lumberjack) == ToolType.SHEARS,
+          "Lumberjack fixture did not classify vanilla leaves as shearable");
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, lumberjackPos.above());
@@ -2736,6 +2739,13 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(tree.hasLogs(), "Lumberjack fixture tree did not retain its log list");
         helper.assertTrue(tree.getSapling().is(Items.OAK_SAPLING),
           "Lumberjack fixture did not resolve the tree's oak sapling: " + tree.getSapling());
+        for (int x = relativeTree.getX() - 1; x <= relativeTree.getX() + 1; x++)
+        {
+            for (int z = relativeTree.getZ() - 1; z <= relativeTree.getZ() + 1; z++)
+            {
+                helper.setBlock(new BlockPos(x, 4, z), Blocks.AIR);
+            }
+        }
         job.setTree(tree);
         lumberjackCitizen.setPos(treePos.getX() + 2.0D, treePos.getY(), treePos.getZ() + 0.5D);
         lumberjackAI.resetAI();

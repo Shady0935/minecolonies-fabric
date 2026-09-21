@@ -333,9 +333,10 @@ completed.
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
-  focused tree fixture validates valid-tool selection, three-log chopping,
-  log transfer into the citizen inventory and replanting one oak sapling on
-  valid vanilla soil, including sapling consumption. Broader tree
+  focused tree fixture validates valid-tool selection including vanilla leaves
+  as shearable, three-log chopping, log transfer into the citizen inventory
+  and replanting one oak sapling on valid vanilla soil, including sapling
+  consumption. Broader tree
   search/navigation, multi-stump replanting, resource delivery and the
   Lumberjack GUI remain open
 - [x] Server-side Guard Tower registration resolves the Colonial level-one

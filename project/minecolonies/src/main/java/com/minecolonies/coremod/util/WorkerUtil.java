@@ -179,7 +179,7 @@ public final class WorkerUtil
      */
     public static IToolType getBestToolForBlock(final BlockState state, float blockHardness, final AbstractBuilding building)
     {
-        if (state.getBlock() instanceof IForgeShearable && building.hasModule(SettingsModule.class) && building.getFirstModuleOccurance(SettingsModule.class).getSettingValueOrDefault(USE_SHEARS, true))
+        if (isShearable(state) && building.hasModule(SettingsModule.class) && building.getFirstModuleOccurance(SettingsModule.class).getSettingValueOrDefault(USE_SHEARS, true))
         {
             return ToolType.SHEARS;
         }
@@ -203,6 +203,24 @@ public final class WorkerUtil
 
         final IToolType toolType = ToolType.getToolType(toolName);
         return toolType;
+    }
+
+    /**
+     * Whether a block should be harvested with shears.
+     *
+     * <p>Forge exposes this through {@code IForgeShearable}, but vanilla
+     * leaves and wool do not implement that marker on Fabric. Keep the marker
+     * for MineColonies/modded blocks and include the vanilla block tags so
+     * worker tool selection matches the actual 1.20.1 shears behavior.</p>
+     *
+     * @param state the block state to inspect.
+     * @return true when shears are the preferred harvesting tool.
+     */
+    public static boolean isShearable(final BlockState state)
+    {
+        return state.is(BlockTags.LEAVES)
+                 || state.is(BlockTags.WOOL)
+                 || state.getBlock() instanceof IForgeShearable;
     }
 
     /**
