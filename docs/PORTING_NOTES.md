@@ -187,11 +187,13 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The latest 102-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The latest 103-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-full-farmer-20260921.log`, with its JUnit-style
-companion in `logs/minecolonies-gametest-full-farmer-20260921.xml`.
+in `logs/minecolonies-gametest-miner-shaft-20260921.log`, with its JUnit-style
+companion in `logs/minecolonies-gametest-miner-shaft-20260921.xml`; the run
+adds an isolated real Miner ladder-extension/backfill cycle to the previously
+combined 102-test coverage.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -244,11 +246,12 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 102-test run (91 core tests plus isolated
+Evidence for the latest combined 103-test run (91 core tests plus isolated
 Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner, automatic-
 housing, two Builder, Guard, entity and residence sleep/wake batches) is in
-`logs/minecolonies-gametest-full-farmer-20260921.log`, with the zero-failure XML
-report in `logs/minecolonies-gametest-full-farmer-20260921.xml`; this run also
+`logs/minecolonies-gametest-miner-shaft-20260921.log`, with the zero-failure XML
+report in `logs/minecolonies-gametest-miner-shaft-20260921.xml`; this run also
+adds one real Miner shaft ladder-extension/backfill cycle and also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric `setItem` mixin callback and
 deferred end-of-tick retry reassign the request when the sword arrives, and

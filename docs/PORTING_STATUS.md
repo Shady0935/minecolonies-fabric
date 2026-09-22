@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  102-test GameTest run
+  103-test GameTest run
 - [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
   focused follow-up GameTest: the real split envelope deletes the owned
   colony, removes its dimension-manager entry and clears the packet cache;
@@ -140,7 +140,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 102-test Fabric GameTest run
+  is covered by the latest 103-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -431,10 +431,11 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 102-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 103-test Fabric GameTest run passes with clean saves for all three
   dimensions; its 91-test core batch plus isolated Lumberjack, Farmer hoe,
   Farmer navigation, Farmer planting, Miner, housing, Builder, Guard, sleep/wake
-  and entity batches, plus the focused raider-navigation fallback,
+  and entity batches, plus an isolated Miner shaft batch and the focused
+  raider-navigation fallback,
   cover event-dispatch
   priority/inheritance, projectile impact cancellation, fishing-event
   cancellation/rod damage, the real client-to-server Town Hall rename,
@@ -493,9 +494,12 @@ completed.
   raider combat AI, a no-waypoint raider navigates by direct fallback, the
   delayed asynchronous raid path publishes waypoints during a later event tick,
   a real spawned raider advances from its route origin, and a real guard damages
-  a registered barbarian raider; evidence is in
-  `logs/minecolonies-gametest-full-farmer-20260921.log` and the companion
-  `logs/minecolonies-gametest-full-farmer-20260921.xml`
+  a registered barbarian raider; the new Miner shaft fixture also drives one
+  real ladder-extension/backfill cycle; evidence is in
+  `logs/minecolonies-gametest-miner-shaft-20260921.log` and the companion
+  `logs/minecolonies-gametest-miner-shaft-20260921.xml` (103 cases, zero
+  failures/errors), with the previous combined run retained in
+  `logs/minecolonies-gametest-full-farmer-20260921.log`
 - [x] Core runtime command/entity smoke test and datapack reload
 - [x] Gameplay callback adapter compiles and is loaded by both dedicated-server
   and client bootstrap; server-side Town Hall protection and tavern visitor

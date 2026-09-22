@@ -324,6 +324,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String FARMER_NAVIGATION_TEST_BATCH = "minecolonies_fabric_farmer_navigation_port";
     private static final String LUMBERJACK_TEST_BATCH = "minecolonies_fabric_lumberjack_port";
     private static final String MINER_TEST_BATCH = "minecolonies_fabric_miner_port";
+    private static final String MINER_SHAFT_TEST_BATCH = "minecolonies_fabric_miner_shaft_port";
     private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
     private static final String HOUSING_TEST_BATCH = "minecolonies_fabric_housing_port";
@@ -2408,7 +2409,10 @@ public final class MineColoniesGameTests implements FabricGameTest
         }
         minerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_PICKAXE));
         minerCitizen.getCitizenItemHandler().setMainHeldItem(0);
-        minerCitizen.setPos(ladderPos.getX() + 0.5D, ladderPos.getY() - 1.0D, ladderPos.getZ() + 0.5D);
+        // Start on top of the existing cobble support, adjacent to the first
+        // shaft block, so the normal Miner AI can exercise mining before it
+        // has to extend the ladder downward.
+        minerCitizen.setPos(target.getX() - 0.5D, target.getY(), target.getZ() + 0.5D);
 
         final EntityAIStructureMiner assignedAI = job.getWorkerAI();
         helper.assertTrue(assignedAI != null, "Miner AI assignment did not create the worker AI");
@@ -2452,6 +2456,149 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; citizen=" + minerCitizen.blockPosition()
                     + "; cobblestone=" + countItem(minerCitizen, Items.COBBLESTONE)
                     + "; ironOre=" + countItem(minerCitizen, Items.IRON_ORE));
+            }
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = MINER_SHAFT_TEST_BATCH, timeoutTicks = 1300)
+    public void minerAIExtendsShaftWithLadderAndBackfill(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeMiner = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos minerPos = helper.absolutePos(relativeMiner);
+        for (int x = 0; x <= 34; x++)
+        {
+            for (int z = 0; z <= 22; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeMiner, ModBlocks.blockHutMiner);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Miner Shaft GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Miner shaft fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Miner shaft fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Miner shaft fixture Town Hall was not registered");
+
+        final BlockEntity minerEntity = level.getBlockEntity(minerPos);
+        helper.assertTrue(minerEntity instanceof TileEntityColonyBuilding,
+          "Miner shaft fixture did not create a miner block entity");
+        final TileEntityColonyBuilding minerHut = (TileEntityColonyBuilding) minerEntity;
+        minerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
+        minerHut.setSchematicName("mine1");
+        final Map<BlockPos, List<String>> minerTags = new java.util.HashMap<>();
+        minerTags.put(new BlockPos(0, 2, 0), List.of("cobble"));
+        minerTags.put(new BlockPos(1, 2, 0), List.of("ladder"));
+        minerHut.setPositionedTags(minerTags);
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(minerHut, level);
+        helper.assertTrue(registered instanceof BuildingMiner,
+          "Miner shaft fixture registered the wrong building implementation: " + registered);
+        final BuildingMiner miner = (BuildingMiner) registered;
+        // A level-four miner reaches the shaft path at the GameTest world's
+        // negative build height; level one correctly stops for a mine level.
+        miner.setBuildingLevel(4);
+        helper.assertTrue(miner.getBuildingLevel() == 4,
+          "Miner shaft fixture could not enable a deep enough miner level");
+        final BlockPos cobblePos = miner.getCobbleLocation();
+        final BlockPos ladderPos = miner.getLadderLocation();
+        helper.assertTrue(cobblePos != null && ladderPos != null,
+          "Miner shaft fixture did not resolve the tagged shaft positions");
+        level.setBlock(cobblePos, Blocks.COBBLESTONE.defaultBlockState(), 3);
+        level.setBlock(ladderPos, Blocks.LADDER.defaultBlockState(), 3);
+        final BlockPos target = ladderPos.above();
+        final BlockPos nextCobble = cobblePos.below();
+        final BlockPos nextLadder = ladderPos.below();
+        level.setBlock(target, Blocks.STONE.defaultBlockState(), 3);
+        helper.assertTrue(level.getBlockState(target).is(Blocks.STONE),
+          "Miner shaft fixture could not place the initial shaft target");
+        helper.assertTrue(level.isEmptyBlock(nextCobble) && level.isEmptyBlock(nextLadder),
+          "Miner shaft fixture started with occupied extension positions");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, minerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Miner shaft fixture could not create a live miner citizen");
+        final WorkerBuildingModule workerModule = miner.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.miner.get());
+        helper.assertTrue(workerModule != null, "Miner shaft worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Miner shaft worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobMiner,
+          "Miner shaft assignment did not create the miner job");
+
+        final AbstractEntityCitizen minerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < minerCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            minerCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        minerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_PICKAXE));
+        minerCitizen.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.COBBLESTONE, 64));
+        minerCitizen.getInventoryCitizen().setStackInSlot(2, new ItemStack(Items.LADDER, 64));
+        minerCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        minerCitizen.setPos(ladderPos.getX() + 0.5D, ladderPos.getY() - 1.0D, ladderPos.getZ() + 0.5D);
+
+        final EntityAIStructureMiner minerAI = citizen.getJob(JobMiner.class).getWorkerAI();
+        helper.assertTrue(minerAI != null, "Miner shaft assignment did not create the worker AI");
+        minerAI.resetAI();
+        minerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.MINER_CHECK_MINESHAFT));
+
+        final int[] minerTicks = {0};
+        final StringBuilder stateTrace = new StringBuilder(minerAI.getState().toString());
+        final String[] lastState = {minerAI.getState().toString()};
+        helper.onEachTick(() ->
+        {
+            minerTicks[0]++;
+            // The citizen normally ticks its worker AI, but an explicit tick
+            // here keeps this long-running fixture deterministic while still
+            // exercising the real EntityAIStructureMiner state machine.
+            minerAI.tick();
+            final String currentState = minerAI.getState().toString();
+            if (!currentState.equals(lastState[0]))
+            {
+                if (stateTrace.length() < 1600)
+                {
+                    stateTrace.append(" -> ").append(currentState).append('@').append(minerCitizen.blockPosition());
+                }
+                lastState[0] = currentState;
+            }
+            if (level.isEmptyBlock(target)
+                  && level.getBlockState(nextLadder).getBlock() == Blocks.LADDER
+                  && level.getBlockState(nextCobble).is(Blocks.COBBLESTONE))
+            {
+                helper.succeed();
+                return;
+            }
+
+            if (minerTicks[0] >= 1250)
+            {
+                helper.assertTrue(false,
+                  "Miner AI did not extend the shaft with a ladder and backfill: state=" + minerAI.getState()
+                    + "; target=" + level.getBlockState(target)
+                    + "; nextLadder=" + level.getBlockState(nextLadder)
+                    + "; nextCobble=" + level.getBlockState(nextCobble)
+                    + "; miner=" + minerCitizen.blockPosition()
+                    + "; cobblePos=" + cobblePos
+                    + "; ladderPos=" + ladderPos
+                    + "; targetPos=" + target
+                    + "; trace=" + stateTrace
+                    + "; navigationDone=" + minerCitizen.getNavigation().isDone()
+                    + "; cobblestone=" + countItem(minerCitizen, Items.COBBLESTONE)
+                    + "; ladders=" + countItem(minerCitizen, Items.LADDER));
             }
         });
     }

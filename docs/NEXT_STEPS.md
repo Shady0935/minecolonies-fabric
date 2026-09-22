@@ -26,7 +26,7 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 102
+real visitor entity. The latest clean Fabric GameTest run passes all 103
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
@@ -46,7 +46,7 @@ crafting menus through real split envelopes, update the furnace input and both
 2x2/3x3 crafting shapes, and clear the packet cache; JEI's optional client
 transfer remains pending.
 Its 91-test core batch plus isolated Lumberjack, Farmer hoe/navigation/planting,
-Miner, housing, Builder, Guard, sleep/wake and entity batches also exercise real
+Miner, Miner shaft, housing, Builder, Guard, sleep/wake and entity batches also exercise real
 client-to-server Town Hall rename, colony foundation, direct Town Hall
 placement, hut/building rename, colony style settings, colony allocation/flag
 settings, Builder delivery priority, Farmer field assignment/settings,
