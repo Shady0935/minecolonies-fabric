@@ -1966,7 +1966,13 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     @Override
     public void onRequestedRequestCancelled(@NotNull final IRequestManager manager, @NotNull final IRequest<?> request)
     {
-        final int citizenThatRequested = getCitizensByRequest().remove(request.getId());
+        final Integer citizenThatRequested = getCitizensByRequest().remove(request.getId());
+        if (citizenThatRequested == null)
+        {
+            markDirty();
+            return;
+        }
+
         final Map<Integer, Collection<IToken<?>>> openRequestsByCitizen = getOpenRequestsByCitizen();
         final Collection<IToken<?>> byCitizenList = openRequestsByCitizen.get(citizenThatRequested);
         if (byCitizenList != null)

@@ -187,20 +187,20 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The latest 106-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The latest 107-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-stone-smeltery-7-20260921.log`, with its
+in `logs/minecolonies-gametest-smeltery-20260922.log`, with its
 JUnit-style companion in
-`logs/minecolonies-gametest-stone-smeltery-7-20260921.xml`; the run adds an
-isolated Stone Smeltery furnace worker fixture to the existing real Miner
-ladder-extension/backfill coverage. The current checkpoint also records the
+`logs/minecolonies-gametest-smeltery-20260922.xml`; the run adds isolated
+ Stone Smeltery and Smeltery furnace worker fixtures to the existing real Miner
+ ladder-extension/backfill coverage. The current checkpoint also records the
 real Crusher custom-recipe worker cycle in
 `logs/minecolonies-gametest-crusher-20260921.xml` and the Stonemason custom
 request/recipe cycle in
 `logs/minecolonies-gametest-stonemason-4-20260921.xml`, plus the Stone Smeltery
 furnace worker cycle in
-`logs/minecolonies-gametest-stone-smeltery-7-20260921.xml`.
+`logs/minecolonies-gametest-smeltery-20260922.xml`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -269,6 +269,14 @@ consumption, smelting and output retrieval, and verifies that the resulting
 stone reaches the building handlers. The GUI, longer asynchronous scheduling
 and broader delivery/work-cycle behavior remain open.
 
+The Smeltery companion fixture registers a Colonial level-one Smeltery, places
+and registers a vanilla Furnace, assigns a live `JobSmelter` and confirms that
+`EntityAIWorkSmelter` is created. It drives the normal public request hierarchy
+(`Stack` parent → `PublicCrafting` child), verifies assignment through
+`PublicWorkerCraftingProductionResolver`, consumes raw iron and deterministic
+fuel, runs vanilla smelting and retrieves the iron ingot. The GUI, longer
+asynchronous scheduling and broader delivery/work-cycle behavior remain open.
+
 The citizen-cycle fixture now lets the registered `EntityCitizen` tick through
 its normal server entity controller: it reaches `ACTIVE_SERVER`, constructs
 the high-level `CitizenAI`, selects `WORKING` for an assigned `JobBuilder` and
@@ -279,13 +287,13 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 106-test run (91 core tests plus isolated
+Evidence for the latest combined 107-test run (91 core tests plus isolated
 Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner,
 automatic-housing, Builder, Guard, sleep/wake, entity, residence and
-Stonemason and Stone Smeltery batches) is in
-`logs/minecolonies-gametest-stone-smeltery-7-20260921.log`, with the
+Stonemason, Stone Smeltery and Smeltery batches) is in
+`logs/minecolonies-gametest-smeltery-20260922.log`, with the
 zero-failure XML report in
-`logs/minecolonies-gametest-stone-smeltery-7-20260921.xml`; this run also
+`logs/minecolonies-gametest-smeltery-20260922.xml`; this run also
 adds two consecutive real Miner shaft ladder-extension/backfill cycles and also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric `setItem` mixin callback and

@@ -74,6 +74,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   cobblestone-to-stone furnace request with deterministic fuel and verifies
   vanilla output retrieval/delivery. GUI rendering, longer asynchronous
   scheduling and broader delivery/work-cycle behavior remain uncovered.
+  A companion Smeltery fixture registers a vanilla Furnace, assigns
+  `JobSmelter`/`EntityAIWorkSmelter`, follows the normal public parent/child
+  request chain through `PublicWorkerCraftingProductionResolver` and verifies
+  raw-iron input, deterministic fuel consumption and iron-ingot retrieval.
+  GUI rendering, longer scheduling and broader delivery behavior remain
+  uncovered.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
@@ -229,11 +235,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 106-test GameTest run still logs the upstream-style warning that
+- The latest 107-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-stone-smeltery-7-20260921.log`. The
+  `logs/minecolonies-gametest-smeltery-20260922.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

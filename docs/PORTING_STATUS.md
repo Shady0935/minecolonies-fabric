@@ -82,7 +82,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  106-test GameTest run
+  107-test GameTest run
 - [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
   focused follow-up GameTest: the real split envelope deletes the owned
   colony, removes its dimension-manager entry and clears the packet cache;
@@ -140,7 +140,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 106-test Fabric GameTest run
+  is covered by the latest 107-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -336,8 +336,16 @@ completed.
   input and deterministic fuel, runs vanilla furnace smelting and
   retrieves/delivers the stone output. The Stone Smeltery GUI and broader
   asynchronous scheduling remain open. Evidence:
-  `logs/minecolonies-gametest-stone-smeltery-7-20260921.xml` and
-  `logs/minecolonies-gametest-stone-smeltery-7-20260921.log`
+  `logs/minecolonies-gametest-smeltery-20260922.xml` and
+  `logs/minecolonies-gametest-smeltery-20260922.log`
+- [x] Server-side Smeltery registration resolves a live placed vanilla Furnace,
+  assigns `JobSmelter` with `EntityAIWorkSmelter`, and exercises the normal
+  public parent/child request chain through `PublicWorkerCraftingProductionResolver`.
+  The worker consumes raw iron and deterministic fuel, runs vanilla furnace
+  smelting and retrieves the iron ingot. The Smeltery GUI, longer scheduling and
+  broader delivery behavior remain open. Evidence:
+  `logs/minecolonies-gametest-smeltery-20260922.xml` and
+  `logs/minecolonies-gametest-smeltery-20260922.log`
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets normal
   `EntityAIStructureMiner` startup ticks select and persist a `WorkOrderMiner`
@@ -459,7 +467,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 106-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 107-test Fabric GameTest run passes with clean saves for all three
   dimensions; its 91-test core batch plus isolated Lumberjack, Farmer hoe,
   Farmer navigation, Farmer planting, Miner, housing, Builder, Guard, sleep/wake
   and entity batches, plus isolated Miner shaft, Stonemason request and Stone Smeltery furnace batches and the focused
@@ -524,10 +532,10 @@ completed.
   a real spawned raider advances from its route origin, and a real guard damages
   a registered barbarian raider; the new Miner shaft fixture also drives two
   consecutive real ladder-extension/backfill cycles, the Stonemason
-  custom-request/custom-recipe cycle and the Stone Smeltery furnace worker
-  cycle; evidence is in
-  `logs/minecolonies-gametest-stone-smeltery-7-20260921.log` and the companion
-  `logs/minecolonies-gametest-stone-smeltery-7-20260921.xml` (106 cases, zero
+  custom-request/custom-recipe cycle, the Stone Smeltery furnace worker cycle
+  and the Smeltery raw-ore furnace worker cycle; evidence is in
+  `logs/minecolonies-gametest-smeltery-20260922.log` and the companion
+  `logs/minecolonies-gametest-smeltery-20260922.xml` (107 cases, zero
   failures/errors), with the previous Miner-shaft checkpoint retained in
   `logs/minecolonies-gametest-miner-shaft-double-20260921.log` and the previous combined run retained in
   `logs/minecolonies-gametest-full-farmer-20260921.log`

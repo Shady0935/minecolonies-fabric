@@ -60,6 +60,7 @@ import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.mobs.EntityMercenary;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.crusher.EntityAIWorkCrusher;
+import com.minecolonies.coremod.entity.ai.citizen.smelter.EntityAIWorkSmelter;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
 import com.minecolonies.coremod.entity.ai.citizen.guard.EntityAIKnight;
@@ -101,6 +102,7 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingEnchant
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingLumberjack;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStonemason;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingSmeltery;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
@@ -114,6 +116,7 @@ import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobLumberjack;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.jobs.JobStonemason;
+import com.minecolonies.coremod.colony.jobs.JobSmelter;
 import com.minecolonies.coremod.colony.jobs.JobStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
@@ -130,6 +133,7 @@ import com.minecolonies.api.entity.combat.CombatAIStates;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PrivateWorkerCraftingRequestResolver;
+import com.minecolonies.coremod.colony.requestsystem.resolvers.PublicWorkerCraftingProductionResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.locations.EntityLocation;
 import com.minecolonies.coremod.colony.requestsystem.locations.StaticLocation;
@@ -346,6 +350,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String CRUSHER_TEST_BATCH = "minecolonies_fabric_crusher_port";
     private static final String STONEMASON_TEST_BATCH = "minecolonies_fabric_stonemason_port";
     private static final String STONE_SMELTERY_TEST_BATCH = "minecolonies_fabric_stone_smeltery_port";
+    private static final String SMELTERY_TEST_BATCH = "minecolonies_fabric_smeltery_port";
 
     public MineColoniesGameTests()
     {
@@ -3400,15 +3405,28 @@ public final class MineColoniesGameTests implements FabricGameTest
         final JobStoneSmeltery job = citizen.getJob(JobStoneSmeltery.class);
         final EntityAIWorkStoneSmeltery smelteryAI = job.getWorkerAI();
         helper.assertTrue(smelteryAI != null, "Stone Smeltery assignment did not create the worker AI");
-        final IToken<?> taskToken = colony.getRequestManager().createRequest(
-          smeltery.getRequester(), new PublicCrafting(storedRecipe.getPrimaryOutput().copy(), 1, storedRecipe.getToken()));
+        final IToken<?> parentToken = colony.getRequestManager().createRequest(
+          smeltery.getRequester(), new Stack(storedRecipe.getPrimaryOutput().copy()));
+        final IRequest<?> parentTask = colony.getRequestManager().getRequestForToken(parentToken);
+        helper.assertTrue(parentTask != null && parentTask.getState() == RequestState.CREATED,
+          "Stone Smeltery parent request was not registered before assignment: "
+            + (parentTask == null ? "null" : parentTask.getState()));
+        colony.getRequestManager().assignRequest(parentToken);
+        helper.assertTrue(parentTask.getState() == RequestState.IN_PROGRESS && parentTask.getChildren().size() == 1,
+          "Stone Smeltery public resolver did not create one child crafting task: state=" + parentTask.getState()
+            + "; children=" + parentTask.getChildren());
+        final IToken<?> taskToken = parentTask.getChildren().iterator().next();
         final IRequest<?> task = colony.getRequestManager().getRequestForToken(taskToken);
-        helper.assertTrue(task != null && task.getState() == RequestState.CREATED,
-          "Stone Smeltery worker task was not registered before queueing: " + (task == null ? "null" : task.getState()));
-        colony.getRequestManager().updateRequestState(taskToken, RequestState.IN_PROGRESS);
-        helper.assertTrue(task.getState() == RequestState.IN_PROGRESS,
-          "Stone Smeltery worker task did not enter IN_PROGRESS before queueing: " + task.getState());
-        job.addRequest(taskToken);
+        helper.assertTrue(task != null && task.getRequest() instanceof PublicCrafting
+              && task.getState() == RequestState.IN_PROGRESS,
+          "Stone Smeltery child task was not assigned as PublicCrafting: "
+            + (task == null ? "null" : task.getRequest() + "/" + task.getState()));
+        final IRequestResolver<?> taskResolver = colony.getRequestManager().getResolverForRequest(taskToken);
+        helper.assertTrue(taskResolver instanceof PublicWorkerCraftingProductionResolver,
+          "Stone Smeltery worker task was not handled by the public worker resolver: " + taskResolver);
+        helper.assertTrue(job.getTaskQueue().contains(taskToken) && job.getAssignedTasks().isEmpty(),
+          "Stone Smeltery resolver did not move the task into the worker queue: queue=" + job.getTaskQueue()
+            + "; assigned=" + job.getAssignedTasks());
         smelteryAI.resetAI();
 
         final int cobblestoneBefore = countItem(worker, Items.COBBLESTONE);
@@ -3421,7 +3439,9 @@ public final class MineColoniesGameTests implements FabricGameTest
             smelteryAI.tick();
             final BlockEntity entity = level.getBlockEntity(furnacePos);
             final FurnaceBlockEntity furnace = entity instanceof FurnaceBlockEntity ? (FurnaceBlockEntity) entity : null;
-            if (task.getState() == RequestState.RESOLVED)
+            if (task.getState() == RequestState.RESOLVED
+                  || task.getState() == RequestState.COMPLETED
+                  || task.getState() == RequestState.RECEIVED)
             {
                 helper.assertTrue(furnace != null, "Stone Smeltery request resolved without a furnace entity");
                 helper.assertTrue(countItem(worker, Items.STONE) >= stoneBefore + 1,
@@ -3433,9 +3453,9 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.assertTrue(furnace.getItem(0).isEmpty() && furnace.getItem(2).isEmpty(),
                   "Stone Smeltery resolved its request while leaving furnace input/output behind: input="
                     + furnace.getItem(0) + "; output=" + furnace.getItem(2));
-                helper.assertTrue(job.getAssignedTasks().isEmpty(),
-                  "Stone Smeltery completed output with an unexpectedly assigned crafting task: "
-                    + job.getAssignedTasks());
+                helper.assertTrue(job.getTaskQueue().isEmpty() && job.getAssignedTasks().isEmpty(),
+                  "Stone Smeltery completed output with a retained crafting task: queue=" + job.getTaskQueue()
+                    + "; assigned=" + job.getAssignedTasks());
                 helper.succeed();
             }
             else if (ticks[0] >= 1300)
@@ -3448,6 +3468,125 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; input=" + countItem(worker, Items.COBBLESTONE)
                     + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
                     + "; output=" + countItem(worker, Items.STONE)
+                    + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
+            }
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = SMELTERY_TEST_BATCH, timeoutTicks = 1200)
+    public void smelteryWorkerUsesRegisteredFurnaceAndSmeltsRawOre(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeSmeltery = new BlockPos(10, 1, 2);
+        final BlockPos relativeFurnace = new BlockPos(12, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos smelteryPos = helper.absolutePos(relativeSmeltery);
+        final BlockPos furnacePos = helper.absolutePos(relativeFurnace);
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeSmeltery, ModBlocks.blockHutSmeltery);
+        helper.setBlock(relativeFurnace, Blocks.FURNACE);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Smeltery GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Smeltery fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Smeltery fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Smeltery fixture Town Hall was not registered");
+
+        final BlockEntity smelteryEntity = level.getBlockEntity(smelteryPos);
+        helper.assertTrue(smelteryEntity instanceof TileEntityColonyBuilding,
+          "Smeltery fixture did not create a building block entity");
+        final TileEntityColonyBuilding smelteryHut = (TileEntityColonyBuilding) smelteryEntity;
+        smelteryHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        smelteryHut.setBlueprintPath("craftsmanship/metallurgy/smeltery1.blueprint");
+        smelteryHut.setSchematicName("smeltery1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(smelteryHut, level);
+        helper.assertTrue(registered instanceof BuildingSmeltery,
+          "Smeltery fixture registered the wrong building implementation: " + registered);
+        final BuildingSmeltery smeltery = (BuildingSmeltery) registered;
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FurnaceUserModule furnaceModule = smeltery.getFirstModuleOccurance(FurnaceUserModule.class);
+        helper.assertTrue(furnaceModule != null, "Smeltery fixture did not register its furnace module");
+        smeltery.registerBlockPosition(Blocks.FURNACE.defaultBlockState(), furnacePos, level);
+        helper.assertTrue(furnaceModule.getFurnaces().contains(furnacePos),
+          "Smeltery fixture did not register the placed furnace");
+        helper.assertTrue(level.getBlockEntity(furnacePos) instanceof FurnaceBlockEntity,
+          "Smeltery fixture did not create a furnace block entity");
+
+        final ItemListModule fuelModule = smeltery.getModuleMatching(
+          ItemListModule.class, module -> module.getId().equals(com.minecolonies.api.util.constant.BuildingConstants.FUEL_LIST));
+        helper.assertTrue(fuelModule != null, "Smeltery fixture did not register its fuel list");
+        fuelModule.addItem(new ItemStorage(new ItemStack(Items.DRIED_KELP_BLOCK)));
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, smelteryPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Smeltery fixture could not create a live worker citizen");
+        final WorkerBuildingModule workerModule = smeltery.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.smelter.get());
+        helper.assertTrue(workerModule != null, "Smeltery worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Smeltery worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobSmelter,
+          "Smeltery assignment did not create the smelter job");
+
+        final AbstractEntityCitizen worker = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < worker.getInventoryCitizen().getSlots(); slot++)
+        {
+            worker.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        worker.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.RAW_IRON));
+        worker.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.DRIED_KELP_BLOCK));
+        worker.setPos(furnacePos.getX() + 1.5D, furnacePos.getY() + 1.0D, furnacePos.getZ() + 0.5D);
+
+        final JobSmelter job = citizen.getJob(JobSmelter.class);
+        final EntityAIWorkSmelter smelterAI = job.getWorkerAI();
+        helper.assertTrue(smelterAI != null, "Smeltery assignment did not create the worker AI");
+        smelterAI.resetAI();
+
+        final int oreBefore = countItem(worker, Items.RAW_IRON);
+        final int fuelBefore = countItem(worker, Items.DRIED_KELP_BLOCK);
+        final int ingotBefore = countItem(worker, Items.IRON_INGOT);
+        final int[] ticks = {0};
+        helper.onEachTick(() ->
+        {
+            ticks[0]++;
+            smelterAI.tick();
+            final BlockEntity entity = level.getBlockEntity(furnacePos);
+            final FurnaceBlockEntity furnace = entity instanceof FurnaceBlockEntity ? (FurnaceBlockEntity) entity : null;
+            if (furnace != null
+                  && countItem(worker, Items.IRON_INGOT) >= ingotBefore + 1
+                  && countItem(worker, Items.RAW_IRON) == oreBefore - 1
+                  && countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore
+                  && furnace.getItem(0).isEmpty()
+                  && furnace.getItem(2).isEmpty())
+            {
+                helper.succeed();
+            }
+            else if (ticks[0] >= 1100)
+            {
+                helper.assertTrue(false,
+                  "Smeltery did not complete its raw-ore furnace cycle: ai=" + smelterAI.getState()
+                    + "; ore=" + countItem(worker, Items.RAW_IRON)
+                    + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
+                    + "; ingot=" + countItem(worker, Items.IRON_INGOT)
                     + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
             }
         });
