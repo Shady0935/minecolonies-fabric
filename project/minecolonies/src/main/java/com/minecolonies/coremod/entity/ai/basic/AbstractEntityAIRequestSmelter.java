@@ -433,7 +433,7 @@ public abstract class AbstractEntityAIRequestSmelter<J extends AbstractJobCrafte
                     fullResult = countInResultSlot >= furnace.getItem(RESULT_SLOT).getMaxStackSize();
                 }
 
-                if (fullResult || (!com.minecolonies.fabric.compat.FabricVanillaCompat.isFurnaceLit(furnace) && countInResultSlot > 0 && isEmpty(furnace.getItem(SMELTABLE_SLOT))))
+                if (fullResult || (countInResultSlot > 0 && isEmpty(furnace.getItem(SMELTABLE_SLOT))))
                 {
                     return pos;
                 }

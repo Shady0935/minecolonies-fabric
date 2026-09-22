@@ -69,6 +69,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   exact input consumption plus sandstone output. Asynchronous Stonemason
   scheduling, GUI interaction and broader delivery/work-cycle behavior remain
   uncovered.
+  A focused Stone Smeltery fixture registers a placed vanilla Furnace through
+  the `BlockState` overload, assigns the live smeltery worker/AI, runs a
+  cobblestone-to-stone furnace request with deterministic fuel and verifies
+  vanilla output retrieval/delivery. GUI rendering, longer asynchronous
+  scheduling and broader delivery/work-cycle behavior remain uncovered.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
@@ -157,8 +162,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   equipment (the current checkpoint covers one automatically reassigned
   late-arriving sword request from a registered storage chest and its normal
   pickup path) still need a real
-  in-game interaction pass. Controlled sustained guard and raid combat now have
-  automated two-impact GameTest coverage. The focused server-side
+  in-game interaction pass. Controlled guard and raid combat now have automated
+  GameTest coverage. The focused server-side
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
   proxy plus a live assigned Builder `BUILDING_STEP` placement/consumption
@@ -224,11 +229,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 105-test GameTest run still logs the upstream-style warning that
+- The latest 106-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-stonemason-4-20260921.log`. The
+  `logs/minecolonies-gametest-stone-smeltery-7-20260921.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

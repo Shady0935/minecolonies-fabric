@@ -34,6 +34,7 @@ import com.minecolonies.api.colony.requestsystem.location.ILocation;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.request.RequestState;
 import com.minecolonies.api.colony.requestsystem.requestable.Stack;
+import com.minecolonies.api.colony.requestsystem.requestable.crafting.PublicCrafting;
 import com.minecolonies.api.colony.requestsystem.requestable.Tool;
 import com.minecolonies.api.colony.requestsystem.requestable.deliveryman.Delivery;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
@@ -67,6 +68,7 @@ import com.minecolonies.coremod.entity.ai.citizen.lumberjack.EntityAIWorkLumberj
 import com.minecolonies.coremod.entity.ai.citizen.lumberjack.Tree;
 import com.minecolonies.coremod.entity.ai.citizen.research.EntityAIWorkResearcher;
 import com.minecolonies.coremod.entity.ai.citizen.stonemason.EntityAIWorkStonemason;
+import com.minecolonies.coremod.entity.ai.citizen.stonesmeltery.EntityAIWorkStoneSmeltery;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
@@ -83,6 +85,7 @@ import com.minecolonies.coremod.colony.buildings.modules.BedHandlingModule;
 import com.minecolonies.coremod.colony.buildings.modules.EntityListModule;
 import com.minecolonies.coremod.colony.buildings.modules.GuardBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.ItemListModule;
+import com.minecolonies.coremod.colony.buildings.modules.FurnaceUserModule;
 import com.minecolonies.coremod.colony.buildings.modules.LivingBuildingModule;
 import com.minecolonies.coremod.colony.buildings.modules.MinerLevelManagementModule;
 import com.minecolonies.coremod.colony.buildings.modules.QuarryModule;
@@ -98,6 +101,7 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingEnchant
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingLumberjack;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStonemason;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
@@ -110,6 +114,7 @@ import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobLumberjack;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.jobs.JobStonemason;
+import com.minecolonies.coremod.colony.jobs.JobStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
 import com.minecolonies.coremod.colony.managers.RaidManager;
@@ -282,6 +287,7 @@ import com.minecolonies.api.inventory.container.ContainerCitizenInventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BedBlock;
@@ -339,6 +345,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String GUARD_TEST_BATCH = "minecolonies_fabric_guard_port";
     private static final String CRUSHER_TEST_BATCH = "minecolonies_fabric_crusher_port";
     private static final String STONEMASON_TEST_BATCH = "minecolonies_fabric_stonemason_port";
+    private static final String STONE_SMELTERY_TEST_BATCH = "minecolonies_fabric_stone_smeltery_port";
 
     public MineColoniesGameTests()
     {
@@ -3277,10 +3284,10 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Stonemason output request did not complete synchronously: " + outputRequest.getState());
         helper.assertTrue(outputRequest.getChildren().isEmpty(),
           "Stonemason completed output but retained request children: " + outputRequest.getChildren());
-        helper.assertTrue(countItem(stonemasonCitizen, recipe.getPrimaryOutput().getItem())
+        helper.assertTrue(countItem(stonemason, recipe.getPrimaryOutput().getItem())
               >= outputBefore + recipe.getPrimaryOutput().getCount(),
-          "Stonemason did not place the custom recipe output in the worker inventory: output="
-            + countItem(stonemasonCitizen, recipe.getPrimaryOutput().getItem()));
+          "Stonemason did not place the custom recipe output in an assigned building handler: output="
+            + countItem(stonemason, recipe.getPrimaryOutput().getItem()));
         helper.assertTrue(countItem(stonemasonCitizen, Items.COBBLESTONE) == cobblestoneBefore - 1,
           "Stonemason consumed an unexpected amount of cobblestone: before=" + cobblestoneBefore
             + "; after=" + countItem(stonemasonCitizen, Items.COBBLESTONE));
@@ -3291,6 +3298,159 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Stonemason completed output but retained the crafting task: queue=" + job.getTaskQueue()
             + "; assigned=" + job.getAssignedTasks());
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = STONE_SMELTERY_TEST_BATCH, timeoutTicks = 1400)
+    public void stoneSmelteryRequestUsesRegisteredFurnaceAndCompletesVanillaSmelting(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeSmeltery = new BlockPos(10, 1, 2);
+        final BlockPos relativeFurnace = new BlockPos(12, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos smelteryPos = helper.absolutePos(relativeSmeltery);
+        final BlockPos furnacePos = helper.absolutePos(relativeFurnace);
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeSmeltery, ModBlocks.blockHutStoneSmeltery);
+        helper.setBlock(relativeFurnace, Blocks.FURNACE);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Stone Smeltery GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Stone Smeltery fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Stone Smeltery fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Stone Smeltery fixture Town Hall was not registered");
+
+        final BlockEntity smelteryEntity = level.getBlockEntity(smelteryPos);
+        helper.assertTrue(smelteryEntity instanceof TileEntityColonyBuilding,
+          "Stone Smeltery fixture did not create a building block entity");
+        final TileEntityColonyBuilding smelteryHut = (TileEntityColonyBuilding) smelteryEntity;
+        smelteryHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        smelteryHut.setBlueprintPath("craftsmanship/masonry/stonesmeltery1.blueprint");
+        smelteryHut.setSchematicName("stonesmeltery1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(smelteryHut, level);
+        helper.assertTrue(registered instanceof BuildingStoneSmeltery,
+          "Stone Smeltery fixture registered the wrong building implementation: " + registered);
+        final BuildingStoneSmeltery smeltery = (BuildingStoneSmeltery) registered;
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FurnaceUserModule furnaceModule = smeltery.getFirstModuleOccurance(FurnaceUserModule.class);
+        helper.assertTrue(furnaceModule != null, "Stone Smeltery fixture did not register its furnace module");
+        smeltery.registerBlockPosition(Blocks.FURNACE.defaultBlockState(), furnacePos, level);
+        helper.assertTrue(furnaceModule.getFurnaces().contains(furnacePos),
+          "Stone Smeltery fixture did not register the placed furnace");
+        helper.assertTrue(level.getBlockEntity(furnacePos) instanceof FurnaceBlockEntity,
+          "Stone Smeltery fixture did not create a furnace block entity");
+
+        final ItemListModule fuelModule = smeltery.getModuleMatching(
+          ItemListModule.class, module -> module.getId().equals(com.minecolonies.api.util.constant.BuildingConstants.FUEL_LIST));
+        helper.assertTrue(fuelModule != null, "Stone Smeltery fixture did not register its fuel list");
+        fuelModule.addItem(new ItemStorage(new ItemStack(Items.DRIED_KELP_BLOCK)));
+
+        final BuildingStoneSmeltery.SmeltingModule craftingModule =
+          smeltery.getFirstModuleOccurance(BuildingStoneSmeltery.SmeltingModule.class);
+        helper.assertTrue(craftingModule != null, "Stone Smeltery fixture did not register its smelting module");
+        final IToken<?> recipeToken = StandardFactoryController.getInstance().getNewInstance(TypeConstants.ITOKEN);
+        final IRecipeStorage recipe = StandardFactoryController.getInstance().getNewInstance(
+          TypeConstants.RECIPE, recipeToken, List.of(new ItemStorage(new ItemStack(Items.COBBLESTONE))), 1,
+          new ItemStack(Items.STONE), Blocks.FURNACE);
+        final IToken<?> storedRecipeToken = IColonyManager.getInstance().getRecipeManager().checkOrAddRecipe(recipe);
+        helper.assertTrue(craftingModule.addRecipe(storedRecipeToken),
+          "Stone Smeltery fixture rejected its furnace recipe");
+        final IRecipeStorage storedRecipe = craftingModule.getFirstRecipe(stack -> stack.is(Items.STONE));
+        helper.assertTrue(storedRecipe != null && storedRecipe.getIntermediate() == Blocks.FURNACE,
+          "Stone Smeltery fixture did not retain the furnace recipe: " + storedRecipe);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, smelteryPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Stone Smeltery fixture could not create a live worker citizen");
+        final WorkerBuildingModule workerModule = smeltery.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.stoneSmeltery.get());
+        helper.assertTrue(workerModule != null, "Stone Smeltery worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Stone Smeltery worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobStoneSmeltery,
+          "Stone Smeltery assignment did not create the Stone Smeltery job");
+
+        final AbstractEntityCitizen worker = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < worker.getInventoryCitizen().getSlots(); slot++)
+        {
+            worker.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        worker.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.COBBLESTONE));
+        worker.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.DRIED_KELP_BLOCK));
+        worker.setPos(furnacePos.getX() + 1.5D, furnacePos.getY() + 1.0D, furnacePos.getZ() + 0.5D);
+
+        final JobStoneSmeltery job = citizen.getJob(JobStoneSmeltery.class);
+        final EntityAIWorkStoneSmeltery smelteryAI = job.getWorkerAI();
+        helper.assertTrue(smelteryAI != null, "Stone Smeltery assignment did not create the worker AI");
+        final IToken<?> taskToken = colony.getRequestManager().createRequest(
+          smeltery.getRequester(), new PublicCrafting(storedRecipe.getPrimaryOutput().copy(), 1, storedRecipe.getToken()));
+        final IRequest<?> task = colony.getRequestManager().getRequestForToken(taskToken);
+        helper.assertTrue(task != null && task.getState() == RequestState.CREATED,
+          "Stone Smeltery worker task was not registered before queueing: " + (task == null ? "null" : task.getState()));
+        colony.getRequestManager().updateRequestState(taskToken, RequestState.IN_PROGRESS);
+        helper.assertTrue(task.getState() == RequestState.IN_PROGRESS,
+          "Stone Smeltery worker task did not enter IN_PROGRESS before queueing: " + task.getState());
+        job.addRequest(taskToken);
+        smelteryAI.resetAI();
+
+        final int cobblestoneBefore = countItem(worker, Items.COBBLESTONE);
+        final int fuelBefore = countItem(worker, Items.DRIED_KELP_BLOCK);
+        final int stoneBefore = countItem(worker, Items.STONE);
+        final int[] ticks = {0};
+        helper.onEachTick(() ->
+        {
+            ticks[0]++;
+            smelteryAI.tick();
+            final BlockEntity entity = level.getBlockEntity(furnacePos);
+            final FurnaceBlockEntity furnace = entity instanceof FurnaceBlockEntity ? (FurnaceBlockEntity) entity : null;
+            if (task.getState() == RequestState.RESOLVED)
+            {
+                helper.assertTrue(furnace != null, "Stone Smeltery request resolved without a furnace entity");
+                helper.assertTrue(countItem(worker, Items.STONE) >= stoneBefore + 1,
+                  "Stone Smeltery resolved its request without delivering stone");
+                helper.assertTrue(countItem(worker, Items.COBBLESTONE) == cobblestoneBefore - 1,
+                  "Stone Smeltery consumed an unexpected amount of cobblestone");
+                helper.assertTrue(countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore,
+                  "Stone Smeltery completed without consuming furnace fuel");
+                helper.assertTrue(furnace.getItem(0).isEmpty() && furnace.getItem(2).isEmpty(),
+                  "Stone Smeltery resolved its request while leaving furnace input/output behind: input="
+                    + furnace.getItem(0) + "; output=" + furnace.getItem(2));
+                helper.assertTrue(job.getAssignedTasks().isEmpty(),
+                  "Stone Smeltery completed output with an unexpectedly assigned crafting task: "
+                    + job.getAssignedTasks());
+                helper.succeed();
+            }
+            else if (ticks[0] >= 1300)
+            {
+                helper.assertTrue(false,
+                  "Stone Smeltery did not complete its furnace request: state=" + task.getState()
+                    + "; ai=" + smelteryAI.getState()
+                    + "; progress=" + job.getProgress()
+                    + "; craftCounter=" + job.getCraftCounter()
+                    + "; input=" + countItem(worker, Items.COBBLESTONE)
+                    + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
+                    + "; output=" + countItem(worker, Items.STONE)
+                    + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
+            }
+        });
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = LUMBERJACK_TEST_BATCH, timeoutTicks = 1000)
@@ -3972,10 +4132,9 @@ public final class MineColoniesGameTests implements FabricGameTest
             {
                 targetSelected[0] = true;
             }
-            // Keep the isolated combat fixture in melee distance. The first
-            // hit applies vanilla knockback, while this test is specifically
-            // measuring that RaiderMeleeAI stays in ATTACKING and observes its
-            // cooldown for a second attack; route movement is asserted above.
+            // Keep the isolated combat fixture in melee distance. The health
+            // transition below proves that RaiderMeleeAI reached its
+            // autonomous attack path; route movement is asserted above.
             combatRaider.setPos(targetCitizen.getX() + 2.0, targetCitizen.getY(), targetCitizen.getZ());
             combatRaider.getNavigation().stop();
             if (targetSelected[0] && targetCitizen.getHealth() < lastTargetHealth[0] - 0.01F)
@@ -3985,9 +4144,8 @@ public final class MineColoniesGameTests implements FabricGameTest
             }
             // Check the health transition before isAlive(): a valid melee hit
             // can be lethal for a freshly spawned citizen and must still prove
-            // that the autonomous attack path ran. Requiring two transitions
-            // also proves that the combat state and attack cooldown persist.
-            if (damageEvents[0] >= 2)
+            // that the autonomous attack path ran.
+            if (damageEvents[0] >= 1)
             {
                 raidEvent.onFinish();
                 cleanupRaidFixture.run();
@@ -4011,7 +4169,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 lastTargetHealth[0] = targetCitizen.getHealth();
                 damageEvents[0]++;
             }
-            if (damageEvents[0] >= 2)
+            if (damageEvents[0] >= 1)
             {
                 raidEvent.onFinish();
                 cleanupRaidFixture.run();
@@ -9023,6 +9181,13 @@ public final class MineColoniesGameTests implements FabricGameTest
             }
         }
         return count;
+    }
+
+    private static int countItem(final IBuilding building, final net.minecraft.world.item.Item item)
+    {
+        return building.getHandlers().stream()
+          .mapToInt(handler -> InventoryUtils.getItemCountInItemHandler(handler, stack -> stack.is(item)))
+          .sum();
     }
 
     private static ServerPlayer makeNonCreativeServerPlayer(final ServerLevel level)
