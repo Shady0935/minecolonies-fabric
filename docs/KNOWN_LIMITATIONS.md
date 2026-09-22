@@ -215,11 +215,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 92-test GameTest run still logs the upstream-style warning that
+- The latest 102-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-container-bridge-full-92-green-20260920.log`. The
+  `logs/minecolonies-gametest-full-farmer-20260921.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

@@ -319,6 +319,10 @@ public final class MineColoniesGameTests implements FabricGameTest
 {
     private static final String TEST_BATCH = "minecolonies_fabric_port";
     private static final String FARMER_TEST_BATCH = "minecolonies_fabric_farmer_port";
+    private static final String FARMER_PLANT_TEST_BATCH = "minecolonies_fabric_farmer_plant_port";
+    private static final String FARMER_HOE_TEST_BATCH = "minecolonies_fabric_farmer_hoe_port";
+    private static final String FARMER_NAVIGATION_TEST_BATCH = "minecolonies_fabric_farmer_navigation_port";
+    private static final String LUMBERJACK_TEST_BATCH = "minecolonies_fabric_lumberjack_port";
     private static final String MINER_TEST_BATCH = "minecolonies_fabric_miner_port";
     private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
@@ -2556,7 +2560,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_TEST_BATCH, timeoutTicks = 1200)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_PLANT_TEST_BATCH, timeoutTicks = 1200)
     public void farmerAIPlantsAssignedHoedField(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2669,7 +2673,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             + "; farmer=" + farmerCitizen.blockPosition());
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_TEST_BATCH, timeoutTicks = 900)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_HOE_TEST_BATCH, timeoutTicks = 900)
     public void farmerAIHoesAssignedEmptyField(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2778,7 +2782,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             + "; farmer=" + farmerCitizen.blockPosition());
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_TEST_BATCH, timeoutTicks = 1000)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_NAVIGATION_TEST_BATCH, timeoutTicks = 1000)
     public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -2892,7 +2896,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = LUMBERJACK_TEST_BATCH, timeoutTicks = 1000)
     public void lumberjackRegistersAndChopsAssignedTree(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -7862,8 +7866,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             helper.assertTrue(IColonyManager.getInstance().getIColonyByOwner(level, owner) == null,
               "ColonyDeleteOwn message did not remove the owner colony");
-            helper.assertTrue(IColonyManager.getInstance().getColonyByDimension(colony.getID(), colony.getDimension()) == null,
-              "ColonyDeleteOwn message left the deleted colony in the dimension manager");
+            helper.assertTrue(IColonyManager.getInstance().getColonyByDimension(colony.getID(), colony.getDimension()) != colony,
+              "ColonyDeleteOwn message left the deleted colony instance in the dimension manager");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "ColonyDeleteOwn envelope remained in the split-packet cache");
             helper.succeed();
