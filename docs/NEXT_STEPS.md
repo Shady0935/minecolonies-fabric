@@ -26,7 +26,7 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 107
+real visitor entity. The latest clean Fabric GameTest run passes all 108
 required tests, covers construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
@@ -99,9 +99,9 @@ equipment provisioning and client rendering are still open. A fresh normal
 dedicated-server restart probe also passes on the same saved world; evidence is
 in `logs/minecolonies-dedicated-normal-restart-20260922.log`. The Crusher's
 custom-recipe worker cycle, the Stonemason building-request/custom-recipe
-  cycle, the Stone Smeltery furnace worker cycle and the Smeltery raw-ore
-  furnace worker cycle are now covered by the latest
-checkpoint. The Stonemason fixture also
+  cycle, the Stone Smeltery furnace worker cycle, the Smeltery raw-ore
+  furnace worker cycle and the Cook furnace worker cycle are now covered by
+  the latest checkpoint. The Stonemason fixture also
 confirms the private resolver's synchronous completion when its worker already
 holds the cobblestone and sand inputs; asynchronous scheduling and the GUI
 remain open.

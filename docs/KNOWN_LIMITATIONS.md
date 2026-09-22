@@ -80,6 +80,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   raw-iron input, deterministic fuel consumption and iron-ingot retrieval.
   GUI rendering, longer scheduling and broader delivery behavior remain
   uncovered.
+  A companion Cook fixture registers a vanilla Furnace, assigns
+  `JobCook`/`EntityAIWorkCook`, seeds a beef request with deterministic
+  dried-kelp-block fuel and verifies raw-food/fuel consumption plus cooked-beef
+  retrieval. GUI rendering, broader recipe selection and longer scheduling
+  remain uncovered.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
@@ -237,11 +242,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 107-test GameTest run still logs the upstream-style warning that
+- The latest 108-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-smeltery-20260922.log`. The
+  `logs/minecolonies-gametest-cook-20260922.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues
