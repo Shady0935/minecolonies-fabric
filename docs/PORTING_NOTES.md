@@ -1035,6 +1035,17 @@ focused follow-up query after the restart found a persisted `EntityCitizen` and
 cleanly; the transcript is in
 `logs/minecolonies-runserver-citizen-entity-restart.log`.
 
+A fresh normal Fabric dedicated-server probe on 2026-09-22 used a separate
+offline development port and a fixed world name. It launched the same
+`minecolonies-dedicated-normal-20260922` world twice: the first launch reached
+`Done`, accepted `save-all flush`, saved the overworld, Nether and End, and
+stopped cleanly; the second launch loaded that same world, reached `Done`,
+flushed all dimensions again and stopped with `BUILD SUCCESSFUL`. The durable
+transcripts are `logs/minecolonies-dedicated-normal-first-20260922.log.gz` and
+`logs/minecolonies-dedicated-normal-restart-20260922.log`.
+The probe intentionally leaves authenticated online-mode validation for a
+later real deployment profile.
+
 The fishing bobber has one additional Fabric-specific spawn-state bridge.
 Forge's `IEntityAdditionalSpawnData` is not consumed automatically by Fabric's
 vanilla entity-spawn packet path, so `NewBobberEntity` mirrors the angler's

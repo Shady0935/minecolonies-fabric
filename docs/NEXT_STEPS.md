@@ -95,7 +95,9 @@ registered-raider `AttackMoveAI` short-range target/damage path, the
 `JobKnight` response against a registered MineColonies barbarian raider and
 controlled guard/raid combat fixtures. Full entity work cycles,
 sustained guard navigation/ambient target search, broader request-driven
-equipment provisioning and client rendering are still open; the Crusher's
+equipment provisioning and client rendering are still open. A fresh normal
+dedicated-server restart probe also passes on the same saved world; evidence is
+in `logs/minecolonies-dedicated-normal-restart-20260922.log`. The Crusher's
 custom-recipe worker cycle, the Stonemason building-request/custom-recipe
   cycle, the Stone Smeltery furnace worker cycle and the Smeltery raw-ore
   furnace worker cycle are now covered by the latest

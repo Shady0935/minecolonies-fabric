@@ -98,7 +98,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   rendering after restart, or DataFixer migration for old entity data. A
   dedicated restart probe does
   confirm that saved `EntityCitizen` and `VisitorCitizen` instances reappear
-  with colony/citizen NBT.
+  with colony/citizen NBT. A separate normal dedicated-server probe also
+  launches the same saved world twice and confirms clean three-dimension
+  saves; it does not replace the pending authenticated gameplay pass.
 - The server-side research manager and University building now have an
   automated selection/progression fixture: a non-creative player pays the
   datapack cost, a real University receives a live `JobResearch` citizen, its

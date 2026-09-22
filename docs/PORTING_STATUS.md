@@ -46,6 +46,11 @@ completed.
   `mods.toml` or access-transformer metadata.
 - [x] Dedicated server startup reaches `Done`
 - [x] Dedicated server `save-all`/`stop` and same-world restart verified
+- [x] Fresh normal dedicated-server persistence probe launched the same
+  `minecolonies-dedicated-normal-20260922` world twice, reached `Done` on both
+  launches, flushed all three dimensions and stopped cleanly; evidence is in
+  `logs/minecolonies-dedicated-normal-first-20260922.log.gz` and
+  `logs/minecolonies-dedicated-normal-restart-20260922.log`
 - [x] Post-restart entity persistence probe found a saved `EntityCitizen` and
   `VisitorCitizen` with MineColonies identity/colony NBT; evidence is in
   `logs/minecolonies-runserver-citizen-entity-restart.log`
