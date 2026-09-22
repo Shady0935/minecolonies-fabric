@@ -291,6 +291,17 @@ seeds bread dough and deterministic dried-kelp-block fuel, then verifies
 raw-input/fuel consumption, vanilla furnace output and bread retrieval. The
 GUI, broader recipe selection and longer asynchronous scheduling remain open.
 
+The Cook Assistant companion fixture raises a Colonial Cook to level three,
+registers a placed vanilla Furnace, assigns a live `JobCookAssistant` and
+confirms that `EntityAIWorkCookAssistant` receives the public child request.
+Because vanilla furnace recipes are generated at runtime rather than stored in
+the global recipe manager, the port now resolves the owning crafting module by
+the runtime recipe token plus requested output in the building, production
+resolver and crafting AI paths. The fixture consumes beef and deterministic
+dried-kelp-block fuel, observes the Cook `isCooking` guard and verifies cooked
+beef delivery through the request. GUI rendering, broader recipe selection and
+longer asynchronous scheduling remain open.
+
 The citizen-cycle fixture now lets the registered `EntityCitizen` tick through
 its normal server entity controller: it reaches `ACTIVE_SERVER`, constructs
 the high-level `CitizenAI`, selects `WORKING` for an assigned `JobBuilder` and
@@ -325,6 +336,13 @@ construction-site navigation evidence remains in
 worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`.
 Client rendering, full CitizenAI scheduling and longer multi-step work cycles
 remain manual or pending.
+
+The clean 110-case validation in
+`logs/minecolonies-gametest-cook-assistant-final-20260922.log` and
+`logs/minecolonies-gametest-cook-assistant-final-20260922.xml` includes the
+passing Cook Assistant case. It also exposes one unrelated timing-sensitive
+RaidManager combat failure under the full-suite load; the prior 109-case
+zero-failure run remains the stable full-suite baseline.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric

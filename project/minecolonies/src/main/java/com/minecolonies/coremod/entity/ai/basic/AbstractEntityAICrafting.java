@@ -215,7 +215,8 @@ public abstract class AbstractEntityAICrafting<J extends AbstractJobCrafter<?, J
             return START_WORKING;
         }
 
-        final ICraftingBuildingModule module = building.getCraftingModuleForRecipe(currentTask.getRequest().getRecipeID());
+        final ICraftingBuildingModule module = building.getCraftingModuleForRecipe(
+          currentTask.getRequest().getRecipeID(), currentTask.getRequest().getStack());
         if (module == null)
         {
             job.finishRequest(false);
@@ -449,7 +450,8 @@ public abstract class AbstractEntityAICrafting<J extends AbstractJobCrafter<?, J
                 if (job.getCraftCounter() >= job.getMaxCraftingCount())
                 {
                     incrementActionsDone(getActionRewardForCraftingSuccess());
-                    final ICraftingBuildingModule module = building.getCraftingModuleForRecipe(currentRecipeStorage.getToken());
+                    final ICraftingBuildingModule module = building.getCraftingModuleForRecipe(
+                      currentRecipeStorage.getToken(), currentRecipeStorage.getPrimaryOutput());
                     if (module != null)
                     {
                         module.improveRecipe(currentRecipeStorage, job.getCraftCounter(), worker.getCitizenData());

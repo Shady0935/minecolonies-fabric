@@ -100,12 +100,13 @@ dedicated-server restart probe also passes on the same saved world; evidence is
 in `logs/minecolonies-dedicated-normal-restart-20260922.log`. The Crusher's
 custom-recipe worker cycle, the Stonemason building-request/custom-recipe
   cycle, the Stone Smeltery furnace worker cycle, the Smeltery raw-ore
-  furnace worker cycle, the Cook furnace worker cycle and the Baker furnace
-  worker cycle are now covered by
+  furnace worker cycle, the Cook furnace worker cycle, the Baker furnace
+  worker cycle and the level-three Cook Assistant runtime-furnace worker cycle
+  are now covered by
   the latest checkpoint. The Stonemason fixture also
-confirms the private resolver's synchronous completion when its worker already
-holds the cobblestone and sand inputs; asynchronous scheduling and the GUI
-remain open.
+  confirms the private resolver's synchronous completion when its worker already
+  holds the cobblestone and sand inputs; asynchronous scheduling and the GUI
+  remain open.
 The following work remains, in order:
 
 1. Run a real gameplay pass with an authenticated client or a repeatable

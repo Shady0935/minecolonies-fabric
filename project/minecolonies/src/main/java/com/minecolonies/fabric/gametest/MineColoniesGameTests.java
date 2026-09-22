@@ -62,6 +62,7 @@ import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.crusher.EntityAIWorkCrusher;
 import com.minecolonies.coremod.entity.ai.citizen.smelter.EntityAIWorkSmelter;
 import com.minecolonies.coremod.entity.ai.citizen.cook.EntityAIWorkCook;
+import com.minecolonies.coremod.entity.ai.citizen.cook.EntityAIWorkCookAssistant;
 import com.minecolonies.coremod.entity.ai.citizen.baker.EntityAIWorkBaker;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
@@ -122,6 +123,7 @@ import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.jobs.JobStonemason;
 import com.minecolonies.coremod.colony.jobs.JobSmelter;
 import com.minecolonies.coremod.colony.jobs.JobCook;
+import com.minecolonies.coremod.colony.jobs.JobCookAssistant;
 import com.minecolonies.coremod.colony.jobs.JobBaker;
 import com.minecolonies.coremod.colony.jobs.JobStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
@@ -359,6 +361,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String SMELTERY_TEST_BATCH = "minecolonies_fabric_smeltery_port";
     private static final String COOK_TEST_BATCH = "minecolonies_fabric_cook_port";
     private static final String BAKER_TEST_BATCH = "minecolonies_fabric_baker_port";
+    private static final String COOK_ASSISTANT_TEST_BATCH = "minecolonies_fabric_cook_assistant_port";
 
     public MineColoniesGameTests()
     {
@@ -3757,6 +3760,168 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; dough=" + countItem(worker, ModItems.breadDough)
                     + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
                     + "; bread=" + countItem(worker, Items.BREAD)
+                    + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
+            }
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = COOK_ASSISTANT_TEST_BATCH, timeoutTicks = 1400)
+    public void cookAssistantUsesRegisteredFurnaceAndCooksFood(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeCook = new BlockPos(10, 1, 2);
+        final BlockPos relativeFurnace = new BlockPos(12, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos cookPos = helper.absolutePos(relativeCook);
+        final BlockPos furnacePos = helper.absolutePos(relativeFurnace);
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeCook, ModBlocks.blockHutCook);
+        helper.setBlock(relativeFurnace, Blocks.FURNACE);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Cook Assistant GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Cook Assistant fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Cook Assistant fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Cook Assistant fixture Town Hall was not registered");
+
+        final BlockEntity cookEntity = level.getBlockEntity(cookPos);
+        helper.assertTrue(cookEntity instanceof TileEntityColonyBuilding,
+          "Cook Assistant fixture did not create a building block entity");
+        final TileEntityColonyBuilding cookHut = (TileEntityColonyBuilding) cookEntity;
+        cookHut.setStructurePack(StructurePacks.getStructurePack(Constants.STORAGE_STYLE));
+        cookHut.setBlueprintPath("fundamentals/cook1.blueprint");
+        cookHut.setSchematicName("cook1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(cookHut, level);
+        helper.assertTrue(registered instanceof BuildingCook,
+          "Cook Assistant fixture registered the wrong building implementation: " + registered);
+        final BuildingCook cook = (BuildingCook) registered;
+        cook.setBuildingLevel(3);
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FurnaceUserModule furnaceModule = cook.getFirstModuleOccurance(FurnaceUserModule.class);
+        helper.assertTrue(furnaceModule != null, "Cook Assistant fixture did not register its furnace module");
+        cook.registerBlockPosition(Blocks.FURNACE.defaultBlockState(), furnacePos, level);
+        helper.assertTrue(furnaceModule.getFurnaces().contains(furnacePos),
+          "Cook Assistant fixture did not register the placed furnace");
+        helper.assertTrue(level.getBlockEntity(furnacePos) instanceof FurnaceBlockEntity,
+          "Cook Assistant fixture did not create a furnace block entity");
+
+        final ItemListModule fuelModule = cook.getModuleMatching(
+          ItemListModule.class, module -> module.getId().equals(com.minecolonies.api.util.constant.BuildingConstants.FUEL_LIST));
+        helper.assertTrue(fuelModule != null, "Cook Assistant fixture did not register its fuel list");
+        fuelModule.addItem(new ItemStorage(new ItemStack(Items.DRIED_KELP_BLOCK)));
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, cookPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Cook Assistant fixture could not create a live worker citizen");
+        final WorkerBuildingModule workerModule = cook.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.cookassistant.get());
+        helper.assertTrue(workerModule != null, "Cook Assistant worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Cook Assistant worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobCookAssistant,
+          "Cook Assistant assignment did not create the assistant job");
+
+        final AbstractEntityCitizen worker = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < worker.getInventoryCitizen().getSlots(); slot++)
+        {
+            worker.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        worker.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.BEEF));
+        worker.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.DRIED_KELP_BLOCK));
+        worker.setPos(furnacePos.getX() + 1.5D, furnacePos.getY() + 1.0D, furnacePos.getZ() + 0.5D);
+
+        final BuildingCook.SmeltingModule smeltingModule =
+          cook.getFirstModuleOccurance(BuildingCook.SmeltingModule.class);
+        helper.assertTrue(smeltingModule != null, "Cook Assistant fixture did not register its smelting module");
+        final IRecipeStorage storedRecipe = smeltingModule.getFirstRecipe(stack -> stack.is(Items.COOKED_BEEF));
+        helper.assertTrue(storedRecipe != null && storedRecipe.getIntermediate() == Blocks.FURNACE,
+          "Cook Assistant fixture did not resolve the beef furnace recipe: " + storedRecipe);
+
+        final JobCookAssistant job = citizen.getJob(JobCookAssistant.class);
+        final EntityAIWorkCookAssistant assistantAI = job.getWorkerAI();
+        helper.assertTrue(assistantAI != null, "Cook Assistant assignment did not create the worker AI");
+        final IToken<?> parentToken = colony.getRequestManager().createRequest(
+          cook.getRequester(), new Stack(storedRecipe.getPrimaryOutput().copy()));
+        final IRequest<?> parentTask = colony.getRequestManager().getRequestForToken(parentToken);
+        helper.assertTrue(parentTask != null && parentTask.getState() == RequestState.CREATED,
+          "Cook Assistant parent request was not registered before assignment: "
+            + (parentTask == null ? "null" : parentTask.getState()));
+        colony.getRequestManager().assignRequest(parentToken);
+        helper.assertTrue(parentTask.getState() == RequestState.IN_PROGRESS && parentTask.getChildren().size() == 1,
+          "Cook Assistant public resolver did not create one child crafting task: state=" + parentTask.getState()
+            + "; children=" + parentTask.getChildren());
+        final IToken<?> taskToken = parentTask.getChildren().iterator().next();
+        final IRequest<?> task = colony.getRequestManager().getRequestForToken(taskToken);
+        helper.assertTrue(task != null && task.getRequest() instanceof PublicCrafting
+              && task.getState() == RequestState.IN_PROGRESS,
+          "Cook Assistant child task was not assigned as PublicCrafting: "
+            + (task == null ? "null" : task.getRequest() + "/" + task.getState()));
+        final IRequestResolver<?> taskResolver = colony.getRequestManager().getResolverForRequest(taskToken);
+        helper.assertTrue(taskResolver instanceof PublicWorkerCraftingProductionResolver,
+          "Cook Assistant worker task was not handled by the public worker resolver: " + taskResolver);
+        helper.assertTrue(job.getTaskQueue().contains(taskToken) && job.getAssignedTasks().isEmpty(),
+          "Cook Assistant resolver did not move the task into the worker queue: queue=" + job.getTaskQueue()
+            + "; assigned=" + job.getAssignedTasks());
+        assistantAI.resetAI();
+
+        final int rawFoodBefore = countItem(worker, Items.BEEF);
+        final int fuelBefore = countItem(worker, Items.DRIED_KELP_BLOCK);
+        final boolean[] sawCooking = {false};
+        final int[] ticks = {0};
+        helper.onEachTick(() ->
+        {
+            ticks[0]++;
+            assistantAI.tick();
+            sawCooking[0] |= cook.getIsCooking();
+            final BlockEntity entity = level.getBlockEntity(furnacePos);
+            final FurnaceBlockEntity furnace = entity instanceof FurnaceBlockEntity ? (FurnaceBlockEntity) entity : null;
+            if ((task.getState() == RequestState.RESOLVED
+                   || task.getState() == RequestState.COMPLETED
+                   || task.getState() == RequestState.RECEIVED)
+                  && furnace != null
+                  && task.getDeliveries().stream().anyMatch(stack -> stack.is(Items.COOKED_BEEF))
+                  && countItem(worker, Items.BEEF) == rawFoodBefore - 1
+                  && countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore
+                  && furnace.getItem(0).isEmpty()
+                  && furnace.getItem(2).isEmpty()
+                  && job.getTaskQueue().isEmpty()
+                  && job.getAssignedTasks().isEmpty())
+            {
+                helper.assertTrue(sawCooking[0], "Cook Assistant never entered the isCooking guard");
+                helper.succeed();
+            }
+            else if (ticks[0] >= 1300)
+            {
+                helper.assertTrue(false,
+                  "Cook Assistant did not complete its food furnace request: state=" + task.getState()
+                    + "; ai=" + assistantAI.getState()
+                    + "; progress=" + job.getProgress()
+                    + "; craftCounter=" + job.getCraftCounter()
+                    + "; isCooking=" + cook.getIsCooking()
+                    + "; sawCooking=" + sawCooking[0]
+                    + "; rawFood=" + countItem(worker, Items.BEEF)
+                    + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
+                    + "; cookedFood=" + countItem(worker, Items.COOKED_BEEF)
+                    + "; deliveries=" + task.getDeliveries()
                     + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
             }
         });

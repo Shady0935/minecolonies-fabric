@@ -121,7 +121,7 @@ public abstract class AbstractCraftingProductionResolver<C extends AbstractCraft
       final int minCount,
       final IToken<?> recipeId)
     {
-        final ICraftingBuildingModule module = building.getCraftingModuleForRecipe(recipeId);
+        final ICraftingBuildingModule module = building.getCraftingModuleForRecipe(recipeId, stack);
         if (module == null)
         {
             return null;
@@ -240,7 +240,8 @@ public abstract class AbstractCraftingProductionResolver<C extends AbstractCraft
     public void resolveForBuilding(@NotNull final IRequestManager manager, @NotNull final IRequest<? extends C> request, @NotNull final AbstractBuilding building)
     {
         final AbstractBuilding buildingWorker = (AbstractBuilding) building;
-        final ICraftingBuildingModule module = buildingWorker.getCraftingModuleForRecipe(request.getId());
+        final ICraftingBuildingModule module = buildingWorker.getCraftingModuleForRecipe(
+          request.getRequest().getRecipeID(), request.getRequest().getStack());
         if (module == null)
         {
             manager.updateRequestState(request.getId(), RequestState.FAILED);

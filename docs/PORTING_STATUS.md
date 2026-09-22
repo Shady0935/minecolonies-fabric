@@ -365,6 +365,16 @@ completed.
   broader recipe selection and asynchronous scheduling remain open. Evidence:
   `logs/minecolonies-gametest-baker-20260922.xml` and
   `logs/minecolonies-gametest-baker-20260922.log`
+- [x] Server-side Cook Assistant registration resolves a level-three Colonial
+  Cook with a placed vanilla Furnace, assigns `JobCookAssistant` with
+  `EntityAIWorkCookAssistant`, and follows the public parent/child request path
+  through `PublicWorkerCraftingProductionResolver`. Runtime vanilla-furnace
+  recipes now resolve back to the owning crafting module by token and output,
+  so the assistant consumes beef/fuel, enters the Cook `isCooking` path and
+  delivers cooked beef. GUI rendering, broader recipe selection and
+  asynchronous scheduling remain open. Evidence:
+  `logs/minecolonies-gametest-cook-assistant-final-20260922.xml` and
+  `logs/minecolonies-gametest-cook-assistant-final-20260922.log`
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets normal
   `EntityAIStructureMiner` startup ticks select and persist a `WorkOrderMiner`

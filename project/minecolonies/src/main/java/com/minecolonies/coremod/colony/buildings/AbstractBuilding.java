@@ -34,6 +34,7 @@ import com.minecolonies.api.colony.requestsystem.resolver.retrying.IRetryingRequ
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.colony.workorders.IWorkOrder;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
+import com.minecolonies.api.crafting.IRecipeStorage;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.tileentities.AbstractTileEntityColonyBuilding;
 import com.minecolonies.api.tileentities.MinecoloniesTileEntities;
@@ -1210,6 +1211,35 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
         for (final ICraftingBuildingModule module : getModulesByType(ICraftingBuildingModule.class))
         {
             if (module.holdsRecipe(token))
+            {
+                return module;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the right module for a recipe, including runtime recipes which are supplied by a worker module
+     * but are not persisted in the global recipe manager.
+     *
+     * @param token  the recipe trying to be fulfilled.
+     * @param output the requested recipe output.
+     * @return the matching module.
+     */
+    @Nullable
+    public ICraftingBuildingModule getCraftingModuleForRecipe(final IToken<?> token, @NotNull final ItemStack output)
+    {
+        final ICraftingBuildingModule directModule = getCraftingModuleForRecipe(token);
+        if (directModule != null)
+        {
+            return directModule;
+        }
+
+        for (final ICraftingBuildingModule module : getModulesByType(ICraftingBuildingModule.class))
+        {
+            final IRecipeStorage runtimeRecipe = module.getFirstRecipe(
+              stack -> ItemStackUtils.compareItemStacksIgnoreStackSize(stack, output));
+            if (runtimeRecipe != null && runtimeRecipe.getToken().equals(token))
             {
                 return module;
             }
