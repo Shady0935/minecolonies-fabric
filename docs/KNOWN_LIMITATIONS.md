@@ -63,6 +63,12 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   A focused Crusher fixture also loads a real custom cobblestone-to-gravel
   recipe, assigns `JobCrusher` and verifies `EntityAIWorkCrusher` input
   consumption, gravel output and daily-limit accounting.
+  A focused Stonemason fixture also loads the custom cobblestone-and-sand-to-
+  sandstone recipe, assigns `JobStonemason`/`EntityAIWorkStonemason`, resolves
+  a building-origin request through the private worker resolver and verifies
+  exact input consumption plus sandstone output. Asynchronous Stonemason
+  scheduling, GUI interaction and broader delivery/work-cycle behavior remain
+  uncovered.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
@@ -218,11 +224,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 104-test GameTest run still logs the upstream-style warning that
+- The latest 105-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-miner-shaft-double-20260921.log`. The
+  `logs/minecolonies-gametest-stonemason-4-20260921.log`. The
   blueprint data should be audited before treating this warning as resolved.
 
 ## Intentional compatibility residues

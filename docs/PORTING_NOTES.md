@@ -187,7 +187,7 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The latest 104-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The latest 105-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
 in `logs/minecolonies-gametest-miner-shaft-double-20260921.log`, with its
@@ -196,7 +196,9 @@ JUnit-style companion in
 isolated real Miner ladder-extension/backfill fixture covering two consecutive
 cycles to the previously combined 103-test coverage. The current checkpoint
 also records the real Crusher custom-recipe worker cycle in
-`logs/minecolonies-gametest-crusher-20260921.xml`.
+`logs/minecolonies-gametest-crusher-20260921.xml` and the Stonemason custom
+request/recipe cycle in
+`logs/minecolonies-gametest-stonemason-4-20260921.xml`.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -245,6 +247,17 @@ and runs `EntityAIWorkCrusher` through its real input-consumption/output path.
 The test also verifies that the daily production counter advances exactly once;
 the Crusher GUI and broader worker scheduling remain open.
 
+The Stonemason companion fixture registers a Colonial level-one Stonemason,
+loads the custom cobblestone-and-sand-to-sandstone recipe, assigns a live
+`JobStonemason` and confirms that `EntityAIWorkStonemason` is created. It then
+creates a building-origin `Stack` request with the recipe inputs in the worker
+inventory, verifies selection of `PrivateWorkerCraftingRequestResolver`, and
+checks synchronous completion, exact input consumption, sandstone output and
+empty request-task collections. This captures the actual building-request
+boundary: when all inputs are already available, the private production
+resolver completes the recipe synchronously; asynchronous scheduling, GUI
+interaction and longer autonomous Stonemason work remain open.
+
 The citizen-cycle fixture now lets the registered `EntityCitizen` tick through
 its normal server entity controller: it reaches `ACTIVE_SERVER`, constructs
 the high-level `CitizenAI`, selects `WORKING` for an assigned `JobBuilder` and
@@ -255,11 +268,13 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 104-test run (91 core tests plus isolated
-Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner, automatic-
-`logs/minecolonies-gametest-crusher-20260921.log`, with the
+Evidence for the latest combined 105-test run (91 core tests plus isolated
+Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner,
+automatic-housing, Builder, Guard, sleep/wake, entity, residence and
+Stonemason batches) is in
+`logs/minecolonies-gametest-stonemason-4-20260921.log`, with the
 zero-failure XML report in
-`logs/minecolonies-gametest-crusher-20260921.xml`; this run also
+`logs/minecolonies-gametest-stonemason-4-20260921.xml`; this run also
 adds two consecutive real Miner shaft ladder-extension/backfill cycles and also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric `setItem` mixin callback and

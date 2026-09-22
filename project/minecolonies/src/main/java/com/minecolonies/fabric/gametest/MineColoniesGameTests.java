@@ -66,6 +66,7 @@ import com.minecolonies.coremod.entity.ai.citizen.deliveryman.EntityAIWorkDelive
 import com.minecolonies.coremod.entity.ai.citizen.lumberjack.EntityAIWorkLumberjack;
 import com.minecolonies.coremod.entity.ai.citizen.lumberjack.Tree;
 import com.minecolonies.coremod.entity.ai.citizen.research.EntityAIWorkResearcher;
+import com.minecolonies.coremod.entity.ai.citizen.stonemason.EntityAIWorkStonemason;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
 import com.minecolonies.coremod.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
@@ -96,6 +97,7 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingGuardTo
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingEnchanter;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingLumberjack;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStonemason;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
@@ -107,6 +109,7 @@ import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobMiner;
 import com.minecolonies.coremod.colony.jobs.JobLumberjack;
 import com.minecolonies.coremod.colony.jobs.JobResearch;
+import com.minecolonies.coremod.colony.jobs.JobStonemason;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
 import com.minecolonies.coremod.colony.managers.RaidManager;
@@ -121,6 +124,7 @@ import com.minecolonies.api.entity.ai.statemachine.AIOneTimeEventTarget;
 import com.minecolonies.api.entity.combat.CombatAIStates;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
+import com.minecolonies.coremod.colony.requestsystem.resolvers.PrivateWorkerCraftingRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.WarehouseRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.locations.EntityLocation;
 import com.minecolonies.coremod.colony.requestsystem.locations.StaticLocation;
@@ -334,6 +338,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String SLEEP_TEST_BATCH = "minecolonies_fabric_sleep_port";
     private static final String GUARD_TEST_BATCH = "minecolonies_fabric_guard_port";
     private static final String CRUSHER_TEST_BATCH = "minecolonies_fabric_crusher_port";
+    private static final String STONEMASON_TEST_BATCH = "minecolonies_fabric_stonemason_port";
 
     public MineColoniesGameTests()
     {
@@ -3164,6 +3169,128 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; citizen=" + crusherCitizen.blockPosition());
             }
         });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = STONEMASON_TEST_BATCH, timeoutTicks = 1200)
+    public void stonemasonRequestAssignsWorkerAndCompletesCustomRecipe(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeStonemason = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos stonemasonPos = helper.absolutePos(relativeStonemason);
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeStonemason, ModBlocks.blockHutStonemason);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Stonemason GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Stonemason fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Stonemason fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Stonemason fixture Town Hall was not registered");
+
+        final BlockEntity stonemasonEntity = level.getBlockEntity(stonemasonPos);
+        helper.assertTrue(stonemasonEntity instanceof TileEntityColonyBuilding,
+          "Stonemason fixture did not create a Stonemason block entity");
+        final TileEntityColonyBuilding stonemasonHut = (TileEntityColonyBuilding) stonemasonEntity;
+        stonemasonHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        stonemasonHut.setBlueprintPath("craftsmanship/masonry/stonemason1.blueprint");
+        stonemasonHut.setSchematicName("stonemason1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(stonemasonHut, level);
+        helper.assertTrue(registered instanceof BuildingStonemason,
+          "Stonemason fixture registered the wrong building implementation: " + registered);
+        final BuildingStonemason stonemason = (BuildingStonemason) registered;
+        helper.assertTrue(stonemason.getBuildingLevel() >= 1,
+          "Stonemason fixture did not resolve its level-one blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final AbstractCraftingBuildingModule craftingModule = stonemason.getFirstModuleOccurance(BuildingStonemason.CraftingModule.class);
+        helper.assertTrue(craftingModule != null, "Stonemason fixture did not register its crafting module");
+        craftingModule.checkForWorkerSpecificRecipes();
+        final IRecipeStorage recipe = craftingModule.getFirstRecipe(stack -> stack.is(Items.SANDSTONE));
+        helper.assertTrue(recipe != null, "Stonemason fixture did not load the sandstone recipe");
+        helper.assertTrue(recipe.getCleanedInput().size() == 2,
+          "Stonemason fixture selected an unexpected sandstone recipe: " + recipe.getCleanedInput());
+        helper.assertTrue(recipe.getCleanedInput().stream().anyMatch(input -> input.getItemStack().is(Items.COBBLESTONE)),
+          "Stonemason sandstone recipe is missing its cobblestone input: " + recipe.getCleanedInput());
+        helper.assertTrue(recipe.getCleanedInput().stream().anyMatch(input -> input.getItemStack().is(Items.SAND)),
+          "Stonemason sandstone recipe is missing its sand input: " + recipe.getCleanedInput());
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, stonemasonPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Stonemason fixture could not create a live Stonemason citizen");
+        final WorkerBuildingModule workerModule = stonemason.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.stoneMason.get());
+        helper.assertTrue(workerModule != null, "Stonemason worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Stonemason worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobStonemason,
+          "Stonemason assignment did not create the Stonemason job");
+
+        final AbstractEntityCitizen stonemasonCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < stonemasonCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            stonemasonCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        int inputSlot = 0;
+        for (final ItemStorage inputStorage : recipe.getCleanedInput())
+        {
+            final ItemStack input = inputStorage.getItemStack().copy();
+            input.setCount(inputStorage.getAmount());
+            stonemasonCitizen.getInventoryCitizen().setStackInSlot(inputSlot++, input);
+        }
+        stonemasonCitizen.setPos(stonemasonPos.getX() + 0.5D, stonemasonPos.getY() + 1.0D, stonemasonPos.getZ() + 0.5D);
+
+        final int cobblestoneBefore = countItem(stonemasonCitizen, Items.COBBLESTONE);
+        final int sandBefore = countItem(stonemasonCitizen, Items.SAND);
+        final int outputBefore = countItem(stonemasonCitizen, recipe.getPrimaryOutput().getItem());
+        final JobStonemason job = citizen.getJob(JobStonemason.class);
+        final EntityAIWorkStonemason stonemasonAI = job.getWorkerAI();
+        helper.assertTrue(stonemasonAI != null, "Stonemason assignment did not create the worker AI");
+
+        final IToken<?> requestToken = colony.getRequestManager().createRequest(
+          stonemason.getRequester(), new Stack(recipe.getPrimaryOutput().copy()));
+        final IRequest<?> outputRequest = colony.getRequestManager().getRequestForToken(requestToken);
+        helper.assertTrue(outputRequest != null && outputRequest.getState() == RequestState.CREATED,
+          "Stonemason output request was not registered before assignment: " + (outputRequest == null ? "null" : outputRequest.getState()));
+        colony.getRequestManager().assignRequest(requestToken);
+        final IRequestResolver<?> resolver = colony.getRequestManager().getResolverForRequest(requestToken);
+        helper.assertTrue(resolver instanceof PrivateWorkerCraftingRequestResolver,
+          "Stonemason output request was not handled by the private worker resolver: " + resolver);
+        helper.assertTrue(outputRequest.getState() == RequestState.COMPLETED,
+          "Stonemason output request did not complete synchronously: " + outputRequest.getState());
+        helper.assertTrue(outputRequest.getChildren().isEmpty(),
+          "Stonemason completed output but retained request children: " + outputRequest.getChildren());
+        helper.assertTrue(countItem(stonemasonCitizen, recipe.getPrimaryOutput().getItem())
+              >= outputBefore + recipe.getPrimaryOutput().getCount(),
+          "Stonemason did not place the custom recipe output in the worker inventory: output="
+            + countItem(stonemasonCitizen, recipe.getPrimaryOutput().getItem()));
+        helper.assertTrue(countItem(stonemasonCitizen, Items.COBBLESTONE) == cobblestoneBefore - 1,
+          "Stonemason consumed an unexpected amount of cobblestone: before=" + cobblestoneBefore
+            + "; after=" + countItem(stonemasonCitizen, Items.COBBLESTONE));
+        helper.assertTrue(countItem(stonemasonCitizen, Items.SAND) == sandBefore - 1,
+          "Stonemason consumed an unexpected amount of sand: before=" + sandBefore
+            + "; after=" + countItem(stonemasonCitizen, Items.SAND));
+        helper.assertTrue(job.getTaskQueue().isEmpty() && job.getAssignedTasks().isEmpty(),
+          "Stonemason completed output but retained the crafting task: queue=" + job.getTaskQueue()
+            + "; assigned=" + job.getAssignedTasks());
+        helper.succeed();
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = LUMBERJACK_TEST_BATCH, timeoutTicks = 1000)
