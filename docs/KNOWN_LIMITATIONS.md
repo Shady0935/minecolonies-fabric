@@ -60,6 +60,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   It also covers server-side warehouse/courier registration, live
   `JobDeliveryman` assignment, warehouse access and the three logistics
   resolver registrations.
+  A focused Crusher fixture also loads a real custom cobblestone-to-gravel
+  recipe, assigns `JobCrusher` and verifies `EntityAIWorkCrusher` input
+  consumption, gravel output and daily-limit accounting.
   A complete registry fixture instantiates all 25 current MineColonies custom
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
@@ -215,7 +218,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 103-test GameTest run still logs the upstream-style warning that
+- The latest 104-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in

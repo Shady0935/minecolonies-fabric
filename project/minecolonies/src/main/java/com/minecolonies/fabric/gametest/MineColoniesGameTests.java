@@ -58,6 +58,7 @@ import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.mobs.EntityMercenary;
 import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
+import com.minecolonies.coremod.entity.ai.citizen.crusher.EntityAIWorkCrusher;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
 import com.minecolonies.coremod.entity.ai.citizen.guard.EntityAIKnight;
@@ -88,6 +89,7 @@ import com.minecolonies.coremod.colony.buildings.modules.WarehouseModule;
 import com.minecolonies.coremod.colony.buildings.modules.EnchanterStationsModule;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingCrusher;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingDeliveryman;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingFarmer;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingGuardTower;
@@ -98,6 +100,7 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHou
 import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingUniversity;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
+import com.minecolonies.coremod.colony.jobs.JobCrusher;
 import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
 import com.minecolonies.coremod.colony.jobs.JobFarmer;
 import com.minecolonies.coremod.colony.jobs.JobKnight;
@@ -330,6 +333,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String HOUSING_TEST_BATCH = "minecolonies_fabric_housing_port";
     private static final String SLEEP_TEST_BATCH = "minecolonies_fabric_sleep_port";
     private static final String GUARD_TEST_BATCH = "minecolonies_fabric_guard_port";
+    private static final String CRUSHER_TEST_BATCH = "minecolonies_fabric_crusher_port";
 
     public MineColoniesGameTests()
     {
@@ -3047,6 +3051,117 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; crop=" + level.getBlockState(cropPos)
                     + "; farmer=" + farmerCitizen.blockPosition()
                     + "; navigationDone=" + farmerCitizen.getNavigation().isDone());
+            }
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = CRUSHER_TEST_BATCH, timeoutTicks = 1200)
+    public void crusherAIConsumesCustomRecipeAndProducesOutput(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeCrusher = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos crusherPos = helper.absolutePos(relativeCrusher);
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeCrusher, ModBlocks.blockHutCrusher);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Crusher GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Crusher fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Crusher fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Crusher fixture Town Hall was not registered");
+
+        final BlockEntity crusherEntity = level.getBlockEntity(crusherPos);
+        helper.assertTrue(crusherEntity instanceof TileEntityColonyBuilding,
+          "Crusher fixture did not create a Crusher block entity");
+        final TileEntityColonyBuilding crusherHut = (TileEntityColonyBuilding) crusherEntity;
+        crusherHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        crusherHut.setBlueprintPath("craftsmanship/masonry/crusher1.blueprint");
+        crusherHut.setSchematicName("crusher1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(crusherHut, level);
+        helper.assertTrue(registered instanceof BuildingCrusher,
+          "Crusher fixture registered the wrong building implementation: " + registered);
+        final BuildingCrusher crusher = (BuildingCrusher) registered;
+        helper.assertTrue(crusher.getBuildingLevel() >= 1,
+          "Crusher fixture did not resolve its level-one blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final AbstractCraftingBuildingModule craftingModule = crusher.getFirstModuleOccurance(BuildingCrusher.CraftingModule.class);
+        helper.assertTrue(craftingModule != null, "Crusher fixture did not register its custom crafting module");
+        craftingModule.checkForWorkerSpecificRecipes();
+        final IRecipeStorage recipe = craftingModule.getFirstRecipe(stack -> stack.is(Items.GRAVEL));
+        helper.assertTrue(recipe != null, "Crusher fixture did not load the default cobblestone-to-gravel recipe");
+        helper.assertTrue(recipe.getCleanedInput().size() == 1,
+          "Crusher fixture selected an unexpected multi-input recipe: " + recipe.getCleanedInput());
+        crusher.getSetting(BuildingCrusher.MODE).set(recipe);
+        crusher.getSetting(BuildingCrusher.DAILY_LIMIT).setValue(1);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, crusherPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Crusher fixture could not create a live Crusher citizen");
+        final WorkerBuildingModule workerModule = crusher.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.crusher.get());
+        helper.assertTrue(workerModule != null, "Crusher worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Crusher worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobCrusher,
+          "Crusher assignment did not create the Crusher job");
+
+        final AbstractEntityCitizen crusherCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < crusherCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            crusherCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        final ItemStack input = recipe.getCleanedInput().get(0).getItemStack().copy();
+        input.setCount(recipe.getCleanedInput().get(0).getAmount());
+        crusherCitizen.getInventoryCitizen().setStackInSlot(0, input);
+        crusherCitizen.setPos(crusherPos.getX() + 0.5D, crusherPos.getY() + 1.0D, crusherPos.getZ() + 0.5D);
+
+        final int inputBefore = countItem(crusherCitizen, input.getItem());
+        final int outputBefore = countItem(crusherCitizen, recipe.getPrimaryOutput().getItem());
+        final EntityAIWorkCrusher crusherAI = citizen.getJob(JobCrusher.class).getWorkerAI();
+        helper.assertTrue(crusherAI != null, "Crusher assignment did not create the worker AI");
+        crusherAI.resetAI();
+
+        final int[] crusherTicks = {0};
+        helper.onEachTick(() ->
+        {
+            crusherTicks[0]++;
+            crusherAI.tick();
+            if (countItem(crusherCitizen, recipe.getPrimaryOutput().getItem()) >= outputBefore + recipe.getPrimaryOutput().getCount())
+            {
+                helper.assertTrue(countItem(crusherCitizen, input.getItem()) <= inputBefore - input.getCount(),
+                  "Crusher AI produced output without consuming its custom recipe input");
+                helper.assertTrue(crusher.getCurrentDailyQuantity() == 1,
+                  "Crusher AI did not advance its daily production counter");
+                helper.succeed();
+            }
+            else if (crusherTicks[0] >= 1100)
+            {
+                helper.assertTrue(false,
+                  "Crusher AI did not complete its custom recipe: state=" + crusherAI.getState()
+                    + "; input=" + countItem(crusherCitizen, input.getItem())
+                    + "; output=" + countItem(crusherCitizen, recipe.getPrimaryOutput().getItem())
+                    + "; daily=" + crusher.getCurrentDailyQuantity()
+                    + "; citizen=" + crusherCitizen.blockPosition());
             }
         });
     }
