@@ -698,6 +698,11 @@ An additional isolated hoed-field fixture drives the real planting transition
 with `WHEAT_SEEDS`, verifies the crop appears on farmland, consumes the seed
 and persists `FarmField.Stage.PLANTED`; its green XML evidence is retained in
 `logs/minecolonies-gametest-farmer-plant-20260920.xml`.
+An accompanying empty-field fixture drives the real hoeing transition with a
+stone hoe, verifies farmland creation before any crop is planted and persists
+`FarmField.Stage.HOED`; both fixtures run in the clean focused Farmer runner,
+whose green XML evidence is retained in
+`logs/minecolonies-gametest-farmer-hoe-20260920.xml`.
 
 The Lumberjack fixture registers the Original level-one lumberjack through its
 real building entry and assigns a live citizen to `JobLumberjack`. The Colonial

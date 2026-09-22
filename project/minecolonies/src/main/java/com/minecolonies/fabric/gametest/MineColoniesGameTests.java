@@ -2669,6 +2669,115 @@ public final class MineColoniesGameTests implements FabricGameTest
             + "; farmer=" + farmerCitizen.blockPosition());
     }
 
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_TEST_BATCH, timeoutTicks = 900)
+    public void farmerAIHoesAssignedEmptyField(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeFarmer = new BlockPos(8, 1, 2);
+        final BlockPos relativeField = new BlockPos(13, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        final BlockPos fieldPos = helper.absolutePos(relativeField);
+        for (int x = 0; x <= 16; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.DIRT);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+        helper.setBlock(relativeField, ModBlocks.blockScarecrow);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Farmer Hoe GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Farmer hoe fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Farmer hoe fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Farmer hoe fixture Town Hall was not registered");
+
+        final BlockEntity farmerEntity = level.getBlockEntity(farmerPos);
+        helper.assertTrue(farmerEntity instanceof TileEntityColonyBuilding,
+          "Farmer hoe fixture did not create a farmer block entity");
+        final TileEntityColonyBuilding farmerHut = (TileEntityColonyBuilding) farmerEntity;
+        farmerHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        farmerHut.setBlueprintPath("agriculture/horticulture/farm1.blueprint");
+        farmerHut.setSchematicName("farm1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(farmerHut, level);
+        helper.assertTrue(registered instanceof BuildingFarmer,
+          "Farmer hoe fixture registered the wrong building implementation: " + registered);
+        final BuildingFarmer farmer = (BuildingFarmer) registered;
+        helper.assertTrue(farmer.getBuildingLevel() >= 1,
+          "Farmer hoe fixture did not resolve its level-one farm blueprint");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FarmField field = FarmField.create(fieldPos);
+        field.setSeed(new ItemStack(Items.WHEAT_SEEDS));
+        field.setRadius(Direction.NORTH, 1);
+        field.setRadius(Direction.SOUTH, 0);
+        field.setRadius(Direction.EAST, 0);
+        field.setRadius(Direction.WEST, 0);
+        helper.assertTrue(field.isValidPlacement(colony),
+          "Farmer hoe fixture field does not have a valid scarecrow placement");
+        helper.assertTrue(colony.getBuildingManager().addField(field),
+          "Farmer hoe fixture field was not registered in the colony");
+        final BlockPos surface = fieldPos.north().below();
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, farmerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Farmer hoe fixture could not create a live farmer citizen");
+        final WorkerBuildingModule workerModule = farmer.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.farmer.get());
+        helper.assertTrue(workerModule != null, "Farmer hoe worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Farmer hoe worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobFarmer,
+          "Farmer hoe assignment did not create the farmer job");
+
+        final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
+        final EntityAIWorkFarmer farmerAI = (EntityAIWorkFarmer) citizen.getJob(JobFarmer.class).getWorkerAI();
+        helper.assertTrue(farmerAI != null, "Farmer hoe assignment did not create the worker AI");
+        for (int slot = 0; slot < farmerCitizen.getInventoryCitizen().getSlots(); slot++)
+        {
+            farmerCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        farmerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_HOE));
+        farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);
+        farmerCitizen.setPos(surface.getX() + 0.5D, surface.getY() + 1.0D, surface.getZ() + 0.5D);
+        farmerAI.resetAI();
+        farmerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.PREPARING));
+
+        for (int tick = 0; tick < 700; tick++)
+        {
+            farmerAI.tick();
+            if (level.getBlockState(surface).is(Blocks.FARMLAND))
+            {
+                helper.assertTrue(field.getFieldStage() == FarmField.Stage.HOED,
+                  "Farmer hoe cycle did not advance the field to HOED");
+                helper.assertTrue(level.isEmptyBlock(surface.above()),
+                  "Farmer hoe cycle planted a crop before the field entered HOED");
+                helper.succeed();
+                return;
+            }
+        }
+
+        helper.assertTrue(false,
+          "Farmer AI did not hoe its assigned empty field: state=" + farmerAI.getState()
+            + "; fieldStage=" + field.getFieldStage()
+            + "; surface=" + level.getBlockState(surface)
+            + "; farmer=" + farmerCitizen.blockPosition());
+    }
+
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_TEST_BATCH, timeoutTicks = 1000)
     public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
     {
