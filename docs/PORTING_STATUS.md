@@ -1,6 +1,6 @@
 # Porting status
 
-Checkpoint: 2026-09-20. A checked item is verified in the target workspace;
+Checkpoint: 2026-09-21. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually
 completed.
@@ -323,8 +323,11 @@ completed.
   during world rehydration. A focused level-one mining cycle verifies stone
   removal and drop delivery through `EntityAIStructureMiner`; a companion
   vanilla-iron-ore cycle verifies ore recognition, removal and Silk Touch drop
-  delivery. Shaft construction, placement and resource logistics remain open;
-  evidence: `logs/minecolonies-gametest-miner-stone-ore-20260920.xml`
+  delivery. A focused level-four shaft fixture now drives two consecutive real
+  ladder-extension/backfill cycles; full long-shaft construction, placement,
+  navigation and resource logistics remain open. Evidence:
+  `logs/minecolonies-gametest-miner-stone-ore-20260920.xml` and
+  `logs/minecolonies-gametest-miner-shaft-double-20260921.xml`
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
@@ -494,10 +497,10 @@ completed.
   raider combat AI, a no-waypoint raider navigates by direct fallback, the
   delayed asynchronous raid path publishes waypoints during a later event tick,
   a real spawned raider advances from its route origin, and a real guard damages
-  a registered barbarian raider; the new Miner shaft fixture also drives one
-  real ladder-extension/backfill cycle; evidence is in
-  `logs/minecolonies-gametest-miner-shaft-20260921.log` and the companion
-  `logs/minecolonies-gametest-miner-shaft-20260921.xml` (103 cases, zero
+  a registered barbarian raider; the new Miner shaft fixture also drives two
+  consecutive real ladder-extension/backfill cycles; evidence is in
+  `logs/minecolonies-gametest-miner-shaft-double-20260921.log` and the companion
+  `logs/minecolonies-gametest-miner-shaft-double-20260921.xml` (103 cases, zero
   failures/errors), with the previous combined run retained in
   `logs/minecolonies-gametest-full-farmer-20260921.log`
 - [x] Core runtime command/entity smoke test and datapack reload

@@ -2460,8 +2460,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = MINER_SHAFT_TEST_BATCH, timeoutTicks = 1300)
-    public void minerAIExtendsShaftWithLadderAndBackfill(final GameTestHelper helper)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = MINER_SHAFT_TEST_BATCH, timeoutTicks = 1700)
+    public void minerAIExtendsShaftWithMultipleLaddersAndBackfill(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -2502,8 +2502,9 @@ public final class MineColoniesGameTests implements FabricGameTest
         minerHut.setBlueprintPath("fundamentals/mine1.blueprint");
         minerHut.setSchematicName("mine1");
         final Map<BlockPos, List<String>> minerTags = new java.util.HashMap<>();
-        minerTags.put(new BlockPos(0, 2, 0), List.of("cobble"));
-        minerTags.put(new BlockPos(1, 2, 0), List.of("ladder"));
+        // Keep two complete extension cycles clear of the miner hut at y=1.
+        minerTags.put(new BlockPos(0, 3, 0), List.of("cobble"));
+        minerTags.put(new BlockPos(1, 3, 0), List.of("ladder"));
         minerHut.setPositionedTags(minerTags);
         final IBuilding registered = colony.getBuildingManager().addNewBuilding(minerHut, level);
         helper.assertTrue(registered instanceof BuildingMiner,
@@ -2523,10 +2524,13 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BlockPos target = ladderPos.above();
         final BlockPos nextCobble = cobblePos.below();
         final BlockPos nextLadder = ladderPos.below();
+        final BlockPos secondCobble = nextCobble.below();
+        final BlockPos secondLadder = nextLadder.below();
         level.setBlock(target, Blocks.STONE.defaultBlockState(), 3);
         helper.assertTrue(level.getBlockState(target).is(Blocks.STONE),
           "Miner shaft fixture could not place the initial shaft target");
-        helper.assertTrue(level.isEmptyBlock(nextCobble) && level.isEmptyBlock(nextLadder),
+        helper.assertTrue(level.isEmptyBlock(nextCobble) && level.isEmptyBlock(nextLadder)
+            && level.isEmptyBlock(secondCobble) && level.isEmptyBlock(secondLadder),
           "Miner shaft fixture started with occupied extension positions");
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
@@ -2578,19 +2582,23 @@ public final class MineColoniesGameTests implements FabricGameTest
             }
             if (level.isEmptyBlock(target)
                   && level.getBlockState(nextLadder).getBlock() == Blocks.LADDER
-                  && level.getBlockState(nextCobble).is(Blocks.COBBLESTONE))
+                  && level.getBlockState(nextCobble).is(Blocks.COBBLESTONE)
+                  && level.getBlockState(secondLadder).getBlock() == Blocks.LADDER
+                  && level.getBlockState(secondCobble).is(Blocks.COBBLESTONE))
             {
                 helper.succeed();
                 return;
             }
 
-            if (minerTicks[0] >= 1250)
+            if (minerTicks[0] >= 1650)
             {
                 helper.assertTrue(false,
-                  "Miner AI did not extend the shaft with a ladder and backfill: state=" + minerAI.getState()
+                  "Miner AI did not extend the shaft twice with ladders and backfill: state=" + minerAI.getState()
                     + "; target=" + level.getBlockState(target)
                     + "; nextLadder=" + level.getBlockState(nextLadder)
                     + "; nextCobble=" + level.getBlockState(nextCobble)
+                    + "; secondLadder=" + level.getBlockState(secondLadder)
+                    + "; secondCobble=" + level.getBlockState(secondCobble)
                     + "; miner=" + minerCitizen.blockPosition()
                     + "; cobblePos=" + cobblePos
                     + "; ladderPos=" + ladderPos

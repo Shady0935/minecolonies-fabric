@@ -190,10 +190,11 @@ vanilla villager candidate. The earlier eight-test batch is recorded in
 `logs/minecolonies-gametest-tavern-10.log`. The latest 103-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-miner-shaft-20260921.log`, with its JUnit-style
-companion in `logs/minecolonies-gametest-miner-shaft-20260921.xml`; the run
-adds an isolated real Miner ladder-extension/backfill cycle to the previously
-combined 102-test coverage.
+in `logs/minecolonies-gametest-miner-shaft-double-20260921.log`, with its
+JUnit-style companion in
+`logs/minecolonies-gametest-miner-shaft-double-20260921.xml`; the run adds an
+isolated real Miner ladder-extension/backfill fixture covering two consecutive
+cycles to the previously combined 102-test coverage.
 The same batch also verifies the Fabric loot-table modifier against dungeon and
 shipwreck targets, preserving the supply items' instant-placement NBT, and
 round-trips a build-window packet and exercises out-of-order split-envelope
@@ -249,9 +250,10 @@ callback, so the owner/outsider decision resolves against the intended colony.
 Evidence for the latest combined 103-test run (91 core tests plus isolated
 Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner, automatic-
 housing, two Builder, Guard, entity and residence sleep/wake batches) is in
-`logs/minecolonies-gametest-miner-shaft-20260921.log`, with the zero-failure XML
-report in `logs/minecolonies-gametest-miner-shaft-20260921.xml`; this run also
-adds one real Miner shaft ladder-extension/backfill cycle and also
+`logs/minecolonies-gametest-miner-shaft-double-20260921.log`, with the
+zero-failure XML report in
+`logs/minecolonies-gametest-miner-shaft-double-20260921.xml`; this run also
+adds two consecutive real Miner shaft ladder-extension/backfill cycles and also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric `setItem` mixin callback and
 deferred end-of-tick retry reassign the request when the sword arrives, and
