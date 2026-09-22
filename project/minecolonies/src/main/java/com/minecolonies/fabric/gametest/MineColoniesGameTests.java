@@ -62,6 +62,7 @@ import com.minecolonies.coremod.entity.ai.citizen.farmer.EntityAIWorkFarmer;
 import com.minecolonies.coremod.entity.ai.citizen.crusher.EntityAIWorkCrusher;
 import com.minecolonies.coremod.entity.ai.citizen.smelter.EntityAIWorkSmelter;
 import com.minecolonies.coremod.entity.ai.citizen.cook.EntityAIWorkCook;
+import com.minecolonies.coremod.entity.ai.citizen.baker.EntityAIWorkBaker;
 import com.minecolonies.coremod.entity.ai.citizen.miner.EntityAIStructureMiner;
 import com.minecolonies.coremod.entity.ai.citizen.builder.EntityAIStructureBuilder;
 import com.minecolonies.coremod.entity.ai.citizen.guard.EntityAIKnight;
@@ -105,6 +106,7 @@ import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingLumberj
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStonemason;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingSmeltery;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingCook;
+import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBaker;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingWareHouse;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.PostBox;
@@ -120,6 +122,7 @@ import com.minecolonies.coremod.colony.jobs.JobResearch;
 import com.minecolonies.coremod.colony.jobs.JobStonemason;
 import com.minecolonies.coremod.colony.jobs.JobSmelter;
 import com.minecolonies.coremod.colony.jobs.JobCook;
+import com.minecolonies.coremod.colony.jobs.JobBaker;
 import com.minecolonies.coremod.colony.jobs.JobStoneSmeltery;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BoolSetting;
 import com.minecolonies.coremod.colony.buildings.modules.settings.GuardTaskSetting;
@@ -355,6 +358,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String STONE_SMELTERY_TEST_BATCH = "minecolonies_fabric_stone_smeltery_port";
     private static final String SMELTERY_TEST_BATCH = "minecolonies_fabric_smeltery_port";
     private static final String COOK_TEST_BATCH = "minecolonies_fabric_cook_port";
+    private static final String BAKER_TEST_BATCH = "minecolonies_fabric_baker_port";
 
     public MineColoniesGameTests()
     {
@@ -3591,6 +3595,168 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; ore=" + countItem(worker, Items.RAW_IRON)
                     + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
                     + "; ingot=" + countItem(worker, Items.IRON_INGOT)
+                    + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
+            }
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = BAKER_TEST_BATCH, timeoutTicks = 1400)
+    public void bakerWorkerUsesRegisteredFurnaceAndBakesBread(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBaker = new BlockPos(10, 1, 2);
+        final BlockPos relativeFurnace = new BlockPos(12, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos bakerPos = helper.absolutePos(relativeBaker);
+        final BlockPos furnacePos = helper.absolutePos(relativeFurnace);
+        for (int x = 0; x <= 24; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBaker, ModBlocks.blockHutBaker);
+        helper.setBlock(relativeFurnace, Blocks.FURNACE);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Baker GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Baker fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Baker fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Baker fixture Town Hall was not registered");
+
+        final BlockEntity bakerEntity = level.getBlockEntity(bakerPos);
+        helper.assertTrue(bakerEntity instanceof TileEntityColonyBuilding,
+          "Baker fixture did not create a building block entity");
+        final TileEntityColonyBuilding bakerHut = (TileEntityColonyBuilding) bakerEntity;
+        bakerHut.setStructurePack(StructurePacks.getStructurePack(Constants.STORAGE_STYLE));
+        bakerHut.setBlueprintPath("craftsmanship/luxury/baker1.blueprint");
+        bakerHut.setSchematicName("baker1");
+        final IBuilding registered = colony.getBuildingManager().addNewBuilding(bakerHut, level);
+        helper.assertTrue(registered instanceof BuildingBaker,
+          "Baker fixture registered the wrong building implementation: " + registered);
+        final BuildingBaker baker = (BuildingBaker) registered;
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final FurnaceUserModule furnaceModule = baker.getFirstModuleOccurance(FurnaceUserModule.class);
+        helper.assertTrue(furnaceModule != null, "Baker fixture did not register its furnace module");
+        baker.registerBlockPosition(Blocks.FURNACE.defaultBlockState(), furnacePos, level);
+        helper.assertTrue(furnaceModule.getFurnaces().contains(furnacePos),
+          "Baker fixture did not register the placed furnace");
+        helper.assertTrue(level.getBlockEntity(furnacePos) instanceof FurnaceBlockEntity,
+          "Baker fixture did not create a furnace block entity");
+
+        final ItemListModule fuelModule = baker.getModuleMatching(
+          ItemListModule.class, module -> module.getId().equals(com.minecolonies.api.util.constant.BuildingConstants.FUEL_LIST));
+        helper.assertTrue(fuelModule != null, "Baker fixture did not register its fuel list");
+        fuelModule.addItem(new ItemStorage(new ItemStack(Items.DRIED_KELP_BLOCK)));
+
+        final BuildingBaker.SmeltingModule smeltingModule =
+          baker.getFirstModuleOccurance(BuildingBaker.SmeltingModule.class);
+        helper.assertTrue(smeltingModule != null, "Baker fixture did not register its smelting module");
+        smeltingModule.checkForWorkerSpecificRecipes();
+        final IRecipeStorage storedRecipe = smeltingModule.getFirstRecipe(stack -> stack.is(Items.BREAD));
+        helper.assertTrue(storedRecipe != null && storedRecipe.getIntermediate() == Blocks.FURNACE,
+          "Baker fixture did not load the generated bread furnace recipe: " + storedRecipe);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, bakerPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Baker fixture could not create a live worker citizen");
+        final WorkerBuildingModule workerModule = baker.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.baker.get());
+        helper.assertTrue(workerModule != null, "Baker worker module was not registered");
+        helper.assertTrue(workerModule.assignCitizen(citizen),
+          "Baker worker module rejected the citizen assignment");
+        helper.assertTrue(citizen.getJob() instanceof JobBaker,
+          "Baker assignment did not create the baker job");
+
+        final AbstractEntityCitizen worker = (AbstractEntityCitizen) citizen.getEntity().get();
+        for (int slot = 0; slot < worker.getInventoryCitizen().getSlots(); slot++)
+        {
+            worker.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        worker.getInventoryCitizen().setStackInSlot(0, new ItemStack(ModItems.breadDough));
+        worker.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.DRIED_KELP_BLOCK));
+        worker.setPos(furnacePos.getX() + 1.5D, furnacePos.getY() + 1.0D, furnacePos.getZ() + 0.5D);
+
+        final JobBaker job = citizen.getJob(JobBaker.class);
+        final EntityAIWorkBaker bakerAI = job.getWorkerAI();
+        helper.assertTrue(bakerAI != null, "Baker assignment did not create the worker AI");
+        final IToken<?> parentToken = colony.getRequestManager().createRequest(
+          baker.getRequester(), new Stack(storedRecipe.getPrimaryOutput().copy()));
+        final IRequest<?> parentTask = colony.getRequestManager().getRequestForToken(parentToken);
+        helper.assertTrue(parentTask != null && parentTask.getState() == RequestState.CREATED,
+          "Baker parent request was not registered before assignment: "
+            + (parentTask == null ? "null" : parentTask.getState()));
+        colony.getRequestManager().assignRequest(parentToken);
+        helper.assertTrue(parentTask.getState() == RequestState.IN_PROGRESS && parentTask.getChildren().size() == 1,
+          "Baker public resolver did not create one child crafting task: state=" + parentTask.getState()
+            + "; children=" + parentTask.getChildren());
+        final IToken<?> taskToken = parentTask.getChildren().iterator().next();
+        final IRequest<?> task = colony.getRequestManager().getRequestForToken(taskToken);
+        helper.assertTrue(task != null && task.getRequest() instanceof PublicCrafting
+              && task.getState() == RequestState.IN_PROGRESS,
+          "Baker child task was not assigned as PublicCrafting: "
+            + (task == null ? "null" : task.getRequest() + "/" + task.getState()));
+        final IRequestResolver<?> taskResolver = colony.getRequestManager().getResolverForRequest(taskToken);
+        helper.assertTrue(taskResolver instanceof PublicWorkerCraftingProductionResolver,
+          "Baker worker task was not handled by the public worker resolver: " + taskResolver);
+        helper.assertTrue(job.getTaskQueue().contains(taskToken) && job.getAssignedTasks().isEmpty(),
+          "Baker resolver did not move the task into the worker queue: queue=" + job.getTaskQueue()
+            + "; assigned=" + job.getAssignedTasks());
+        bakerAI.resetAI();
+
+        final int doughBefore = countItem(worker, ModItems.breadDough);
+        final int fuelBefore = countItem(worker, Items.DRIED_KELP_BLOCK);
+        final int breadBefore = countItem(worker, Items.BREAD);
+        final int[] ticks = {0};
+        helper.onEachTick(() ->
+        {
+            ticks[0]++;
+            bakerAI.tick();
+            final BlockEntity entity = level.getBlockEntity(furnacePos);
+            final FurnaceBlockEntity furnace = entity instanceof FurnaceBlockEntity ? (FurnaceBlockEntity) entity : null;
+            if (task.getState() == RequestState.RESOLVED
+                  || task.getState() == RequestState.COMPLETED
+                  || task.getState() == RequestState.RECEIVED)
+            {
+                helper.assertTrue(furnace != null, "Baker request resolved without a furnace entity");
+                helper.assertTrue(countItem(worker, Items.BREAD) >= breadBefore + 1,
+                  "Baker resolved its request without delivering bread");
+                helper.assertTrue(countItem(worker, ModItems.breadDough) == doughBefore - 1,
+                  "Baker consumed an unexpected amount of bread dough");
+                helper.assertTrue(countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore,
+                  "Baker completed without consuming furnace fuel");
+                helper.assertTrue(furnace.getItem(0).isEmpty() && furnace.getItem(2).isEmpty(),
+                  "Baker resolved its request while leaving furnace input/output behind: input="
+                    + furnace.getItem(0) + "; output=" + furnace.getItem(2));
+                helper.assertTrue(job.getTaskQueue().isEmpty() && job.getAssignedTasks().isEmpty(),
+                  "Baker completed output with a retained crafting task: queue=" + job.getTaskQueue()
+                    + "; assigned=" + job.getAssignedTasks());
+                helper.succeed();
+            }
+            else if (ticks[0] >= 1300)
+            {
+                helper.assertTrue(false,
+                  "Baker did not complete its bread furnace request: state=" + task.getState()
+                    + "; ai=" + bakerAI.getState()
+                    + "; progress=" + job.getProgress()
+                    + "; craftCounter=" + job.getCraftCounter()
+                    + "; dough=" + countItem(worker, ModItems.breadDough)
+                    + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
+                    + "; bread=" + countItem(worker, Items.BREAD)
                     + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
             }
         });
