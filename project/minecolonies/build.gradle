@@ -21,6 +21,20 @@ fabricApi {
     }
 }
 
+// Keep the headless Fabric GameTest launcher reproducible from Gradle.  The
+// dedicated run directory is intentionally separate from the normal server
+// probe so old worlds cannot silently contaminate a full-suite result.
+loom {
+    runs {
+        gametest {
+            server()
+            runDir 'run-gametest'
+            vmArg '-Dfabric-api.gametest=true'
+            vmArg "-Dfabric-api.gametest.report-file=${project.file('build/gametest/junit.xml').absolutePath}"
+        }
+    }
+}
+
 sourceSets {
     main {
         java {

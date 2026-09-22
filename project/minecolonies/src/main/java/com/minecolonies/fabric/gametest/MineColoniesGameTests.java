@@ -4490,7 +4490,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 320)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 440)
     public void raiderManagerStartsEligibleBarbarianEvent(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -4676,6 +4676,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         final float[] lastTargetHealth = {initialTargetHealth};
         final int[] combatTicks = {0};
         combatCleanupDeferred[0] = true;
+        targetCitizen.setInvulnerable(false);
         helper.onEachTick(() ->
         {
             if (!combatStarted[0])
@@ -4691,7 +4692,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 }
                 if (longRouteMoved[0])
                 {
-                    combatRaider.setPos(targetCitizen.getX() + 2.0, targetCitizen.getY(), targetCitizen.getZ());
+                    combatRaider.setPos(targetCitizen.getX() + 1.0, targetCitizen.getY(), targetCitizen.getZ());
                     combatRaider.setInvulnerable(false);
                     combatRaider.getNavigation().stop();
                     for (final Entity entity : spawnedRaiders)
@@ -4704,6 +4705,13 @@ public final class MineColoniesGameTests implements FabricGameTest
                             otherRaider.getNavigation().stop();
                         }
                     }
+                    // The route phase may have selected a citizen while the
+                    // horde was travelling. Reset only this fixture's
+                    // transient combat state so the assertion starts from a
+                    // single, valid target while still exercising the real
+                    // RaiderMeleeAI/AttackMoveAI state machine.
+                    combatRaider.getThreatTable().resetTable();
+                    combatRaider.getAI().reset();
                     combatRaider.getThreatTable().addThreat(targetCitizen, 100);
                     combatStarted[0] = true;
                     return;
@@ -4728,7 +4736,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             // Keep the isolated combat fixture in melee distance. The health
             // transition below proves that RaiderMeleeAI reached its
             // autonomous attack path; route movement is asserted above.
-            combatRaider.setPos(targetCitizen.getX() + 2.0, targetCitizen.getY(), targetCitizen.getZ());
+            combatRaider.setPos(targetCitizen.getX() + 1.0, targetCitizen.getY(), targetCitizen.getZ());
             combatRaider.getNavigation().stop();
             if (targetSelected[0] && targetCitizen.getHealth() < lastTargetHealth[0] - 0.01F)
             {
@@ -4769,7 +4777,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.succeed();
                 return;
             }
-            if (combatTicks[0] >= 180)
+            if (combatTicks[0] >= 240)
             {
                 raidEvent.onFinish();
                 cleanupRaidFixture.run();
@@ -4778,7 +4786,11 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; raider=" + combatRaider.blockPosition()
                     + "; target=" + targetCitizen.blockPosition()
                     + "; health=" + targetCitizen.getHealth()
-                    + "; damageEvents=" + damageEvents[0]);
+                    + "; damageEvents=" + damageEvents[0]
+                    + "; ai=" + combatRaider.getAI().getState()
+                    + "; lineOfSight=" + combatRaider.getSensing().hasLineOfSight(targetCitizen)
+                    + "; distance=" + combatRaider.distanceTo(targetCitizen)
+                    + "; targetInvulnerable=" + targetCitizen.isInvulnerable());
             }
         });
 

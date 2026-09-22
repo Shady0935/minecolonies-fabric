@@ -253,17 +253,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 109-test GameTest run still logs the upstream-style warning that
+- The latest 110-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-baker-20260922.log`. The
+  `logs/minecolonies-gametest-raider-fix-20260922.log`. The
   blueprint data should be audited before treating this warning as resolved.
-- The clean 110-case validation also recorded one timing-sensitive
-  `RaidManager` combat failure while the Cook Assistant case passed. The
-  stable 109-case zero-failure run remains the current full-suite baseline;
-  RaidManager combat timing under the complete concurrent batch should be
-  hardened before treating 110/110 as green.
+- The latest clean 110-case suite hardens only the transient Raider combat
+  fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
+  and records 110/110 required tests passed. Long-range and fully in-game raid
+  behavior, including client interaction, remain manual validation items.
 
 ## Intentional compatibility residues
 

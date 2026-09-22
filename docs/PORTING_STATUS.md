@@ -87,7 +87,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  109-test GameTest run
+  110-test GameTest run
 - [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
   focused follow-up GameTest: the real split envelope deletes the owned
   colony, removes its dimension-manager entry and clears the packet cache;
@@ -145,7 +145,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 109-test Fabric GameTest run
+  is covered by the latest 110-test Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -373,8 +373,8 @@ completed.
   so the assistant consumes beef/fuel, enters the Cook `isCooking` path and
   delivers cooked beef. GUI rendering, broader recipe selection and
   asynchronous scheduling remain open. Evidence:
-  `logs/minecolonies-gametest-cook-assistant-final-20260922.xml` and
-  `logs/minecolonies-gametest-cook-assistant-final-20260922.log`
+  `logs/minecolonies-gametest-raider-fix-20260922.xml` and
+  `logs/minecolonies-gametest-raider-fix-20260922.log`
 - [x] Server-side Miner registration resolves the Colonial level-one mine
   blueprint, assigns a live `JobMiner` and lets normal
   `EntityAIStructureMiner` startup ticks select and persist a `WorkOrderMiner`
@@ -496,7 +496,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 109-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 110-test Fabric GameTest run passes with clean saves for all three
   dimensions; its 91-test core batch plus isolated Lumberjack, Farmer hoe,
   Farmer navigation, Farmer planting, Miner, housing, Builder, Guard, sleep/wake
   and entity batches, plus isolated Miner shaft, Stonemason request, Stone Smeltery, Smeltery, Cook and Baker furnace batches and the focused
@@ -564,10 +564,12 @@ completed.
   custom-request/custom-recipe cycle, the Stone Smeltery furnace worker cycle,
   the Smeltery raw-ore furnace worker cycle, the Cook furnace worker cycle and
   the Baker furnace worker cycle;
-  evidence is in
-  `logs/minecolonies-gametest-baker-20260922.log` and the companion
-  `logs/minecolonies-gametest-baker-20260922.xml` (109 cases, zero
-  failures/errors), with the previous Miner-shaft checkpoint retained in
+   evidence is in
+   `logs/minecolonies-gametest-raider-fix-20260922.log` and the companion
+   `logs/minecolonies-gametest-raider-fix-20260922.xml` (110 cases, zero
+   failures/errors), with the historical 109-case Baker checkpoint retained in
+   `logs/minecolonies-gametest-baker-20260922.log` and
+   `logs/minecolonies-gametest-baker-20260922.xml`, the previous Miner-shaft checkpoint retained in
   `logs/minecolonies-gametest-miner-shaft-double-20260921.log` and the previous combined run retained in
   `logs/minecolonies-gametest-full-farmer-20260921.log`
 - [x] Core runtime command/entity smoke test and datapack reload

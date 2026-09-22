@@ -187,12 +187,12 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The latest 109-test run also
+`logs/minecolonies-gametest-tavern-10.log`. The latest 110-test run also
 verifies the Pharao Scepter bow-hook bridge and is recorded in
 `logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-baker-20260922.log`, with its
+in `logs/minecolonies-gametest-raider-fix-20260922.log`, with its
 JUnit-style companion in
-`logs/minecolonies-gametest-baker-20260922.xml`; the run adds isolated
+`logs/minecolonies-gametest-raider-fix-20260922.xml`; the run adds isolated
  Stone Smeltery, Smeltery, Cook and Baker furnace worker fixtures to the existing real
  Miner ladder-extension/backfill coverage. The current checkpoint also records the
 real Crusher custom-recipe worker cycle in
@@ -312,13 +312,13 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 109-test run (91 core tests plus isolated
+Evidence for the latest combined 110-test run (91 core tests plus isolated
 Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner,
 automatic-housing, Builder, Guard, sleep/wake, entity, residence and
  Stonemason, Stone Smeltery, Smeltery, Cook and Baker batches) is in
-`logs/minecolonies-gametest-baker-20260922.log`, with the
+`logs/minecolonies-gametest-raider-fix-20260922.log`, with the
 zero-failure XML report in
-`logs/minecolonies-gametest-baker-20260922.xml`; this run also
+`logs/minecolonies-gametest-raider-fix-20260922.xml`; this run also
 adds two consecutive real Miner shaft ladder-extension/backfill cycles and also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric `setItem` mixin callback and
@@ -338,11 +338,13 @@ Client rendering, full CitizenAI scheduling and longer multi-step work cycles
 remain manual or pending.
 
 The clean 110-case validation in
-`logs/minecolonies-gametest-cook-assistant-final-20260922.log` and
-`logs/minecolonies-gametest-cook-assistant-final-20260922.xml` includes the
-passing Cook Assistant case. It also exposes one unrelated timing-sensitive
-RaidManager combat failure under the full-suite load; the prior 109-case
-zero-failure run remains the stable full-suite baseline.
+`logs/minecolonies-gametest-raider-fix-20260922.log` and
+`logs/minecolonies-gametest-raider-fix-20260922.xml` includes the passing Cook
+Assistant case and the hardened RaidManager combat fixture. It reports
+`All 110 required tests passed` with zero XML failures or errors. The suite is
+reproducible through the dedicated Gradle `runGametest` task, which uses the
+isolated `run-gametest` directory and writes the JUnit report to
+`build/gametest/junit.xml`.
 
 A dedicated C2S fixture also serializes `BuildRequestMessage` in `REPAIR` mode
 and then `BuilderSelectWorkOrderMessage`, routes both through the real Fabric
