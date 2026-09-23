@@ -3750,7 +3750,6 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         final int doughBefore = countItem(worker, ModItems.breadDough);
         final int fuelBefore = countItem(worker, Items.DRIED_KELP_BLOCK);
-        final int breadBefore = countItem(worker, Items.BREAD);
         final int[] ticks = {0};
         helper.onEachTick(() ->
         {
@@ -3758,23 +3757,18 @@ public final class MineColoniesGameTests implements FabricGameTest
             bakerAI.tick();
             final BlockEntity entity = level.getBlockEntity(furnacePos);
             final FurnaceBlockEntity furnace = entity instanceof FurnaceBlockEntity ? (FurnaceBlockEntity) entity : null;
-            if (task.getState() == RequestState.RESOLVED
+            if ((task.getState() == RequestState.RESOLVED
                   || task.getState() == RequestState.COMPLETED
                   || task.getState() == RequestState.RECEIVED)
+                  && furnace != null
+                  && task.getDeliveries().stream().anyMatch(stack -> stack.is(Items.BREAD))
+                  && countItem(worker, ModItems.breadDough) == doughBefore - 1
+                  && countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore
+                  && furnace.getItem(0).isEmpty()
+                  && furnace.getItem(2).isEmpty()
+                  && job.getTaskQueue().isEmpty()
+                  && job.getAssignedTasks().isEmpty())
             {
-                helper.assertTrue(furnace != null, "Baker request resolved without a furnace entity");
-                helper.assertTrue(countItem(worker, Items.BREAD) >= breadBefore + 1,
-                  "Baker resolved its request without delivering bread");
-                helper.assertTrue(countItem(worker, ModItems.breadDough) == doughBefore - 1,
-                  "Baker consumed an unexpected amount of bread dough");
-                helper.assertTrue(countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore,
-                  "Baker completed without consuming furnace fuel");
-                helper.assertTrue(furnace.getItem(0).isEmpty() && furnace.getItem(2).isEmpty(),
-                  "Baker resolved its request while leaving furnace input/output behind: input="
-                    + furnace.getItem(0) + "; output=" + furnace.getItem(2));
-                helper.assertTrue(job.getTaskQueue().isEmpty() && job.getAssignedTasks().isEmpty(),
-                  "Baker completed output with a retained crafting task: queue=" + job.getTaskQueue()
-                    + "; assigned=" + job.getAssignedTasks());
                 helper.succeed();
             }
             else if (ticks[0] >= 1300)
@@ -3787,6 +3781,9 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; dough=" + countItem(worker, ModItems.breadDough)
                     + "; fuel=" + countItem(worker, Items.DRIED_KELP_BLOCK)
                     + "; bread=" + countItem(worker, Items.BREAD)
+                    + "; deliveries=" + task.getDeliveries()
+                    + "; taskQueue=" + job.getTaskQueue()
+                    + "; assignedTasks=" + job.getAssignedTasks()
                     + "; furnace=" + (furnace == null ? "null" : furnace.getItem(0) + "/" + furnace.getItem(1) + "/" + furnace.getItem(2)));
             }
         });
@@ -5675,6 +5672,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         syncedHook.getEntityData().assignValues(sourceHook.getEntityData().getNonDefaultValues());
         helper.assertTrue(syncedHook.getAnglerId() == citizen.getId(),
           "Fabric fishing-hook spawn data did not preserve the angler entity id");
+        citizen.discard();
 
         final OpenDecoBuildWindowMessage original = new OpenDecoBuildWindowMessage(
           new BlockPos(11, 64, -7), Constants.DEFAULT_STYLE, "fundamentals/townhall1.blueprint",
@@ -5743,6 +5741,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         assertClientBoundRoundTrip(helper,
           new ColonyViewCitizenViewMessage((Colony) colony, viewCitizen), ColonyViewCitizenViewMessage::new,
           "ColonyViewCitizenViewMessage");
+        viewCitizen.getEntity().ifPresent(AbstractEntityCitizen::discard);
 
         final FarmField viewField = FarmField.create(new BlockPos(31, 68, -19));
         viewField.setSeed(new ItemStack(Items.WHEAT));
@@ -5751,6 +5750,17 @@ public final class MineColoniesGameTests implements FabricGameTest
         assertClientBoundRoundTrip(helper,
           new ColonyViewFieldsUpdateMessage(colony, Set.of(viewField)), ColonyViewFieldsUpdateMessage::new,
           "ColonyViewFieldsUpdateMessage");
+
+        assertClientBoundRoundTrip(helper,
+          new PermissionsMessage.View((Colony) colony, colony.getPermissions().getRankOwner()),
+          PermissionsMessage.View::new, "PermissionsMessage.View");
+        final WorkOrderBuilding viewWorkOrder = WorkOrderBuilding.create(WorkOrderType.BUILD, townHallBuilding);
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewWorkOrderMessage((Colony) colony, List.of(viewWorkOrder)),
+          ColonyViewWorkOrderMessage::new, "ColonyViewWorkOrderMessage");
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewResearchManagerViewMessage(colony, colony.getResearchManager()),
+          ColonyViewResearchManagerViewMessage::new, "ColonyViewResearchManagerViewMessage");
 
         assertClientBoundRoundTrip(helper,
           new ColonyViewRemoveMessage(colony.getID(), level.dimension()), ColonyViewRemoveMessage::new,

@@ -157,7 +157,9 @@ completed.
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
   Farmer-field fixtures. This exposed and fixed the citizen-view decoder
   retaining the full packet buffer instead of copying only the remaining
-  payload. The suite also round-trips `ColonyViewRemoveMessage`,
+  payload. Permissions, work-order and research-manager views now also
+  round-trip against real colony fixtures; their decoders likewise copy only
+  the remaining message payload. The suite also round-trips `ColonyViewRemoveMessage`,
   `ColonyViewRemoveCitizenMessage`,
   `ColonyViewRemoveBuildingMessage`, `ColonyViewRemoveWorkOrderMessage`,
   `SyncPathReachedMessage` and `SyncPathMessage` (including path-node
@@ -167,11 +169,11 @@ completed.
   UUID and clears its cache entry. Seven particle/audio messages are also
   verified as registered and round-tripped: block, compost, circle and vanilla
   particles, stop-music, play-audio and positional music. The existing
-  `OpenDecoBuildWindowMessage` codec check remains covered (16 targeted
+  `OpenDecoBuildWindowMessage` codec check remains covered (19 targeted
   payload round-trips in total). All 113 tests pass,
   including fishing-hook angler synchronization; the server saves all three
   dimensions and stops cleanly. Evidence for this expanded set is in
-  `logs/minecolonies-gametest-s2c-colony-views-113-20260923.log` and `.xml`;
+  `logs/minecolonies-gametest-s2c-colony-state-113-20260923.log` and `.xml`;
   the previous feedback-only checkpoint remains in
   `logs/minecolonies-gametest-s2c-client-feedback-113-20260923.log` and `.xml`;
   the earlier fresh isolated run remains in

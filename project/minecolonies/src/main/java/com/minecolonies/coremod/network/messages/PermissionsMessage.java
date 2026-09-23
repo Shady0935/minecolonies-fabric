@@ -74,10 +74,11 @@ public class PermissionsMessage
         @Override
         public void fromBytes(@NotNull final FriendlyByteBuf buf)
         {
-            final FriendlyByteBuf newBuf = new FriendlyByteBuf(buf.retain());
-            colonyID = newBuf.readInt();
-            dimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(newBuf.readUtf(32767)));
-            data = newBuf;
+            colonyID = buf.readInt();
+            dimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buf.readUtf(32767)));
+            final int readableBytes = buf.readableBytes();
+            data = new FriendlyByteBuf(Unpooled.buffer(readableBytes));
+            buf.readBytes(data, readableBytes);
         }
 
         @Nullable

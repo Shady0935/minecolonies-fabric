@@ -57,10 +57,11 @@ public class ColonyViewWorkOrderMessage implements IMessage
     @Override
     public void fromBytes(@NotNull final FriendlyByteBuf buf)
     {
-        final FriendlyByteBuf newbuf = new FriendlyByteBuf(buf.retain());
-        colonyId = newbuf.readInt();
-        dimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(newbuf.readUtf(32767)));
-        workOrderBuffer = newbuf;
+        colonyId = buf.readInt();
+        dimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buf.readUtf(32767)));
+        final int readableBytes = buf.readableBytes();
+        workOrderBuffer = new FriendlyByteBuf(Unpooled.buffer(readableBytes));
+        buf.readBytes(workOrderBuffer, readableBytes);
     }
 
     @Override
