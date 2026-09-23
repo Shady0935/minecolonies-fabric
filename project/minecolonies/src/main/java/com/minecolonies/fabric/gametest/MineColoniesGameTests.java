@@ -173,6 +173,7 @@ import com.minecolonies.coremod.network.messages.client.SyncPathMessage;
 import com.minecolonies.coremod.network.messages.client.SyncPathReachedMessage;
 import com.minecolonies.coremod.network.messages.client.StopMusicMessage;
 import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMessage;
+import com.minecolonies.coremod.network.messages.client.UpdateChunkRangeCapabilityMessage;
 import com.minecolonies.coremod.network.messages.client.VanillaParticleMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
@@ -5642,6 +5643,7 @@ public final class MineColoniesGameTests implements FabricGameTest
           ColonyViewWorkOrderMessage.class,
           ColonyViewRemoveWorkOrderMessage.class,
           UpdateChunkCapabilityMessage.class,
+          UpdateChunkRangeCapabilityMessage.class,
           ColonyViewResearchManagerViewMessage.class,
           ColonyViewRemoveMessage.class);
         for (final Class<? extends IMessage> messageClass : clientColonyMessages)
@@ -5731,6 +5733,17 @@ public final class MineColoniesGameTests implements FabricGameTest
         townHallHut.setSchematicName("townhall1");
         final IBuilding townHallBuilding = colony.getBuildingManager().addNewBuilding(townHallHut, level);
         helper.assertTrue(townHallBuilding != null, "S2C codec fixture Town Hall was not registered");
+
+        final var townHallChunkCapability = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(
+          level.getChunkAt(townHall), IColony.CLOSE_COLONY_CAP, null).resolve().orElse(null);
+        helper.assertTrue(townHallChunkCapability != null,
+          "S2C codec fixture Town Hall chunk did not expose its colony capability");
+        assertClientBoundRoundTrip(helper,
+          new UpdateChunkCapabilityMessage(townHallChunkCapability, townHall.getX() >> 4, townHall.getZ() >> 4),
+          UpdateChunkCapabilityMessage::new, "UpdateChunkCapabilityMessage");
+        assertClientBoundRoundTrip(helper,
+          new UpdateChunkRangeCapabilityMessage(level, townHall.getX() >> 4, townHall.getZ() >> 4, 0, true),
+          UpdateChunkRangeCapabilityMessage::new, "UpdateChunkRangeCapabilityMessage");
 
         assertClientBoundRoundTrip(helper,
           new ColonyViewBuildingViewMessage(townHallBuilding), ColonyViewBuildingViewMessage::new,
