@@ -152,16 +152,21 @@ completed.
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Dedicated GameTest asserts registration of all twelve client-bound
-  colony-view/citizen/removal messages. The 113-test suite additionally
-  round-trips `ColonyViewRemoveMessage` and `SyncPathReachedMessage`, then sends
-  an out-of-order split `ServerUUIDMessage` through Fabric's client receiver
-  boundary, verifies it queues on the client executor, applies the UUID and
-  clears its cache entry. The suite passes with the fishing-hook angler
-  synchronization check. Evidence is in
+  colony-view/citizen/removal messages. A fresh isolated 113-test suite also
+  round-trips `ColonyViewRemoveMessage`, `ColonyViewRemoveCitizenMessage`,
+  `ColonyViewRemoveBuildingMessage`, `ColonyViewRemoveWorkOrderMessage`,
+  `SyncPathReachedMessage` and `SyncPathMessage` (including path-node
+  positions, parent, cost, heuristic, score and worker-reached state), then
+  sends an out-of-order split `ServerUUIDMessage` through Fabric's client
+  receiver boundary, verifies it queues on the client executor, applies the
+  UUID and clears its cache entry. All 113 tests pass, including fishing-hook
+  angler synchronization; the server saves all three dimensions and stops
+  cleanly. Evidence is in
+  `logs/minecolonies-gametest-s2c-payload-113-20260923.log` and `.xml`; the
+  earlier dispatch and registration-only results remain in
   `logs/minecolonies-gametest-s2c-client-dispatch-113-20260922.log` and
-  `.xml`; the earlier registration-only result remains in
-  `logs/minecolonies-gametest-s2c-colony-family-113-20260922.log`. Payload and
-  dispatch coverage for the other client-bound families remains open.
+  `logs/minecolonies-gametest-s2c-colony-family-113-20260922.log`.
+  Payload/dispatch coverage for other client-bound families remains open.
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
   lifecycle, commands, login/logout and datapack reload callbacks
 - [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,

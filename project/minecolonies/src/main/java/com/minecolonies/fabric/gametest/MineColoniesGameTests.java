@@ -78,6 +78,7 @@ import com.minecolonies.coremod.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.coremod.entity.CustomArrowEntity;
 import com.minecolonies.coremod.entity.NewBobberEntity;
 import com.minecolonies.coremod.entity.SpearEntity;
+import com.minecolonies.coremod.entity.pathfinding.MNode;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.colony.workorders.WorkOrderDecoration;
 import com.minecolonies.coremod.colony.workorders.WorkOrderPlantationField;
@@ -164,6 +165,7 @@ import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
+import com.minecolonies.coremod.network.messages.client.SyncPathMessage;
 import com.minecolonies.coremod.network.messages.client.SyncPathReachedMessage;
 import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
@@ -347,6 +349,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * Focused server-side fixtures for the Fabric port.
@@ -5667,39 +5670,60 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(Arrays.equals(encoded, encode(decoded)),
           "OpenDecoBuildWindowMessage changed during codec round-trip");
 
-        final ColonyViewRemoveMessage removeView = new ColonyViewRemoveMessage(417, level.dimension());
-        final byte[] removeViewPayload = encode(removeView);
-        final ColonyViewRemoveMessage decodedRemoveView = new ColonyViewRemoveMessage();
-        final FriendlyByteBuf removeViewBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(removeViewPayload));
-        try
-        {
-            decodedRemoveView.fromBytes(removeViewBuffer);
-        }
-        finally
-        {
-            removeViewBuffer.release();
-        }
-        helper.assertTrue(Arrays.equals(removeViewPayload, encode(decodedRemoveView)),
-          "ColonyViewRemoveMessage changed during its client-bound codec round-trip");
-        helper.assertTrue(decodedRemoveView.getExecutionSide() == LogicalSide.CLIENT,
-          "ColonyViewRemoveMessage no longer targets the client logical side");
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer colonyOwner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, colonyOwner, "Fabric S2C Codec Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C codec fixture colony was not created");
+
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewRemoveMessage(colony.getID(), level.dimension()), ColonyViewRemoveMessage::new,
+          "ColonyViewRemoveMessage");
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewRemoveCitizenMessage((Colony) colony, 733), ColonyViewRemoveCitizenMessage::new,
+          "ColonyViewRemoveCitizenMessage");
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewRemoveBuildingMessage((Colony) colony, new BlockPos(17, 68, -22)),
+          ColonyViewRemoveBuildingMessage::new, "ColonyViewRemoveBuildingMessage");
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewRemoveWorkOrderMessage((Colony) colony, 941),
+          ColonyViewRemoveWorkOrderMessage::new, "ColonyViewRemoveWorkOrderMessage");
 
         final Set<BlockPos> expectedReached = Set.of(new BlockPos(-12, 64, 9), new BlockPos(3, 70, -21));
         final byte[] reachedPayload = encode(new SyncPathReachedMessage(expectedReached));
-        final SyncPathReachedMessage decodedReached = new SyncPathReachedMessage();
-        final FriendlyByteBuf reachedBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(reachedPayload));
-        try
-        {
-            decodedReached.fromBytes(reachedBuffer);
-        }
-        finally
-        {
-            reachedBuffer.release();
-        }
+        final SyncPathReachedMessage decodedReached = decode(reachedPayload, SyncPathReachedMessage::new);
         helper.assertTrue(decodedReached.reached.equals(expectedReached),
           "SyncPathReachedMessage changed its client-bound block positions during decode");
         helper.assertTrue(decodedReached.getExecutionSide() == LogicalSide.CLIENT,
           "SyncPathReachedMessage no longer targets the client logical side");
+
+        final MNode visitedNode = new MNode(new MNode(new BlockPos(4, 64, 2), 1.0D),
+          new BlockPos(5, 64, 2), 2.0D, 1.5D, 3.5D);
+        visitedNode.setReachedByWorker(true);
+        final MNode unvisitedNode = new MNode(new BlockPos(-3, 65, 8), 4.5D);
+        final MNode pathNode = new MNode(new BlockPos(6, 64, 2), 0.5D);
+        final byte[] pathPayload = encode(new SyncPathMessage(
+          Set.of(visitedNode), Set.of(unvisitedNode), Set.of(pathNode)));
+        final SyncPathMessage decodedPath = decode(pathPayload, SyncPathMessage::new);
+        helper.assertTrue(decodedPath.getExecutionSide() == LogicalSide.CLIENT,
+          "SyncPathMessage no longer targets the client logical side");
+        helper.assertTrue(decodedPath.lastDebugNodesVisited.size() == 1
+          && decodedPath.lastDebugNodesNotVisited.size() == 1
+          && decodedPath.lastDebugNodesPath.size() == 1,
+          "SyncPathMessage changed its visited, unvisited or chosen path node count");
+        final MNode decodedVisitedNode = decodedPath.lastDebugNodesVisited.iterator().next();
+        helper.assertTrue(decodedVisitedNode.pos.equals(visitedNode.pos)
+          && decodedVisitedNode.parent != null && decodedVisitedNode.parent.pos.equals(visitedNode.parent.pos)
+          && decodedVisitedNode.getCost() == visitedNode.getCost()
+          && decodedVisitedNode.getHeuristic() == visitedNode.getHeuristic()
+          && decodedVisitedNode.getScore() == visitedNode.getScore()
+          && decodedVisitedNode.isReachedByWorker(),
+          "SyncPathMessage changed the visited node's path metrics or parent state");
+        helper.assertTrue(decodedPath.lastDebugNodesNotVisited.iterator().next().pos.equals(unvisitedNode.pos)
+          && decodedPath.lastDebugNodesPath.iterator().next().pos.equals(pathNode.pos),
+          "SyncPathMessage changed the unvisited node or selected path position");
 
         final int serverUuidId = findMessageId(channel, ServerUUIDMessage.class);
         helper.assertTrue(serverUuidId > 0, "Server UUID message has no inner network id");
@@ -9945,6 +9969,34 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             buffer.release();
         }
+    }
+
+    private static <T extends IMessage> T decode(final byte[] payload, final Supplier<T> messageFactory)
+    {
+        final FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload));
+        try
+        {
+            final T message = messageFactory.get();
+            message.fromBytes(buffer);
+            return message;
+        }
+        finally
+        {
+            buffer.release();
+        }
+    }
+
+    private static <T extends IMessage> void assertClientBoundRoundTrip(final GameTestHelper helper,
+                                                                         final T original,
+                                                                         final Supplier<T> messageFactory,
+                                                                         final String messageName)
+    {
+        final byte[] payload = encode(original);
+        final T decoded = decode(payload, messageFactory);
+        helper.assertTrue(Arrays.equals(payload, encode(decoded)),
+          messageName + " changed during its client-bound codec round-trip");
+        helper.assertTrue(decoded.getExecutionSide() == LogicalSide.CLIENT,
+          messageName + " no longer targets the client logical side");
     }
 
     private static void dispatchServerMessage(final NetworkChannel channel, final MinecraftServer server,
