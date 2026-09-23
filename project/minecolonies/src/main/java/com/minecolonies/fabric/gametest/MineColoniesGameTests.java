@@ -178,6 +178,7 @@ import com.minecolonies.coremod.network.messages.client.StopMusicMessage;
 import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMessage;
 import com.minecolonies.coremod.network.messages.client.UpdateChunkRangeCapabilityMessage;
 import com.minecolonies.coremod.network.messages.client.VanillaParticleMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyListMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewFieldsUpdateMessage;
@@ -5631,6 +5632,8 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Server UUID message was not registered");
         helper.assertTrue(isMessageRegistered(channel, GlobalQuestSyncMessage.class),
           "Global quest message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, ColonyListMessage.class),
+          "Colony-list message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, OpenDecoBuildWindowMessage.class),
           "Build-window message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, OpenPlantationFieldBuildWindowMessage.class),
@@ -5745,6 +5748,21 @@ public final class MineColoniesGameTests implements FabricGameTest
         final IColony colony = IColonyManager.getInstance().createColony(
           level, townHall, colonyOwner, "Fabric S2C Codec Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "S2C codec fixture colony was not created");
+
+        final ColonyListMessage decodedColonyRequest = decode(encode(new ColonyListMessage()), ColonyListMessage::new);
+        helper.assertTrue(decodedColonyRequest.getColonyInfo().isEmpty(),
+          "Empty colony-map request unexpectedly decoded colony summaries");
+        final ColonyListMessage decodedColonyList = decode(
+          encode(new ColonyListMessage(List.of(colony))), ColonyListMessage::new);
+        final List<ColonyListMessage.ColonyInfo> colonyInfo = decodedColonyList.getColonyInfo();
+        helper.assertTrue(colonyInfo.size() == 1, "Colony-map response changed its entry count");
+        final ColonyListMessage.ColonyInfo decodedColony = colonyInfo.get(0);
+        helper.assertTrue(decodedColony.getId() == colony.getID()
+          && decodedColony.getCenter().equals(colony.getCenter())
+          && decodedColony.getName().equals(colony.getName())
+          && decodedColony.getCitizencount() == colony.getCitizenManager().getCurrentCitizenCount()
+          && decodedColony.getOwner().equals(colony.getPermissions().getOwnerName()),
+          "Colony-map response changed its id, center, name, citizen count or owner");
 
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(),
           "S2C codec fixture structure-pack discovery was interrupted");

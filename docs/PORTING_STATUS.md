@@ -1,6 +1,6 @@
 # Porting status
 
-Checkpoint: 2026-09-22. A checked item is verified in the target workspace;
+Checkpoint: 2026-09-23. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually
 completed.
@@ -151,8 +151,8 @@ completed.
   the 13-test GameTest batch
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
-- [x] Dedicated GameTest asserts registration of all fourteen client-bound
-  colony-view/citizen/removal/chunk-claim/visitor messages, seven particle/audio messages
+- [x] Dedicated GameTest asserts registration of all fifteen
+  colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, seven particle/audio messages
   and four build/suggestion/scanning messages. The latest fresh isolated 113-test suite
   round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
@@ -176,10 +176,14 @@ completed.
   real Town Hall chunk-claim updates, both individual and ranged, are also
   round-tripped against its attached capability. Suggestion-window, plantation
   build-window and compressed scan-NBT packets now have codec round-trips too;
-  together with the existing `OpenDecoBuildWindowMessage` check, this brings
-  the suite to 26 targeted payload round-trips. All 113 tests pass,
+  `ColonyListMessage` also round-trips its empty request and a real colony-map
+  response, checking id, center, name, citizen count and owner. Together with
+  the existing `OpenDecoBuildWindowMessage` check, this brings the suite to 27
+  targeted payload round-trips. All 113 tests pass,
   including fishing-hook angler synchronization; the server saves all three
   dimensions and stops cleanly. Evidence for this expanded set is in
+  `logs/minecolonies-gametest-s2c-colony-map-113-20260923.log` and `.xml`;
+  the previous visitor checkpoint remains in
   `logs/minecolonies-gametest-s2c-visitors-113-20260923.log` and `.xml`;
   the previous UI/schematic checkpoint remains in
   `logs/minecolonies-gametest-s2c-ui-payloads-113-20260923.log` and `.xml`;

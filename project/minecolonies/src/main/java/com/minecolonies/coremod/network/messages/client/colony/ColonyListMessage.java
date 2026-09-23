@@ -41,6 +41,16 @@ public class ColonyListMessage implements IMessage
         this.colonies = colonies;
     }
 
+    /**
+     * Returns the colony summaries decoded for the client map.
+     *
+     * @return an immutable snapshot of the decoded colony summaries.
+     */
+    public List<ColonyInfo> getColonyInfo()
+    {
+        return List.copyOf(colonyInfo);
+    }
+
     @Override
     public void fromBytes(@NotNull final FriendlyByteBuf buf)
     {
