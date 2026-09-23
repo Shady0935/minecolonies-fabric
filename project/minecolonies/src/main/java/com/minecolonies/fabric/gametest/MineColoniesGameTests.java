@@ -166,6 +166,8 @@ import com.minecolonies.coremod.network.messages.client.CompostParticleMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
+import com.minecolonies.coremod.network.messages.client.OpenPlantationFieldBuildWindowMessage;
+import com.minecolonies.coremod.network.messages.client.OpenSuggestionWindowMessage;
 import com.minecolonies.coremod.network.messages.client.PlayAudioMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
@@ -5629,6 +5631,10 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Global quest message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, OpenDecoBuildWindowMessage.class),
           "Build-window message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, OpenPlantationFieldBuildWindowMessage.class),
+          "Plantation-field build-window message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, OpenSuggestionWindowMessage.class),
+          "Suggestion-window message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, SaveStructureNBTMessage.class),
           "Scan-save message was not registered on the server");
 
@@ -5713,6 +5719,21 @@ public final class MineColoniesGameTests implements FabricGameTest
         assertClientBoundRoundTrip(helper,
           new PlayMusicAtPosMessage(SoundEvents.MUSIC_DISC_13, new BlockPos(6, 70, -9), level, 0.625F, 1.25F),
           PlayMusicAtPosMessage::new, "PlayMusicAtPosMessage");
+
+        assertClientBoundRoundTrip(helper,
+          new OpenSuggestionWindowMessage(Blocks.DIAMOND_BLOCK.defaultBlockState(),
+            new BlockPos(-8, 71, 14), new ItemStack(Items.IRON_INGOT, 5)),
+          OpenSuggestionWindowMessage::new, "OpenSuggestionWindowMessage");
+        assertClientBoundRoundTrip(helper,
+          new OpenPlantationFieldBuildWindowMessage(new BlockPos(13, 68, -4), "colonial",
+            "fields/plantation", Rotation.CLOCKWISE_90, Mirror.FRONT_BACK),
+          OpenPlantationFieldBuildWindowMessage::new, "OpenPlantationFieldBuildWindowMessage");
+        final CompoundTag scanNbt = new CompoundTag();
+        scanNbt.putString("fixture", "client-scan");
+        scanNbt.putInt("paletteSize", 3);
+        assertClientBoundRoundTrip(helper,
+          new SaveStructureNBTMessage(scanNbt, "client-scan.nbt"), SaveStructureNBTMessage::new,
+          "SaveStructureNBTMessage");
 
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
