@@ -1,0 +1,160 @@
+[19:39:25] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.20.1 with Fabric Loader 0.15.11
+[19:39:25] [main/INFO] (FabricLoader) Loading 50 mods:
+	- blockui 0.0.1-port
+	- domum_ornamentum 1.0.0-port
+	- fabric-api 0.92.2+1.20.1
+	- fabric-api-base 0.4.31+1802ada577
+	- fabric-api-lookup-api-v1 1.6.36+1802ada577
+	- fabric-biome-api-v1 13.0.13+1802ada577
+	- fabric-block-api-v1 1.0.11+1802ada577
+	- fabric-block-view-api-v2 1.0.1+1802ada577
+	- fabric-command-api-v1 1.2.34+f71b366f77
+	- fabric-command-api-v2 2.2.13+1802ada577
+	- fabric-commands-v0 0.2.51+df3654b377
+	- fabric-containers-v0 0.1.64+df3654b377
+	- fabric-content-registries-v0 4.0.11+1802ada577
+	- fabric-convention-tags-v1 1.5.5+1802ada577
+	- fabric-crash-report-info-v1 0.2.19+1802ada577
+	- fabric-data-attachment-api-v1 1.0.0+de0fd6d177
+	- fabric-data-generation-api-v1 12.3.4+1802ada577
+	- fabric-dimensions-v1 2.1.54+1802ada577
+	- fabric-entity-events-v1 1.6.0+1c78457f77
+	- fabric-events-interaction-v0 0.6.2+1802ada577
+	- fabric-events-lifecycle-v0 0.2.63+df3654b377
+	- fabric-game-rule-api-v1 1.0.40+1802ada577
+	- fabric-gametest-api-v1 1.2.13+1802ada577
+	- fabric-item-api-v1 2.1.28+1802ada577
+	- fabric-item-group-api-v1 4.0.12+1802ada577
+	- fabric-lifecycle-events-v1 2.2.22+1802ada577
+	- fabric-loot-api-v2 1.2.1+1802ada577
+	- fabric-loot-tables-v1 1.1.45+9e7660c677
+	- fabric-message-api-v1 5.1.9+1802ada577
+	- fabric-mining-level-api-v1 2.1.50+1802ada577
+	- fabric-networking-api-v1 1.3.11+1802ada577
+	- fabric-networking-v0 0.3.51+df3654b377
+	- fabric-object-builder-api-v1 11.1.3+1802ada577
+	- fabric-particles-v1 1.1.2+1802ada577
+	- fabric-recipe-api-v1 1.0.21+1802ada577
+	- fabric-registry-sync-v0 2.3.3+1802ada577
+	- fabric-rendering-data-attachment-v1 0.3.37+92a0d36777
+	- fabric-rendering-fluids-v1 3.0.28+1802ada577
+	- fabric-resource-conditions-api-v1 2.3.8+1802ada577
+	- fabric-resource-loader-v0 0.11.10+1802ada577
+	- fabric-screen-handler-api-v1 1.3.30+1802ada577
+	- fabric-transfer-api-v1 3.3.5+8dd72ea377
+	- fabric-transitive-access-wideners-v1 4.3.1+1802ada577
+	- fabricloader 0.15.11
+	- java 17
+	- minecolonies 1.0.0-port
+	- minecraft 1.20.1
+	- mixinextras 0.3.5
+	- multipiston 0.0.1-port
+	- structurize 1.0.0-port
+[19:39:25] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.5 Source=file:/C:/Users/Shady/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.13.3+mixin.0.8.5/9527e6b0d2449408958fd1302594dc65ec5ade9c/sponge-mixin-0.13.3+mixin.0.8.5.jar Service=Knot/Fabric Env=SERVER
+[19:39:26] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[19:39:26] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[19:39:26] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.3.5).
+[19:39:35] [main/INFO] (structurize) Structurize Fabric 1.20.1 initialized
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:citizen
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:fishhook
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:visitor
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mercenary
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:barbarian
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:archerbarbarian
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:chiefbarbarian
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:pirate
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:archerpirate
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:chiefpirate
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:sittingentity
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mcminecart
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mummy
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:archermummy
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:pharao
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:amazon
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:amazonspearman
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:amazonchief
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:firearrow
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mcnormalarrow
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:druidpotion
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:shieldmaiden
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:norsemenarcher
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:norsemenchief
+[19:39:35] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:spear
+[19:39:36] [main/WARN] (MineColonies) Reconfiguring logging for RS.
+[19:39:36] [main/WARN] (MineColonies) Reconfigured logging for RS.
+[19:39:36] [main/WARN] (minecolonies) Register mappings
+[19:39:36] [main/INFO] (Minecraft) Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[19:39:38] [main/INFO] (Minecraft) Loaded 9 recipes
+[19:39:38] [main/INFO] (Minecraft) Loaded 1479 advancements
+[19:39:38] [main/INFO] (minecolonies) Beginning load of custom recipes for colony workers
+[19:39:38] [main/INFO] (minecolonies) Loaded 130 recipes for 14 crafters
+[19:39:38] [main/INFO] (minecolonies) Beginning load of research for University.
+[19:39:38] [main/INFO] (minecolonies) Loaded 201 recipes for 4 research branches
+[19:39:38] [main/INFO] (minecolonies) Loading quests from data
+[19:39:38] [main/INFO] (minecolonies) Finished loading quests from data
+[19:39:38] [main/WARN] (minecolonies) Read 1456 items with their nbt keys for compatibility.
+[19:39:39] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 64 new biomes in 1.549 ms
+[19:39:39] [Server thread/INFO] (Minecraft) Starting minecraft server version 1.20.1
+[19:39:39] [Server thread/INFO] (Minecraft) Loading properties
+[19:39:39] [Server thread/INFO] (Minecraft) Default game type: SURVIVAL
+[19:39:39] [Server thread/INFO] (Minecraft) Generating keypair
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Urban Savanna
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Urban Birch
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Caledonia
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Cavern
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Colonial
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Dark Oak Treehouse
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Fortress
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Incan
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Jungle Treehouse
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Lost Mesa City
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Birch
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Dark Oak
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Oak
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Spruce
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Nordic Spruce
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Minecolonies Original
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Pagoda
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Desert Oasis
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Shire
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Space Wars
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Stalactite Caves
+[19:39:39] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Warped Netherlands
+[19:39:39] [Structurize IO Worker #0/WARN] (structurize) Failed loading packs from main folder path: .
+[19:39:39] [Structurize IO Worker #0/WARN] (structurize) Failed loading client packs from main folder path: .
+[19:39:39] [Structurize IO Worker #0/WARN] (structurize) Finished discovering Server Structure packs
+[19:39:39] [Server thread/INFO] (Minecraft) Starting Minecraft server on 127.0.0.1:0
+[19:39:39] [Server thread/INFO] (Minecraft) Using default channel type
+[19:39:39] [Server thread/INFO] (Minecraft) Preparing level "world"
+[19:39:40] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[19:39:42] [Worker-Main-3/INFO] (Minecraft) Preparing spawn area: 0%
+[19:39:42] [Worker-Main-5/INFO] (Minecraft) Preparing spawn area: 0%
+[19:39:42] [Worker-Main-5/INFO] (Minecraft) Preparing spawn area: 0%
+[19:39:42] [Worker-Main-5/INFO] (Minecraft) Preparing spawn area: 0%
+[19:39:42] [Worker-Main-2/INFO] (Minecraft) Preparing spawn area: 0%
+[19:39:43] [Server thread/INFO] (Minecraft) Time elapsed: 2497 ms
+[19:39:43] [Server thread/INFO] (Minecraft) Done (3.454s)! For help, type "help"
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering Ores 18 21
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering saplings 10
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering plantables 19
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering food 44 56
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering fuel 249
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering flowers 24
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering items 1917
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering lucky oreBlocks 6
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering recruitment costs
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering diseases
+[19:39:43] [Server thread/INFO] (minecolonies) Finished discovering compostables 139
+[19:39:48] [Server thread/INFO] (Minecraft) Saving the game (this may take a moment!)
+[19:39:48] [Server thread/INFO] (Minecraft) Saved the game
+[19:39:51] [Server thread/INFO] (Minecraft) Stopping the server
+[19:39:51] [Server thread/INFO] (Minecraft) Stopping server
+[19:39:51] [Server thread/INFO] (Minecraft) Saving players
+[19:39:51] [Server thread/INFO] (Minecraft) Saving worlds
+[19:39:52] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[19:39:52] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[19:39:52] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[19:39:52] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[19:39:52] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[19:39:52] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[19:39:52] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved

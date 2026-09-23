@@ -153,5 +153,6 @@ The following work remains, in order:
 7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
    using explicit Fabric APIs and keeping them optional.
 8. Package and test a dedicated-server distribution with secure authentication
-   and a fresh client/server pair, then keep the implementation checkpoint
-   commits clean and reproducible.
+   and a fresh client/server pair. The development server now passes an
+   isolated MultiPiston-enabled save/restart probe with secure settings; the
+   packaged distribution and authenticated client login are still pending.

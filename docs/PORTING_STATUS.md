@@ -52,6 +52,14 @@ completed.
   launches, flushed all three dimensions and stopped cleanly; evidence is in
   `logs/minecolonies-dedicated-normal-first-20260922.log.gz` and
   `logs/minecolonies-dedicated-normal-restart-20260922.log`
+- [x] MultiPiston-enabled dedicated-server persistence probe launched the same
+  isolated world twice with `online-mode=true`, secure profiles enforced,
+  loopback binding and RCON disabled; both launches reached `Done`, saved all
+  three dimensions and stopped cleanly. The server-properties snapshot and
+  first/restart logs are in `logs/minecolonies-multipiston-dedicated-server-properties-20260922.txt`,
+  `logs/minecolonies-multipiston-dedicated-first-20260922.log.gz` and
+  `logs/minecolonies-multipiston-dedicated-restart-20260922.log`. A separate
+  authenticated client login and packaged distribution test remain pending.
 - [x] Post-restart entity persistence probe found a saved `EntityCitizen` and
   `VisitorCitizen` with MineColonies identity/colony NBT; evidence is in
   `logs/minecolonies-runserver-citizen-entity-restart.log`

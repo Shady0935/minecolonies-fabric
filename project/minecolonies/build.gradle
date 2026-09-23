@@ -32,6 +32,13 @@ loom {
             vmArg '-Dfabric-api.gametest=true'
             vmArg "-Dfabric-api.gametest.report-file=${project.file('build/gametest/junit.xml').absolutePath}"
         }
+        multipistonDedicatedServer {
+            server()
+            runDir 'run-dedicated-multipiston-20260922'
+            programArg '--nogui'
+            programArg '--port'
+            programArg '0'
+        }
     }
 }
 
