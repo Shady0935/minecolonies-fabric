@@ -26,15 +26,17 @@ fabricApi {
     }
 }
 
-// Keep the headless Fabric GameTest launcher reproducible from Gradle.  The
-// dedicated run directory is intentionally separate from the normal server
-// probe so old worlds cannot silently contaminate a full-suite result.
+// Keep the headless Fabric GameTest launcher reproducible from Gradle. The
+// dedicated run directory is separate from the normal server probe. Set
+// -PgameTestRunDir=run-gametest-<id> for a fresh isolated run; preserve old
+// run directories rather than silently reusing or deleting them.
+def gameTestRunDir = project.providers.gradleProperty('gameTestRunDir').getOrElse('run-gametest')
 loom {
     accessWidenerPath = file('src/main/resources/minecolonies.accesswidener')
     runs {
         gametest {
             server()
-            runDir 'run-gametest'
+            runDir gameTestRunDir
             vmArg '-Dfabric-api.gametest=true'
             vmArg "-Dfabric-api.gametest.report-file=${project.file('build/gametest/junit.xml').absolutePath}"
         }

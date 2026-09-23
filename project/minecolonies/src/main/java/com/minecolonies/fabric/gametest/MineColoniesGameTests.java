@@ -164,6 +164,7 @@ import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
+import com.minecolonies.coremod.network.messages.client.SyncPathReachedMessage;
 import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
@@ -171,6 +172,7 @@ import com.minecolonies.coremod.network.messages.client.colony.ColonyViewFieldsU
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveBuildingMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveCitizenMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewResearchManagerViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewWorkOrderMessage;
@@ -336,6 +338,7 @@ import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import io.netty.buffer.Unpooled;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -5629,7 +5632,8 @@ public final class MineColoniesGameTests implements FabricGameTest
           ColonyViewWorkOrderMessage.class,
           ColonyViewRemoveWorkOrderMessage.class,
           UpdateChunkCapabilityMessage.class,
-          ColonyViewResearchManagerViewMessage.class);
+          ColonyViewResearchManagerViewMessage.class,
+          ColonyViewRemoveMessage.class);
         for (final Class<? extends IMessage> messageClass : clientColonyMessages)
         {
             helper.assertTrue(isMessageRegistered(channel, messageClass),
@@ -5663,11 +5667,49 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(Arrays.equals(encoded, encode(decoded)),
           "OpenDecoBuildWindowMessage changed during codec round-trip");
 
+        final ColonyViewRemoveMessage removeView = new ColonyViewRemoveMessage(417, level.dimension());
+        final byte[] removeViewPayload = encode(removeView);
+        final ColonyViewRemoveMessage decodedRemoveView = new ColonyViewRemoveMessage();
+        final FriendlyByteBuf removeViewBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(removeViewPayload));
+        try
+        {
+            decodedRemoveView.fromBytes(removeViewBuffer);
+        }
+        finally
+        {
+            removeViewBuffer.release();
+        }
+        helper.assertTrue(Arrays.equals(removeViewPayload, encode(decodedRemoveView)),
+          "ColonyViewRemoveMessage changed during its client-bound codec round-trip");
+        helper.assertTrue(decodedRemoveView.getExecutionSide() == LogicalSide.CLIENT,
+          "ColonyViewRemoveMessage no longer targets the client logical side");
+
+        final Set<BlockPos> expectedReached = Set.of(new BlockPos(-12, 64, 9), new BlockPos(3, 70, -21));
+        final byte[] reachedPayload = encode(new SyncPathReachedMessage(expectedReached));
+        final SyncPathReachedMessage decodedReached = new SyncPathReachedMessage();
+        final FriendlyByteBuf reachedBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(reachedPayload));
+        try
+        {
+            decodedReached.fromBytes(reachedBuffer);
+        }
+        finally
+        {
+            reachedBuffer.release();
+        }
+        helper.assertTrue(decodedReached.reached.equals(expectedReached),
+          "SyncPathReachedMessage changed its client-bound block positions during decode");
+        helper.assertTrue(decodedReached.getExecutionSide() == LogicalSide.CLIENT,
+          "SyncPathReachedMessage no longer targets the client logical side");
+
         final int serverUuidId = findMessageId(channel, ServerUUIDMessage.class);
         helper.assertTrue(serverUuidId > 0, "Server UUID message has no inner network id");
         final UUID expected = UUID.fromString("11111111-2222-3333-4444-555555555555");
+        final UUID previousServerUuid = IColonyManager.getInstance().getServerUUID();
+        final UUID expectedServerUuid = expected.equals(previousServerUuid)
+          ? UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+          : expected;
         final FriendlyByteBuf uuidBuffer = new FriendlyByteBuf(Unpooled.buffer());
-        PacketUtils.writeUUID(uuidBuffer, expected);
+        PacketUtils.writeUUID(uuidBuffer, expectedServerUuid);
         final byte[] uuidPayload = new byte[uuidBuffer.readableBytes()];
         uuidBuffer.getBytes(uuidBuffer.readerIndex(), uuidPayload);
         uuidBuffer.release();
@@ -5675,14 +5717,41 @@ public final class MineColoniesGameTests implements FabricGameTest
         final int communicationId = 0x4D435446;
         final byte[] firstChunk = Arrays.copyOfRange(uuidPayload, 0, 7);
         final byte[] secondChunk = Arrays.copyOfRange(uuidPayload, 7, uuidPayload.length);
-        final NetworkEvent.Context context = new NetworkEvent.Context(null, LogicalSide.SERVER);
-        new SplitPacketMessage(communicationId, 1, false, serverUuidId, secondChunk).onExecute(context, false);
-        new SplitPacketMessage(communicationId, 0, true, serverUuidId, firstChunk).onExecute(context, false);
+        final List<Runnable> clientWork = new ArrayList<>();
+        final FriendlyByteBuf secondEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+          encode(new SplitPacketMessage(communicationId, 1, false, serverUuidId, secondChunk))));
+        try
+        {
+            channel.getRawChannel().handleClient(secondEnvelope, clientWork::add);
+        }
+        finally
+        {
+            secondEnvelope.release();
+        }
+        helper.assertTrue(clientWork.isEmpty(), "A non-final S2C split chunk scheduled the inner handler");
+        helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) != null,
+          "Out-of-order S2C split chunk was not retained for reassembly");
 
-        helper.assertTrue(IColonyManager.getInstance().getServerUUID().equals(expected),
-          "Split packet reassembly did not deliver the UUID payload");
+        final FriendlyByteBuf firstEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+          encode(new SplitPacketMessage(communicationId, 0, true, serverUuidId, firstChunk))));
+        try
+        {
+            channel.getRawChannel().handleClient(firstEnvelope, clientWork::add);
+        }
+        finally
+        {
+            firstEnvelope.release();
+        }
+
+        helper.assertTrue(clientWork.size() == 1,
+          "Completed S2C split message did not enqueue exactly one client-side handler");
+        helper.assertTrue(IColonyManager.getInstance().getServerUUID().equals(previousServerUuid),
+          "S2C handler ran before the client executor drained its queue");
         helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
-          "Completed split packet was not removed from the cache");
+          "Completed S2C split packet was not removed from the cache");
+        clientWork.remove(0).run();
+        helper.assertTrue(IColonyManager.getInstance().getServerUUID().equals(expectedServerUuid),
+          "Fabric client receiver did not dispatch the reassembled ServerUUIDMessage");
         helper.succeed();
     }
 
