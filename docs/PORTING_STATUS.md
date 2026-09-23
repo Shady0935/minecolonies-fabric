@@ -151,8 +151,8 @@ completed.
   the 13-test GameTest batch
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
-- [x] Dedicated GameTest asserts registration of all thirteen client-bound
-  colony-view/citizen/removal/chunk-claim messages, seven particle/audio messages
+- [x] Dedicated GameTest asserts registration of all fourteen client-bound
+  colony-view/citizen/removal/chunk-claim/visitor messages, seven particle/audio messages
   and four build/suggestion/scanning messages. The latest fresh isolated 113-test suite
   round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
@@ -160,7 +160,10 @@ completed.
   retaining the full packet buffer instead of copying only the remaining
   payload. Permissions, work-order and research-manager views now also
   round-trip against real colony fixtures; their decoders likewise copy only
-  the remaining message payload. The suite also round-trips `ColonyViewRemoveMessage`,
+  the remaining message payload. Visitor view synchronization now round-trips
+  a registered visitor with recruit-cost and sitting-position data; its decoder
+  copies the message payload, preserving the embedded visitor count. The suite
+  also round-trips `ColonyViewRemoveMessage`,
   `ColonyViewRemoveCitizenMessage`,
   `ColonyViewRemoveBuildingMessage`, `ColonyViewRemoveWorkOrderMessage`,
   `SyncPathReachedMessage` and `SyncPathMessage` (including path-node
@@ -174,10 +177,11 @@ completed.
   round-tripped against its attached capability. Suggestion-window, plantation
   build-window and compressed scan-NBT packets now have codec round-trips too;
   together with the existing `OpenDecoBuildWindowMessage` check, this brings
-  the suite to 25 targeted payload round-trips
-  payload round-trips in total). All 113 tests pass,
+  the suite to 26 targeted payload round-trips. All 113 tests pass,
   including fishing-hook angler synchronization; the server saves all three
   dimensions and stops cleanly. Evidence for this expanded set is in
+  `logs/minecolonies-gametest-s2c-visitors-113-20260923.log` and `.xml`;
+  the previous UI/schematic checkpoint remains in
   `logs/minecolonies-gametest-s2c-ui-payloads-113-20260923.log` and `.xml`;
   the previous chunk-claim checkpoint remains in
   `logs/minecolonies-gametest-s2c-chunk-capabilities-113-20260923.log` and `.xml`;

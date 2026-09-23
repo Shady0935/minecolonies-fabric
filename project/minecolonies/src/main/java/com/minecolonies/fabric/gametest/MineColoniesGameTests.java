@@ -6,6 +6,7 @@ import com.minecolonies.api.advancements.AdvancementTriggers;
 import com.minecolonies.api.advancements.open_gui_window.OpenGuiWindowCriterionInstance;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.IVisitorData;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.ICitizenData;
@@ -185,6 +186,7 @@ import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveB
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveCitizenMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveWorkOrderMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyVisitorViewDataMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewResearchManagerViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.client.colony.PlayMusicAtPosMessage;
@@ -5650,6 +5652,7 @@ public final class MineColoniesGameTests implements FabricGameTest
           ColonyViewRemoveWorkOrderMessage.class,
           UpdateChunkCapabilityMessage.class,
           UpdateChunkRangeCapabilityMessage.class,
+          ColonyVisitorViewDataMessage.class,
           ColonyViewResearchManagerViewMessage.class,
           ColonyViewRemoveMessage.class);
         for (final Class<? extends IMessage> messageClass : clientColonyMessages)
@@ -5795,6 +5798,13 @@ public final class MineColoniesGameTests implements FabricGameTest
         assertClientBoundRoundTrip(helper,
           new ColonyViewResearchManagerViewMessage(colony, colony.getResearchManager()),
           ColonyViewResearchManagerViewMessage::new, "ColonyViewResearchManagerViewMessage");
+        final IVisitorData viewVisitor = (IVisitorData) colony.getVisitorManager().createAndRegisterCivilianData();
+        viewVisitor.setRecruitCosts(new ItemStack(Items.EMERALD, 2));
+        viewVisitor.setSittingPosition(townHall.above());
+        assertClientBoundRoundTrip(helper,
+          new ColonyVisitorViewDataMessage(colony, Set.of(viewVisitor), true),
+          ColonyVisitorViewDataMessage::new, "ColonyVisitorViewDataMessage");
+        colony.getVisitorManager().removeCivilian(viewVisitor);
 
         assertClientBoundRoundTrip(helper,
           new ColonyViewRemoveMessage(colony.getID(), level.dimension()), ColonyViewRemoveMessage::new,

@@ -35,11 +35,6 @@ public class ColonyVisitorViewDataMessage implements IMessage
     private ResourceKey<Level> dimension;
 
     /**
-     * Visiting entity data
-     */
-    private Set<IVisitorData> visitors;
-
-    /**
      * Visitor buf to read on client side.
      */
     private FriendlyByteBuf visitorBuf;
@@ -67,10 +62,10 @@ public class ColonyVisitorViewDataMessage implements IMessage
         super();
         this.colonyId = colony.getID();
         this.dimension = colony.getDimension();
-        this.visitors = visitors;
         this.refresh = refresh;
 
         visitorBuf = new FriendlyByteBuf(Unpooled.buffer());
+        visitorBuf.writeInt(visitors.size());
         for (final IVisitorData data : visitors)
         {
             visitorBuf.writeInt(data.getId());
@@ -84,7 +79,9 @@ public class ColonyVisitorViewDataMessage implements IMessage
         colonyId = buf.readInt();
         dimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buf.readUtf(32767)));
         refresh = buf.readBoolean();
-        this.visitorBuf = new FriendlyByteBuf(buf.retain());
+        final int readableBytes = buf.readableBytes();
+        visitorBuf = new FriendlyByteBuf(Unpooled.buffer(readableBytes));
+        buf.readBytes(visitorBuf, readableBytes);
     }
 
     @Override
@@ -94,7 +91,6 @@ public class ColonyVisitorViewDataMessage implements IMessage
         buf.writeInt(colonyId);
         buf.writeUtf(dimension.location().toString());
         buf.writeBoolean(refresh);
-        buf.writeInt(visitors.size());
         buf.writeBytes(visitorBuf);
     }
 
