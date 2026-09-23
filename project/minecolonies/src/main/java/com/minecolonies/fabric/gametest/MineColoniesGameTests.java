@@ -160,14 +160,20 @@ import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
 import com.minecolonies.coremod.network.messages.PermissionsMessage;
+import com.minecolonies.coremod.network.messages.client.BlockParticleEffectMessage;
+import com.minecolonies.coremod.network.messages.client.CircleParticleEffectMessage;
+import com.minecolonies.coremod.network.messages.client.CompostParticleMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
+import com.minecolonies.coremod.network.messages.client.PlayAudioMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SyncPathMessage;
 import com.minecolonies.coremod.network.messages.client.SyncPathReachedMessage;
+import com.minecolonies.coremod.network.messages.client.StopMusicMessage;
 import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMessage;
+import com.minecolonies.coremod.network.messages.client.VanillaParticleMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewFieldsUpdateMessage;
@@ -178,6 +184,7 @@ import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveM
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewResearchManagerViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewWorkOrderMessage;
+import com.minecolonies.coremod.network.messages.client.colony.PlayMusicAtPosMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
@@ -278,6 +285,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.ChatFormatting;
@@ -317,6 +325,8 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
@@ -5642,6 +5652,19 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(isMessageRegistered(channel, messageClass),
               "Client-bound colony-view message was not registered: " + messageClass.getSimpleName());
         }
+        final List<Class<? extends IMessage>> clientFeedbackMessages = List.of(
+          BlockParticleEffectMessage.class,
+          CompostParticleMessage.class,
+          CircleParticleEffectMessage.class,
+          VanillaParticleMessage.class,
+          StopMusicMessage.class,
+          PlayAudioMessage.class,
+          PlayMusicAtPosMessage.class);
+        for (final Class<? extends IMessage> messageClass : clientFeedbackMessages)
+        {
+            helper.assertTrue(isMessageRegistered(channel, messageClass),
+              "Client-bound feedback message was not registered: " + messageClass.getSimpleName());
+        }
 
         final EntityCitizen citizen = (EntityCitizen) ModEntities.CITIZEN.create(level);
         helper.assertTrue(citizen != null, "Fishing hook fixture could not create a citizen entity");
@@ -5669,6 +5692,27 @@ public final class MineColoniesGameTests implements FabricGameTest
         }
         helper.assertTrue(Arrays.equals(encoded, encode(decoded)),
           "OpenDecoBuildWindowMessage changed during codec round-trip");
+
+        assertClientBoundRoundTrip(helper,
+          new BlockParticleEffectMessage(new BlockPos(-17, 68, 23), Blocks.OAK_PLANKS.defaultBlockState(), 3),
+          BlockParticleEffectMessage::new, "BlockParticleEffectMessage");
+        assertClientBoundRoundTrip(helper,
+          new CompostParticleMessage(new BlockPos(21, 70, -11)), CompostParticleMessage::new,
+          "CompostParticleMessage");
+        assertClientBoundRoundTrip(helper,
+          new CircleParticleEffectMessage(new Vec3(4.125D, 65.25D, -3.875D), ParticleTypes.CRIT, 7),
+          CircleParticleEffectMessage::new, "CircleParticleEffectMessage");
+        assertClientBoundRoundTrip(helper,
+          new VanillaParticleMessage(-2.25D, 72.5D, 13.75D, ParticleTypes.HAPPY_VILLAGER),
+          VanillaParticleMessage::new, "VanillaParticleMessage");
+        assertClientBoundRoundTrip(helper, new StopMusicMessage(), StopMusicMessage::new,
+          "StopMusicMessage");
+        assertClientBoundRoundTrip(helper,
+          new PlayAudioMessage(SoundEvents.MUSIC_DISC_CAT, SoundSource.MUSIC), PlayAudioMessage::new,
+          "PlayAudioMessage");
+        assertClientBoundRoundTrip(helper,
+          new PlayMusicAtPosMessage(SoundEvents.MUSIC_DISC_13, new BlockPos(6, 70, -9), level, 0.625F, 1.25F),
+          PlayMusicAtPosMessage::new, "PlayMusicAtPosMessage");
 
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);

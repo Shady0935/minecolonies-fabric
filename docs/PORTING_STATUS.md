@@ -159,11 +159,16 @@ completed.
   positions, parent, cost, heuristic, score and worker-reached state), then
   sends an out-of-order split `ServerUUIDMessage` through Fabric's client
   receiver boundary, verifies it queues on the client executor, applies the
-  UUID and clears its cache entry. All 113 tests pass, including fishing-hook
-  angler synchronization; the server saves all three dimensions and stops
-  cleanly. Evidence is in
-  `logs/minecolonies-gametest-s2c-payload-113-20260923.log` and `.xml`; the
-  earlier dispatch and registration-only results remain in
+  UUID and clears its cache entry. Seven particle/audio messages are also
+  verified as registered and round-tripped: block, compost, circle and vanilla
+  particles, stop-music, play-audio and positional music. The existing
+  `OpenDecoBuildWindowMessage` codec check remains covered. All 113 tests pass,
+  including fishing-hook angler synchronization; the server saves all three
+  dimensions and stops cleanly. Evidence for this expanded set is in
+  `logs/minecolonies-gametest-s2c-client-feedback-113-20260923.log` and `.xml`;
+  the previous fresh isolated run remains in
+  `logs/minecolonies-gametest-s2c-payload-113-20260923.log` and `.xml`; earlier
+  dispatch and registration-only results remain in
   `logs/minecolonies-gametest-s2c-client-dispatch-113-20260922.log` and
   `logs/minecolonies-gametest-s2c-colony-family-113-20260922.log`.
   Payload/dispatch coverage for other client-bound families remains open.
