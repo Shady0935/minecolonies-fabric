@@ -1,5 +1,6 @@
 package com.minecolonies.fabric.compat;
 
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ChunkHolder;
@@ -156,7 +157,6 @@ public final class FabricVanillaCompat
      * Installs the suppliers collected by the retained Forge-style attribute event
      * into vanilla's 1.20.1 attribute table.
      */
-    @SuppressWarnings("unchecked")
     public static void registerDefaultAttributes(final Map<EntityType<? extends LivingEntity>, AttributeSupplier> attributes)
     {
         if (attributes == null || attributes.isEmpty())
@@ -164,20 +164,7 @@ public final class FabricVanillaCompat
             return;
         }
 
-        try
-        {
-            final Field field = net.minecraft.world.entity.ai.attributes.DefaultAttributes.class.getDeclaredField("SUPPLIERS");
-            field.setAccessible(true);
-            final Object value = field.get(null);
-            if (value instanceof Map<?, ?> suppliers)
-            {
-                ((Map<EntityType<? extends LivingEntity>, AttributeSupplier>) suppliers).putAll(attributes);
-            }
-        }
-        catch (ReflectiveOperationException ignored)
-        {
-            // Mapping/access-transformer variants may expose a different field name.
-        }
+        attributes.forEach(FabricDefaultAttributeRegistry::register);
     }
 
     private static <T> T readField(final Object target, final String name, final Class<T> type)

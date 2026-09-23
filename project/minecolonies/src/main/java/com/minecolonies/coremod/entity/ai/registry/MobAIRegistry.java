@@ -102,7 +102,7 @@ public class MobAIRegistry implements IMobAIRegistry
         {
             if (task.entityPredicate.test(mob))
             {
-                net.minecraft.world.entity.MobAccess.goalSelector(mob).addGoal(task.priority, task.aiTaskProducer.apply(mob));
+                com.minecolonies.fabric.compat.MobAccess.goalSelector(mob).addGoal(task.priority, task.aiTaskProducer.apply(mob));
             }
         }
 
@@ -110,7 +110,7 @@ public class MobAIRegistry implements IMobAIRegistry
         {
             if (task.entityPredicate.test(mob))
             {
-                net.minecraft.world.entity.MobAccess.goalSelector(mob).addGoal(task.priority, task.aiTaskProducer.apply(mob));
+                com.minecolonies.fabric.compat.MobAccess.goalSelector(mob).addGoal(task.priority, task.aiTaskProducer.apply(mob));
             }
         }
     }

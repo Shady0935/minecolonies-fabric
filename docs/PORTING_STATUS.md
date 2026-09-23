@@ -58,8 +58,15 @@ completed.
   three dimensions and stopped cleanly. The server-properties snapshot and
   first/restart logs are in `logs/minecolonies-multipiston-dedicated-server-properties-20260922.txt`,
   `logs/minecolonies-multipiston-dedicated-first-20260922.log.gz` and
-  `logs/minecolonies-multipiston-dedicated-restart-20260922.log`. A separate
-  authenticated client login and packaged distribution test remain pending.
+  `logs/minecolonies-multipiston-dedicated-restart-20260922.log`.
+- [x] Packaged server-mod ZIP launched in a fresh standalone Fabric 1.20.1
+  server with Fabric Loader 0.15.11: 50 mods loaded, server reached `Done`,
+  `save-all` succeeded, and shutdown saved all three dimensions. The isolated
+  server kept online authentication and secure profiles enabled, loopback
+  binding, and RCON disabled. Evidence is in
+  `logs/minecolonies-fabric-server-bundle-20260922.log` and
+  `logs/minecolonies-fabric-server-bundle-properties-20260922.txt`. A fresh
+  authenticated client login remains pending.
 - [x] Post-restart entity persistence probe found a saved `EntityCitizen` and
   `VisitorCitizen` with MineColonies identity/colony NBT; evidence is in
   `logs/minecolonies-runserver-citizen-entity-restart.log`

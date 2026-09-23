@@ -121,8 +121,8 @@ public class EventHandler
               .getType()
               .is(ModTags.mobAttackBlacklist)))
             {
-                net.minecraft.world.entity.MobAccess.targetSelector((Mob) event.getEntity()).addGoal(6, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityCitizen.class, true, citizen -> !citizen.isInvisible()));
-                net.minecraft.world.entity.MobAccess.targetSelector((Mob) event.getEntity()).addGoal(7, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityMercenary.class, true));
+                com.minecolonies.fabric.compat.MobAccess.targetSelector((Mob) event.getEntity()).addGoal(6, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityCitizen.class, true, citizen -> !citizen.isInvisible()));
+                com.minecolonies.fabric.compat.MobAccess.targetSelector((Mob) event.getEntity()).addGoal(7, new NearestAttackableTargetGoal<>((Mob) event.getEntity(), EntityMercenary.class, true));
             }
         }
     }

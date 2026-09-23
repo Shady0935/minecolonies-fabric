@@ -14,6 +14,7 @@
     "fabric-gametest": ["com.minecolonies.fabric.gametest.MineColoniesGameTests"]
   },
   "mixins": ["minecolonies.mixins.json"],
+  "accessWidener": "minecolonies.accesswidener",
   "depends": {
     "fabricloader": ">=0.15.11",
     "fabric-api": "*",

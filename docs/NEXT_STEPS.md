@@ -150,7 +150,7 @@ The following work remains, in order:
    runtime dependency; the BlockUI screen still needs visual in-game validation.
 7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
    using explicit Fabric APIs and keeping them optional.
-8. Package and test a dedicated-server distribution with secure authentication
-   and a fresh client/server pair. The development server now passes an
-   isolated MultiPiston-enabled save/restart probe with secure settings; the
-   packaged distribution and authenticated client login are still pending.
+8. The server-mod ZIP now builds and passes a fresh standalone Fabric server
+   launch/save/clean-stop test with secure authentication settings. Next, join
+   it from a fresh authenticated client and complete a real in-game pass; the
+   package test log and properties snapshot are in `logs/`.

@@ -1,12 +1,10 @@
-package net.minecraft.world.entity;
+package com.minecolonies.fabric.compat;
 
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 
-/**
- * Narrow access bridge for the few former Forge access-transformer call sites.
- * Keeping it in the vanilla package avoids widening fields globally.
- */
+/** Narrow access bridge for the former Forge access-transformer call sites. */
 public final class MobAccess
 {
     private MobAccess()

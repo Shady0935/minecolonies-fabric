@@ -14,6 +14,11 @@ repositories {
     mavenCentral()
 }
 
+def serverBundleFabricApi = configurations.create('serverBundleFabricApi') {
+    canBeConsumed = false
+    canBeResolved = true
+}
+
 fabricApi {
     configureDataGeneration {
         modId = project.mod_id
@@ -25,6 +30,7 @@ fabricApi {
 // dedicated run directory is intentionally separate from the normal server
 // probe so old worlds cannot silently contaminate a full-suite result.
 loom {
+    accessWidenerPath = file('src/main/resources/minecolonies.accesswidener')
     runs {
         gametest {
             server()
@@ -67,6 +73,7 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    add('serverBundleFabricApi', "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 
     implementation files(project.blockui_jar)
     implementation files(project.domum_jar)
@@ -105,4 +112,47 @@ jar {
 
 tasks.withType(Jar).configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+def serverDependencyJars = [
+    file('../libs/blockui/build/libs/blockui-fabric-1.20.1-0.0.1-port.jar'),
+    file('../libs/domum-ornamentum/build/libs/domum-ornamentum-fabric-1.20.1-1.0.0-port.jar'),
+    file('../libs/structurize/build/libs/structurize-fabric-1.20.1-1.0.0-port.jar'),
+    file('../libs/multipiston/build/libs/multipiston-fabric-1.20.1-0.0.1-port.jar')
+]
+
+tasks.register('serverModsBundle', Zip) {
+    group = 'distribution'
+    description = 'Packages the remapped MineColonies Fabric server mods and required runtime dependencies.'
+    dependsOn tasks.named('remapJar')
+    archiveBaseName = "minecolonies-fabric-${project.minecraft_version}"
+    archiveVersion = project.version
+    archiveClassifier = 'server-mods'
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+
+    from(tasks.named('remapJar').flatMap { it.archiveFile }) {
+        into 'mods'
+    }
+    from(serverDependencyJars) {
+        into 'mods'
+    }
+    from(serverBundleFabricApi) {
+        into 'mods'
+    }
+    from('../../docs/SERVER_DISTRIBUTION.md') {
+        into 'docs'
+    }
+
+    doFirst {
+        final missingJars = serverDependencyJars.findAll { !it.isFile() }
+        if (!missingJars.isEmpty()) {
+            throw new GradleException("Build the required Fabric dependency jars before bundling: ${missingJars}")
+        }
+        final fabricApiJars = serverBundleFabricApi.files.findAll {
+            it.name == "fabric-api-${project.fabric_version}.jar"
+        }
+        if (fabricApiJars.size() != 1) {
+            throw new GradleException("Expected one Fabric API ${project.fabric_version} runtime jar, found ${fabricApiJars}")
+        }
+    }
 }

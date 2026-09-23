@@ -93,7 +93,7 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
     {
         super(entity, world);
 
-        net.minecraft.world.entity.MobAccess.setMoveControl(entity, new MovementHandler(entity));
+        com.minecolonies.fabric.compat.MobAccess.setMoveControl(entity, new MovementHandler(entity));
         this.nodeEvaluator = new WalkNodeEvaluator();
         this.nodeEvaluator.setCanPassDoors(true);
         getPathingOptions().setEnterDoors(true);
