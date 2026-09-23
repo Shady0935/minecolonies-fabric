@@ -166,12 +166,16 @@ import com.minecolonies.coremod.network.messages.client.CircleParticleEffectMess
 import com.minecolonies.coremod.network.messages.client.CompostParticleMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
+import com.minecolonies.coremod.network.messages.client.ItemParticleEffectMessage;
+import com.minecolonies.coremod.network.messages.client.LocalizedParticleEffectMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.OpenPlantationFieldBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.OpenSuggestionWindowMessage;
 import com.minecolonies.coremod.network.messages.client.PlayAudioMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
+import com.minecolonies.coremod.network.messages.client.SleepingParticleMessage;
+import com.minecolonies.coremod.network.messages.client.StreamParticleEffectMessage;
 import com.minecolonies.coremod.network.messages.client.SyncPathMessage;
 import com.minecolonies.coremod.network.messages.client.SyncPathReachedMessage;
 import com.minecolonies.coremod.network.messages.client.StopMusicMessage;
@@ -5667,6 +5671,10 @@ public final class MineColoniesGameTests implements FabricGameTest
           BlockParticleEffectMessage.class,
           CompostParticleMessage.class,
           CircleParticleEffectMessage.class,
+          ItemParticleEffectMessage.class,
+          LocalizedParticleEffectMessage.class,
+          StreamParticleEffectMessage.class,
+          SleepingParticleMessage.class,
           VanillaParticleMessage.class,
           StopMusicMessage.class,
           PlayAudioMessage.class,
@@ -5711,6 +5719,19 @@ public final class MineColoniesGameTests implements FabricGameTest
         assertClientBoundRoundTrip(helper,
           new CompostParticleMessage(new BlockPos(21, 70, -11)), CompostParticleMessage::new,
           "CompostParticleMessage");
+        assertClientBoundRoundTrip(helper,
+          new ItemParticleEffectMessage(new ItemStack(Items.APPLE, 3), -12.5D, 68.25D, 4.75D,
+            -0.375D, 1.125D, 1.62D), ItemParticleEffectMessage::new, "ItemParticleEffectMessage");
+        assertClientBoundRoundTrip(helper,
+          new LocalizedParticleEffectMessage(new ItemStack(Items.REDSTONE, 4), new BlockPos(-14, 72, 9)),
+          LocalizedParticleEffectMessage::new, "LocalizedParticleEffectMessage");
+        assertClientBoundRoundTrip(helper,
+          new StreamParticleEffectMessage(new Vec3(1.25D, 70.5D, -2.75D), new Vec3(-6.5D, 74.125D, 8.875D),
+            ParticleTypes.HAPPY_VILLAGER, 2, 9), StreamParticleEffectMessage::new,
+          "StreamParticleEffectMessage");
+        assertClientBoundRoundTrip(helper,
+          new SleepingParticleMessage(-3.125D, 64.5D, 18.75D), SleepingParticleMessage::new,
+          "SleepingParticleMessage");
         assertClientBoundRoundTrip(helper,
           new CircleParticleEffectMessage(new Vec3(4.125D, 65.25D, -3.875D), ParticleTypes.CRIT, 7),
           CircleParticleEffectMessage::new, "CircleParticleEffectMessage");
