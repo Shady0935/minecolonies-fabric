@@ -152,7 +152,7 @@ completed.
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Dedicated GameTest asserts registration of all fifteen
-  colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, eleven particle/audio messages
+  colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, twelve particle/audio messages
   and four build/suggestion/scanning messages. The latest fresh isolated 113-test suite
   round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
@@ -170,19 +170,21 @@ completed.
   positions, parent, cost, heuristic, score and worker-reached state), then
   sends an out-of-order split `ServerUUIDMessage` through Fabric's client
   receiver boundary, verifies it queues on the client executor, applies the
-  UUID and clears its cache entry. Eleven particle/audio messages are also
+  UUID and clears its cache entry. Twelve particle/audio messages are also
   verified as registered, including item, localized, stream and sleeping
   particle codecs in addition to block, compost, circle, vanilla, stop-music,
-  play-audio and positional music. The existing
+  play-audio, positional music and citizen-targeted sound playback. The existing
   real Town Hall chunk-claim updates, both individual and ranged, are also
   round-tripped against its attached capability. Suggestion-window, plantation
   build-window and compressed scan-NBT packets now have codec round-trips too;
   `ColonyListMessage` also round-trips its empty request and a real colony-map
   response, checking id, center, name, citizen count and owner. Together with
-  the existing `OpenDecoBuildWindowMessage` check, this brings the suite to 31
+  the existing `OpenDecoBuildWindowMessage` check, this brings the suite to 32
   targeted payload round-trips. All 113 tests pass,
   including fishing-hook angler synchronization; the server saves all three
   dimensions and stops cleanly. Evidence for this expanded set is in
+  `logs/minecolonies-gametest-s2c-sound-payload-113-20260923.log` and `.xml`;
+  the previous particle-codec checkpoint remains in
   `logs/minecolonies-gametest-s2c-particle-codecs-113-20260923.log` and `.xml`;
   the previous colony-map checkpoint remains in
   `logs/minecolonies-gametest-s2c-colony-map-113-20260923.log` and `.xml`;

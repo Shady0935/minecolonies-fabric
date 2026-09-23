@@ -195,6 +195,7 @@ import com.minecolonies.coremod.network.messages.client.colony.ColonyVisitorView
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewResearchManagerViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.client.colony.PlayMusicAtPosMessage;
+import com.minecolonies.coremod.network.messages.client.colony.PlaySoundForCitizenMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
@@ -5678,7 +5679,8 @@ public final class MineColoniesGameTests implements FabricGameTest
           VanillaParticleMessage.class,
           StopMusicMessage.class,
           PlayAudioMessage.class,
-          PlayMusicAtPosMessage.class);
+          PlayMusicAtPosMessage.class,
+          PlaySoundForCitizenMessage.class);
         for (final Class<? extends IMessage> messageClass : clientFeedbackMessages)
         {
             helper.assertTrue(isMessageRegistered(channel, messageClass),
@@ -5746,6 +5748,10 @@ public final class MineColoniesGameTests implements FabricGameTest
         assertClientBoundRoundTrip(helper,
           new PlayMusicAtPosMessage(SoundEvents.MUSIC_DISC_13, new BlockPos(6, 70, -9), level, 0.625F, 1.25F),
           PlayMusicAtPosMessage::new, "PlayMusicAtPosMessage");
+        assertClientBoundRoundTrip(helper,
+          new PlaySoundForCitizenMessage(123, SoundEvents.MUSIC_DISC_CAT, SoundSource.MUSIC,
+            new BlockPos(-9, 73, 5), level, 0.375F, 1.625F, 40, 3),
+          PlaySoundForCitizenMessage::new, "PlaySoundForCitizenMessage");
 
         assertClientBoundRoundTrip(helper,
           new OpenSuggestionWindowMessage(Blocks.DIAMOND_BLOCK.defaultBlockState(),
