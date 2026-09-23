@@ -99,8 +99,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   does not replace the rendering or restart-migration checks.
   It does not yet cover multi-request resolution/delivery, automatic logistics
   inventory transfer beyond the focused rack-backed cycle, courier navigation,
-  full Builder work-order pathfinding and
-  larger construction, full CitizenAI scheduling/work-cycle
+  larger/full Builder work-order construction and logistics-backed builds,
+  full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
   placement and longer/multi-cell harvest navigation/resource delivery beyond
   the focused worker-AI and short-range navigation cycles, a broader
@@ -189,9 +189,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   CitizenAI/Builder worker tick cycle, colony-backed advanced navigation
   including a solid-barrier detour, and the Builder construction-site navigation
   proxy plus a live assigned Builder `BUILDING_STEP` placement/consumption
-  cycle and automatic order claim are covered by GameTest, but full work-order
-  pathfinding, larger construction and longer post-selection work cycles remain
-  pending. Server-side
+  cycle and automatic order claim are covered by GameTest. A separate live
+  work-order fixture also navigates to and completes a synthetic 17-block
+  blueprint. Larger canonical builds, logistics-backed construction and longer
+  post-selection work cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
@@ -251,15 +252,15 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest combined 113-test GameTest run still logs the upstream-style warning that
+- The latest combined 114-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-multipiston-113-gametest-20260922.log`. The
+  `logs/minecolonies-gametest-builder-e2e-isolated-114-20260923.log`. The
   blueprint data should be audited before treating this warning as resolved.
-- The latest clean combined 113-case suite hardens only the transient Raider combat
+- The latest clean combined 114-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
-  and records 113/113 required tests passed, including the three focused
+  and records 114/114 required tests passed, including the three focused
   MultiPiston tests. Long-range and fully in-game raid
   behavior, including client interaction, remain manual validation items.
 

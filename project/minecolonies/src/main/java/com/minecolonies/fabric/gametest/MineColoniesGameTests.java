@@ -390,6 +390,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     private static final String MINER_SHAFT_TEST_BATCH = "minecolonies_fabric_miner_shaft_port";
     private static final String ENTITY_TEST_BATCH = "minecolonies_fabric_entity_port";
     private static final String BUILDER_TEST_BATCH = "minecolonies_fabric_builder_port";
+    private static final String BUILDER_E2E_TEST_BATCH = "minecolonies_fabric_builder_e2e_port";
     private static final String HOUSING_TEST_BATCH = "minecolonies_fabric_housing_port";
     private static final String SLEEP_TEST_BATCH = "minecolonies_fabric_sleep_port";
     private static final String GUARD_TEST_BATCH = "minecolonies_fabric_guard_port";
@@ -955,6 +956,143 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(order.isClaimedBy(citizen),
               "Builder did not persist the automatically selected work-order claim for its citizen");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = BUILDER_E2E_TEST_BATCH, timeoutTicks = 4000)
+    public void citizenBuilderCompletesWorkOrderThroughNavigation(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        for (int x = 0; x <= 50; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric Builder End-to-End GameTest Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "Builder end-to-end fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "Builder end-to-end fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "Builder end-to-end fixture Town Hall was not registered");
+
+        final BlockEntity builderEntity = level.getBlockEntity(builderPos);
+        helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
+          "Builder end-to-end fixture did not create a Builder block entity");
+        final TileEntityColonyBuilding builderHut = (TileEntityColonyBuilding) builderEntity;
+        builderHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        builderHut.setBlueprintPath("fundamentals/builder1.blueprint");
+        builderHut.setSchematicName("builder1");
+        final IBuilding registeredBuilder = colony.getBuildingManager().addNewBuilding(builderHut, level);
+        helper.assertTrue(registeredBuilder instanceof BuildingBuilder,
+          "Builder end-to-end fixture registered the wrong building implementation: " + registeredBuilder);
+        final BuildingBuilder builder = (BuildingBuilder) registeredBuilder;
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
+
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
+        helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
+          "Builder end-to-end fixture could not create a live citizen");
+        final WorkerBuildingModule workerModule = builder.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
+        helper.assertTrue(workerModule != null && workerModule.assignCitizen(citizen),
+          "Builder end-to-end fixture could not assign the Builder citizen");
+        final JobBuilder job = citizen.getJob(JobBuilder.class);
+        helper.assertTrue(job != null && !job.hasWorkOrder(),
+          "Builder end-to-end fixture job unexpectedly started with a work order");
+
+        final Blueprint blueprint = new Blueprint((short) 30, (short) 1, (short) 1);
+        blueprint.setName("fabric-builder-work-order-navigation-test");
+        for (int x = 13; x < 30; x++)
+        {
+            blueprint.addBlockState(new BlockPos(x, 0, 0),
+              Blocks.OAK_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true));
+        }
+        blueprint.setCachePrimaryOffset(BlockPos.ZERO);
+
+        registerTestBuilderWorkOrderMapping();
+        final WorkOrderBuilding templateOrder = WorkOrderBuilding.create(WorkOrderType.BUILD, builder);
+        final net.minecraft.nbt.CompoundTag serializedOrder = new net.minecraft.nbt.CompoundTag();
+        templateOrder.write(serializedOrder);
+        final TestBuilderWorkOrder order = new TestBuilderWorkOrder(blueprint);
+        order.read(serializedOrder, colony.getWorkManager());
+        colony.getWorkManager().addWorkOrder(order, false);
+        helper.assertTrue(order.getID() > 0, "Builder end-to-end order did not receive a persistent id");
+        helper.assertTrue(order.canBeMadeBy(job), "Builder end-to-end order rejected the assigned builder job");
+        helper.assertTrue(!job.hasWorkOrder(), "Builder end-to-end order was assigned directly instead of discovered");
+
+        final EntityCitizen entity = (EntityCitizen) citizen.getEntity().get();
+        final boolean[] observedAutomaticClaim = {false};
+        final boolean[] observedNavigation = {false};
+        final boolean[] observedConstructionRange = {false};
+        citizen.setWorking(true);
+        helper.succeedWhen(() ->
+        {
+            if (order.isClaimedBy(citizen))
+            {
+                observedAutomaticClaim[0] = true;
+            }
+            if (job.hasWorkOrder() && !entity.getNavigation().isDone())
+            {
+                observedNavigation[0] = true;
+            }
+            if (job.hasWorkOrder())
+            {
+                for (int x = 13; x < 30; x++)
+                {
+                    if (entity.blockPosition().distSqr(builderPos.offset(x, 0, 0)) <= 25)
+                    {
+                        observedConstructionRange[0] = true;
+                        break;
+                    }
+                }
+            }
+            helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
+              "Builder end-to-end citizen did not reach ACTIVE_SERVER: "
+                + entity.getEntityStateController().getState());
+            helper.assertTrue(entity.getCitizenAI().getState() == CitizenAIState.WORKING,
+              "Builder end-to-end citizen did not enter WORKING: " + entity.getCitizenAI().getState());
+            final java.util.List<BlockPos> missingBlocks = new java.util.ArrayList<>();
+            for (int x = 13; x < 30; x++)
+            {
+                final BlockPos target = builderPos.offset(x, 0, 0);
+                if (!level.getBlockState(target).is(Blocks.OAK_LEAVES))
+                {
+                    missingBlocks.add(target);
+                }
+            }
+            helper.assertTrue(missingBlocks.isEmpty(),
+              "Builder did not place the complete work-order blueprint; missing=" + missingBlocks
+                + "; worker=" + entity.blockPosition() + "; workerAI="
+                + entity.getCitizenJobHandler().getWorkAI().getState()
+                + "; orderClaimed=" + order.isClaimedBy(citizen)
+                + "; observedNavigation=" + observedNavigation[0]
+                + "; observedConstructionRange=" + observedConstructionRange[0]);
+            helper.assertTrue(observedAutomaticClaim[0],
+              "Builder completed the construction without automatically claiming the registered work order");
+            helper.assertTrue(observedNavigation[0],
+              "Builder completed the construction without requesting a navigation path to the work site");
+            helper.assertTrue(observedConstructionRange[0],
+              "Builder completed the construction without entering construction range");
+            helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order");
+            helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == null,
+              "Builder did not remove the completed work order from the colony manager");
         });
     }
 
@@ -10255,6 +10393,47 @@ public final class MineColoniesGameTests implements FabricGameTest
         private void setWorkFrom(final BlockPos position)
         {
             workFrom = position;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void registerTestBuilderWorkOrderMapping()
+    {
+        try
+        {
+            final java.lang.reflect.Field mappingField = com.minecolonies.coremod.colony.workorders.AbstractWorkOrder.class
+              .getDeclaredField("nameToClassBiMap");
+            mappingField.setAccessible(true);
+            final java.util.Map mappings = (java.util.Map) mappingField.get(null);
+            mappings.putIfAbsent("fabric_test_builder", new com.minecolonies.api.util.Tuple<>(
+              TestBuilderWorkOrder.class, com.minecolonies.coremod.colony.workorders.view.WorkOrderBuildingView.class));
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new IllegalStateException("Could not register the isolated GameTest work-order mapping", exception);
+        }
+    }
+
+    public static final class TestBuilderWorkOrder extends WorkOrderBuilding
+    {
+        private static Blueprint blueprintForReload;
+        private Blueprint blueprint;
+
+        public TestBuilderWorkOrder()
+        {
+            blueprint = blueprintForReload;
+        }
+
+        private TestBuilderWorkOrder(final Blueprint blueprint)
+        {
+            this.blueprint = blueprint;
+            blueprintForReload = blueprint;
+        }
+
+        @Override
+        public java.util.concurrent.Future<Blueprint> getBlueprintFuture()
+        {
+            return java.util.concurrent.CompletableFuture.completedFuture(blueprint);
         }
     }
 

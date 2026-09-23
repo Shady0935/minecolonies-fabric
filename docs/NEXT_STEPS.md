@@ -27,7 +27,10 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-113 required tests, including the three standalone MultiPiston tests, and covers
+114 required tests, including the three standalone MultiPiston tests. A new
+isolated Builder end-to-end fixture also proves automatic live work-order claim,
+navigation, placement of a synthetic 17-block blueprint, and order completion;
+full material/logistics-backed and in-game construction remain pending. The suite covers
 construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
@@ -122,7 +125,7 @@ The following work remains, in order:
    representative server/client network coverage, including the real
      client-to-server Town Hall rename, colony foundation, direct Town Hall
       placement, hut/building rename, Builder work-order creation/selection,
-    decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, Enchanter station assignment, Postbox request creation, citizen-restart scheduling, resource-scroll warehouse snapshots, build-tool inventory swapping, and University research actions; the latest fresh 113-test suite verifies all fifteen colony-view/citizen/removal/chunk-claim/visitor/colony-map S2C registrations, twelve particle/audio registrations and four build/suggestion/scanning registrations, with thirty-two payload round-trips across colony-map summaries, colony/building/chunk/visitor state, four additional particle codecs, citizen-targeted sound playback, build and suggestion windows, scan NBT, path debugging and visual/audio feedback. The citizen, permissions, work-order and visitor view decoders now copy only the message payload, verified by round-trips; split `ServerUUIDMessage` client-executor dispatch and fishing-hook angler synchronization also remain covered. Continue payload/dispatch coverage across the other client-bound families. The seven registered menu opening buffers already have an
+    decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, Enchanter station assignment, Postbox request creation, citizen-restart scheduling, resource-scroll warehouse snapshots, build-tool inventory swapping, and University research actions; the latest fresh 114-test suite verifies all fifteen colony-view/citizen/removal/chunk-claim/visitor/colony-map S2C registrations, twelve particle/audio registrations and four build/suggestion/scanning registrations, with thirty-two payload round-trips across colony-map summaries, colony/building/chunk/visitor state, four additional particle codecs, citizen-targeted sound playback, build and suggestion windows, scan NBT, path debugging and visual/audio feedback. The citizen, permissions, work-order and visitor view decoders now copy only the message payload, verified by round-trips; split `ServerUUIDMessage` client-executor dispatch and fishing-hook angler synchronization also remain covered. Continue payload/dispatch coverage across the other client-bound families. The seven registered menu opening buffers already have an
    automated contract test. The dedicated restart probe confirms
    representative citizen and visitor reappearance; broaden it to every
    custom entity family when their gameplay fixtures exist.
@@ -146,7 +149,7 @@ The following work remains, in order:
    set.
 6. MultiPiston's separate Fabric 1.20.1 module is implemented and its focused
    registration, redstone stroke/retraction and NBT tests pass. The combined
-   113-test MineColonies + MultiPiston run also passes. Keep it as a required
+   114-test MineColonies + MultiPiston run also passes. Keep it as a required
    runtime dependency; the BlockUI screen still needs visual in-game validation.
 7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
    using explicit Fabric APIs and keeping them optional.

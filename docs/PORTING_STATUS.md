@@ -104,7 +104,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  113-test combined GameTest run, which also executes the three MultiPiston
+  114-test combined GameTest run, which also executes the three MultiPiston
   tests
 - [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
   focused follow-up GameTest: the real split envelope deletes the owned
@@ -153,7 +153,7 @@ completed.
   the MineColonies server UUID packet
 - [x] Dedicated GameTest asserts registration of all fifteen
   colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, twelve particle/audio messages
-  and four build/suggestion/scanning messages. The latest fresh isolated 113-test suite
+  and four build/suggestion/scanning messages. The latest fresh isolated 114-test suite
   round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
   Farmer-field fixtures. This exposed and fixed the citizen-view decoder
@@ -216,7 +216,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 113-test combined Fabric GameTest run
+  is covered by the latest 114-test combined Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -316,25 +316,26 @@ completed.
   receives it through Warehouse/Courier and ticks the real
   `EntityAIStructureBuilder` through request pickup, Builder Hut transfer and
   `BUILDING_STEP`, placing the block and consuming the resource; deterministic
-  position setup covers the known fixture route while full post-selection
-  work-cycle scheduling, larger construction and GUI interaction remain open. A companion
+   position setup covers the known fixture route while larger construction,
+   logistics-backed work cycles and GUI interaction remain open. A companion
   Builder fixture also drives the real construction-site navigation helper with
   a live citizen and verifies arrival within the work radius. A companion citizen-cycle
   fixture now ticks a registered `EntityCitizen` through `ACTIVE_SERVER`,
   high-level `CitizenAI.WORKING` and the assigned Builder worker AI
-- [x] A dedicated live-assigned Builder fixture now persists a `WorkOrderBuilding`
+- [x] A dedicated live-assigned Builder fixture persists a `WorkOrderBuilding`
   in the colony `WorkManager`; normal `CitizenAI` ticks automatically select and
   claim it on the actual `JobBuilder`, then drive the assigned
-  `EntityAIStructureBuilder` and a `BUILDING_STEP`; a custom one-block blueprint
-  is placed and its stone is consumed before the handler finishes. Pathfinding
-  over larger structures and the full logistics-backed construction cycle remain
-  open
+  `EntityAIStructureBuilder` through navigation, 17 free-block blueprint steps,
+  order completion and removal from the manager. Its separate isolated batch
+  passed as part of the latest 114-test run. Full material/logistics-backed
+  construction, larger canonical blueprints and GUI interaction remain open
 - [x] Colony-backed citizen advanced navigation reaches a real target and
   preserves the completed `PathResult` status; a companion fixture routes the
   citizen around a solid two-block barrier and verifies a real detour in the
   computed path. The focused fixture also validates Town Hall protection after
   exact chunk registration. Full CitizenAI scheduling and longer work-cycle
-  navigation remain open; the full work-order construction cycle remains open
+  navigation remain open; end-to-end Builder work-order construction now has
+  automated coverage for navigation and a 17-block synthetic blueprint
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; the real C2S `AssignUnassignMessage` route now
@@ -568,7 +569,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 113-test combined Fabric GameTest run passes with clean saves for all three
+- [x] Latest 114-test combined Fabric GameTest run passes with clean saves for all three
   dimensions; its 91-test core batch plus isolated Lumberjack, Farmer hoe,
   Farmer navigation, Farmer planting, Miner, housing, Builder, Guard, sleep/wake
   and entity batches, plus isolated Miner shaft, Stonemason request, Stone Smeltery, Smeltery, Cook and Baker furnace batches and the focused
@@ -579,7 +580,8 @@ completed.
   colony foundation, hut/building rename, direct Town Hall placement, Builder work-order
   creation/selection, focused Builder two-stage solid/decorative placement and
   material consumption, normal Builder material-request/resolver delivery and
-  construction-site navigation through the real Builder proxy,
+  construction-site navigation through the real Builder proxy, automatic live
+  Builder work-order claim/navigation, 17-block placement and order completion,
   decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,
   colony allocation and flag updates, Builder delivery-priority updates,
