@@ -5722,6 +5722,36 @@ public final class MineColoniesGameTests implements FabricGameTest
           level, townHall, colonyOwner, "Fabric S2C Codec Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "S2C codec fixture colony was not created");
 
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(),
+          "S2C codec fixture structure-pack discovery was interrupted");
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "S2C codec fixture Town Hall did not create a colony-building block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        townHallHut.setSchematicName("townhall1");
+        final IBuilding townHallBuilding = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(townHallBuilding != null, "S2C codec fixture Town Hall was not registered");
+
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewBuildingViewMessage(townHallBuilding), ColonyViewBuildingViewMessage::new,
+          "ColonyViewBuildingViewMessage");
+
+        final ICitizenData viewCitizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(viewCitizen != null, "S2C codec fixture could not create a citizen view");
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewCitizenViewMessage((Colony) colony, viewCitizen), ColonyViewCitizenViewMessage::new,
+          "ColonyViewCitizenViewMessage");
+
+        final FarmField viewField = FarmField.create(new BlockPos(31, 68, -19));
+        viewField.setSeed(new ItemStack(Items.WHEAT));
+        viewField.setFieldStage(FarmField.Stage.PLANTED);
+        viewField.setRadius(Direction.NORTH, 3);
+        assertClientBoundRoundTrip(helper,
+          new ColonyViewFieldsUpdateMessage(colony, Set.of(viewField)), ColonyViewFieldsUpdateMessage::new,
+          "ColonyViewFieldsUpdateMessage");
+
         assertClientBoundRoundTrip(helper,
           new ColonyViewRemoveMessage(colony.getID(), level.dimension()), ColonyViewRemoveMessage::new,
           "ColonyViewRemoveMessage");

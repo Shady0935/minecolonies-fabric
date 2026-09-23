@@ -152,8 +152,13 @@ completed.
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Dedicated GameTest asserts registration of all twelve client-bound
-  colony-view/citizen/removal messages. A fresh isolated 113-test suite also
-  round-trips `ColonyViewRemoveMessage`, `ColonyViewRemoveCitizenMessage`,
+  colony-view/citizen/removal messages. The latest fresh isolated 113-test suite
+  round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
+  and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
+  Farmer-field fixtures. This exposed and fixed the citizen-view decoder
+  retaining the full packet buffer instead of copying only the remaining
+  payload. The suite also round-trips `ColonyViewRemoveMessage`,
+  `ColonyViewRemoveCitizenMessage`,
   `ColonyViewRemoveBuildingMessage`, `ColonyViewRemoveWorkOrderMessage`,
   `SyncPathReachedMessage` and `SyncPathMessage` (including path-node
   positions, parent, cost, heuristic, score and worker-reached state), then
@@ -162,11 +167,14 @@ completed.
   UUID and clears its cache entry. Seven particle/audio messages are also
   verified as registered and round-tripped: block, compost, circle and vanilla
   particles, stop-music, play-audio and positional music. The existing
-  `OpenDecoBuildWindowMessage` codec check remains covered. All 113 tests pass,
+  `OpenDecoBuildWindowMessage` codec check remains covered (16 targeted
+  payload round-trips in total). All 113 tests pass,
   including fishing-hook angler synchronization; the server saves all three
   dimensions and stops cleanly. Evidence for this expanded set is in
+  `logs/minecolonies-gametest-s2c-colony-views-113-20260923.log` and `.xml`;
+  the previous feedback-only checkpoint remains in
   `logs/minecolonies-gametest-s2c-client-feedback-113-20260923.log` and `.xml`;
-  the previous fresh isolated run remains in
+  the earlier fresh isolated run remains in
   `logs/minecolonies-gametest-s2c-payload-113-20260923.log` and `.xml`; earlier
   dispatch and registration-only results remain in
   `logs/minecolonies-gametest-s2c-client-dispatch-113-20260922.log` and

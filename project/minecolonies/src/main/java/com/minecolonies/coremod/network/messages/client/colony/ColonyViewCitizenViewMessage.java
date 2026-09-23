@@ -59,7 +59,9 @@ public class ColonyViewCitizenViewMessage implements IMessage
         colonyId = buf.readInt();
         citizenId = buf.readInt();
         dimension = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buf.readUtf(32767)));
-        this.citizenBuffer = new FriendlyByteBuf(buf.retain());
+        final int readableBytes = buf.readableBytes();
+        this.citizenBuffer = new FriendlyByteBuf(Unpooled.buffer(readableBytes));
+        buf.readBytes(citizenBuffer, readableBytes);
     }
 
     @Override
