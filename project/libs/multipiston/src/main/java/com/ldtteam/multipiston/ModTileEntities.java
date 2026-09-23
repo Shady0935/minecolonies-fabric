@@ -1,18 +1,24 @@
 package com.ldtteam.multipiston;
 
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
-import static com.ldtteam.multipiston.MultiPiston.MOD_ID;
-
+/** Registry for Multi-Piston block entities. */
 public final class ModTileEntities
 {
-    public static final DeferredRegister<BlockEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MOD_ID);
+    public static final BlockEntityType<TileEntityMultiPiston> MULTIPISTON = Registry.register(
+      BuiltInRegistries.BLOCK_ENTITY_TYPE,
+      MultiPiston.id("multipistonte"),
+      FabricBlockEntityTypeBuilder.create(TileEntityMultiPiston::new, ModBlocks.MULTIPISTON).build());
 
-    private ModTileEntities() { /* prevent construction */ }
+    private ModTileEntities()
+    {
+    }
 
-    public static RegistryObject<BlockEntityType<TileEntityMultiPiston>>
-      multipiston = TILE_ENTITIES.register("multipistonte", () -> BlockEntityType.Builder.of(TileEntityMultiPiston::new, ModBlocks.multipiston.get()).build(null));
+    public static void initialize()
+    {
+        // Trigger static registration during common initialization.
+    }
 }

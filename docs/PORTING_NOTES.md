@@ -21,13 +21,10 @@ entity icons.
 
 ## Dependency decisions
 
-- BlockUI, Domum Ornamentum and Structurize are local Fabric 1.20.1 development
-  dependencies under `project/libs` and are loaded by the dev runtime.
-- MultiPiston remains an upstream Forge-only standalone dependency in the
-  reference material. No MineColonies main-source reference requires it in the
-  target runtime, so it is not silently represented by a no-op or fake registry.
-  A separate Fabric port can be added if the final gameplay audit proves that
-  the standalone block is required.
+- BlockUI, Domum Ornamentum, Structurize and MultiPiston are local Fabric 1.20.1
+  development dependencies under `project/libs` and are loaded by the dev
+  runtime. MultiPiston is a standalone module, not merged into MineColonies;
+  MineColonies' Fabric metadata now declares it as required.
 - JEI and JourneyMap source/integration packages remain excluded until their
   Fabric APIs are deliberately selected.
 
@@ -187,12 +184,12 @@ populated level-one tavern fixture. That fixture resolves the owning colony
 from the claimed chunk, creates exactly one `VisitorCitizen` through the
 retained visitor manager, assigns it to the tavern and discards Fabric's
 vanilla villager candidate. The earlier eight-test batch is recorded in
-`logs/minecolonies-gametest-tavern-10.log`. The latest 110-test run also
-verifies the Pharao Scepter bow-hook bridge and is recorded in
-`logs/minecolonies-gametest-arrow-nock.log`; the latest checkpoint is recorded
-in `logs/minecolonies-gametest-raider-fix-20260922.log`, with its
-JUnit-style companion in
-`logs/minecolonies-gametest-raider-fix-20260922.xml`; the run adds isolated
+`logs/minecolonies-gametest-tavern-10.log`. The earlier 110-test MineColonies
+checkpoint also verifies the Pharao Scepter bow-hook bridge and is recorded in
+`logs/minecolonies-gametest-arrow-nock.log`. The current combined 113-test
+checkpoint, including MultiPiston, is recorded in
+`logs/minecolonies-multipiston-113-gametest-20260922.log` and its JUnit-style
+companion `logs/minecolonies-multipiston-113-gametest-20260922.xml`; it adds isolated
  Stone Smeltery, Smeltery, Cook and Baker furnace worker fixtures to the existing real
  Miner ladder-extension/backfill coverage. The current checkpoint also records the
 real Crusher custom-recipe worker cycle in
@@ -312,13 +309,14 @@ is stopped. A companion fixture places a solid two-block barrier across the
 direct route and verifies that the computed path contains a real detour. The
 same checkpoint uses a forced, exact Town Hall chunk for the protection
 callback, so the owner/outsider decision resolves against the intended colony.
-Evidence for the latest combined 110-test run (91 core tests plus isolated
+Evidence for the combined 113-test run (91 core tests plus isolated
 Lumberjack, Farmer hoe, Farmer navigation, Farmer planting, Miner,
 automatic-housing, Builder, Guard, sleep/wake, entity, residence and
  Stonemason, Stone Smeltery, Smeltery, Cook and Baker batches) is in
-`logs/minecolonies-gametest-raider-fix-20260922.log`, with the
+`logs/minecolonies-multipiston-113-gametest-20260922.log`, with the
 zero-failure XML report in
-`logs/minecolonies-gametest-raider-fix-20260922.xml`; this run also
+`logs/minecolonies-multipiston-113-gametest-20260922.xml`; the three MultiPiston
+tests verify registry, redstone movement/retraction and NBT persistence. This run also
 adds two consecutive real Miner shaft ladder-extension/backfill cycles and also
 registers a real vanilla storage chest, creates a normal sword `Tool` request
 while that chest is empty, verifies the Fabric `setItem` mixin callback and
@@ -337,11 +335,13 @@ worker-cycle details remain in `logs/minecolonies-gametest-citizen-ai-fix1.log`.
 Client rendering, full CitizenAI scheduling and longer multi-step work cycles
 remain manual or pending.
 
-The clean 110-case validation in
+The earlier clean 110-case MineColonies-only validation in
 `logs/minecolonies-gametest-raider-fix-20260922.log` and
 `logs/minecolonies-gametest-raider-fix-20260922.xml` includes the passing Cook
 Assistant case and the hardened RaidManager combat fixture. It reports
-`All 110 required tests passed` with zero XML failures or errors. The suite is
+`All 110 required tests passed` with zero XML failures or errors. The combined
+113-test run also passes, as recorded in
+`logs/minecolonies-multipiston-113-gametest-20260922.xml`. The suite is
 reproducible through the dedicated Gradle `runGametest` task, which uses the
 isolated `run-gametest` directory and writes the JUnit report to
 `build/gametest/junit.xml`.
@@ -934,13 +934,13 @@ datagen while preserving the upstream head crop and dark border. Quest
 translations are read deterministically from authored quest JSON and emitted
 alongside the transformed quest files.
 
-The parity audit compared 948 shared JSON files semantically: 705 are equal to
-the retained upstream snapshot and 243 differ only for deliberate Fabric
-adaptations. Those adaptations are the native `c:` conventional tags and
-replacements for Forge tag references, vanilla-compatible loot-table output,
-and removal of the standalone `multipiston:multipistonblock` compatibility
-entry because MultiPiston is not in the Fabric runtime. The snapshot remains
-tracked as an audit baseline rather than being loaded at runtime.
+The parity audit compared the generated Fabric data with the retained upstream
+snapshot. Deliberate differences are limited to Fabric-native `c:` conventional
+tags and replacements for Forge tag references, plus vanilla-compatible
+loot-table output. The standalone `multipiston:multipistonblock` entry is now
+present again in generated NBT compatibility data because MultiPiston is part
+of the Fabric runtime. The snapshot remains tracked as an audit baseline rather
+than being loaded at runtime.
 
 ## Networking
 

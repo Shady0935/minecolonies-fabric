@@ -5602,6 +5602,9 @@
     "item": "minecraft:zombified_piglin_spawn_egg"
   },
   {
+    "item": "multipiston:multipistonblock"
+  },
+  {
     "item": "structurize:blockfluidsubstitution"
   },
   {

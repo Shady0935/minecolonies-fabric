@@ -22,9 +22,6 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   darkened border; byte-for-byte PNG identity with the Forge NativeImage
   implementation is not promised.
 - JEI and JourneyMap integrations are excluded from the target source set.
-- The standalone MultiPiston Forge dependency is not included in the Fabric
-  runtime. The current MineColonies main source has no direct runtime reference
-  to it, but its independent block/content remains unported.
 - The command/entity smoke test summons a citizen without a colony only to
   exercise registration, entity construction and serialization. The upstream
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
@@ -171,8 +168,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Validation still pending
 
-- Authenticated in-game interaction with BlockUI screens (including an actual
-  rendered entity/block hook overlay), full Builder work-order pathfinding/larger
+- Authenticated in-game interaction with BlockUI screens (including the
+  MultiPiston configuration window and an actual rendered entity/block hook
+  overlay), full Builder work-order pathfinding/larger
   placement, full citizen work cycles/scheduling, logistics,
   miner shaft construction and mining placement/resource logistics beyond the
   covered stone and vanilla-ore AI cycles,
@@ -253,15 +251,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest 110-test GameTest run still logs the upstream-style warning that
+- The latest combined 113-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-raider-fix-20260922.log`. The
+  `logs/minecolonies-multipiston-113-gametest-20260922.log`. The
   blueprint data should be audited before treating this warning as resolved.
-- The latest clean 110-case suite hardens only the transient Raider combat
+- The latest clean combined 113-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
-  and records 110/110 required tests passed. Long-range and fully in-game raid
+  and records 113/113 required tests passed, including the three focused
+  MultiPiston tests. Long-range and fully in-game raid
   behavior, including client interaction, remain manual validation items.
 
 ## Intentional compatibility residues

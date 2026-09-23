@@ -1,111 +1,70 @@
 package com.ldtteam.multipiston.network;
 
+import com.ldtteam.multipiston.MultiPiston;
 import com.ldtteam.multipiston.TileEntityMultiPiston;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * Message class which handles updating the minecolonies multipiston.
- */
-public class MultiPistonChangeMessage implements IMessage
+/** Validated block configuration sent from the BlockUI window to the server. */
+public record MultiPistonChangeMessage(BlockPos pos, Direction input, Direction output, int range, int speed)
 {
-    /**
-     * The direction it should push or pull rom.
-     */
-    private Direction input;
+    public static final ResourceLocation ID = MultiPiston.id("net-channel");
 
-    /**
-     * The direction it should push or pull rom.
-     */
-    private Direction output;
-
-    /**
-     * The range it should pull to.
-     */
-    private int range;
-
-    /**
-     * The speed it should have.
-     */
-    private int speed;
-
-    /**
-     * The position of the tileEntity.
-     */
-    private BlockPos pos;
-
-    /**
-     * Empty public constructor.
-     */
-    public MultiPistonChangeMessage()
+    public void write(final FriendlyByteBuf buffer)
     {
-
+        buffer.writeBlockPos(pos);
+        buffer.writeVarInt(input.get3DDataValue());
+        buffer.writeVarInt(output.get3DDataValue());
+        buffer.writeVarInt(range);
+        buffer.writeVarInt(speed);
     }
 
-    /**
-     * Constructor to create the 
-     * @param pos the position of the block.
-     * @param input the way it inputs from.
-     * @param output the way it will output to.
-     * @param range the range it should work.
-     * @param speed the speed it should have.
-     */
-    public MultiPistonChangeMessage(final BlockPos pos, final Direction input, final Direction output, final int range, final int speed)
+    public static MultiPistonChangeMessage read(final FriendlyByteBuf buffer)
     {
-        this.pos = pos;
-        this.input = input;
-        this.range = range;
-        this.output = output;
-        this.speed = speed;
-    }
-
-    @Override
-    public void toBytes(final FriendlyByteBuf buf)
-    {
-        buf.writeBlockPos(pos);
-        buf.writeInt(input.ordinal());
-        buf.writeInt(output.ordinal());
-        buf.writeInt(range);
-        buf.writeInt(speed);
-    }
-
-    @Override
-    public void fromBytes(final FriendlyByteBuf buf)
-    {
-        this.pos = buf.readBlockPos();
-        this.input = Direction.values()[buf.readInt()];
-        this.output = Direction.values()[buf.readInt()];
-        this.range = buf.readInt();
-        this.speed = buf.readInt();
-    }
-
-    @Nullable
-    @Override
-    public LogicalSide getExecutionSide()
-    {
-        return LogicalSide.SERVER;
-    }
-
-    @Override
-    public void onExecute(final NetworkEvent.Context ctxIn, final boolean isLogicalServer)
-    {
-        final Level world = ctxIn.getSender().level();
-        final BlockEntity entity = world.getBlockEntity(pos);
-        if (entity instanceof TileEntityMultiPiston)
+        final BlockPos pos = buffer.readBlockPos();
+        final int inputId = buffer.readVarInt();
+        final int outputId = buffer.readVarInt();
+        final int range = buffer.readVarInt();
+        final int speed = buffer.readVarInt();
+        if (inputId < 0 || inputId >= Direction.values().length
+              || outputId < 0 || outputId >= Direction.values().length)
         {
-            ((TileEntityMultiPiston) entity).setInput(input);
-            ((TileEntityMultiPiston) entity).setOutput(output);
-            ((TileEntityMultiPiston) entity).setRange(range);
-            ((TileEntityMultiPiston) entity).setSpeed(speed);
-            final BlockState state = world.getBlockState(pos);
-            world.sendBlockUpdated(pos, state, state, 0x3);
+            throw new IllegalArgumentException("Invalid Multi-Piston direction id");
         }
+        return new MultiPistonChangeMessage(pos, Direction.from3DDataValue(inputId),
+          Direction.from3DDataValue(outputId), range, speed);
+    }
+
+    public boolean apply(final ServerPlayer player)
+    {
+        if (player == null || input == output || range < 1 || range > TileEntityMultiPiston.MAX_RANGE
+              || speed < TileEntityMultiPiston.MIN_SPEED || speed > TileEntityMultiPiston.MAX_SPEED)
+        {
+            return false;
+        }
+
+        final Level level = player.level();
+        if (player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) > 64.0D
+              || !level.mayInteract(player, pos))
+        {
+            return false;
+        }
+
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof TileEntityMultiPiston multiPiston))
+        {
+            return false;
+        }
+
+        multiPiston.setConfiguration(input, output, range, speed);
+        final BlockState state = level.getBlockState(pos);
+        level.sendBlockUpdated(pos, state, state, 3);
+        return true;
     }
 }

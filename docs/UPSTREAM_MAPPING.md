@@ -61,11 +61,13 @@ out for comparison:
 | MultiPiston | `ldtteam/Piston-Unlimited`, `version/1.20` | `7dc3db066977760dd3c722380002b83f72df2c23` | `release/1.21.1` | `34ab47124a4329dafa92cb0d21017ca811b4daef` |
 
 MultiPiston is not a repository named `MultiPiston`; the upstream GitHub
-project is `Piston-Unlimited`. It remains a separate mod in the official 1.20.1
-dependency metadata, but the target MineColonies main source has no direct
-runtime reference after the source-set audit. The current Fabric target does
-not include it; any supported MultiPiston feature should be ported as a
-separate Fabric module rather than represented by a no-op.
+project is `Piston-Unlimited`. It remains a separate required mod in the
+official 1.20.1 dependency metadata. The target now ports it as the independent
+Fabric module at `project/libs/multipiston`, keeps MineColonies' required
+runtime dependency metadata, and restores its item to the generated NBT
+compatibility data. Its gameplay baseline is the `version/1.20` checkout above;
+the port retains the separate block/item, block entity, redstone movement,
+BlockUI configuration window, networking and upstream resource IDs.
 
 ## Target
 

@@ -26,8 +26,9 @@ all 37 providers, native advancements/icons/quests are wired to the Fabric
 entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
-real visitor entity. The latest clean Fabric GameTest run passes all 110
-required tests, covers construction and NBT reload behavior for all 25
+real visitor entity. The latest clean combined Fabric GameTest run passes all
+113 required tests, including the three standalone MultiPiston tests, and covers
+construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus
 inherited listener dispatch. Focused follow-ups also pass the real
@@ -145,9 +146,10 @@ The following work remains, in order:
    runtime, and the deliberate differences are recorded in
    `PORTING_NOTES.md`; the snapshot is no longer part of the runtime source
    set.
-6. Decide whether the standalone MultiPiston feature belongs in the supported
-   Fabric distribution; if it does, port it as its own Fabric module rather
-   than hiding its Forge implementation behind compatibility stubs.
+6. MultiPiston's separate Fabric 1.20.1 module is implemented and its focused
+   registration, redstone stroke/retraction and NBT tests pass. The combined
+   113-test MineColonies + MultiPiston run also passes. Keep it as a required
+   runtime dependency; the BlockUI screen still needs visual in-game validation.
 7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
    using explicit Fabric APIs and keeping them optional.
 8. Package and test a dedicated-server distribution with secure authentication

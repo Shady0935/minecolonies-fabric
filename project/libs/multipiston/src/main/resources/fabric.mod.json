@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "multipiston",
+  "version": "${version}",
+  "name": "Multi-Piston",
+  "description": "Fabric 1.20.1 port of the Multi-Piston block and its configuration screen.",
+  "authors": ["LDT Team", "Destiny port contributors"],
+  "license": "GPL-3.0-only",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.ldtteam.multipiston.MultiPiston"],
+    "client": ["com.ldtteam.multipiston.client.MultiPistonClient"],
+    "fabric-gametest": ["com.ldtteam.multipiston.gametest.MultiPistonGameTests"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "~1.20.1",
+    "fabric-api": ">=0.92.2+1.20.1",
+    "java": ">=17",
+    "blockui": "0.0.1-port",
+    "structurize": "1.0.0-port",
+    "domum_ornamentum": "1.0.0-port"
+  }
+}

@@ -64,6 +64,7 @@ dependencies {
     implementation files(project.blockui_jar)
     implementation files(project.domum_jar)
     implementation files(project.structurize_jar)
+    modImplementation files(project.multipiston_jar)
 }
 
 processResources {

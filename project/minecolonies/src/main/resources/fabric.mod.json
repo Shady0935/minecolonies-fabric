@@ -21,6 +21,7 @@
     "java": ">=17",
     "blockui": "*",
     "domum_ornamentum": "*",
-    "structurize": "*"
+    "structurize": "*",
+    "multipiston": "0.0.1-port"
   }
 }

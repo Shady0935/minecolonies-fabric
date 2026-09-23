@@ -6,7 +6,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -16,95 +19,79 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * This Class is about the multipiston which takes care of pushing others around (In a non mean way).
- */
-public class MultiPistonBlock extends BaseEntityBlock
+/** A configurable redstone powered block mover. */
+public final class MultiPistonBlock extends BaseEntityBlock
 {
-    /**
-     * The hardness this block has.
-     */
-    private static final float BLOCK_HARDNESS = 1F;
+    private static final float BLOCK_HARDNESS = 1.0F;
+    private static final float RESISTANCE = 1.0F;
+    private static final VoxelShape OUTLINE = Block.box(0.01D, 0.01D, 0.01D, 15.99D, 15.99D, 15.99D);
 
-    /**
-     * The resistance this block has.
-     */
-    private static final float RESISTANCE = 1F;
-
-    /**
-     * Constructor for the Substitution block.
-     * sets the creative tab, as well as the resistance and the hardness.
-     */
     public MultiPistonBlock()
     {
-        super(Properties.of().mapColor(MapColor.STONE).sound(SoundType.STONE).strength(BLOCK_HARDNESS, RESISTANCE).isRedstoneConductor((a,b,c) -> true));
+        super(Properties.of().mapColor(MapColor.STONE).sound(SoundType.STONE)
+          .strength(BLOCK_HARDNESS, RESISTANCE).isRedstoneConductor((state, level, pos) -> true));
     }
 
-    /**
-     * The blocks shape.
-     */
-    private static final VoxelShape SHAPE = Block.box(0.01D, 0.01D, 0.01D, 15.99D, 15.99D, 15.99D);
-
-    @NotNull
     @Override
-    public InteractionResult use(@NotNull final BlockState state, final Level level, @NotNull final BlockPos pos, @NotNull final Player player, @NotNull final InteractionHand hand, @NotNull final BlockHitResult hitResult)
+    public InteractionResult use(final BlockState state, final Level level, final BlockPos pos,
+                                 final Player player, final InteractionHand hand, final BlockHitResult hit)
     {
-        if (level.isClientSide)
-        {
-            new WindowMultiPiston(pos).open();
-        }
+        // The client entrypoint opens the BlockUI window. Returning success on
+        // both sides prevents a held item from being used through this block.
         return InteractionResult.SUCCESS;
     }
 
-    @NotNull
     @Override
-    public VoxelShape getCollisionShape(final BlockState state, final BlockGetter level, final BlockPos pos, final CollisionContext ctx)
+    public VoxelShape getCollisionShape(final BlockState state, final BlockGetter level,
+                                       final BlockPos pos, final CollisionContext context)
     {
         return Shapes.block();
     }
 
     @Override
-    public void neighborChanged(@NotNull final BlockState state, final Level level, @NotNull final BlockPos pos, @NotNull final Block block, @NotNull final BlockPos fromPos, final boolean isMoving)
+    public VoxelShape getShape(final BlockState state, final BlockGetter level,
+                               final BlockPos pos, final CollisionContext context)
     {
-        if(level.isClientSide)
+        return OUTLINE;
+    }
+
+    @Override
+    public void neighborChanged(final BlockState state, final Level level, final BlockPos pos,
+                                final Block neighborBlock, final BlockPos neighborPos,
+                                final boolean movedByPiston)
+    {
+        if (level.isClientSide)
         {
             return;
         }
-        final BlockEntity te = level.getBlockEntity(pos);
-        if(te instanceof TileEntityMultiPiston)
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof TileEntityMultiPiston multiPiston)
         {
-            ((TileEntityMultiPiston) te).handleRedstone(level.hasNeighborSignal(pos));
+            multiPiston.handleRedstone(level.hasNeighborSignal(pos));
         }
     }
 
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(@NotNull final BlockPos blockPos, @NotNull final BlockState blockState)
+    public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state)
     {
-        return new TileEntityMultiPiston(blockPos, blockState);
+        return new TileEntityMultiPiston(pos, state);
     }
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull final Level level, @NotNull final BlockState state, @NotNull final BlockEntityType<T> type)
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(final Level level, final BlockState state,
+                                                                  final BlockEntityType<T> type)
     {
-        return createTickerHelper(type, ModTileEntities.multipiston.get(), (l, pos, s, te) -> te.tick());
+        return createTickerHelper(type, ModTileEntities.MULTIPISTON,
+          (world, pos, blockState, blockEntity) -> blockEntity.tick());
     }
 
-    @NotNull
     @Override
-    public RenderShape getRenderShape(@NotNull BlockState state)
+    public RenderShape getRenderShape(final BlockState state)
     {
         return RenderShape.MODEL;
-    }
-
-    @NotNull
-    @Override
-    public VoxelShape getShape(@NotNull final BlockState state, @NotNull final BlockGetter getter, @NotNull final BlockPos pos, @NotNull final CollisionContext context)
-    {
-        return SHAPE;
     }
 }

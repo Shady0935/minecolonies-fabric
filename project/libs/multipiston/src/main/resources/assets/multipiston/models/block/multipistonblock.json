@@ -2,6 +2,7 @@
 	"credit": "Made with Blockbench",
 	"textures": {
 		"1": "block/polished_andesite",
+		"missing": "block/polished_andesite",
 		"2": "block/blue_concrete",
 		"3": "block/green_concrete",
 		"6": "block/yellow_concrete",

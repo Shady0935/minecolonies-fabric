@@ -21,8 +21,9 @@ completed.
 - [x] BlockUI Fabric development dependency resolved
 - [x] Domum Ornamentum Fabric development dependency built and loaded
 - [x] Structurize Fabric development dependency built and loaded
-- [x] MultiPiston decision recorded: no runtime MineColonies source usage was
-  found, so the Forge-only standalone mod is not included in this target yet
+- [x] MultiPiston ported as a separate Fabric 1.20.1 module and declared as a
+  required MineColonies runtime dependency; its focused 3-test GameTest batch
+  passes registry, redstone movement/retraction and NBT persistence checks
 - [x] MineColonies Fabric 1.20.1 source compiles and packages
 - [x] Clean reproducible `build` checkpoint
 
@@ -38,10 +39,10 @@ completed.
   130 tags, 152 advancements and 9 quests, plus 2,609 generated citizen/
   raider icon textures. The previous upstream snapshot remains in the tree as
   an audit comparison only and is no longer a runtime resource root.
-- [x] Resource parity audit completed: shared JSON is semantically equal for
-  705 files; the remaining 243 differences are documented Fabric adaptations
-  (native `c:` tags, vanilla loot-table serialization and the intentionally
-  absent standalone MultiPiston item entry).
+- [x] Resource parity audit completed; differences are documented Fabric
+  adaptations (native `c:` tags and vanilla loot-table serialization). The
+  standalone `multipiston:multipistonblock` compatibility item is now included
+  by datagen because its required Fabric module is present.
 - [x] Fabric artifact audit confirms the packaged JAR contains no Forge
   `mods.toml` or access-transformer metadata.
 - [x] Dedicated server startup reaches `Done`
@@ -54,7 +55,8 @@ completed.
 - [x] Post-restart entity persistence probe found a saved `EntityCitizen` and
   `VisitorCitizen` with MineColonies identity/colony NBT; evidence is in
   `logs/minecolonies-runserver-citizen-entity-restart.log`
-- [x] Client bootstrap reaches OpenAL and all texture atlases
+- [x] Client bootstrap reaches OpenAL and all texture atlases with MultiPiston
+  loaded; evidence is in `logs/minecolonies-multipiston-client-bootstrap-20260922.log`
 - [x] BlockUI's in-world hook renderer is wired to Fabric's
   `WorldRenderEvents.LAST`; the full BlockUI module build and the post-change
   client bootstrap both pass (an authenticated in-game hook overlay check is
@@ -87,7 +89,8 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling and rally-banner guard state are covered by the latest
-  110-test GameTest run
+  113-test combined GameTest run, which also executes the three MultiPiston
+  tests
 - [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
   focused follow-up GameTest: the real split envelope deletes the owned
   colony, removes its dimension-manager entry and clears the packet cache;
@@ -145,7 +148,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 110-test Fabric GameTest run
+  is covered by the latest 113-test combined Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -440,7 +443,8 @@ completed.
   after the event starts, and the real `RaidManager` fixture observes a spawned
   raider advancing from its route origin; the controlled combat phase requires
   an autonomous health transition and passes in the latest GameTest checkpoint
-- [ ] BlockUI screens and remaining client-to-server gameplay actions
+- [ ] BlockUI screens (including the MultiPiston configuration window) and
+  remaining client-to-server gameplay actions
 
 ## Validation
 
@@ -496,7 +500,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 110-test Fabric GameTest run passes with clean saves for all three
+- [x] Latest 113-test combined Fabric GameTest run passes with clean saves for all three
   dimensions; its 91-test core batch plus isolated Lumberjack, Farmer hoe,
   Farmer navigation, Farmer planting, Miner, housing, Builder, Guard, sleep/wake
   and entity batches, plus isolated Miner shaft, Stonemason request, Stone Smeltery, Smeltery, Cook and Baker furnace batches and the focused
@@ -565,9 +569,11 @@ completed.
   the Smeltery raw-ore furnace worker cycle, the Cook furnace worker cycle and
   the Baker furnace worker cycle;
    evidence is in
-   `logs/minecolonies-gametest-raider-fix-20260922.log` and the companion
-   `logs/minecolonies-gametest-raider-fix-20260922.xml` (110 cases, zero
-   failures/errors), with the historical 109-case Baker checkpoint retained in
+   `logs/minecolonies-multipiston-113-gametest-20260922.log` and its companion
+   `logs/minecolonies-multipiston-113-gametest-20260922.xml` (113 cases, zero
+   failures/errors), with the earlier 110-case MineColonies-only checkpoint in
+   `logs/minecolonies-gametest-raider-fix-20260922.xml` and the historical
+   109-case Baker checkpoint retained in
    `logs/minecolonies-gametest-baker-20260922.log` and
    `logs/minecolonies-gametest-baker-20260922.xml`, the previous Miner-shaft checkpoint retained in
   `logs/minecolonies-gametest-miner-shaft-double-20260921.log` and the previous combined run retained in

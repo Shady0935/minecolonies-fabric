@@ -1,8 +1,6 @@
 {
-    "pack": {
-      "pack_format": 15,
-      "description": {
-        "text": "multipiston resources"
-      }
-    }
+  "pack": {
+    "pack_format": 15,
+    "description": "Multi-Piston resources"
+  }
 }
