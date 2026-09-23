@@ -158,11 +158,22 @@ import com.minecolonies.coremod.tileentities.TileEntityWareHouse;
 import com.minecolonies.coremod.network.NetworkChannel;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
+import com.minecolonies.coremod.network.messages.PermissionsMessage;
+import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
-import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
-import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
+import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
+import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewFieldsUpdateMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveBuildingMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveCitizenMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveWorkOrderMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewResearchManagerViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewWorkOrderMessage;
 import com.minecolonies.coremod.network.messages.splitting.SplitPacketMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
 import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
@@ -5606,6 +5617,24 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Build-window message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, SaveStructureNBTMessage.class),
           "Scan-save message was not registered on the server");
+
+        final List<Class<? extends IMessage>> clientColonyMessages = List.of(
+          ColonyViewMessage.class,
+          ColonyViewCitizenViewMessage.class,
+          ColonyViewRemoveCitizenMessage.class,
+          ColonyViewBuildingViewMessage.class,
+          ColonyViewRemoveBuildingMessage.class,
+          ColonyViewFieldsUpdateMessage.class,
+          PermissionsMessage.View.class,
+          ColonyViewWorkOrderMessage.class,
+          ColonyViewRemoveWorkOrderMessage.class,
+          UpdateChunkCapabilityMessage.class,
+          ColonyViewResearchManagerViewMessage.class);
+        for (final Class<? extends IMessage> messageClass : clientColonyMessages)
+        {
+            helper.assertTrue(isMessageRegistered(channel, messageClass),
+              "Client-bound colony-view message was not registered: " + messageClass.getSimpleName());
+        }
 
         final EntityCitizen citizen = (EntityCitizen) ModEntities.CITIZEN.create(level);
         helper.assertTrue(citizen != null, "Fishing hook fixture could not create a citizen entity");

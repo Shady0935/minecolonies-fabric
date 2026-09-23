@@ -144,6 +144,12 @@ completed.
   the 13-test GameTest batch
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
+- [x] Dedicated GameTest asserts registration of all eleven client-bound
+  colony-view messages, including citizen add/update/removal; the full 113-test
+  suite passes with the fishing-hook angler synchronization check. Evidence is
+  in `logs/minecolonies-gametest-s2c-colony-family-113-20260922.log` and its
+  JUnit report. Payload/dispatch coverage for the remaining S2C families is
+  still open.
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
   lifecycle, commands, login/logout and datapack reload callbacks
 - [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,
