@@ -29,14 +29,15 @@ through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
 116 tests, including the owner-controlled colony-rank permission envelope,
 authorized permission-management routes and a rejected unauthorized rank edit,
+permission/rank/player state surviving a complete colony-NBT reload,
 two parallel University researches, 24-block Researcher
 navigation/offline-mana checks, FarmField colony-NBT persistence, a focused
 two-cell Farmer harvest and the Farmer's 24-block harvest/return, hut deposit
 and pickup-request cycle, plus the three standalone MultiPiston tests; its log
 and JUnit report are
-`logs/minecolonies-gametest-c2s-permission-management-final-20260924.log` and
-`logs/minecolonies-gametest-c2s-permission-management-final-20260924.xml`. The full package build also passes in
-`logs/minecolonies-build-c2s-permission-management-final-20260924.log`. It saved
+`logs/minecolonies-gametest-permission-persistence-final-20260924.log` and
+`logs/minecolonies-gametest-permission-persistence-final-20260924.xml`. The full package build also passes in
+`logs/minecolonies-build-permission-persistence-final-20260924.log`. It saved
 all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned

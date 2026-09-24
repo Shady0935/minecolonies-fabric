@@ -127,8 +127,10 @@ completed.
   end-to-end coverage in the combined suite: rank permission change, add/remove
   player and rank, player-rank assignment, rank-type and subscriber edits.
   The suite rejects an unauthorized rank addition and verifies cache cleanup.
-  `AddPlayer` resolves online players before consulting the optional profile
-  cache. The in-game permissions screen remains open.
+  It also reloads the complete colony NBT and verifies rank permission, custom
+  rank attributes and player assignments persist. `AddPlayer` resolves online
+  players before consulting the optional profile cache. The in-game permissions
+  screen remains open.
 - [x] `TeleportToColonyMessage` is covered through the real C2S envelope for
   both permission branches: a neutral player stays put, while a colony friend
   is teleported near the Town Hall; evidence is in
@@ -212,8 +214,8 @@ completed.
   including fishing-hook angler synchronization and all nine serverbound
   permission-message families, with an unauthorized rank edit rejected; the
   server saves all three dimensions and stops cleanly. Latest evidence is in
-  `logs/minecolonies-gametest-c2s-permission-management-final-20260924.log` and
-  `logs/minecolonies-gametest-c2s-permission-management-final-20260924.xml`; the
+  `logs/minecolonies-gametest-permission-persistence-final-20260924.log` and
+  `logs/minecolonies-gametest-permission-persistence-final-20260924.xml`; the
   previous full-suite evidence is in
   `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
@@ -634,10 +636,11 @@ completed.
   Builder work-order claim/navigation, autonomous stone/cobblestone Warehouse/Courier
   deliveries, 17-block placement and order completion, the Farmer's focused
   two-cell harvest and 24-block harvest/return, hut deposit and pickup-request
-  creation, `logs/minecolonies-gametest-c2s-permission-management-final-20260924.log` and
-  `logs/minecolonies-gametest-c2s-permission-management-final-20260924.xml`
+  creation, permission/rank/player NBT persistence,
+  `logs/minecolonies-gametest-permission-persistence-final-20260924.log` and
+  `logs/minecolonies-gametest-permission-persistence-final-20260924.xml`
   (116 cases, zero failures/errors), and the successful package build at
-  `logs/minecolonies-build-c2s-permission-management-final-20260924.log`, with clean saves for all three
+  `logs/minecolonies-build-permission-persistence-final-20260924.log`, with clean saves for all three
   dimensions and a clean server stop. The fresh regression rerun after the
   Structurize language-loader fix again passes all 114 tests; evidence is in
   `logs/minecolonies-gametest-lang-loader-20260923.log`.

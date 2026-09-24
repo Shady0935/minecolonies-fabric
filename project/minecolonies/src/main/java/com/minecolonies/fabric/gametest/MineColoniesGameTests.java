@@ -6761,6 +6761,11 @@ public final class MineColoniesGameTests implements FabricGameTest
               "Permission envelope did not change ACCESS_HUTS for the selected rank");
             helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
               "Permission envelope remained in the split-packet cache");
+            final Colony reloaded = Colony.loadColony(colony.getColonyTag().copy(), level);
+            helper.assertTrue(reloaded != null, "C2S permission colony NBT could not be reloaded");
+            helper.assertTrue(reloaded.getPermissions().hasPermission(
+                reloaded.getPermissions().getRankNeutral(), targetAction) == expectedPermission,
+              "C2S permission change did not persist through the colony NBT round-trip");
             helper.succeed();
         });
     }
@@ -6881,6 +6886,19 @@ public final class MineColoniesGameTests implements FabricGameTest
                               "SetSubscriber envelope remained in the split-packet cache");
                             helper.assertTrue(channel.getMessageCache().getIfPresent(editRankTypeCommunicationId) == null,
                               "EditRankType envelope remained in the split-packet cache");
+
+                            final Colony reloaded = Colony.loadColony(colony.getColonyTag().copy(), level);
+                            helper.assertTrue(reloaded != null, "Permission-management colony NBT could not be reloaded");
+                            final var reloadedPermissions = reloaded.getPermissions();
+                            final var reloadedRank = reloadedPermissions.getRanks().values().stream()
+                              .filter(rank -> rank.getName().equals(rankName)).findFirst().orElse(null);
+                            helper.assertTrue(reloadedRank != null && reloadedRank.isSubscriber() == subscriber
+                                && reloadedRank.isHostile() && !reloadedRank.isColonyManager(),
+                              "Rank name, subscriber or type did not persist through colony NBT");
+                            helper.assertTrue(reloadedPermissions.getPlayers().containsKey(invitee.getUUID())
+                                && reloadedPermissions.getRank(invitee.getUUID()).getId() == testRank.getId()
+                                && reloadedPermissions.getPlayers().containsKey(fakePlayerId),
+                              "Permission-managed player entries did not persist through colony NBT");
 
                             final int removeInviteeCommunicationId = 0x504D1008;
                             final int removeFakePlayerCommunicationId = 0x504D1009;
