@@ -1,0 +1,989 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.6/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+
+> Configure project :
+Fabric Loom: 1.6.12
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :generateDLIConfig
+> Task :generateLog4jConfig
+> Task :generateRemapClasspath UP-TO-DATE
+> Task :configureLaunch
+
+> Task :runGametest
+[06:53:54] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.20.1 with Fabric Loader 0.15.11
+[06:53:54] [main/INFO] (FabricLoader) Loading 50 mods:
+	- blockui 0.0.1-port
+	- domum_ornamentum 1.0.0-port
+	- fabric-api 0.92.2+1.20.1
+	- fabric-api-base 0.4.31+1802ada577
+	- fabric-api-lookup-api-v1 1.6.36+1802ada577
+	- fabric-biome-api-v1 13.0.13+1802ada577
+	- fabric-block-api-v1 1.0.11+1802ada577
+	- fabric-block-view-api-v2 1.0.1+1802ada577
+	- fabric-command-api-v1 1.2.34+f71b366f77
+	- fabric-command-api-v2 2.2.13+1802ada577
+	- fabric-commands-v0 0.2.51+df3654b377
+	- fabric-containers-v0 0.1.64+df3654b377
+	- fabric-content-registries-v0 4.0.11+1802ada577
+	- fabric-convention-tags-v1 1.5.5+1802ada577
+	- fabric-crash-report-info-v1 0.2.19+1802ada577
+	- fabric-data-attachment-api-v1 1.0.0+de0fd6d177
+	- fabric-data-generation-api-v1 12.3.4+1802ada577
+	- fabric-dimensions-v1 2.1.54+1802ada577
+	- fabric-entity-events-v1 1.6.0+1c78457f77
+	- fabric-events-interaction-v0 0.6.2+1802ada577
+	- fabric-events-lifecycle-v0 0.2.63+df3654b377
+	- fabric-game-rule-api-v1 1.0.40+1802ada577
+	- fabric-gametest-api-v1 1.2.13+1802ada577
+	- fabric-item-api-v1 2.1.28+1802ada577
+	- fabric-item-group-api-v1 4.0.12+1802ada577
+	- fabric-lifecycle-events-v1 2.2.22+1802ada577
+	- fabric-loot-api-v2 1.2.1+1802ada577
+	- fabric-loot-tables-v1 1.1.45+9e7660c677
+	- fabric-message-api-v1 5.1.9+1802ada577
+	- fabric-mining-level-api-v1 2.1.50+1802ada577
+	- fabric-networking-api-v1 1.3.11+1802ada577
+	- fabric-networking-v0 0.3.51+df3654b377
+	- fabric-object-builder-api-v1 11.1.3+1802ada577
+	- fabric-particles-v1 1.1.2+1802ada577
+	- fabric-recipe-api-v1 1.0.21+1802ada577
+	- fabric-registry-sync-v0 2.3.3+1802ada577
+	- fabric-rendering-data-attachment-v1 0.3.37+92a0d36777
+	- fabric-rendering-fluids-v1 3.0.28+1802ada577
+	- fabric-resource-conditions-api-v1 2.3.8+1802ada577
+	- fabric-resource-loader-v0 0.11.10+1802ada577
+	- fabric-screen-handler-api-v1 1.3.30+1802ada577
+	- fabric-transfer-api-v1 3.3.5+8dd72ea377
+	- fabric-transitive-access-wideners-v1 4.3.1+1802ada577
+	- fabricloader 0.15.11
+	- java 17
+	- minecolonies 1.0.0-port
+	- minecraft 1.20.1
+	- mixinextras 0.3.5
+	- multipiston 0.0.1-port
+	- structurize 1.0.0-port
+[06:53:54] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.5 Source=file:/C:/Users/Shady/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.13.3+mixin.0.8.5/9527e6b0d2449408958fd1302594dc65ec5ade9c/sponge-mixin-0.13.3+mixin.0.8.5.jar Service=Knot/Fabric Env=SERVER
+[06:53:54] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[06:53:54] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_16
+[06:53:54] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[06:53:55] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.3.5).
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:citizen
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:fishhook
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:visitor
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mercenary
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:barbarian
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:archerbarbarian
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:chiefbarbarian
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:pirate
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:archerpirate
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:chiefpirate
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:sittingentity
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mcminecart
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mummy
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:archermummy
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:pharao
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:amazon
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:amazonspearman
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:amazonchief
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:firearrow
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:mcnormalarrow
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:druidpotion
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:shieldmaiden
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:norsemenarcher
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:norsemenchief
+[06:54:01] [main/ERROR] (Minecraft) No data fixer registered for minecolonies:spear
+[06:54:02] [main/WARN] (MineColonies) Reconfiguring logging for RS.
+[06:54:02] [main/WARN] (MineColonies) Reconfigured logging for RS.
+[06:54:02] [main/WARN] (minecolonies) Register mappings
+[06:54:02] [main/INFO] (structurize) Structurize Fabric 1.20.1 initialized
+[06:54:02] [main/ERROR] (Minecraft) Failed to load properties from file: server.properties
+java.nio.file.NoSuchFileException: server.properties
+	at sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[?:?]
+	at sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[?:?]
+	at sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[?:?]
+	at sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:236) ~[?:?]
+	at java.nio.file.Files.newByteChannel(Files.java:380) ~[?:?]
+	at java.nio.file.Files.newByteChannel(Files.java:432) ~[?:?]
+	at java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:422) ~[?:?]
+	at java.nio.file.Files.newInputStream(Files.java:160) ~[?:?]
+	at net.minecraft.server.dedicated.Settings.loadFromFile(Settings.java:62) ~[minecraft-merged-93b5e88010-1.20.1-loom.mappings.1_20_1.layered+hash.2198-v2.jar:?]
+	at net.minecraft.server.dedicated.DedicatedServerProperties.fromFile(DedicatedServerProperties.java:137) ~[minecraft-merged-93b5e88010-1.20.1-loom.mappings.1_20_1.layered+hash.2198-v2.jar:?]
+	at net.minecraft.server.dedicated.DedicatedServerSettings.<init>(DedicatedServerSettings.java:12) ~[minecraft-merged-93b5e88010-1.20.1-loom.mappings.1_20_1.layered+hash.2198-v2.jar:?]
+	at net.minecraft.server.Main.main(Main.java:115) ~[minecraft-merged-93b5e88010-1.20.1-loom.mappings.1_20_1.layered+hash.2198-v2.jar:?]
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:470) ~[fabric-loader-0.15.11.jar:?]
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:74) ~[fabric-loader-0.15.11.jar:?]
+	at net.fabricmc.loader.impl.launch.knot.KnotServer.main(KnotServer.java:23) ~[fabric-loader-0.15.11.jar:?]
+	at net.fabricmc.devlaunchinjector.Main.main(Main.java:86) ~[dev-launch-injector-0.2.1+build.8.jar:?]
+[06:54:02] [main/WARN] (Minecraft) Failed to load eula.txt
+[06:54:02] [main/INFO] (Minecraft) Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[06:54:02] [main/INFO] (FabricGameTestHelper) Starting test server
+[06:54:04] [main/INFO] (Minecraft) Loaded 9 recipes
+[06:54:04] [main/INFO] (Minecraft) Loaded 1480 advancements
+[06:54:04] [main/INFO] (minecolonies) Beginning load of custom recipes for colony workers
+[06:54:04] [main/INFO] (minecolonies) Loaded 130 recipes for 14 crafters
+[06:54:04] [main/INFO] (minecolonies) Beginning load of research for University.
+[06:54:04] [main/INFO] (minecolonies) Loaded 201 recipes for 4 research branches
+[06:54:04] [main/INFO] (minecolonies) Loading quests from data
+[06:54:04] [main/INFO] (minecolonies) Finished loading quests from data
+[06:54:04] [main/WARN] (minecolonies) Read 1456 items with their nbt keys for compatibility.
+[06:54:04] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 64 new biomes in 1.275 ms
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Urban Savanna
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Urban Birch
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Caledonia
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Cavern
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Colonial
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Dark Oak Treehouse
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Fortress
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Incan
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Jungle Treehouse
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Lost Mesa City
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Birch
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Dark Oak
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Oak
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Medieval Spruce
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Nordic Spruce
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Minecolonies Original
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Pagoda
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Desert Oasis
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Shire
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Space Wars
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Stalactite Caves
+[06:54:04] [Structurize IO Worker #0/INFO] (structurize) Registered structure pack: Warped Netherlands
+[06:54:04] [Structurize IO Worker #0/WARN] (structurize) Failed loading packs from main folder path: .
+[06:54:04] [Structurize IO Worker #0/WARN] (structurize) Failed loading client packs from main folder path: .
+[06:54:04] [Structurize IO Worker #0/WARN] (structurize) Finished discovering Server Structure packs
+[06:54:05] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[06:54:05] [Worker-Main-4/INFO] (Minecraft) Preparing spawn area: 0%
+[06:54:05] [Worker-Main-6/INFO] (Minecraft) Preparing spawn area: 7%
+[06:54:06] [Worker-Main-1/INFO] (Minecraft) Preparing spawn area: 72%
+[06:54:06] [Server thread/INFO] (Minecraft) Time elapsed: 1150 ms
+[06:54:06] [Server thread/INFO] (Minecraft) Started game test server
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering Ores 18 21
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering saplings 10
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering plantables 19
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering food 44 56
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering fuel 249
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering flowers 24
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering items 1918
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering lucky oreBlocks 6
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering recruitment costs
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering diseases
+[06:54:06] [Server thread/INFO] (minecolonies) Finished discovering compostables 139
+[06:54:07] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_port:1' (93 tests)...
+[06:54:07] [Server thread/INFO] (Minecraft) 117 tests are now running!
+[06:54:07] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 34 at (4.5, -60.0, 8.5)
+[06:54:07] [Server thread/INFO] (structurize) New Server UUID bd77c44e-0369-4d75-ae27-919a567cb5c1
+[06:54:07] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 1 by c2s-research-player
+[06:54:08] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 44 at (-0.5, -60.0, 5.5)
+[06:54:08] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 2 by c2s-research-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 49 at (9.5, -60.0, -5.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 3 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 59 at (4.5, -60.0, -1.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 4 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 71 at (-0.5, -60.0, 8.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 5 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [advancements.minecolonies.create_build_request_1_builder.title]
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 82 at (-1.5, -60.0, -9.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 6 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 83 at (1.5, -59.0, -0.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 7 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 84 at (-1.5, -60.0, 3.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 8 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 85 at (7.5, -60.0, 8.5)
+[06:54:08] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 9 by c2s-research-player
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 88 at (9.5, -60.0, -5.5)
+[06:54:08] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:08] [Server thread/INFO] (minecolonies) New Colony Id: 10 by test-mock-player
+[06:54:08] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 94 at (4.5, -60.0, -2.5)
+[06:54:08] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 11 by c2s-research-player
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 95 at (-2.5, -60.0, -1.5)
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 12 by test-mock-player
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 109 at (-4.5, -60.0, 9.5)
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 110 at (3.5, -60.0, 10.5)
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 13 by test-mock-player
+[06:54:09] [Server thread/WARN] (minecolonies) Tried to remove colony with id=13, but it didn't exist.
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 111 at (-7.5, -60.0, -4.5)
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 14 by c2s-research-player
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 112 at (-8.5, -60.0, 9.5)
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 15 by c2s-research-player
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 121 at (6.5, -59.0, 3.5)
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 16 by c2s-research-player
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 126 at (-3.5, -60.0, 2.5)
+[06:54:09] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 17 by c2s-research-player
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 134 at (10.5, -60.0, -8.5)
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 18 by test-mock-player
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 140 at (-1.5, -60.0, -7.5)
+[06:54:09] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:09] [Server thread/INFO] (minecolonies) New Colony Id: 19 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 146 at (5.5, -60.0, -4.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 20 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 161 at (-1.5, -60.0, -6.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 21 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 167 at (-4.5, -60.0, 4.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 22 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 181 at (2.5, -60.0, -6.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 23 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [advancements.minecolonies.create_build_request_1_builder.title]
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 201 at (-4.5, -60.0, 6.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 24 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 210 at (8.5, -60.0, 10.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 25 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 216 at (7.5, -60.0, 9.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 26 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 225 at (0.5, -60.0, 5.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 27 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 235 at (3.5, -60.0, -7.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 28 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 245 at (-3.5, -60.0, -6.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 29 by test-mock-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 247 at (6.5, -60.0, 7.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 30 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 256 at (-3.5, -60.0, 8.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 31 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 265 at (4.5, -59.0, 4.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 32 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 271 at (-1.5, -60.0, 7.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 33 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 272 at (7.5, -59.0, 2.5)
+[06:54:10] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 34 by c2s-research-player
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 281 at (-4.5, -60.0, -6.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 285 at (2.5, -60.0, 7.5)
+[06:54:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:10] [Server thread/INFO] (minecolonies) New Colony Id: 35 by test-mock-player
+[06:54:11] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 286 at (-0.5, -60.0, -2.5)
+[06:54:11] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:11] [Server thread/INFO] (minecolonies) New Colony Id: 36 by c2s-research-player
+[06:54:11] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 287 at (-8.5, -60.0, -4.5)
+[06:54:11] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:11] [Server thread/INFO] (minecolonies) New Colony Id: 37 by c2s-research-player
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 296 at (5.5, -60.0, -0.5)
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:12] [Server thread/INFO] (minecolonies) New Colony Id: 38 by c2s-research-player
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 306 at (10.5, -60.0, 8.5)
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:12] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 307 at (-8.5, -60.0, 6.5)
+[06:54:12] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:12] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 308 at (4.5, -60.0, -6.5)
+[06:54:12] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:12] [Server thread/INFO] (minecolonies) New Colony Id: 39 by test-mock-player
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 317 at (9.5, -60.0, -1.5)
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:12] [Server thread/INFO] (minecolonies) New Colony Id: 40 by c2s-research-player
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 318 at (5.5, -59.0, 0.5)
+[06:54:12] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:12] [Server thread/INFO] (minecolonies) New Colony Id: 41 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 323 at (0.5, -60.0, -5.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 42 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 332 at (8.5, -60.0, -6.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 43 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 333 at (-4.5, -60.0, -0.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 334 at (10.5, -59.0, 1.5)
+[06:54:13] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 44 by test-mock-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 337 at (7.5, -60.0, -7.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 45 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 342 at (-3.5, -60.0, -8.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 46 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 347 at (7.5, -59.0, 3.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 47 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 352 at (-8.5, -60.0, -1.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 48 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 358 at (-2.5, -60.0, -1.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 359 at (-1.5, -60.0, 9.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 49 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 368 at (-6.5, -60.0, 3.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 50 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 373 at (9.5, -60.0, 8.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 51 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 382 at (9.5, -59.0, 4.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 52 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 388 at (-5.5, -60.0, 6.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 53 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 389 at (-2.5, -60.0, -2.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 54 by c2s-research-player
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 398 at (-7.5, -60.0, -2.5)
+[06:54:13] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:13] [Server thread/INFO] (minecolonies) New Colony Id: 55 by c2s-research-player
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 407 at (0.5, -60.0, 9.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 56 by c2s-research-player
+[06:54:14] [Server thread/INFO] (minecolonies) Removing citizens for 56
+[06:54:14] [Server thread/INFO] (minecolonies) Removing buildings for 56
+[06:54:14] [Server thread/INFO] (minecolonies) Deleting colony: 56
+[06:54:14] [Server thread/INFO] (minecolonies) Successfully deleted colony: 56
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 408 at (-4.5, -60.0, -5.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 56 by c2s-research-player
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 417 at (4.5, -60.0, -5.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 57 by c2s-research-player
+[06:54:14] [Server thread/INFO] (Minecraft) PermOwner[local] logged in with entity id 427 at (3.5, -60.0, -6.5)
+[06:54:14] [Server thread/INFO] (Minecraft) PermOwner joined the game
+[06:54:14] [Server thread/INFO] (Minecraft) PermOutsider[local] logged in with entity id 428 at (3.5, -60.0, -1.5)
+[06:54:14] [Server thread/INFO] (Minecraft) PermOutsider joined the game
+[06:54:14] [Server thread/INFO] (Minecraft) PermInvitee[local] logged in with entity id 429 at (-4.5, -60.0, 1.5)
+[06:54:14] [Server thread/INFO] (Minecraft) PermInvitee joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 58 by PermOwner
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 430 at (3.5, -59.0, 4.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 59 by c2s-research-player
+[06:54:14] [Server thread/INFO] (minecolonies) Colony 59 - removed AbstractBuilding BlockPos{x=262216, y=-59, z=262248} of type townhall
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 435 at (-3.5, -60.0, -7.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 60 by c2s-research-player
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 448 at (-2.5, -60.0, 8.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 61 by c2s-research-player
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 457 at (-8.5, -60.0, 1.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:14] [Server thread/INFO] (minecolonies) New Colony Id: 62 by c2s-research-player
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 458 at (-8.5, -60.0, -7.5)
+[06:54:14] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 459 at (-1.5, -60.0, -0.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 63 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 464 at (3.5, -60.0, -2.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 64 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 473 at (-2.5, -60.0, 5.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 65 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 479 at (8.5, -60.0, -2.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 66 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 480 at (-0.5, -60.0, -4.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 67 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 489 at (-0.5, -60.0, 10.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 490 at (-1.5, -60.0, 8.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 68 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 500 at (9.5, -60.0, -2.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 69 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-skill-player[local] logged in with entity id 509 at (9.5, -59.0, 0.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-skill-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 70 by c2s-skill-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 515 at (10.5, -60.0, -1.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 516 at (10.5, -60.0, -8.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 71 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 525 at (-4.5, -60.0, 4.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 526 at (2.5, -60.0, -0.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 527 at (-7.5, -60.0, -6.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [advancements.minecolonies.check_out_guide.title]
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 528 at (10.5, -60.0, 8.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 72 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player[local] logged in with entity id 533 at (9.5, -60.0, -7.5)
+[06:54:15] [Server thread/INFO] (Minecraft) c2s-research-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 73 by c2s-research-player
+[06:54:15] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 534 at (3.5, -60.0, 7.5)
+[06:54:15] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 74 by test-mock-player
+[06:54:15] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 544 at (-4.5, -60.0, -8.5)
+[06:54:15] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:15] [Server thread/INFO] (minecolonies) New Colony Id: 75 by test-mock-player
+[06:54:15] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 9472ms or 189 ticks behind
+[06:54:16] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Stone Age]
+[06:54:16] [Server thread/ERROR] (minecolonies) Schematic fundamentals/townhall1.blueprint doesn't have a correct Primary Offset
+[06:54:16] [Server thread/ERROR] (minecolonies) Automated C2S Rank
+[06:54:18] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++___+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:19] [Server thread/INFO] (minecolonies) Colony 22 - removed AbstractBuilding BlockPos{x=38, y=-59, z=41} of type deliveryman
+[06:54:19] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++___+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:20] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++___+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:20] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [advancements.minecolonies.deep_mine.title]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) PermInvitee has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) PermOwner has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) PermOutsider has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-skill-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) c2s-research-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [Bring Home the Beacon]
+[06:54:21] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++_+_+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:23] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++++_+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:24] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++++_+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:25] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++++_+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:25] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++++_+++++++++++++++++++_++++++++++++++++++++_++++++++++++++++++++++_++_                        ]
+[06:54:26] [Server thread/INFO] (Minecraft) [+_+_+++++++++_+++++++++++_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                        ]
+[06:54:27] [Server thread/INFO] (Minecraft) [+_+_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                        ]
+[06:54:28] [Server thread/INFO] (Minecraft) [+_+_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                        ]
+[06:54:29] [Server thread/INFO] (Minecraft) [+_+_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                        ]
+[06:54:30] [Server thread/INFO] (Minecraft) [+_+_++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                        ]
+[06:54:30] [Server thread/INFO] (Minecraft) [+_+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:31] [Server thread/INFO] (Minecraft) [+_+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:32] [Server thread/INFO] (Minecraft) [+_+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:33] [Server thread/INFO] (Minecraft) [+_+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:34] [Server thread/INFO] (Minecraft) [+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:35] [Server thread/INFO] (Minecraft) [+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:35] [Server thread/INFO] (Minecraft) [+_+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++                        ]
+[06:54:36] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_miner_shaft_port:1' (1 tests)...
+[06:54:36] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 630 at (-3.5, -60.0, 9.5)
+[06:54:36] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:36] [Server thread/INFO] (minecolonies) New Colony Id: 76 by test-mock-player
+[06:54:36] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                       ]
+[06:54:37] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                       ]
+[06:54:38] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                       ]
+[06:54:39] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                       ]
+[06:54:40] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                       ]
+[06:54:41] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                       ]
+[06:54:41] [Server thread/INFO] (Minecraft) Running test batch 'multipiston_fabric:1' (3 tests)...
+[06:54:41] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_housing_port:1' (1 tests)...
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 644 at (-8.5, -60.0, -5.5)
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:41] [Server thread/INFO] (minecolonies) New Colony Id: 77 by test-mock-player
+[06:54:41] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_stonemason_port:1' (1 tests)...
+[06:54:41] [Server thread/ERROR] (minecolonies) Schematic fundamentals/house1.blueprint doesn't have a correct Primary Offset
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 657 at (8.5, -60.0, -6.5)
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:41] [Server thread/INFO] (minecolonies) New Colony Id: 78 by test-mock-player
+[06:54:41] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_farmer_hoe_port:1' (1 tests)...
+[06:54:41] [Server thread/ERROR] (minecolonies) Schematic craftsmanship/masonry/stonemason1.blueprint doesn't have a correct Primary Offset
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 667 at (4.5, -59.0, 4.5)
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:41] [Server thread/INFO] (minecolonies) New Colony Id: 79 by test-mock-player
+[06:54:41] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_farmer_navigation_port:1' (1 tests)...
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 677 at (-1.5, -60.0, -6.5)
+[06:54:41] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:54:41] [Server thread/INFO] (minecolonies) New Colony Id: 80 by test-mock-player
+[06:54:42] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:42] [Server thread/INFO] (minecolonies) Colony 78 - removed AbstractBuilding BlockPos{x=130, y=-59, z=145} of type stonemason
+[06:54:43] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:44] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:45] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:46] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:47] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:48] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:49] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:50] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:51] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:52] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:53] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:53] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:54] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:55] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:56] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:57] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:58] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:54:59] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:00] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:01] [Server thread/INFO] (minecolonies) Colony 76 - removed AbstractBuilding BlockPos{x=70, y=-59, z=145} of type miner
+[06:55:01] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:02] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:03] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:04] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:05] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:06] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:06] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:07] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:08] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:09] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:10] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:11] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:12] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:13] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:14] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:15] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:16] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:17] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:18] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:19] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:19] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:20] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:21] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:22] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:23] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:24] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:25] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_                ]
+[06:55:26] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_miner_port:1' (1 tests)...
+[06:55:26] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 707 at (-5.5, -60.0, -4.5)
+[06:55:26] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:55:26] [Server thread/INFO] (minecolonies) New Colony Id: 81 by test-mock-player
+[06:55:26] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_cook_port:1' (1 tests)...
+[06:55:26] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 717 at (8.5, -60.0, -0.5)
+[06:55:26] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:55:26] [Server thread/INFO] (minecolonies) New Colony Id: 82 by test-mock-player
+[06:55:26] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:27] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:27] [Server thread/INFO] (minecolonies) Colony 81 - removed AbstractBuilding BlockPos{x=166, y=-59, z=145} of type miner
+[06:55:28] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:29] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:30] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:31] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:32] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:33] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:34] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:35] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:36] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:37] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:38] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_              ]
+[06:55:38] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_smeltery_port:1' (1 tests)...
+[06:55:38] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 728 at (4.5, -60.0, 7.5)
+[06:55:38] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:55:38] [Server thread/INFO] (minecolonies) New Colony Id: 83 by test-mock-player
+[06:55:39] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:40] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:41] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:42] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:43] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:44] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:45] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:45] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:46] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:47] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:48] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:49] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_             ]
+[06:55:49] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_lumberjack_port:1' (1 tests)...
+[06:55:50] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 739 at (-9.5, -60.0, 9.5)
+[06:55:50] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:55:50] [Server thread/INFO] (minecolonies) New Colony Id: 84 by test-mock-player
+[06:55:50] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[06:55:51] [Server thread/INFO] (minecolonies) Colony 82 - removed AbstractBuilding BlockPos{x=178, y=-59, z=145} of type cook
+[06:55:51] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[06:55:52] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[06:55:53] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[06:55:55] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[06:55:56] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_            ]
+[06:55:56] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_crusher_port:1' (1 tests)...
+[06:55:56] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 770 at (-0.5, -60.0, -7.5)
+[06:55:56] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:55:56] [Server thread/INFO] (minecolonies) New Colony Id: 85 by test-mock-player
+[06:55:57] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_           ]
+[06:55:58] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_           ]
+[06:55:58] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_stone_smeltery_port:1' (1 tests)...
+[06:55:58] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 781 at (-1.5, -60.0, 9.5)
+[06:55:58] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:55:58] [Server thread/INFO] (minecolonies) New Colony Id: 86 by test-mock-player
+[06:55:59] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:55:59] [Server thread/INFO] (minecolonies) Colony 85 - removed AbstractBuilding BlockPos{x=214, y=-59, z=145} of type crusher
+[06:56:00] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:01] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:02] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:03] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:04] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:05] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:06] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:07] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:08] [Server thread/INFO] (minecolonies) Colony 83 - removed AbstractBuilding BlockPos{x=190, y=-59, z=145} of type smeltery
+[06:56:08] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:09] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:10] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:11] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:12] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:13] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:14] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:15] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_          ]
+[06:56:15] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_builder_port:1' (2 tests)...
+[06:56:16] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 795 at (-3.5, -60.0, -4.5)
+[06:56:16] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:56:16] [Server thread/INFO] (minecolonies) New Colony Id: 87 by test-mock-player
+[06:56:16] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 805 at (3.5, -60.0, 10.5)
+[06:56:16] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:56:16] [Server thread/INFO] (minecolonies) New Colony Id: 88 by test-mock-player
+[06:56:16] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [advancements.minecolonies.create_build_request_1_builder.title]
+[06:56:16] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:17] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:19] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:19] [Server thread/INFO] (minecolonies) Colony 84 - removed AbstractBuilding BlockPos{x=202, y=-59, z=145} of type lumberjack
+[06:56:20] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:21] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:22] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:23] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:24] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++__        ]
+[06:56:24] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [advancements.minecolonies.create_build_request_1_builder.title]
+[06:56:25] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:27] [Server thread/INFO] (minecolonies) Colony 86 - removed AbstractBuilding BlockPos{x=226, y=-59, z=145} of type stonesmeltery
+[06:56:27] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:29] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:30] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:31] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:32] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_+        ]
+[06:56:32] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_researcher_long_range_port:1' (1 tests)...
+[06:56:32] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 825 at (5.5, -60.0, 7.5)
+[06:56:32] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:56:32] [Server thread/INFO] (minecolonies) New Colony Id: 89 by test-mock-player
+[06:56:33] [Server thread/INFO] (Minecraft) test-mock-player has reached the goal [advancements.minecolonies.build.builder.title]
+[06:56:33] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:34] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:35] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:36] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:37] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:38] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:39] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:41] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:42] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:43] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:44] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:45] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:46] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:47] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:48] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:49] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:50] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:51] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:53] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:54] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:55] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:56] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:57] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:58] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:56:59] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:57:00] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:57:01] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:57:02] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_       ]
+[06:57:03] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_guard_port:1' (1 tests)...
+[06:57:03] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 841 at (10.5, -60.0, -2.5)
+[06:57:03] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:57:03] [Server thread/INFO] (minecolonies) New Colony Id: 90 by test-mock-player
+[06:57:03] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_      ]
+[06:57:05] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_      ]
+[06:57:06] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_      ]
+[06:57:06] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_farmer_plant_port:1' (1 tests)...
+[06:57:07] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 852 at (7.5, -60.0, -3.5)
+[06:57:07] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:57:07] [Server thread/INFO] (minecolonies) New Colony Id: 91 by test-mock-player
+[06:57:07] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_baker_port:1' (1 tests)...
+[06:57:07] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 863 at (5.5, -60.0, -3.5)
+[06:57:07] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:57:07] [Server thread/INFO] (minecolonies) New Colony Id: 92 by test-mock-player
+[06:57:07] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:08] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:09] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:10] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:10] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2001ms or 40 ticks behind
+[06:57:11] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:13] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:14] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:15] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:16] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:17] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:18] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:19] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:21] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:22] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:23] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:24] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:25] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:26] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:27] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:28] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2174ms or 43 ticks behind
+[06:57:29] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:30] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:31] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:32] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:33] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:34] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:35] [Server thread/INFO] (minecolonies) Colony 90 - removed AbstractBuilding BlockPos{x=274, y=-59, z=145} of type guardtower
+[06:57:36] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:37] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:38] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:39] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:40] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:41] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:42] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_    ]
+[06:57:43] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_builder_e2e_port:1' (1 tests)...
+[06:57:43] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 900 at (-9.5, -60.0, 10.5)
+[06:57:43] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:57:43] [Server thread/INFO] (minecolonies) New Colony Id: 93 by test-mock-player
+[06:57:43] [Server thread/INFO] (Minecraft) test-mock-player has made the advancement [advancements.minecolonies.create_build_request_1_builder.title]
+[06:57:44] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:45] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:45] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2301ms or 46 ticks behind
+[06:57:46] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:47] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:48] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:49] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:51] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:52] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:53] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:54] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:55] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:56] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:58] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:57:59] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:00] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:01] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:02] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:02] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2502ms or 50 ticks behind
+[06:58:03] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:05] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:06] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:07] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:08] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:09] [Server thread/INFO] (minecolonies) Colony 92 - removed AbstractBuilding BlockPos{x=298, y=-59, z=145} of type baker
+[06:58:09] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:10] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:12] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:13] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:14] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:15] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:16] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:17] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:19] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:20] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:20] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2603ms or 52 ticks behind
+[06:58:21] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:22] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:23] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:25] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:27] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:28] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:29] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:30] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:31] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:33] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:34] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:35] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:36] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:37] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:37] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2478ms or 49 ticks behind
+[06:58:38] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:40] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:41] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:42] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:43] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:44] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:45] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:47] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:48] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:49] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:50] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:51] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:52] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:54] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:55] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_   ]
+[06:58:55] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 2549ms or 50 ticks behind
+[06:58:55] [Server thread/INFO] (Minecraft) test-mock-player has reached the goal [advancements.minecolonies.build.builder.title]
+[06:58:55] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_cook_assistant_port:1' (1 tests)...
+[06:58:55] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 942 at (-6.5, -60.0, -4.5)
+[06:58:55] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:58:55] [Server thread/INFO] (minecolonies) New Colony Id: 94 by test-mock-player
+[06:58:56] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:58:57] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:58:58] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:00] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:01] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:02] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:03] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:04] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:06] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:07] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:08] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:09] [Server thread/INFO] (Minecraft) [++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_  ]
+[06:59:10] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_sleep_port:1' (1 tests)...
+[06:59:10] [Server thread/INFO] (Minecraft) test-mock-player[local] logged in with entity id 956 at (0.5, -60.0, -9.5)
+[06:59:10] [Server thread/INFO] (Minecraft) test-mock-player joined the game
+[06:59:10] [Server thread/INFO] (minecolonies) New Colony Id: 95 by test-mock-player
+[06:59:10] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:12] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:13] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:13] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 3090ms or 61 ticks behind
+[06:59:14] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:15] [Server thread/INFO] (minecolonies) Colony 93 - removed AbstractBuilding BlockPos{x=310, y=-59, z=145} of type builder
+[06:59:15] [Server thread/INFO] (minecolonies) Colony 93 - removed AbstractBuilding BlockPos{x=310, y=-59, z=153} of type deliveryman
+[06:59:15] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:17] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:18] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:19] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:20] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:22] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:23] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:24] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:25] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:26] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:27] [Server thread/INFO] (minecolonies) Colony 94 - removed AbstractBuilding BlockPos{x=322, y=-59, z=145} of type cook
+[06:59:28] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:29] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:30] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:31] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:31] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 3388ms or 67 ticks behind
+[06:59:32] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:34] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:35] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:36] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:37] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:38] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:40] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:41] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:43] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:44] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:45] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:46] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:47] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:49] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:50] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:50] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 3607ms or 72 ticks behind
+[06:59:51] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:52] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:54] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:55] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:56] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:57] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[06:59:58] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:00] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:01] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:02] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:03] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:05] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:06] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:07] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:08] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++_ ]
+[07:00:08] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 3372ms or 67 ticks behind
+[07:00:09] [Server thread/INFO] (Minecraft) Running test batch 'minecolonies_fabric_entity_port:1' (1 tests)...
+[07:00:09] [Server thread/INFO] (Minecraft) [+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++]
+[07:00:09] [Server thread/INFO] (Minecraft) ========= 117 GAME TESTS COMPLETE ======================
+[07:00:09] [Server thread/INFO] (Minecraft) All 117 required tests passed :)
+[07:00:09] [Server thread/INFO] (Minecraft) ====================================================
+[07:00:09] [Server thread/INFO] (Minecraft) Stopping server
+[07:00:09] [Server thread/INFO] (Minecraft) Saving players
+[07:00:10] [Server thread/INFO] (Minecraft) Saving worlds
+[07:00:12] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[07:00:12] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[07:00:12] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[07:00:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[07:00:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[07:00:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[07:00:12] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[07:00:12] [Server thread/WARN] (minecolonies) Writing Recipe Manager: 64 recipes!
+[07:00:14] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+BUILD SUCCESSFUL in 6m 29s
+6 actionable tasks: 3 executed, 3 up-to-date

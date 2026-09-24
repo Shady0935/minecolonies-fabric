@@ -57,6 +57,7 @@ import com.minecolonies.api.util.constant.WindowConstants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
+import com.minecolonies.coremod.colony.ColonyView;
 import com.minecolonies.coremod.colony.crafting.CustomRecipeManagerMessage;
 import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
@@ -6513,6 +6514,69 @@ public final class MineColoniesGameTests implements FabricGameTest
         clientWork.remove(0).run();
         helper.assertTrue(IColonyManager.getInstance().getServerUUID().equals(expectedServerUuid),
           "Fabric client receiver did not dispatch the reassembled ServerUUIDMessage");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientColonyRemovalRunsOnClientExecutor(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C View Removal Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C view-removal fixture colony was not created");
+
+        final int colonyId = colony.getID();
+        final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+        try
+        {
+            ColonyView.serializeNetworkData(colony, colonyViewData, false);
+            manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, level.dimension());
+        }
+        finally
+        {
+            colonyViewData.release();
+        }
+        helper.assertTrue(manager.getColonyView(colonyId, level.dimension()) != null,
+          "S2C view-removal fixture did not install its client-side colony view");
+
+        final NetworkChannel channel = Network.getNetwork();
+        final int removeMessageId = findMessageId(channel, ColonyViewRemoveMessage.class);
+        helper.assertTrue(removeMessageId > 0, "Colony-view removal message has no inner network id");
+        final int communicationId = 0x4D435447;
+        final List<Runnable> clientWork = new ArrayList<>();
+        final byte[] removePayload = encode(new ColonyViewRemoveMessage(colonyId, level.dimension()));
+        final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+          encode(new SplitPacketMessage(communicationId, 0, true, removeMessageId, removePayload))));
+        try
+        {
+            channel.getRawChannel().handleClient(envelope, clientWork::add);
+        }
+        finally
+        {
+            envelope.release();
+        }
+
+        try
+        {
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C colony-view removal did not enqueue exactly one client handler");
+            helper.assertTrue(manager.getColonyView(colonyId, level.dimension()) != null,
+              "S2C colony-view removal ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C colony-view removal remained in the split-packet cache");
+            clientWork.remove(0).run();
+            helper.assertTrue(manager.getColonyView(colonyId, level.dimension()) == null,
+              "S2C ColonyViewRemoveMessage did not remove the client colony view");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, level.dimension());
+        }
         helper.succeed();
     }
 
