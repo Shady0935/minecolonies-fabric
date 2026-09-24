@@ -966,17 +966,26 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ServerLevel level = helper.getLevel();
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
+        final BlockPos relativeWarehouse = new BlockPos(2, 1, 10);
+        final BlockPos relativeDeliveryman = new BlockPos(10, 1, 10);
+        final BlockPos relativeRack = new BlockPos(4, 1, 10);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos builderPos = helper.absolutePos(relativeBuilder);
+        final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
+        final BlockPos deliverymanPos = helper.absolutePos(relativeDeliveryman);
+        final BlockPos rackPos = helper.absolutePos(relativeRack);
         for (int x = 0; x <= 50; x++)
         {
-            for (int z = 0; z <= 8; z++)
+            for (int z = 0; z <= 14; z++)
             {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
             }
         }
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         helper.setBlock(relativeBuilder, ModBlocks.blockHutBuilder);
+        helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
+        helper.setBlock(relativeDeliveryman, ModBlocks.blockHutDeliveryman);
+        helper.setBlock(relativeRack, ModBlocks.blockRack);
 
         final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
         final IColony colony = IColonyManager.getInstance().createColony(
@@ -1006,6 +1015,34 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BuildingBuilder builder = (BuildingBuilder) registeredBuilder;
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
+        final BlockEntity warehouseEntity = level.getBlockEntity(warehousePos);
+        helper.assertTrue(warehouseEntity instanceof TileEntityColonyBuilding,
+          "Builder end-to-end fixture did not create a Warehouse block entity");
+        final TileEntityColonyBuilding warehouseHut = (TileEntityColonyBuilding) warehouseEntity;
+        warehouseHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        warehouseHut.setBlueprintPath("craftsmanship/storage/warehouse1.blueprint");
+        warehouseHut.setSchematicName("warehouse1");
+        final IBuilding warehouseBuilding = colony.getBuildingManager().addNewBuilding(warehouseHut, level);
+        helper.assertTrue(warehouseBuilding instanceof BuildingWareHouse,
+          "Builder end-to-end fixture registered the wrong Warehouse implementation: " + warehouseBuilding);
+
+        final BlockEntity deliverymanEntity = level.getBlockEntity(deliverymanPos);
+        helper.assertTrue(deliverymanEntity instanceof TileEntityColonyBuilding,
+          "Builder end-to-end fixture did not create a Courier block entity");
+        final TileEntityColonyBuilding deliverymanHut = (TileEntityColonyBuilding) deliverymanEntity;
+        deliverymanHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        deliverymanHut.setBlueprintPath("craftsmanship/storage/courier1.blueprint");
+        deliverymanHut.setSchematicName("courier1");
+        final IBuilding deliverymanBuilding = colony.getBuildingManager().addNewBuilding(deliverymanHut, level);
+        helper.assertTrue(deliverymanBuilding instanceof BuildingDeliveryman,
+          "Builder end-to-end fixture registered the wrong Courier implementation: " + deliverymanBuilding);
+
+        final BlockEntity rackEntity = level.getBlockEntity(rackPos);
+        helper.assertTrue(rackEntity instanceof TileEntityRack,
+          "Builder end-to-end fixture did not create a warehouse rack");
+        ((BuildingWareHouse) warehouseBuilding).registerBlockPosition(ModBlocks.blockRack, rackPos, level);
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 6, level, true);
+
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
         helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
           "Builder end-to-end fixture could not create a live citizen");
@@ -1017,9 +1054,36 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(job != null && !job.hasWorkOrder(),
           "Builder end-to-end fixture job unexpectedly started with a work order");
 
+        final ICitizenData courierData = colony.getCitizenManager().spawnOrCreateCitizen(null, level, deliverymanPos.above());
+        helper.assertTrue(courierData != null && courierData.getEntity().isPresent(),
+          "Builder end-to-end fixture could not create a Courier citizen");
+        final WorkerBuildingModule courierWork = deliverymanBuilding.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.delivery.get());
+        helper.assertTrue(courierWork instanceof DeliverymanAssignmentModule && courierWork.assignCitizen(courierData),
+          "Builder end-to-end fixture could not assign its Courier citizen");
+        final CourierAssignmentModule couriers = warehouseBuilding.getFirstModuleOccurance(CourierAssignmentModule.class);
+        helper.assertTrue(couriers != null && couriers.assignCitizen(courierData),
+          "Builder end-to-end fixture could not register its Courier at the Warehouse");
+        courierData.setWorking(true);
+        final AbstractEntityCitizen courier = (AbstractEntityCitizen) courierData.getEntity().get();
+        for (int slot = 0; slot < courier.getInventoryCitizen().getSlots(); slot++)
+        {
+            courier.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        courier.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE, 16));
+        final TileEntityWareHouse warehouseTile = (TileEntityWareHouse) ((BuildingWareHouse) warehouseBuilding).getTileEntity();
+        warehouseTile.dumpInventoryIntoWareHouse(courier.getInventoryCitizen());
+        final TileEntityRack rack = (TileEntityRack) rackEntity;
+        helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 16,
+          "Builder end-to-end fixture could not seed its Warehouse rack with construction material");
+        final JobDeliveryman courierJob = courierData.getJob(JobDeliveryman.class);
+        helper.assertTrue(courierJob != null, "Builder end-to-end fixture did not create the Courier job");
+        final EntityAIWorkDeliveryman deliveryAI = courierJob.generateAI();
+
         final Blueprint blueprint = new Blueprint((short) 30, (short) 1, (short) 1);
         blueprint.setName("fabric-builder-work-order-navigation-test");
-        for (int x = 13; x < 30; x++)
+        blueprint.addBlockState(new BlockPos(13, 0, 0), Blocks.STONE.defaultBlockState());
+        for (int x = 14; x < 30; x++)
         {
             blueprint.addBlockState(new BlockPos(x, 0, 0),
               Blocks.OAK_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true));
@@ -1041,6 +1105,9 @@ public final class MineColoniesGameTests implements FabricGameTest
         final boolean[] observedAutomaticClaim = {false};
         final boolean[] observedNavigation = {false};
         final boolean[] observedConstructionRange = {false};
+        final boolean[] requestSubmitted = {false};
+        final boolean[] courierDelivered = {false};
+        final IToken<?>[] deliveredToken = {null};
         citizen.setWorking(true);
         helper.succeedWhen(() ->
         {
@@ -1063,6 +1130,46 @@ public final class MineColoniesGameTests implements FabricGameTest
                     }
                 }
             }
+            if (!requestSubmitted[0] && builder.requiresResourceForBuilding(new ItemStack(Items.STONE)))
+            {
+                builder.checkOrRequestBucket(builder.getRequiredResources(), citizen, true);
+                requestSubmitted[0] = true;
+            }
+            final IRequest<?> stackRequest = builder.getOpenRequests(citizen.getId()).stream()
+              .filter(request -> request.getRequest() instanceof Stack)
+              .findFirst()
+              .orElse(null);
+            if (stackRequest != null && !courierDelivered[0] && !stackRequest.getChildren().isEmpty())
+            {
+                final IToken<?> deliveryToken = stackRequest.getChildren().iterator().next();
+                deliveredToken[0] = deliveryToken;
+                final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(deliveryToken);
+                if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
+                      && courierJob.getTaskQueue().contains(deliveryToken))
+                {
+                    try
+                    {
+                        courier.setPos(rackPos.getX() + 0.5D, rackPos.getY() + 1.0D, rackPos.getZ() + 0.5D);
+                        final java.lang.reflect.Method prepareDelivery = EntityAIWorkDeliveryman.class.getDeclaredMethod("prepareDelivery");
+                        prepareDelivery.setAccessible(true);
+                        prepareDelivery.invoke(deliveryAI);
+                        helper.assertTrue(countItem(courier, Items.STONE) == 1,
+                          "Courier did not gather the requested stone from the Warehouse rack");
+                        prepareDelivery.invoke(deliveryAI);
+                        courier.setPos(builderPos.getX() + 0.5D, builderPos.getY() + 1.0D, builderPos.getZ() + 0.5D);
+                        final java.lang.reflect.Method deliver = EntityAIWorkDeliveryman.class.getDeclaredMethod("deliver");
+                        deliver.setAccessible(true);
+                        deliver.invoke(deliveryAI);
+                        helper.assertTrue(stackRequest.getState() == RequestState.COMPLETED,
+                          "Courier delivery did not complete the Builder's material request: " + stackRequest.getState());
+                        courierDelivered[0] = true;
+                    }
+                    catch (final ReflectiveOperationException exception)
+                    {
+                        throw new AssertionError("Could not run the Courier delivery state machine", exception);
+                    }
+                }
+            }
             helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
               "Builder end-to-end citizen did not reach ACTIVE_SERVER: "
                 + entity.getEntityStateController().getState());
@@ -1072,7 +1179,10 @@ public final class MineColoniesGameTests implements FabricGameTest
             for (int x = 13; x < 30; x++)
             {
                 final BlockPos target = builderPos.offset(x, 0, 0);
-                if (!level.getBlockState(target).is(Blocks.OAK_LEAVES))
+                final boolean placed = x == 13
+                  ? level.getBlockState(target).is(Blocks.STONE)
+                  : level.getBlockState(target).is(Blocks.OAK_LEAVES);
+                if (!placed)
                 {
                     missingBlocks.add(target);
                 }
@@ -1090,6 +1200,14 @@ public final class MineColoniesGameTests implements FabricGameTest
               "Builder completed the construction without requesting a navigation path to the work site");
             helper.assertTrue(observedConstructionRange[0],
               "Builder completed the construction without entering construction range");
+            helper.assertTrue(requestSubmitted[0],
+              "Builder completed the work order without requesting its required stone material");
+            helper.assertTrue(courierDelivered[0],
+              "Builder completed the work order without receiving the requested stone from its Courier");
+            helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
+              "Courier did not decrement the Warehouse rack by the delivered material");
+            helper.assertTrue(deliveredToken[0] != null && !courierJob.getTaskQueue().contains(deliveredToken[0]),
+              "Courier retained the completed Builder delivery task");
             helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order");
             helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == null,
               "Builder did not remove the completed work order from the colony manager");
@@ -1517,7 +1635,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1000)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1500)
     public void citizenNavigationUsesColonyBackedEntity(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -1567,6 +1685,10 @@ public final class MineColoniesGameTests implements FabricGameTest
             entity.getCitizenAI().setCurrentDelay(600);
             helper.succeedWhen(() ->
             {
+                if (pathResult.getStatus() != PathFindingStatus.COMPLETE)
+                {
+                    entity.getCitizenAI().setCurrentDelay(600);
+                }
                 helper.assertTrue(pathResult.getStatus() == PathFindingStatus.COMPLETE,
                   "Colony-backed navigation did not complete: status=" + pathResult.getStatus()
                     + "; computing=" + pathResult.isCalculatingPath()

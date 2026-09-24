@@ -97,9 +97,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
   does not replace the rendering or restart-migration checks.
-  It does not yet cover multi-request resolution/delivery, automatic logistics
-  inventory transfer beyond the focused rack-backed cycle, courier navigation,
-  larger/full Builder work-order construction and logistics-backed builds,
+  It does not yet cover multi-request scheduling/delivery, autonomous courier
+  navigation or full logistics beyond the focused single-stone Builder
+  work-order cycle (rack → Stack/Delivery request → Courier → Builder), larger
+  canonical construction or full logistics-backed builds,
   full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
   placement and longer/multi-cell harvest navigation/resource delivery beyond
@@ -170,8 +171,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 - Authenticated in-game interaction with BlockUI screens (including the
   MultiPiston configuration window and an actual rendered entity/block hook
-  overlay), full Builder work-order pathfinding/larger
-  placement, full citizen work cycles/scheduling, logistics,
+  overlay), larger canonical Builder work-order pathfinding/placement, fully
+  autonomous courier navigation and multi-item logistics, full citizen work
+  cycles/scheduling,
   miner shaft construction and mining placement/resource logistics beyond the
   covered stone and vanilla-ore AI cycles,
   farmer crop growth/field placement and longer harvest navigation/resource
@@ -191,8 +193,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   proxy plus a live assigned Builder `BUILDING_STEP` placement/consumption
   cycle and automatic order claim are covered by GameTest. A separate live
   work-order fixture also navigates to and completes a synthetic 17-block
-  blueprint. Larger canonical builds, logistics-backed construction and longer
-  post-selection work cycles remain pending. Server-side
+  blueprint with one stone requested from the Warehouse rack, delivered through
+  the normal Stack/Delivery request and Courier state methods, then consumed by
+  the Builder. Larger canonical builds, autonomous courier navigation,
+  multi-item logistics and longer post-selection work cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
   manager selection/progression, residence registration/home assignment,
@@ -256,7 +260,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-builder-e2e-isolated-114-20260923.log`. The
+  `logs/minecolonies-gametest-builder-e2e-material-courier-navfix-20260923.log`. The
   blueprint data should be audited before treating this warning as resolved.
 - The latest clean combined 114-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path

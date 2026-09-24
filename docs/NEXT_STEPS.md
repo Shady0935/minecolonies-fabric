@@ -27,10 +27,11 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-114 required tests, including the three standalone MultiPiston tests. A new
-isolated Builder end-to-end fixture also proves automatic live work-order claim,
-navigation, placement of a synthetic 17-block blueprint, and order completion;
-full material/logistics-backed and in-game construction remain pending. The suite covers
+114 required tests, including the three standalone MultiPiston tests. A live
+Builder end-to-end fixture now proves automatic work-order claim, navigation,
+one-stone Stack/Delivery request fulfilled by the assigned Courier, placement of
+a synthetic 17-block blueprint and order completion; autonomous courier
+navigation, larger builds and in-game construction remain pending. The suite covers
 construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus

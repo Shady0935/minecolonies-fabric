@@ -325,17 +325,20 @@ completed.
 - [x] A dedicated live-assigned Builder fixture persists a `WorkOrderBuilding`
   in the colony `WorkManager`; normal `CitizenAI` ticks automatically select and
   claim it on the actual `JobBuilder`, then drive the assigned
-  `EntityAIStructureBuilder` through navigation, 17 free-block blueprint steps,
-  order completion and removal from the manager. Its separate isolated batch
-  passed as part of the latest 114-test run. Full material/logistics-backed
-  construction, larger canonical blueprints and GUI interaction remain open
+  `EntityAIStructureBuilder` through navigation and a synthetic 17-block build
+  (one stone requested from the Warehouse rack through a normal Stack/Delivery
+  request and Courier delivery, plus 16 free leaf blocks), then order completion
+  and removal from the manager. Its isolated batch passed in the latest
+  114-test run. Autonomous courier navigation, multi-item/full logistics,
+  larger canonical blueprints and GUI interaction remain open
 - [x] Colony-backed citizen advanced navigation reaches a real target and
   preserves the completed `PathResult` status; a companion fixture routes the
   citizen around a solid two-block barrier and verifies a real detour in the
   computed path. The focused fixture also validates Town Hall protection after
   exact chunk registration. Full CitizenAI scheduling and longer work-cycle
   navigation remain open; end-to-end Builder work-order construction now has
-  automated coverage for navigation and a 17-block synthetic blueprint
+  automated coverage for navigation and completion of a 17-block synthetic
+  blueprint with one material supplied through the Warehouse/Courier request path
 - [x] Server-side residence registration resolves the Colonial house blueprint,
   assigns a live citizen through `LivingBuildingModule` and preserves the
   citizen-to-home relationship; the real C2S `AssignUnassignMessage` route now
@@ -581,7 +584,11 @@ completed.
   creation/selection, focused Builder two-stage solid/decorative placement and
   material consumption, normal Builder material-request/resolver delivery and
   construction-site navigation through the real Builder proxy, automatic live
-  Builder work-order claim/navigation, 17-block placement and order completion,
+  Builder work-order claim/navigation, a single-stone Warehouse/Courier request,
+  17-block placement and order completion,
+  `logs/minecolonies-gametest-builder-e2e-material-courier-navfix-20260923.log`
+  and `.xml` (114 cases, zero failures/errors), with clean saves for all three
+  dimensions and a clean server stop,
   decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,
   colony allocation and flag updates, Builder delivery-priority updates,
