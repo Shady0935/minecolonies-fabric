@@ -489,16 +489,17 @@ completed.
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; a colony-NBT
   round-trip retains the field's seed, stage, radii and owning Farmer-module
-  link. Crop growth, work cycles beyond a harvest, field placement and farming
-  GUI remain open; focused real `EntityAIWorkFarmer` cycles verify mature crop
-  removal, drops and inventory insertion both directly and after 24-block
-  navigation from the farm building through normal `CitizenAI` ticks. A focused hoed-field fixture
+  link. A 24-block real `EntityAIWorkFarmer` route now verifies mature crop
+  removal, return to the Farmer hut, wheat deposit and pickup-request creation
+  through normal `CitizenAI` ticks; the field is bounded to its planted cell.
+  Crop growth, multi-cell work, field placement, warehouse/courier pickup
+  completion and farming GUI remain open. A focused hoed-field fixture
   drives the real hoeing state to `HOED`; a second focused fixture drives the
   planting state, consumes one `WHEAT_SEEDS` stack and advances the field to
   `PLANTED`; evidence:
   `logs/minecolonies-gametest-farmer-hoe-20260920.xml`,
   `logs/minecolonies-gametest-farmer-plant-20260920.xml` and
-  `logs/minecolonies-gametest-farmer-persistence-114-20260924.log` and
+  `logs/minecolonies-gametest-farmer-deposit-114-20260924.log` and
   `.xml`
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
@@ -610,9 +611,10 @@ completed.
   material consumption, normal Builder material-request/resolver delivery and
   construction-site navigation through the real Builder proxy, automatic live
   Builder work-order claim/navigation, autonomous stone/cobblestone Warehouse/Courier
-  deliveries, 17-block placement and order completion,
-  `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
-  `logs/minecolonies-gametest-builder-two-racks-20260923.xml`
+  deliveries, 17-block placement and order completion, and the Farmer's
+  24-block harvest/return, hut deposit and pickup-request creation,
+  `logs/minecolonies-gametest-farmer-deposit-114-20260924.log` and
+  `logs/minecolonies-gametest-farmer-deposit-114-20260924.xml`
   (114 cases, zero failures/errors), with clean saves for all three
   dimensions and a clean server stop. The fresh regression rerun after the
   Structurize language-loader fix again passes all 114 tests; evidence is in

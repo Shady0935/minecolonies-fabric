@@ -28,10 +28,11 @@ lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
 114 tests, including two parallel University researches, 24-block Researcher
-navigation/offline-mana checks, 24-block Farmer crop navigation and FarmField
-colony-NBT persistence, and the three standalone MultiPiston tests; its log and
-JUnit report are `logs/minecolonies-gametest-farmer-persistence-114-20260924.log`
-and `logs/minecolonies-gametest-farmer-persistence-114-20260924.xml`. It saved
+navigation/offline-mana checks, FarmField colony-NBT persistence and the
+Farmer's 24-block harvest/return, hut deposit and pickup-request cycle, plus the
+three standalone MultiPiston tests; its log and JUnit report are
+`logs/minecolonies-gametest-farmer-deposit-114-20260924.log` and
+`logs/minecolonies-gametest-farmer-deposit-114-20260924.xml`. It saved
 all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
@@ -99,7 +100,8 @@ decoration work-order creation, plantation/rally routes and University research 
 plus focused Farmer harvest/hoe/planting, Lumberjack three-log chopping, vanilla-leaf
 shears selection, oak-sapling replanting and the two-stump planting guard,
 long-range Researcher bookshelf navigation/study/mana (starting 24 blocks from
-the registered bookshelf), 24-block Farmer field navigation/harvest and Guard
+the registered bookshelf), 24-block Farmer navigation/harvest/hut deposit and
+pickup-request creation, and Guard
 autonomous-target-search/combat cycles with an
 automatic late-arriving registered-chest sword request and normal pickup, plus the
 registered-raider `AttackMoveAI` short-range target/damage path, the

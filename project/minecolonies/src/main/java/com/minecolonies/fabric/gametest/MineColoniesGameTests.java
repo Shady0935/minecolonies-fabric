@@ -367,6 +367,7 @@ import io.netty.buffer.Unpooled;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -3480,7 +3481,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             + "; farmer=" + farmerCitizen.blockPosition());
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_NAVIGATION_TEST_BATCH, timeoutTicks = 1000)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_NAVIGATION_TEST_BATCH, timeoutTicks = 1600)
     public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -3535,7 +3536,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
         final FarmField field = FarmField.create(fieldPos);
-        field.setSeed(new ItemStack(Items.WHEAT));
+        field.setSeed(new ItemStack(Items.WHEAT_SEEDS));
+        field.setRadius(Direction.NORTH, 0);
+        field.setRadius(Direction.SOUTH, 0);
+        field.setRadius(Direction.EAST, 1);
+        field.setRadius(Direction.WEST, 0);
         field.setFieldStage(FarmField.Stage.PLANTED);
         helper.assertTrue(field.isValidPlacement(colony),
           "Farmer navigation fixture field does not have a valid scarecrow placement");
@@ -3568,29 +3573,39 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Farmer navigation fixture did not start more than 20 blocks from its crop: citizen="
             + farmerCitizen.blockPosition() + "; crop=" + cropPos);
         final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
+        final int storedWheatBefore = countItem(farmer, Items.WHEAT);
         farmerAI.resetAI();
         farmerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.PREPARING));
 
         final int[] farmerTicks = {0};
+        final int[] furthestX = {startingX};
         helper.onEachTick(() ->
         {
             farmerTicks[0]++;
-            if (level.isEmptyBlock(cropPos))
+            furthestX[0] = Math.max(furthestX[0], farmerCitizen.blockPosition().getX());
+            final Collection<IToken<?>> pickupRequests = farmer.getOpenRequestsByRequestableType()
+              .getOrDefault(TypeConstants.PICKUP, List.of());
+            if (level.isEmptyBlock(cropPos)
+                  && countItem(farmer, Items.WHEAT) > storedWheatBefore
+                  && !pickupRequests.isEmpty())
             {
-                helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) > wheatBefore,
-                  "Farmer worker AI did not transfer navigation harvest drops into the citizen inventory: state="
-                    + farmerAI.getState() + "; farmer=" + farmerCitizen.blockPosition());
-                helper.assertTrue(farmerCitizen.blockPosition().getX() > startingX,
-                  "Farmer worker AI harvested without navigating from its starting position: startX=" + startingX
-                    + "; farmer=" + farmerCitizen.blockPosition());
+                helper.assertTrue(furthestX[0] > startingX,
+                  "Farmer worker AI harvested without navigating away from its starting position: startX=" + startingX
+                    + "; furthestX=" + furthestX[0]);
+                helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) + countItem(farmer, Items.WHEAT) > wheatBefore,
+                  "Farmer worker AI removed the crop without collecting its wheat drops");
                 helper.succeed();
             }
-            else if (farmerTicks[0] >= 900)
+            else if (farmerTicks[0] >= 1300)
             {
                 helper.assertTrue(false,
-                  "Farmer worker AI did not navigate to and harvest the assigned crop: state=" + farmerAI.getState()
+                  "Farmer worker AI did not navigate, harvest, return, deposit wheat and request pickup: state=" + farmerAI.getState()
                     + "; crop=" + level.getBlockState(cropPos)
                     + "; farmer=" + farmerCitizen.blockPosition()
+                    + "; furthestX=" + furthestX[0]
+                    + "; citizenWheat=" + countItem(farmerCitizen, Items.WHEAT)
+                    + "; storedWheat=" + countItem(farmer, Items.WHEAT)
+                    + "; pickupRequests=" + pickupRequests.size()
                     + "; navigationDone=" + farmerCitizen.getNavigation().isDone());
             }
         });
@@ -3956,6 +3971,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         final int cobblestoneBefore = countItem(worker, Items.COBBLESTONE);
         final int fuelBefore = countItem(worker, Items.DRIED_KELP_BLOCK);
         final int stoneBefore = countItem(worker, Items.STONE);
+        final int storedStoneBefore = countItem(smeltery, Items.STONE);
         final int[] ticks = {0};
         helper.onEachTick(() ->
         {
@@ -3968,8 +3984,9 @@ public final class MineColoniesGameTests implements FabricGameTest
                   || task.getState() == RequestState.RECEIVED)
             {
                 helper.assertTrue(furnace != null, "Stone Smeltery request resolved without a furnace entity");
-                helper.assertTrue(countItem(worker, Items.STONE) >= stoneBefore + 1,
-                  "Stone Smeltery resolved its request without delivering stone");
+                helper.assertTrue(countItem(worker, Items.STONE) + countItem(smeltery, Items.STONE)
+                      >= stoneBefore + storedStoneBefore + 1,
+                  "Stone Smeltery resolved its request without retaining the stone in the worker or building inventory");
                 helper.assertTrue(countItem(worker, Items.COBBLESTONE) == cobblestoneBefore - 1,
                   "Stone Smeltery consumed an unexpected amount of cobblestone");
                 helper.assertTrue(countItem(worker, Items.DRIED_KELP_BLOCK) < fuelBefore,

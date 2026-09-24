@@ -103,8 +103,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   canonical construction or full logistics-backed builds,
   full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
-  placement, multi-cell harvest behavior and resource delivery beyond the
-  focused 24-block navigation/harvest cycle, a broader
+  placement, multi-cell harvest behavior and warehouse/courier delivery beyond
+  the focused 24-block harvest → Farmer-hut deposit → pickup-request cycle, a broader
   Lumberjack autonomous tree-search/navigation cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
@@ -179,8 +179,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   cycles/scheduling,
   miner shaft construction and mining placement/resource logistics beyond the
   covered stone and vanilla-ore AI cycles,
-  farmer crop growth/field placement and resource delivery beyond the covered
-  24-block harvest route (the direct empty-field hoeing
+  farmer crop growth/field placement and warehouse/courier delivery beyond the
+  covered 24-block harvest, Farmer-hut deposit and pickup-request route (the direct empty-field hoeing
   and hoed-field seed planting paths are covered), broader Lumberjack tree
   search/navigation and the full University research GUI/gameplay cycle,
   full guard navigation and long-running ambient target search beyond the

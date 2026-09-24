@@ -767,16 +767,17 @@ The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
 `FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
 `FarmerFieldsModule` then retains the field and its owning building ID. Crop
-growth, work cycles beyond the covered route, field placement, resource delivery
+growth, multi-cell work, field placement, warehouse/courier pickup completion
 and the farming GUI remain manual validation items. Focused companions tick the
 real `EntityAIWorkFarmer` state machine against a mature wheat crop, verifying
-both direct harvest/drop transfer and a route from the farm building to the
-assigned field through normal `CitizenAI` ticks. The navigation fixture starts
-the live farmer 24 horizontal blocks from the crop (distance squared greater
-than 400), builds a continuous path and verifies crop removal and drop transfer
-without teleporting the farmer. It passes in the combined 114-test run recorded
-in `logs/minecolonies-gametest-farmer-persistence-114-20260924.log` and its JUnit
-companion `.xml`; the same run reloads a full colony NBT payload and verifies
+both direct harvest/drop transfer and a full route from the farm building to
+the field and back through normal `CitizenAI` ticks. The navigation fixture
+starts the live farmer 24 horizontal blocks from the crop (distance squared
+greater than 400), limits the test field to its planted cell, and verifies crop
+removal, wheat deposit into the Farmer building and creation of a pickup request
+without teleporting the farmer. It passes in the clean 114-test run recorded in
+`logs/minecolonies-gametest-farmer-deposit-114-20260924.log` and its JUnit
+companion `.xml`; that run also reloads a full colony NBT payload and verifies
 that the field's seed, planted stage, directional radii and Farmer-module
 ownership link survive. The route runs in its own Farmer GameTest batch.
 An additional isolated hoed-field fixture drives the real planting transition
