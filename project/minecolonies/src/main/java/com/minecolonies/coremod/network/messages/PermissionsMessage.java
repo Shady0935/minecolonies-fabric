@@ -137,7 +137,7 @@ public class PermissionsMessage
          * @param rank   Rank of the permission {@link Rank}
          * @param action Action of the permission {@link Action}
          */
-        public Permission(@NotNull final IColonyView colony, final boolean enable, final Rank rank, final Action action)
+        public Permission(@NotNull final IColony colony, final boolean enable, final Rank rank, final Action action)
         {
             super();
             this.colonyID = colony.getID();

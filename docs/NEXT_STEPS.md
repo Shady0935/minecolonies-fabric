@@ -27,13 +27,14 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-114 tests, including two parallel University researches, 24-block Researcher
+115 tests, including the owner-controlled colony-rank permission envelope,
+two parallel University researches, 24-block Researcher
 navigation/offline-mana checks, FarmField colony-NBT persistence, a focused
 two-cell Farmer harvest and the Farmer's 24-block harvest/return, hut deposit
 and pickup-request cycle, plus the three standalone MultiPiston tests; its log
 and JUnit report are
-`logs/minecolonies-gametest-farmer-multicell-114-20260924.log` and
-`logs/minecolonies-gametest-farmer-multicell-114-20260924.xml`. It saved
+`logs/minecolonies-gametest-c2s-permission-final-20260924.log` and
+`logs/minecolonies-gametest-c2s-permission-final-20260924.xml`. It saved
 all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
@@ -139,7 +140,7 @@ The following work remains, in order:
    representative server/client network coverage, including the real
      client-to-server Town Hall rename, colony foundation, direct Town Hall
       placement, hut/building rename, Builder work-order creation/selection,
-    decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, Enchanter station assignment, Postbox request creation, citizen-restart scheduling, resource-scroll warehouse snapshots, build-tool inventory swapping, and University research actions. The latest fresh 114-test suite verifies all fifteen colony-view/citizen/removal/chunk-claim/visitor/colony-map S2C registrations, twelve particle/audio registrations and four build/suggestion/scanning registrations, with 37 targeted payload round-trips across colony-view framing and opaque view data, colony-map summaries, colony/building/chunk/visitor state, opaque global-quest/research/recipe/compatibility sync, particle/audio feedback, build and suggestion windows, scan NBT and path debugging. The added `ColonyViewMessage` round-trip caught and fixed its decoder retaining the full packet header as view data. The four opaque sync payloads remain byte-identical across repeated encoding; the citizen, permissions, work-order and visitor view decoders copy only the message payload; split `ServerUUIDMessage` client-executor dispatch and fishing-hook angler synchronization also remain covered. Continue payload/dispatch coverage across other client-bound families. Evidence: `logs/minecolonies-gametest-s2c-colony-view-message-fixed-20260924.log` and `.xml`. The seven registered menu opening buffers already have an
+    decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, Enchanter station assignment, Postbox request creation, citizen-restart scheduling, resource-scroll warehouse snapshots, build-tool inventory swapping, and University research actions. The latest fresh 115-test suite verifies all fifteen colony-view/citizen/removal/chunk-claim/visitor/colony-map S2C registrations, twelve particle/audio registrations and four build/suggestion/scanning registrations, with 37 targeted payload round-trips across colony-view framing and opaque view data, colony-map summaries, colony/building/chunk/visitor state, opaque global-quest/research/recipe/compatibility sync, particle/audio feedback, build and suggestion windows, scan NBT and path debugging. It also verifies owner-authorized `PermissionsMessage.Permission` through the real C2S split envelope with cache cleanup. The added `ColonyViewMessage` round-trip caught and fixed its decoder retaining the full packet header as view data. The four opaque sync payloads remain byte-identical across repeated encoding; the citizen, permissions, work-order and visitor view decoders copy only the message payload; split `ServerUUIDMessage` client-executor dispatch and fishing-hook angler synchronization also remain covered. Continue payload/dispatch coverage across other client-bound families and the remaining permission-edit variants. Evidence: `logs/minecolonies-gametest-c2s-permission-final-20260924.log` and `.xml`. The seven registered menu opening buffers already have an
    automated contract test. The dedicated restart probe confirms
    representative citizen and visitor reappearance; broaden it to every
    custom entity family when their gameplay fixtures exist.
@@ -163,7 +164,7 @@ The following work remains, in order:
    set.
 6. MultiPiston's separate Fabric 1.20.1 module is implemented and its focused
    registration, redstone stroke/retraction and NBT tests pass. The combined
-   114-test MineColonies + MultiPiston run also passes. Keep it as a required
+   115-test MineColonies + MultiPiston run also passes. Keep it as a required
    runtime dependency; the BlockUI screen still needs visual in-game validation.
 7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
    using explicit Fabric APIs and keeping them optional.

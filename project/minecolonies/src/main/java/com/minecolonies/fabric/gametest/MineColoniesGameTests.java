@@ -6729,6 +6729,43 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerPermissionMessageChangesTargetRank(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level);
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Permission Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S permission fixture colony was not created");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S permission fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int messageId = findMessageId(channel, PermissionsMessage.Permission.class);
+        helper.assertTrue(messageId > 0, "Permission message was not registered");
+
+        final var permissions = colony.getPermissions();
+        final var targetRank = permissions.getRankNeutral();
+        final Action targetAction = Action.ACCESS_HUTS;
+        final boolean expectedPermission = !permissions.hasPermission(targetRank, targetAction);
+        final int communicationId = 0x5045524D;
+        dispatchServerMessage(channel, server, owner, messageId, communicationId,
+          new PermissionsMessage.Permission(colony, expectedPermission, targetRank, targetAction));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(permissions.hasPermission(targetRank, targetAction) == expectedPermission,
+              "Permission envelope did not change ACCESS_HUTS for the selected rank");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Permission envelope remained in the split-packet cache");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerColonyControlMessagesUpdateColorHelpAndSpies(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
