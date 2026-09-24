@@ -56,6 +56,7 @@ import com.minecolonies.api.util.constant.WindowConstants;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.Colony;
+import com.minecolonies.coremod.colony.crafting.CustomRecipeManagerMessage;
 import com.minecolonies.coremod.colony.buildings.DefaultBuildingInstance;
 import com.minecolonies.coremod.entity.citizen.EntityCitizen;
 import com.minecolonies.coremod.entity.mobs.EntityMercenary;
@@ -166,6 +167,7 @@ import com.minecolonies.coremod.network.messages.client.CircleParticleEffectMess
 import com.minecolonies.coremod.network.messages.client.CompostParticleMessage;
 import com.minecolonies.coremod.network.messages.client.CreateColonyMessage;
 import com.minecolonies.coremod.network.messages.client.GlobalQuestSyncMessage;
+import com.minecolonies.coremod.network.messages.client.UpdateClientWithCompatibilityMessage;
 import com.minecolonies.coremod.network.messages.client.ItemParticleEffectMessage;
 import com.minecolonies.coremod.network.messages.client.LocalizedParticleEffectMessage;
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
@@ -183,6 +185,7 @@ import com.minecolonies.coremod.network.messages.client.UpdateChunkCapabilityMes
 import com.minecolonies.coremod.network.messages.client.UpdateChunkRangeCapabilityMessage;
 import com.minecolonies.coremod.network.messages.client.VanillaParticleMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyListMessage;
+import com.minecolonies.coremod.research.GlobalResearchTreeMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewFieldsUpdateMessage;
@@ -5897,6 +5900,12 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Server UUID message was not registered");
         helper.assertTrue(isMessageRegistered(channel, GlobalQuestSyncMessage.class),
           "Global quest message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, GlobalResearchTreeMessage.class),
+          "Global research-tree message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, CustomRecipeManagerMessage.class),
+          "Custom recipe-manager message was not registered on the server");
+        helper.assertTrue(isMessageRegistered(channel, UpdateClientWithCompatibilityMessage.class),
+          "Compatibility-sync message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, ColonyListMessage.class),
           "Colony-list message was not registered on the server");
         helper.assertTrue(isMessageRegistered(channel, OpenDecoBuildWindowMessage.class),
@@ -6012,6 +6021,55 @@ public final class MineColoniesGameTests implements FabricGameTest
           new PlaySoundForCitizenMessage(123, SoundEvents.MUSIC_DISC_CAT, SoundSource.MUSIC,
             new BlockPos(-9, 73, 5), level, 0.375F, 1.625F, 40, 3),
           PlaySoundForCitizenMessage::new, "PlaySoundForCitizenMessage");
+
+        final FriendlyByteBuf questPayload = new FriendlyByteBuf(Unpooled.buffer());
+        questPayload.writeInt(1);
+        questPayload.writeResourceLocation(new ResourceLocation(Constants.MOD_ID, "test/quest"));
+        questPayload.writeByteArray("{\"title\":\"Test quest\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        final GlobalQuestSyncMessage questMessage;
+        try
+        {
+            questMessage = new GlobalQuestSyncMessage(questPayload);
+        }
+        finally
+        {
+            questPayload.release();
+        }
+        assertClientBoundBufferedRoundTrip(helper, questMessage, GlobalQuestSyncMessage::new,
+          "questBuffer", "GlobalQuestSyncMessage");
+
+        final FriendlyByteBuf researchPayload = new FriendlyByteBuf(Unpooled.buffer());
+        researchPayload.writeVarInt(2);
+        researchPayload.writeUtf("research-tree-payload");
+        final GlobalResearchTreeMessage researchMessage;
+        try
+        {
+            researchMessage = new GlobalResearchTreeMessage(researchPayload);
+        }
+        finally
+        {
+            researchPayload.release();
+        }
+        assertClientBoundBufferedRoundTrip(helper, researchMessage, GlobalResearchTreeMessage::new,
+          "treeBuffer", "GlobalResearchTreeMessage");
+
+        final FriendlyByteBuf recipePayload = new FriendlyByteBuf(Unpooled.buffer());
+        recipePayload.writeVarInt(1);
+        recipePayload.writeUtf("custom-recipe-manager-payload");
+        final CustomRecipeManagerMessage recipeMessage;
+        try
+        {
+            recipeMessage = new CustomRecipeManagerMessage(recipePayload);
+        }
+        finally
+        {
+            recipePayload.release();
+        }
+        assertClientBoundBufferedRoundTrip(helper, recipeMessage, CustomRecipeManagerMessage::new,
+          "managerBuffer", "CustomRecipeManagerMessage");
+
+        assertClientBoundBufferedRoundTrip(helper, new UpdateClientWithCompatibilityMessage(true),
+          UpdateClientWithCompatibilityMessage::new, "buffer", "UpdateClientWithCompatibilityMessage");
 
         assertClientBoundRoundTrip(helper,
           new OpenSuggestionWindowMessage(Blocks.DIAMOND_BLOCK.defaultBlockState(),
@@ -10430,6 +10488,54 @@ public final class MineColoniesGameTests implements FabricGameTest
           messageName + " changed during its client-bound codec round-trip");
         helper.assertTrue(decoded.getExecutionSide() == LogicalSide.CLIENT,
           messageName + " no longer targets the client logical side");
+    }
+
+    private static <T extends IMessage> void assertClientBoundBufferedRoundTrip(final GameTestHelper helper,
+                                                                                 final T original,
+                                                                                 final Supplier<T> messageFactory,
+                                                                                 final String bufferFieldName,
+                                                                                 final String messageName)
+    {
+        T decoded = null;
+        try
+        {
+            final byte[] payload = encode(original);
+            helper.assertTrue(Arrays.equals(payload, encode(original)),
+              messageName + " changed when its server payload was encoded more than once");
+            decoded = decode(payload, messageFactory);
+            helper.assertTrue(Arrays.equals(payload, encode(decoded)),
+              messageName + " changed during its client-bound payload round-trip");
+            helper.assertTrue(Arrays.equals(payload, encode(decoded)),
+              messageName + " changed when its decoded payload was encoded more than once");
+            helper.assertTrue(decoded.getExecutionSide() == LogicalSide.CLIENT,
+              messageName + " no longer targets the client logical side");
+        }
+        finally
+        {
+            releaseMessageBuffer(original, bufferFieldName);
+            if (decoded != null)
+            {
+                releaseMessageBuffer(decoded, bufferFieldName);
+            }
+        }
+    }
+
+    private static void releaseMessageBuffer(final IMessage message, final String bufferFieldName)
+    {
+        try
+        {
+            final java.lang.reflect.Field bufferField = message.getClass().getDeclaredField(bufferFieldName);
+            bufferField.setAccessible(true);
+            final FriendlyByteBuf buffer = (FriendlyByteBuf) bufferField.get(message);
+            if (buffer != null)
+            {
+                buffer.release();
+            }
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new IllegalStateException("Could not release test buffer for " + message.getClass().getSimpleName(), exception);
+        }
     }
 
     private static void dispatchServerMessage(final NetworkChannel channel, final MinecraftServer server,

@@ -152,8 +152,9 @@ completed.
 - [x] Offline local client/server login smoke test reaches the world and sends
   the MineColonies server UUID packet
 - [x] Dedicated GameTest asserts registration of all fifteen
-  colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, twelve particle/audio messages
-  and four build/suggestion/scanning messages. The latest fresh isolated 114-test suite
+  colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, twelve particle/audio messages,
+  four build/suggestion/scanning messages and the four global-quest, research-tree,
+  custom-recipe and compatibility sync messages. The latest fresh isolated 114-test suite
   round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
   Farmer-field fixtures. This exposed and fixed the citizen-view decoder
@@ -180,9 +181,17 @@ completed.
   `ColonyListMessage` also round-trips its empty request and a real colony-map
   response, checking id, center, name, citizen count and owner. Together with
   the existing `OpenDecoBuildWindowMessage` check, this brings the suite to 32
-  targeted payload round-trips. All 113 tests pass,
-  including fishing-hook angler synchronization; the server saves all three
-  dimensions and stops cleanly. Evidence for this expanded set is in
+  targeted payload round-trips. Four additional opaque sync packets now
+  preserve their bytes through repeated serialization:
+  `GlobalQuestSyncMessage`, `GlobalResearchTreeMessage`,
+  `CustomRecipeManagerMessage` and `UpdateClientWithCompatibilityMessage`.
+  The research-tree and custom-recipe encoders reset their retained buffers
+  before each write, bringing coverage to 36 targeted payload round-trips. The
+  latest 114-test run passes, including fishing-hook angler synchronization;
+  the server saves all three dimensions and stops cleanly. Latest evidence is
+  in `logs/minecolonies-gametest-s2c-opaque-reencode-final-20260923.log` and
+  `logs/minecolonies-gametest-s2c-opaque-reencode-final-114-20260923.xml`; the
+  previous 113-case checkpoint is in
   `logs/minecolonies-gametest-s2c-sound-payload-113-20260923.log` and `.xml`;
   the previous particle-codec checkpoint remains in
   `logs/minecolonies-gametest-s2c-particle-codecs-113-20260923.log` and `.xml`;
@@ -586,8 +595,9 @@ completed.
   construction-site navigation through the real Builder proxy, automatic live
   Builder work-order claim/navigation, a single-stone Warehouse/Courier request,
   17-block placement and order completion,
-  `logs/minecolonies-gametest-builder-e2e-material-courier-navfix-20260923.log`
-  and `.xml` (114 cases, zero failures/errors), with clean saves for all three
+  `logs/minecolonies-gametest-s2c-opaque-reencode-final-20260923.log` and
+  `logs/minecolonies-gametest-s2c-opaque-reencode-final-114-20260923.xml`
+  (114 cases, zero failures/errors), with clean saves for all three
   dimensions and a clean server stop,
   decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,

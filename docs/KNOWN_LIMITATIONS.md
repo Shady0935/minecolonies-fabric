@@ -229,9 +229,11 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   split envelope, reach the server executor and mutate the owner
   colony/work-order/research state or place the Town Hall and resolve its
   blueprint;
-  the common codecs for the client-bound colony, particle,
-  audio, pathfinding, build-window and scan messages are now server-load safe,
-  but their visual/client behavior still needs an in-game interaction pass.
+  the common codecs for client-bound colony, particle/audio, pathfinding,
+  build-window, scan, global-quest, research-tree, custom-recipe-manager and
+  compatibility messages are now server-load safe. Four opaque synchronization
+  payloads preserve their bytes through repeated serialization, but visual and
+  client behavior still needs an in-game interaction pass.
   The transport also has a login/server-to-client smoke pass, including
   `ServerUUIDMessage`; the seven registered MineColonies menu types also have
   automated extended-opening-buffer forwarding coverage. GUI rendering and
@@ -260,7 +262,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the evidence is in
-  `logs/minecolonies-gametest-builder-e2e-material-courier-navfix-20260923.log`. The
+  `logs/minecolonies-gametest-s2c-opaque-reencode-final-20260923.log`. The
   blueprint data should be audited before treating this warning as resolved.
 - The latest clean combined 114-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path

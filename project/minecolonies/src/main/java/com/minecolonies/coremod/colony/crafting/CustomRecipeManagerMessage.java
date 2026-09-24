@@ -47,6 +47,7 @@ public class CustomRecipeManagerMessage implements IMessage
     @Override
     public void toBytes(@NotNull final FriendlyByteBuf buf)
     {
+        managerBuffer.resetReaderIndex();
         buf.writeBytes(managerBuffer);
     }
 

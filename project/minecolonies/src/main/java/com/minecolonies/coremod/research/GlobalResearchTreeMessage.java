@@ -49,6 +49,7 @@ public class GlobalResearchTreeMessage implements IMessage
     @Override
     public void toBytes(@NotNull final FriendlyByteBuf buf)
     {
+        treeBuffer.resetReaderIndex();
         buf.writeBytes(treeBuffer);
     }
 
