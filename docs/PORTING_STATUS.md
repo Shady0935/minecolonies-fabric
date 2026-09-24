@@ -263,8 +263,10 @@ completed.
   a bookshelf, navigates a live citizen from 24 blocks away (distance squared
   greater than 400) into five-block range, consumes stored mana and advances
   research through normal `CitizenAI` ticks. The 114-test regression evidence
-  is in `logs/minecolonies-gametest-researcher-long-range-114-20260924.log`
-  and `.xml`; researcher work-speed scaling and GUI interaction remain open
+  is in `logs/minecolonies-gametest-researcher-parallel-114-20260924.log`
+  and `.xml`; the level-two University fixture also completes two parallel
+  research projects, while the focused fixture checks Knowledge-scaled offline
+  mana and the Mana storage cap. University GUI interaction remains open
 - [x] MineColonies' Forge-shaped conventional item/block tag references resolve
   at runtime through native Fabric datagen; dedicated startup and `/reload`
   report no missing-tag errors
@@ -310,9 +312,9 @@ completed.
 - [ ] Farmer and Miner
 - [ ] Research
 - [x] Default research datapack tree and effect registry exercised server-side
-- [x] Server-side University registration, researcher-job assignment,
-  configured worker-tick progression and focused researcher study/mana action
-  with 24-block bookshelf navigation exercised by Fabric GameTest
+- [x] Server-side University registration, two parallel researcher-job
+  assignments and per-tick progression, plus focused researcher study/offline-
+  mana checks with 24-block bookshelf navigation, exercised by Fabric GameTest
 - [ ] Guards and raids
 - [x] Structurize pack discovery and Town Hall blueprint lookup exercised by Fabric GameTest
 - [x] Server-side builder work-order creation resolves the Colonial Town Hall

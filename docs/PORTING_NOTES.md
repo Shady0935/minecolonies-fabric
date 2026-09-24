@@ -853,10 +853,14 @@ preloads researcher mana and places the live citizen 24 blocks away from the
 study site (distance squared greater than 400). Normal `CitizenAI` ticks run
 `EntityAIWorkResearcher`; the fixture verifies that the citizen navigates into
 five-block bookshelf range, consumes mana and advances the in-progress
-research. This long-range case passes in the combined 114-test run recorded in
-`logs/minecolonies-gametest-researcher-long-range-114-20260924.log` and its
-JUnit companion `.xml`. Researcher work-speed scaling and the client GUI remain
-manual validation items.
+research. The level-two University fixture assigns two researchers, starts two
+eligible root researches and verifies that each advances once per University
+tick through completion. The offline-time checks set deterministic Knowledge
+and Mana skills, verify Knowledge-scaled mana recovery, and enforce the Mana
+storage cap. The long-range and parallel cases pass in the combined 114-test
+run recorded in `logs/minecolonies-gametest-researcher-parallel-114-20260924.log`
+and its JUnit companion `.xml`. University GUI interaction and broader client
+research packets remain manual validation items.
 
 The same shutdown pass exposed that colony serialization can run after the
 world reference has been detached. `AbstractSchematicProvider.getRotation()`

@@ -117,14 +117,16 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   saves; it does not replace the pending authenticated gameplay pass.
 - The server-side research manager and University building now have an
   automated selection/progression fixture: a non-creative player pays the
-  datapack cost, a real University receives a live `JobResearch` citizen, its
-  configured worker ticks complete the research and its effect is applied. A
-  focused companion also runs `EntityAIWorkResearcher` from 24 blocks away
-  (distance squared greater than 400) to a registered bookshelf, verifies
-  navigation into five blocks, consumes stored mana and advances research
-  through normal `CitizenAI` ticks. Long-range bookshelf navigation is covered;
-  work-speed scaling, University GUI interaction and the broader set of client
-  research packets remain uncovered.
+  datapack cost, a real level-two University receives live `JobResearch`
+  citizens, and two eligible root researches both advance once per University
+  tick through completion. A focused companion runs `EntityAIWorkResearcher`
+  from 24 blocks away (distance squared greater than 400) to a registered
+  bookshelf, verifies navigation into five blocks, consumes stored mana and
+  advances research through normal `CitizenAI` ticks; it also checks
+  Knowledge-scaled offline mana recovery and the Mana-skill storage cap.
+  Long-range navigation, parallel research progression and offline-mana
+  calculation are automated; University GUI interaction and the broader set
+  of client research packets remain uncovered.
 - The Lumberjack worker cycle is now covered with a valid three-log tree,
   normal citizen ticks and a level-compatible stone axe. The fixture uses the
   `Minecolonies Original` pack because the Colonial 1.20.1 pack lacks the
@@ -180,7 +182,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   farmer crop growth/field placement and longer harvest navigation/resource
   delivery beyond the covered short-range route (the direct empty-field hoeing
   and hoed-field seed planting paths are covered), broader Lumberjack tree
-  search/navigation, University researcher work-speed scaling and GUI,
+  search/navigation and the full University research GUI/gameplay cycle,
   full guard navigation and long-running ambient target search beyond the
   covered short-range barbarian response, and broader request-driven guard
   equipment (the current checkpoint covers one automatically reassigned
@@ -213,8 +215,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   Tower/knight assignment plus the focused
   knight autonomous target-selection/hostile-hit path, RaidManager event
   registration/spawn lifecycle and the University
-  worker-tick plus focused researcher study/mana paths have automated GameTest
-  fixtures; multi-request logistics,
+  two-project worker-tick progression plus focused researcher study/offline-mana
+  paths have automated GameTest fixtures; multi-request logistics,
   full Builder work-order navigation and the dedicated restart
   probe confirms representative citizen-entity reappearance but is not a full
   gameplay-cycle test.

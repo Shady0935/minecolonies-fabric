@@ -19,6 +19,7 @@ import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
+import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.mobs.AbstractEntityRaiderMob;
 import com.minecolonies.api.entity.pathfinding.IPathJob;
@@ -608,14 +609,14 @@ public final class MineColoniesGameTests implements FabricGameTest
           "University fixture did not create a colony-building block entity");
         final TileEntityColonyBuilding universityHut = (TileEntityColonyBuilding) blockEntity;
         universityHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
-        universityHut.setBlueprintPath("education/university1.blueprint");
-        universityHut.setSchematicName("university1");
+        universityHut.setBlueprintPath("education/university2.blueprint");
+        universityHut.setSchematicName("university2");
         final IBuilding registered = colony.getBuildingManager().addNewBuilding(universityHut, level);
         helper.assertTrue(registered instanceof BuildingUniversity,
           "University hut registered the wrong building implementation: " + registered);
         final BuildingUniversity university = (BuildingUniversity) registered;
-        helper.assertTrue(university.getBuildingLevel() >= 1,
-          "University fixture did not resolve its level-one blueprint");
+        helper.assertTrue(university.getBuildingLevel() >= 2,
+          "University fixture did not resolve its level-two blueprint");
 
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, universityPos.above());
         helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
@@ -627,8 +628,16 @@ public final class MineColoniesGameTests implements FabricGameTest
           "University researcher module rejected the citizen assignment");
         helper.assertTrue(citizen.getJob() instanceof JobResearch,
           "University assignment did not create the researcher job");
-        helper.assertTrue(researcherModule.getAssignedCitizen().size() == 1,
-          "University researcher module did not retain the assigned citizen");
+        final ICitizenData secondResearcher = colony.getCitizenManager().spawnOrCreateCitizen(null, level, universityPos.above(2));
+        helper.assertTrue(secondResearcher != null && secondResearcher.getEntity().isPresent(),
+          "University fixture could not create its second live researcher");
+        helper.assertTrue(researcherModule.assignCitizen(secondResearcher),
+          "Level-two University researcher module rejected its second citizen");
+        helper.assertTrue(secondResearcher.getJob() instanceof JobResearch,
+          "Second University assignment did not create the researcher job");
+        final int researcherCount = researcherModule.getAssignedCitizen().size();
+        helper.assertTrue(researcherCount == 2,
+          "Level-two University did not retain both assigned researchers: " + researcherCount);
 
         final Player player = makeNonCreativeResearchPlayer(level, townHall);
         player.getInventory().setItem(0, new ItemStack(Items.DIAMOND));
@@ -639,24 +648,48 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(research != null && research.canResearch(1, colony.getResearchManager().getResearchTree()),
           "University research fixture was not eligible to start");
         colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, research);
+        final ResourceLocation parallelResearchId = new ResourceLocation(Constants.MOD_ID, "civilian/stamina");
+        final IGlobalResearch parallelResearch = tree.getResearch(branch, parallelResearchId);
+        helper.assertTrue(parallelResearch != null
+            && parallelResearch.canResearch(1, colony.getResearchManager().getResearchTree()),
+          "University fixture's second root research was not eligible to start in parallel");
+        player.getInventory().setItem(1, new ItemStack(Items.CARROT));
+        colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, parallelResearch);
 
         final ILocalResearch localResearch = colony.getResearchManager().getResearchTree().getResearch(branch, researchId);
         helper.assertTrue(localResearch != null && localResearch.getState() == ResearchState.IN_PROGRESS,
           "University research fixture did not enter the in-progress state");
+        final ILocalResearch localParallelResearch = colony.getResearchManager().getResearchTree()
+          .getResearch(branch, parallelResearchId);
+        helper.assertTrue(localParallelResearch != null && localParallelResearch.getState() == ResearchState.IN_PROGRESS,
+          "University fixture did not retain both parallel root researches");
         final int requiredProgress = tree.getBranchData(branch).getBaseTime(research.getDepth());
-        helper.assertTrue(requiredProgress > 1, "University research fixture did not expose a multi-tick progress requirement");
+        final int parallelRequiredProgress = tree.getBranchData(branch).getBaseTime(parallelResearch.getDepth());
+        helper.assertTrue(requiredProgress > 1 && requiredProgress == parallelRequiredProgress,
+          "University parallel-research fixture did not resolve matching multi-tick requirements");
         for (int progress = 0; progress < requiredProgress; progress++)
         {
             university.onColonyTick(colony);
-            helper.assertTrue(localResearch.getProgress() == progress + 1 || localResearch.getState() == ResearchState.FINISHED,
-              "University worker tick did not advance research progress at step " + (progress + 1));
+            final int expectedProgress = progress + 1;
+            helper.assertTrue(localResearch.getProgress() == expectedProgress
+                || localResearch.getState() == ResearchState.FINISHED,
+              "University tick did not advance its first parallel research: expected=" + expectedProgress
+                + "; actual=" + localResearch.getProgress());
+            helper.assertTrue(localParallelResearch.getProgress() == expectedProgress
+                || localParallelResearch.getState() == ResearchState.FINISHED,
+              "University tick did not advance its second parallel research: expected=" + expectedProgress
+                + "; actual=" + localParallelResearch.getProgress());
         }
         helper.assertTrue(localResearch.getState() == ResearchState.FINISHED,
-          "University worker tick did not advance research to completion");
+          "University worker tick did not complete the first parallel research");
+        helper.assertTrue(localParallelResearch.getState() == ResearchState.FINISHED,
+          "University worker tick did not complete the second parallel research");
         helper.assertTrue(colony.getResearchManager().getResearchTree().getResearchInProgress().isEmpty(),
-          "University worker tick left completed research in progress");
+          "University worker tick left a completed parallel research in progress");
         helper.assertTrue(colony.getResearchManager().getResearchTree().hasCompletedResearch(researchId),
-          "University worker tick did not record completed research");
+          "University worker tick did not record the first completed research");
+        helper.assertTrue(colony.getResearchManager().getResearchTree().hasCompletedResearch(parallelResearchId),
+          "University worker tick did not record the second completed research");
         helper.assertTrue(colony.getResearchManager().getResearchEffects().getEffectStrength(
           new ResourceLocation(Constants.MOD_ID, "effects/blockhutmysticalsite")) > 0,
           "University worker tick did not apply the research effect");
@@ -745,7 +778,31 @@ public final class MineColoniesGameTests implements FabricGameTest
         final JobResearch job = citizen.getJob(JobResearch.class);
         final EntityAIWorkResearcher researcherAI = job.getWorkerAI();
         helper.assertTrue(researcherAI != null, "Researcher assignment did not create the worker AI");
-        job.processOfflineTime(100000L);
+        final int knowledgeLevel = 5;
+        final int manaLevel = 10;
+        // Fix the skills so this fixture checks the offline-mana formula rather than random citizen defaults.
+        citizen.getCitizenSkillHandler().incrementLevel(Skill.Knowledge,
+          knowledgeLevel - citizen.getCitizenSkillHandler().getLevel(Skill.Knowledge));
+        citizen.getCitizenSkillHandler().incrementLevel(Skill.Mana,
+          manaLevel - citizen.getCitizenSkillHandler().getLevel(Skill.Mana));
+        final int tickratesPerSecond = TickRateConstants.MAX_TICKRATE / Constants.TICKS_SECOND;
+        final int manaBeforeOfflineProcessing = job.getCurrentMana();
+        job.processOfflineTime(10000L);
+        final long expectedKnowledgeScaledMana = Math.min(
+          10000L / 100L * knowledgeLevel + (long) manaBeforeOfflineProcessing * tickratesPerSecond,
+          (4L * 60L * 60L / 100L) * manaLevel) / tickratesPerSecond;
+        helper.assertTrue(job.getCurrentMana() == expectedKnowledgeScaledMana,
+          "Researcher offline mana did not scale with Knowledge: expected=" + expectedKnowledgeScaledMana
+            + "; actual=" + job.getCurrentMana() + "; knowledge=" + knowledgeLevel);
+
+        final int manaBeforeCapCheck = job.getCurrentMana();
+        job.processOfflineTime(1000000L);
+        final long expectedManaCap = Math.min(
+          1000000L / 100L * knowledgeLevel + (long) manaBeforeCapCheck * tickratesPerSecond,
+          (4L * 60L * 60L / 100L) * manaLevel) / tickratesPerSecond;
+        helper.assertTrue(job.getCurrentMana() == expectedManaCap,
+          "Researcher offline mana exceeded its Mana-skill storage cap: expected=" + expectedManaCap
+            + "; actual=" + job.getCurrentMana() + "; mana=" + manaLevel);
         helper.assertTrue(job.getCurrentMana() > 0, "Researcher fixture could not accumulate study mana");
         final int manaBefore = job.getCurrentMana();
         final int progressBefore = localResearch.getProgress();

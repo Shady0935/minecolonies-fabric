@@ -19,7 +19,7 @@ colony color/help and spy-hiring routes, citizen-inventory menu opening,
 request-state updates, building pickup, force pickup, warehouse sort/upgrade,
 Enchanter station assignment, Postbox request, citizen-restart scheduling,
 resource-scroll warehouse snapshot and build-tool inventory routes, and
-University worker-tick and focused researcher study/mana checkpoints are now
+University parallel-research and focused researcher study/offline-mana checkpoints are now
 complete:
 `runDatagen` is reproducible with
 all 37 providers, native advancements/icons/quests are wired to the Fabric
@@ -27,10 +27,12 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-114 required tests, including the three standalone MultiPiston tests and the
-new isolated long-range Researcher test; its log and JUnit report are
-`logs/minecolonies-gametest-researcher-long-range-114-20260924.log` and
-`logs/minecolonies-gametest-researcher-long-range-114-20260924.xml`. A live
+114 tests, including two parallel University researches, the 24-block Researcher
+navigation and offline-mana checks, and the three standalone MultiPiston tests;
+its log and JUnit report are
+`logs/minecolonies-gametest-researcher-parallel-114-20260924.log` and
+`logs/minecolonies-gametest-researcher-parallel-114-20260924.xml`. It saved all
+three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
 Courier autonomously travels from two Warehouse racks to the Builder through its
@@ -125,10 +127,10 @@ The following work remains, in order:
    does not validate authentication or MineColonies gameplay screens. Still
    place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
-   Guard Tower, warehouse and research cycle. The server-side research manager and
-   University worker-tick and focused researcher bookshelf navigation/study/mana
-   paths, including 24-block researcher navigation, are automated, so the
-   remaining research work here is work-speed scaling and the GUI cycle.
+   Guard Tower, warehouse and research cycle. Automated coverage now verifies
+   two active University research projects progressing in parallel and the
+   Researcher's 24-block bookshelf navigation, study and offline-mana scaling;
+   the authenticated University GUI/gameplay cycle remains manual.
    Include an inventory/GUI visual check for the custom spear renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative server/client network coverage, including the real
