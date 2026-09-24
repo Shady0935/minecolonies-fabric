@@ -29,10 +29,10 @@ through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
 114 required tests, including the three standalone MultiPiston tests. A live
 Builder end-to-end fixture now proves automatic work-order claim, navigation,
-two-stone Stack/Delivery request fulfilled as the assigned Courier navigates
+separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned Courier navigates
 autonomously from the Warehouse rack to the Builder through its normal `CitizenAI`,
-placement of a synthetic 17-block blueprint and order completion; multi-material
-logistics, larger builds and in-game construction remain pending. The suite covers
+placement of a synthetic 17-block blueprint and order completion; broader
+multi-source/destination logistics, larger builds and in-game construction remain pending. The suite covers
 construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus

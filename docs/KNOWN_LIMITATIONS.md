@@ -97,9 +97,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   entity types and exercises their NBT reload behavior. The two upstream
   non-persistent projectile types are expected to discard during reload; this
   does not replace the rendering or restart-migration checks.
-  It does not yet cover multi-request scheduling/delivery, multi-material Courier
-  logistics or full logistics beyond the focused two-stone Builder
-  work-order cycle (rack → Stack/Delivery request → Courier → Builder), larger
+  It does not yet cover complex multi-request scheduling across varied sources
+  and destinations or broad logistics beyond the focused two-material Builder
+  work-order cycle (rack → two Stack/Delivery requests → Courier → Builder), larger
   canonical construction or full logistics-backed builds,
   full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth, field
@@ -172,7 +172,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - Authenticated in-game interaction with BlockUI screens (including the
   MultiPiston configuration window and an actual rendered entity/block hook
   overlay), larger canonical Builder work-order pathfinding/placement, fully
-  multi-request Courier scheduling and multi-material logistics, full citizen work
+  complex multi-source/destination Courier scheduling and broad stock logistics, full citizen work
   cycles/scheduling,
   miner shaft construction and mining placement/resource logistics beyond the
   covered stone and vanilla-ore AI cycles,
@@ -193,10 +193,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   proxy plus a live assigned Builder `BUILDING_STEP` placement/consumption
   cycle and automatic order claim are covered by GameTest. A separate live
   work-order fixture also navigates to and completes a synthetic 17-block
-  blueprint with two stones requested from the Warehouse rack, delivered through
-  the normal Stack/Delivery request while the assigned Courier autonomously
+  blueprint with stone and cobblestone requested from the Warehouse rack through
+  separate normal Stack/Delivery requests while the assigned Courier autonomously
   navigates from the rack to the Builder through its `CitizenAI`, then consumed
-  by the Builder. Larger canonical builds, multi-material logistics and longer
+  by the Builder. Larger canonical builds, complex multi-source routes and longer
   post-selection work cycles remain pending. Server-side
   Town Hall, direct and client-to-server colony creation, builder work-order registration and live
   `JobBuilder` claim selection, colony-backed citizen registration, research
@@ -263,7 +263,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the latest evidence is in
-  `logs/minecolonies-gametest-builder-two-stone-20260923.log`. The
+  `logs/minecolonies-gametest-builder-two-materials-20260923.log`. The
   blueprint data should be audited before treating this warning as resolved.
 - The latest clean combined 114-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path

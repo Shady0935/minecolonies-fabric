@@ -1074,18 +1074,21 @@ public final class MineColoniesGameTests implements FabricGameTest
             courier.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
         }
         courier.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE, 16));
+        courier.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.COBBLESTONE, 16));
         final TileEntityWareHouse warehouseTile = (TileEntityWareHouse) ((BuildingWareHouse) warehouseBuilding).getTileEntity();
         warehouseTile.dumpInventoryIntoWareHouse(courier.getInventoryCitizen());
         final TileEntityRack rack = (TileEntityRack) rackEntity;
         helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 16,
-          "Builder end-to-end fixture could not seed its Warehouse rack with construction material");
+          "Builder end-to-end fixture could not seed its Warehouse rack with stone");
+        helper.assertTrue(rack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 16,
+          "Builder end-to-end fixture could not seed its Warehouse rack with cobblestone");
         final JobDeliveryman courierJob = courierData.getJob(JobDeliveryman.class);
         helper.assertTrue(courierJob != null, "Builder end-to-end fixture did not create the Courier job");
 
         final Blueprint blueprint = new Blueprint((short) 30, (short) 1, (short) 1);
         blueprint.setName("fabric-builder-work-order-navigation-test");
         blueprint.addBlockState(new BlockPos(13, 0, 0), Blocks.STONE.defaultBlockState());
-        blueprint.addBlockState(new BlockPos(14, 0, 0), Blocks.STONE.defaultBlockState());
+        blueprint.addBlockState(new BlockPos(14, 0, 0), Blocks.COBBLESTONE.defaultBlockState());
         for (int x = 15; x < 30; x++)
         {
             blueprint.addBlockState(new BlockPos(x, 0, 0),
@@ -1109,13 +1112,19 @@ public final class MineColoniesGameTests implements FabricGameTest
         final boolean[] observedNavigation = {false};
         final boolean[] observedConstructionRange = {false};
         final boolean[] requestSubmitted = {false};
-        final boolean[] courierDelivered = {false};
         final boolean[] courierReachedRack = {false};
-        final boolean[] courierPickedUpMaterial = {false};
-        final boolean[] courierNavigatedToBuilder = {false};
-        final boolean[] courierReachedBuilder = {false};
-        final IToken<?>[] deliveredToken = {null};
-        final IRequest<?>[] observedStackRequest = {null};
+        final boolean[] courierPickedUpStone = {false};
+        final boolean[] courierPickedUpCobblestone = {false};
+        final boolean[] courierNavigatedToBuilderWithStone = {false};
+        final boolean[] courierNavigatedToBuilderWithCobblestone = {false};
+        final boolean[] courierDeliveredStone = {false};
+        final boolean[] courierDeliveredCobblestone = {false};
+        final boolean[] courierReachedBuilderWithStone = {false};
+        final boolean[] courierReachedBuilderWithCobblestone = {false};
+        final IToken<?>[] stoneDeliveryToken = {null};
+        final IToken<?>[] cobblestoneDeliveryToken = {null};
+        final IRequest<?>[] stoneStackRequest = {null};
+        final IRequest<?>[] cobblestoneStackRequest = {null};
         citizen.setWorking(true);
         helper.succeedWhen(() ->
         {
@@ -1143,48 +1152,88 @@ public final class MineColoniesGameTests implements FabricGameTest
                 builder.checkOrRequestBucket(builder.getRequiredResources(), citizen, true);
                 requestSubmitted[0] = true;
             }
-            final IRequest<?> stackRequest = builder.getOpenRequests(citizen.getId()).stream()
-              .filter(request -> request.getRequest() instanceof Stack)
-              .findFirst()
-              .orElse(null);
-            if (stackRequest != null)
+            for (final IRequest<?> stackRequest : builder.getOpenRequests(citizen.getId()))
             {
-                observedStackRequest[0] = stackRequest;
-                if (deliveredToken[0] == null && !stackRequest.getChildren().isEmpty())
+                if (stackRequest.getRequest() instanceof Stack)
                 {
-                    deliveredToken[0] = stackRequest.getChildren().iterator().next();
+                    final ItemStack requestedStack = ((Stack) stackRequest.getRequest()).getStack();
+                    if (requestedStack.is(Items.STONE))
+                    {
+                        stoneStackRequest[0] = stackRequest;
+                    }
+                    else if (requestedStack.is(Items.COBBLESTONE))
+                    {
+                        cobblestoneStackRequest[0] = stackRequest;
+                    }
                 }
             }
-            if (deliveredToken[0] != null && !courierDelivered[0])
+            if (stoneStackRequest[0] != null && stoneDeliveryToken[0] == null
+                  && !stoneStackRequest[0].getChildren().isEmpty())
             {
-                final IToken<?> deliveryToken = deliveredToken[0];
-                final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(deliveryToken);
+                stoneDeliveryToken[0] = stoneStackRequest[0].getChildren().iterator().next();
+            }
+            if (cobblestoneStackRequest[0] != null && cobblestoneDeliveryToken[0] == null
+                  && !cobblestoneStackRequest[0].getChildren().isEmpty())
+            {
+                cobblestoneDeliveryToken[0] = cobblestoneStackRequest[0].getChildren().iterator().next();
+            }
+            if (stoneDeliveryToken[0] != null)
+            {
+                final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(stoneDeliveryToken[0]);
                 if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
-                      && courierJob.getTaskQueue().contains(deliveryToken))
+                      && courierJob.getTaskQueue().contains(stoneDeliveryToken[0]))
                 {
                     if (courier.blockPosition().distSqr(rackPos) <= 9)
                     {
                         courierReachedRack[0] = true;
                     }
-                    if (countItem(courier, Items.STONE) == 2)
+                    if (countItem(courier, Items.STONE) > 0)
                     {
-                        courierReachedRack[0] = true;
-                        courierPickedUpMaterial[0] = true;
+                        courierPickedUpStone[0] = true;
                         if (!courier.getNavigation().isDone()
                               && courier.blockPosition().distSqr(builderPos) > 25)
                         {
-                            courierNavigatedToBuilder[0] = true;
+                            courierNavigatedToBuilderWithStone[0] = true;
                         }
                     }
                 }
             }
-            if (observedStackRequest[0] != null
-                  && observedStackRequest[0].getState() == RequestState.COMPLETED)
+            if (cobblestoneDeliveryToken[0] != null)
             {
-                courierDelivered[0] = true;
+                final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(cobblestoneDeliveryToken[0]);
+                if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
+                      && courierJob.getTaskQueue().contains(cobblestoneDeliveryToken[0]))
+                {
+                    if (courier.blockPosition().distSqr(rackPos) <= 9)
+                    {
+                        courierReachedRack[0] = true;
+                    }
+                    if (countItem(courier, Items.COBBLESTONE) > 0)
+                    {
+                        courierPickedUpCobblestone[0] = true;
+                        if (!courier.getNavigation().isDone()
+                              && courier.blockPosition().distSqr(builderPos) > 25)
+                        {
+                            courierNavigatedToBuilderWithCobblestone[0] = true;
+                        }
+                    }
+                }
+            }
+            if (stoneStackRequest[0] != null && stoneStackRequest[0].getState() == RequestState.COMPLETED)
+            {
+                courierDeliveredStone[0] = true;
                 if (courier.blockPosition().distSqr(builderPos) <= 25)
                 {
-                    courierReachedBuilder[0] = true;
+                    courierReachedBuilderWithStone[0] = true;
+                }
+            }
+            if (cobblestoneStackRequest[0] != null
+                  && cobblestoneStackRequest[0].getState() == RequestState.COMPLETED)
+            {
+                courierDeliveredCobblestone[0] = true;
+                if (courier.blockPosition().distSqr(builderPos) <= 25)
+                {
+                    courierReachedBuilderWithCobblestone[0] = true;
                 }
             }
             helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
@@ -1196,9 +1245,11 @@ public final class MineColoniesGameTests implements FabricGameTest
             for (int x = 13; x < 30; x++)
             {
                 final BlockPos target = builderPos.offset(x, 0, 0);
-                final boolean placed = x <= 14
+                final boolean placed = x == 13
                   ? level.getBlockState(target).is(Blocks.STONE)
-                  : level.getBlockState(target).is(Blocks.OAK_LEAVES);
+                  : x == 14
+                    ? level.getBlockState(target).is(Blocks.COBBLESTONE)
+                    : level.getBlockState(target).is(Blocks.OAK_LEAVES);
                 if (!placed)
                 {
                     missingBlocks.add(target);
@@ -1218,22 +1269,30 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(observedConstructionRange[0],
               "Builder completed the construction without entering construction range");
             helper.assertTrue(requestSubmitted[0],
-              "Builder completed the work order without requesting its required stone materials");
-            helper.assertTrue(courierDelivered[0],
-              "Builder completed the work order without receiving the requested stones from its Courier");
-            helper.assertTrue(courierReachedRack[0] && courierPickedUpMaterial[0],
-              "Courier did not navigate to the Warehouse rack and collect both requested stones; pos="
-                + courier.blockPosition() + "; rack=" + rackPos + "; rackCount="
-                + rack.getCount(new ItemStack(Items.STONE), true, false) + "; inventory="
-                + countItem(courier, Items.STONE));
-            helper.assertTrue(courierNavigatedToBuilder[0] && courierReachedBuilder[0],
-              "Courier did not navigate with both collected stones to the Builder building; pos="
+              "Builder completed the work order without requesting its required stone and cobblestone");
+            helper.assertTrue(stoneStackRequest[0] != null && cobblestoneStackRequest[0] != null,
+              "Builder did not request both construction materials through its resource bucket");
+            helper.assertTrue(courierDeliveredStone[0] && courierDeliveredCobblestone[0],
+              "Courier did not complete both material requests; stone=" + courierDeliveredStone[0]
+                + "; cobblestone=" + courierDeliveredCobblestone[0]);
+            helper.assertTrue(courierReachedRack[0] && courierPickedUpStone[0] && courierPickedUpCobblestone[0],
+              "Courier did not collect both materials from the Warehouse rack; pos="
+                + courier.blockPosition() + "; rack=" + rackPos + "; stoneInventory="
+                + countItem(courier, Items.STONE) + "; cobblestoneInventory="
+                + countItem(courier, Items.COBBLESTONE));
+            helper.assertTrue(courierNavigatedToBuilderWithStone[0] && courierNavigatedToBuilderWithCobblestone[0]
+                  && courierReachedBuilderWithStone[0] && courierReachedBuilderWithCobblestone[0],
+              "Courier did not navigate both requested materials to the Builder; pos="
                 + courier.blockPosition() + "; builder=" + builderPos + "; navigationDone="
                 + courier.getNavigation().isDone() + "; destination=" + courier.getNavigation().getDestination());
-            helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 14,
-              "Courier did not decrement the Warehouse rack by both delivered stones");
-            helper.assertTrue(deliveredToken[0] != null && !courierJob.getTaskQueue().contains(deliveredToken[0]),
-              "Courier retained the completed Builder delivery task");
+            helper.assertTrue(stoneDeliveryToken[0] != null && cobblestoneDeliveryToken[0] != null
+                  && !courierJob.getTaskQueue().contains(stoneDeliveryToken[0])
+                  && !courierJob.getTaskQueue().contains(cobblestoneDeliveryToken[0]),
+              "Courier retained a completed Builder delivery task");
+            helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
+              "Courier did not decrement the Warehouse rack by the delivered stone");
+            helper.assertTrue(rack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 15,
+              "Courier did not decrement the Warehouse rack by the delivered cobblestone");
             helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order");
             helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == null,
               "Builder did not remove the completed work order from the colony manager");
