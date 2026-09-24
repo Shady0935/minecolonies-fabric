@@ -1081,7 +1081,6 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Builder end-to-end fixture could not seed its Warehouse rack with construction material");
         final JobDeliveryman courierJob = courierData.getJob(JobDeliveryman.class);
         helper.assertTrue(courierJob != null, "Builder end-to-end fixture did not create the Courier job");
-        final EntityAIWorkDeliveryman deliveryAI = courierJob.generateAI();
 
         final Blueprint blueprint = new Blueprint((short) 30, (short) 1, (short) 1);
         blueprint.setName("fabric-builder-work-order-navigation-test");
@@ -1110,7 +1109,12 @@ public final class MineColoniesGameTests implements FabricGameTest
         final boolean[] observedConstructionRange = {false};
         final boolean[] requestSubmitted = {false};
         final boolean[] courierDelivered = {false};
+        final boolean[] courierReachedRack = {false};
+        final boolean[] courierPickedUpMaterial = {false};
+        final boolean[] courierNavigatedToBuilder = {false};
+        final boolean[] courierReachedBuilder = {false};
         final IToken<?>[] deliveredToken = {null};
+        final IRequest<?>[] observedStackRequest = {null};
         citizen.setWorking(true);
         helper.succeedWhen(() ->
         {
@@ -1142,35 +1146,44 @@ public final class MineColoniesGameTests implements FabricGameTest
               .filter(request -> request.getRequest() instanceof Stack)
               .findFirst()
               .orElse(null);
-            if (stackRequest != null && !courierDelivered[0] && !stackRequest.getChildren().isEmpty())
+            if (stackRequest != null)
             {
-                final IToken<?> deliveryToken = stackRequest.getChildren().iterator().next();
-                deliveredToken[0] = deliveryToken;
+                observedStackRequest[0] = stackRequest;
+                if (deliveredToken[0] == null && !stackRequest.getChildren().isEmpty())
+                {
+                    deliveredToken[0] = stackRequest.getChildren().iterator().next();
+                }
+            }
+            if (deliveredToken[0] != null && !courierDelivered[0])
+            {
+                final IToken<?> deliveryToken = deliveredToken[0];
                 final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(deliveryToken);
                 if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
                       && courierJob.getTaskQueue().contains(deliveryToken))
                 {
-                    try
+                    if (courier.blockPosition().distSqr(rackPos) <= 9)
                     {
-                        courier.setPos(rackPos.getX() + 0.5D, rackPos.getY() + 1.0D, rackPos.getZ() + 0.5D);
-                        final java.lang.reflect.Method prepareDelivery = EntityAIWorkDeliveryman.class.getDeclaredMethod("prepareDelivery");
-                        prepareDelivery.setAccessible(true);
-                        prepareDelivery.invoke(deliveryAI);
-                        helper.assertTrue(countItem(courier, Items.STONE) == 1,
-                          "Courier did not gather the requested stone from the Warehouse rack");
-                        prepareDelivery.invoke(deliveryAI);
-                        courier.setPos(builderPos.getX() + 0.5D, builderPos.getY() + 1.0D, builderPos.getZ() + 0.5D);
-                        final java.lang.reflect.Method deliver = EntityAIWorkDeliveryman.class.getDeclaredMethod("deliver");
-                        deliver.setAccessible(true);
-                        deliver.invoke(deliveryAI);
-                        helper.assertTrue(stackRequest.getState() == RequestState.COMPLETED,
-                          "Courier delivery did not complete the Builder's material request: " + stackRequest.getState());
-                        courierDelivered[0] = true;
+                        courierReachedRack[0] = true;
                     }
-                    catch (final ReflectiveOperationException exception)
+                    if (countItem(courier, Items.STONE) == 1)
                     {
-                        throw new AssertionError("Could not run the Courier delivery state machine", exception);
+                        courierReachedRack[0] = true;
+                        courierPickedUpMaterial[0] = true;
+                        if (!courier.getNavigation().isDone()
+                              && courier.blockPosition().distSqr(builderPos) > 25)
+                        {
+                            courierNavigatedToBuilder[0] = true;
+                        }
                     }
+                }
+            }
+            if (observedStackRequest[0] != null
+                  && observedStackRequest[0].getState() == RequestState.COMPLETED)
+            {
+                courierDelivered[0] = true;
+                if (courier.blockPosition().distSqr(builderPos) <= 25)
+                {
+                    courierReachedBuilder[0] = true;
                 }
             }
             helper.assertTrue(entity.getEntityStateController().getState() == EntityState.ACTIVE_SERVER,
@@ -1207,6 +1220,15 @@ public final class MineColoniesGameTests implements FabricGameTest
               "Builder completed the work order without requesting its required stone material");
             helper.assertTrue(courierDelivered[0],
               "Builder completed the work order without receiving the requested stone from its Courier");
+            helper.assertTrue(courierReachedRack[0] && courierPickedUpMaterial[0],
+              "Courier did not navigate to the Warehouse rack and collect the requested stone; pos="
+                + courier.blockPosition() + "; rack=" + rackPos + "; rackCount="
+                + rack.getCount(new ItemStack(Items.STONE), true, false) + "; inventory="
+                + countItem(courier, Items.STONE));
+            helper.assertTrue(courierNavigatedToBuilder[0] && courierReachedBuilder[0],
+              "Courier did not navigate with the collected stone to the Builder building; pos="
+                + courier.blockPosition() + "; builder=" + builderPos + "; navigationDone="
+                + courier.getNavigation().isDone() + "; destination=" + courier.getNavigation().getDestination());
             helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
               "Courier did not decrement the Warehouse rack by the delivered material");
             helper.assertTrue(deliveredToken[0] != null && !courierJob.getTaskQueue().contains(deliveredToken[0]),
