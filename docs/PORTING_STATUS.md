@@ -189,8 +189,8 @@ completed.
   before each write, bringing coverage to 36 targeted payload round-trips. The
   latest 114-test run passes, including fishing-hook angler synchronization;
   the server saves all three dimensions and stops cleanly. Latest evidence is
-  in `logs/minecolonies-gametest-builder-two-materials-20260923.log` and
-  `logs/minecolonies-gametest-builder-two-materials-20260923.xml`; the
+  in `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
+  `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
   previous 113-case checkpoint is in
   `logs/minecolonies-gametest-s2c-sound-payload-113-20260923.log` and `.xml`;
   the previous particle-codec checkpoint remains in
@@ -336,13 +336,13 @@ completed.
   claim it on the actual `JobBuilder`, then drive the assigned
   `EntityAIStructureBuilder` through navigation and a synthetic 17-block build
   (stone and cobblestone requested through separate Stack/Delivery requests from
-  the Warehouse rack and delivered by the Courier, plus 15 free leaf blocks),
+  two Warehouse racks and delivered by the Courier, plus 15 free leaf blocks),
   then order completion
   and removal from the manager. Its isolated batch passed in the latest
   114-test run. The assigned Courier now follows its normal `CitizenAI` route
-  from the Warehouse rack to the Builder for both materials; multi-source/
-  destination logistics and larger
-  canonical blueprints and GUI interaction remain open
+  from separate racks to the Builder for both materials. Cross-warehouse and
+  multi-destination scheduling, larger canonical blueprints and GUI interaction
+  remain open
 - [x] Colony-backed citizen advanced navigation reaches a real target and
   preserves the completed `PathResult` status; a companion fixture routes the
   citizen around a solid two-block barrier and verifies a real detour in the
@@ -598,8 +598,8 @@ completed.
   construction-site navigation through the real Builder proxy, automatic live
   Builder work-order claim/navigation, autonomous stone/cobblestone Warehouse/Courier
   deliveries, 17-block placement and order completion,
-  `logs/minecolonies-gametest-builder-two-materials-20260923.log` and
-  `logs/minecolonies-gametest-builder-two-materials-20260923.xml`
+  `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
+  `logs/minecolonies-gametest-builder-two-racks-20260923.xml`
   (114 cases, zero failures/errors), with clean saves for all three
   dimensions and a clean server stop,
   decoration work-order creation and University research

@@ -28,11 +28,12 @@ lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
 114 required tests, including the three standalone MultiPiston tests. A live
-Builder end-to-end fixture now proves automatic work-order claim, navigation,
-separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned Courier navigates
-autonomously from the Warehouse rack to the Builder through its normal `CitizenAI`,
-placement of a synthetic 17-block blueprint and order completion; broader
-multi-source/destination logistics, larger builds and in-game construction remain pending. The suite covers
+Builder end-to-end fixture now proves automatic work-order claim and navigation,
+separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
+Courier autonomously travels from two Warehouse racks to the Builder through its
+normal `CitizenAI`, placement of a synthetic 17-block blueprint and order
+completion; cross-warehouse/multi-destination logistics, larger builds and
+in-game construction remain pending. The suite covers
 construction and NBT reload behavior for all 25
 currently registered custom entity types (including the two intentional
 non-persistent projectile cases), and verifies Forge event priority plus

@@ -972,11 +972,13 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BlockPos relativeWarehouse = new BlockPos(2, 1, 10);
         final BlockPos relativeDeliveryman = new BlockPos(10, 1, 10);
         final BlockPos relativeRack = new BlockPos(4, 1, 10);
+        final BlockPos relativeCobblestoneRack = new BlockPos(7, 1, 10);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos builderPos = helper.absolutePos(relativeBuilder);
         final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
         final BlockPos deliverymanPos = helper.absolutePos(relativeDeliveryman);
         final BlockPos rackPos = helper.absolutePos(relativeRack);
+        final BlockPos cobblestoneRackPos = helper.absolutePos(relativeCobblestoneRack);
         for (int x = 0; x <= 50; x++)
         {
             for (int z = 0; z <= 14; z++)
@@ -989,6 +991,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
         helper.setBlock(relativeDeliveryman, ModBlocks.blockHutDeliveryman);
         helper.setBlock(relativeRack, ModBlocks.blockRack);
+        helper.setBlock(relativeCobblestoneRack, ModBlocks.blockRack);
 
         final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
         final IColony colony = IColonyManager.getInstance().createColony(
@@ -1044,6 +1047,10 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(rackEntity instanceof TileEntityRack,
           "Builder end-to-end fixture did not create a warehouse rack");
         ((BuildingWareHouse) warehouseBuilding).registerBlockPosition(ModBlocks.blockRack, rackPos, level);
+        final BlockEntity cobblestoneRackEntity = level.getBlockEntity(cobblestoneRackPos);
+        helper.assertTrue(cobblestoneRackEntity instanceof TileEntityRack,
+          "Builder end-to-end fixture did not create its second warehouse rack");
+        ((BuildingWareHouse) warehouseBuilding).registerBlockPosition(ModBlocks.blockRack, cobblestoneRackPos, level);
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 6, level, true);
 
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
@@ -1073,15 +1080,16 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             courier.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
         }
-        courier.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE, 16));
-        courier.getInventoryCitizen().setStackInSlot(1, new ItemStack(Items.COBBLESTONE, 16));
-        final TileEntityWareHouse warehouseTile = (TileEntityWareHouse) ((BuildingWareHouse) warehouseBuilding).getTileEntity();
-        warehouseTile.dumpInventoryIntoWareHouse(courier.getInventoryCitizen());
-        final TileEntityRack rack = (TileEntityRack) rackEntity;
-        helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 16,
-          "Builder end-to-end fixture could not seed its Warehouse rack with stone");
-        helper.assertTrue(rack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 16,
-          "Builder end-to-end fixture could not seed its Warehouse rack with cobblestone");
+        final TileEntityRack stoneRack = (TileEntityRack) rackEntity;
+        final TileEntityRack cobblestoneRack = (TileEntityRack) cobblestoneRackEntity;
+        stoneRack.getInventory().setStackInSlot(0, new ItemStack(Items.STONE, 16));
+        cobblestoneRack.getInventory().setStackInSlot(0, new ItemStack(Items.COBBLESTONE, 16));
+        stoneRack.updateItemStorage();
+        cobblestoneRack.updateItemStorage();
+        helper.assertTrue(stoneRack.getCount(new ItemStack(Items.STONE), true, false) == 16,
+          "Builder end-to-end fixture could not seed its stone rack");
+        helper.assertTrue(cobblestoneRack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 16,
+          "Builder end-to-end fixture could not seed its cobblestone rack");
         final JobDeliveryman courierJob = courierData.getJob(JobDeliveryman.class);
         helper.assertTrue(courierJob != null, "Builder end-to-end fixture did not create the Courier job");
 
@@ -1112,7 +1120,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         final boolean[] observedNavigation = {false};
         final boolean[] observedConstructionRange = {false};
         final boolean[] requestSubmitted = {false};
-        final boolean[] courierReachedRack = {false};
+        final boolean[] courierReachedStoneRack = {false};
+        final boolean[] courierReachedCobblestoneRack = {false};
         final boolean[] courierPickedUpStone = {false};
         final boolean[] courierPickedUpCobblestone = {false};
         final boolean[] courierNavigatedToBuilderWithStone = {false};
@@ -1185,7 +1194,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 {
                     if (courier.blockPosition().distSqr(rackPos) <= 9)
                     {
-                        courierReachedRack[0] = true;
+                        courierReachedStoneRack[0] = true;
                     }
                     if (countItem(courier, Items.STONE) > 0)
                     {
@@ -1204,9 +1213,9 @@ public final class MineColoniesGameTests implements FabricGameTest
                 if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
                       && courierJob.getTaskQueue().contains(cobblestoneDeliveryToken[0]))
                 {
-                    if (courier.blockPosition().distSqr(rackPos) <= 9)
+                    if (courier.blockPosition().distSqr(cobblestoneRackPos) <= 9)
                     {
-                        courierReachedRack[0] = true;
+                        courierReachedCobblestoneRack[0] = true;
                     }
                     if (countItem(courier, Items.COBBLESTONE) > 0)
                     {
@@ -1275,9 +1284,11 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(courierDeliveredStone[0] && courierDeliveredCobblestone[0],
               "Courier did not complete both material requests; stone=" + courierDeliveredStone[0]
                 + "; cobblestone=" + courierDeliveredCobblestone[0]);
-            helper.assertTrue(courierReachedRack[0] && courierPickedUpStone[0] && courierPickedUpCobblestone[0],
-              "Courier did not collect both materials from the Warehouse rack; pos="
-                + courier.blockPosition() + "; rack=" + rackPos + "; stoneInventory="
+            helper.assertTrue(courierReachedStoneRack[0] && courierReachedCobblestoneRack[0]
+                  && courierPickedUpStone[0] && courierPickedUpCobblestone[0],
+              "Courier did not navigate to both Warehouse racks and collect both materials; pos="
+                + courier.blockPosition() + "; stoneRack=" + rackPos + "; cobblestoneRack=" + cobblestoneRackPos
+                + "; stoneInventory="
                 + countItem(courier, Items.STONE) + "; cobblestoneInventory="
                 + countItem(courier, Items.COBBLESTONE));
             helper.assertTrue(courierNavigatedToBuilderWithStone[0] && courierNavigatedToBuilderWithCobblestone[0]
@@ -1289,10 +1300,10 @@ public final class MineColoniesGameTests implements FabricGameTest
                   && !courierJob.getTaskQueue().contains(stoneDeliveryToken[0])
                   && !courierJob.getTaskQueue().contains(cobblestoneDeliveryToken[0]),
               "Courier retained a completed Builder delivery task");
-            helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
-              "Courier did not decrement the Warehouse rack by the delivered stone");
-            helper.assertTrue(rack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 15,
-              "Courier did not decrement the Warehouse rack by the delivered cobblestone");
+            helper.assertTrue(stoneRack.getCount(new ItemStack(Items.STONE), true, false) == 15,
+              "Courier did not decrement the stone rack by the delivered stone");
+            helper.assertTrue(cobblestoneRack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 15,
+              "Courier did not decrement the cobblestone rack by the delivered cobblestone");
             helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order");
             helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == null,
               "Builder did not remove the completed work order from the colony manager");
