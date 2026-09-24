@@ -28,11 +28,11 @@ lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
 114 tests, including two parallel University researches, 24-block Researcher
-navigation/offline-mana checks, long-range Farmer crop navigation, and the three
-standalone MultiPiston tests; its log and JUnit report are
-`logs/minecolonies-gametest-farmer-long-range-114-20260924.log` and
-`logs/minecolonies-gametest-farmer-long-range-114-20260924.xml`. It saved all
-three dimensions and shut down cleanly. A live
+navigation/offline-mana checks, 24-block Farmer crop navigation and FarmField
+colony-NBT persistence, and the three standalone MultiPiston tests; its log and
+JUnit report are `logs/minecolonies-gametest-farmer-persistence-114-20260924.log`
+and `logs/minecolonies-gametest-farmer-persistence-114-20260924.xml`. It saved
+all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
 Courier autonomously travels from two Warehouse racks to the Builder through its

@@ -3177,6 +3177,9 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         final FarmField field = FarmField.create(fieldPos);
         field.setSeed(new ItemStack(Items.WHEAT));
+        field.setRadius(Direction.NORTH, 2);
+        field.setRadius(Direction.EAST, 3);
+        field.setFieldStage(FarmField.Stage.PLANTED);
         helper.assertTrue(field.isValidPlacement(colony),
           "Farmer fixture field does not have a valid scarecrow placement");
         helper.assertTrue(colony.getBuildingManager().addField(field),
@@ -3203,12 +3206,39 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(field.getBuildingId().equals(farmer.getID()),
           "Farmer field assignment did not persist the owning building");
 
+        final Colony reloadedColony = Colony.loadColony(colony.getColonyTag().copy(), level);
+        helper.assertTrue(reloadedColony != null && reloadedColony.getID() == colony.getID(),
+          "Farmer colony could not be restored from its saved NBT");
+        final FarmField reloadedField = reloadedColony.getBuildingManager()
+          .getField(candidate -> candidate.getPosition().equals(fieldPos))
+          .map(candidate -> (FarmField) candidate)
+          .orElse(null);
+        helper.assertTrue(reloadedField != null,
+          "Colony NBT reload lost the assigned FarmField at " + fieldPos);
+        helper.assertTrue(reloadedField.getSeed().getItem() == Items.WHEAT
+            && reloadedField.getSeed().getCount() == 1
+            && reloadedField.getFieldStage() == FarmField.Stage.PLANTED
+            && reloadedField.getRadius(Direction.NORTH) == 2
+            && reloadedField.getRadius(Direction.EAST) == 3,
+          "Colony NBT reload changed FarmField seed, stage or dimensions: seed=" + reloadedField.getSeed()
+            + "; stage=" + reloadedField.getFieldStage()
+            + "; north=" + reloadedField.getRadius(Direction.NORTH)
+            + "; east=" + reloadedField.getRadius(Direction.EAST));
+        helper.assertTrue(farmer.getID().equals(reloadedField.getBuildingId()),
+          "Colony NBT reload changed the FarmField owning-building reference");
+        final IBuilding reloadedFarmerBuilding = reloadedColony.getBuildingManager().getBuilding(farmerPos);
+        helper.assertTrue(reloadedFarmerBuilding instanceof BuildingFarmer,
+          "Colony NBT reload lost the Farmer building owning the field");
+        final BuildingFarmer.FarmerFieldsModule reloadedFields = reloadedFarmerBuilding
+          .getFirstModuleOccurance(BuildingFarmer.FarmerFieldsModule.class);
+        helper.assertTrue(reloadedFields.getOwnedFields().contains(reloadedField),
+          "Colony NBT reload did not reconnect the Farmer module to its assigned field");
+
         final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
         final EntityAIWorkFarmer farmerAI = (EntityAIWorkFarmer) citizen.getJob(JobFarmer.class).getWorkerAI();
         helper.assertTrue(farmerAI != null, "Farmer assignment did not create the farmer worker AI");
         final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
         final BlockPos cropPos = fieldPos.east();
-        field.setFieldStage(FarmField.Stage.PLANTED);
         level.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
         farmerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_HOE));
         farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);

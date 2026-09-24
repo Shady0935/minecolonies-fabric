@@ -209,7 +209,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   AI state machine, including the live assigned-order `BUILDING_STEP` route
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
-  Farmer field assignment plus focused 24-block harvest/navigation,
+  Farmer field assignment and colony-NBT restoration plus focused 24-block
+  harvest/navigation,
   Lumberjack registration/assignment, focused three-log worker/replant cycle and
   the two-stump planting guard, Guard
   Tower/knight assignment plus the focused

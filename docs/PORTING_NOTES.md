@@ -775,8 +775,10 @@ assigned field through normal `CitizenAI` ticks. The navigation fixture starts
 the live farmer 24 horizontal blocks from the crop (distance squared greater
 than 400), builds a continuous path and verifies crop removal and drop transfer
 without teleporting the farmer. It passes in the combined 114-test run recorded
-in `logs/minecolonies-gametest-farmer-long-range-114-20260924.log` and its JUnit
-companion `.xml`; the route runs in its own Farmer GameTest batch.
+in `logs/minecolonies-gametest-farmer-persistence-114-20260924.log` and its JUnit
+companion `.xml`; the same run reloads a full colony NBT payload and verifies
+that the field's seed, planted stage, directional radii and Farmer-module
+ownership link survive. The route runs in its own Farmer GameTest batch.
 An additional isolated hoed-field fixture drives the real planting transition
 with `WHEAT_SEEDS`, verifies the crop appears on farmland, consumes the seed
 and persists `FarmField.Stage.PLANTED`; its green XML evidence is retained in

@@ -1,6 +1,6 @@
 # Porting status
 
-Checkpoint: 2026-09-23. A checked item is verified in the target workspace;
+Checkpoint: 2026-09-24. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually
 completed.
@@ -487,17 +487,19 @@ completed.
   `logs/minecolonies-gametest-miner-shaft-double-20260921.xml`
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
-  `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
-  work cycles beyond a harvest, field placement and farming GUI remain open;
-  focused real `EntityAIWorkFarmer` cycles verify mature crop removal, drops and
-  inventory insertion both directly and after 24-block navigation from the farm
-  building through normal `CitizenAI` ticks. A focused hoed-field fixture
+  `JobFarmer` and persists the `FarmerFieldsModule` ownership; a colony-NBT
+  round-trip retains the field's seed, stage, radii and owning Farmer-module
+  link. Crop growth, work cycles beyond a harvest, field placement and farming
+  GUI remain open; focused real `EntityAIWorkFarmer` cycles verify mature crop
+  removal, drops and inventory insertion both directly and after 24-block
+  navigation from the farm building through normal `CitizenAI` ticks. A focused hoed-field fixture
   drives the real hoeing state to `HOED`; a second focused fixture drives the
   planting state, consumes one `WHEAT_SEEDS` stack and advances the field to
   `PLANTED`; evidence:
   `logs/minecolonies-gametest-farmer-hoe-20260920.xml`,
   `logs/minecolonies-gametest-farmer-plant-20260920.xml` and
-  `logs/minecolonies-gametest-farmer-long-range-114-20260924.xml`
+  `logs/minecolonies-gametest-farmer-persistence-114-20260924.log` and
+  `.xml`
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
