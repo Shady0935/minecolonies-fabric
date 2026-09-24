@@ -75,11 +75,10 @@ public class ColonyViewMessage implements IMessage
     @Override
     public void fromBytes(@NotNull final FriendlyByteBuf buf)
     {
-        final FriendlyByteBuf newBuf = new FriendlyByteBuf(buf.retain());
-        colonyId = newBuf.readInt();
-        isNewSubscription = newBuf.readBoolean();
-        dim = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(newBuf.readUtf(32767)));
-        colonyBuffer = newBuf;
+        colonyId = buf.readInt();
+        isNewSubscription = buf.readBoolean();
+        dim = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buf.readUtf(32767)));
+        colonyBuffer = new FriendlyByteBuf(buf.readBytes(buf.readableBytes()));
     }
 
     @Override

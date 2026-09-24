@@ -25,7 +25,8 @@ completed.
   required MineColonies runtime dependency; its focused 3-test GameTest batch
   passes registry, redstone movement/retraction and NBT persistence checks
 - [x] MineColonies Fabric 1.20.1 source compiles and packages
-- [x] Clean reproducible `build` checkpoint
+- [x] Clean reproducible `build` checkpoint; latest evidence is in
+  `logs/minecolonies-build-colony-view-message-fixed-20260924.log`
 
 ## Runtime
 
@@ -193,10 +194,16 @@ completed.
   `GlobalQuestSyncMessage`, `GlobalResearchTreeMessage`,
   `CustomRecipeManagerMessage` and `UpdateClientWithCompatibilityMessage`.
   The research-tree and custom-recipe encoders reset their retained buffers
-  before each write, bringing coverage to 36 targeted payload round-trips. The
-  latest 114-test run passes, including fishing-hook angler synchronization;
-  the server saves all three dimensions and stops cleanly. Latest evidence is
-  in `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
+  before each write. `ColonyViewMessage` now round-trips its colony id,
+  subscription flag, dimension and opaque view payload; this exposed and fixed
+  its decoder retaining the whole packet header as colony data. Coverage is
+  now 37 targeted payload round-trips. The latest 114-test run passes,
+  including fishing-hook angler synchronization; the server saves all three
+  dimensions and stops cleanly. Latest evidence is in
+  `logs/minecolonies-gametest-s2c-colony-view-message-fixed-20260924.log` and
+  `logs/minecolonies-gametest-s2c-colony-view-message-fixed-20260924.xml`; the
+  previous full-suite evidence is in
+  `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
   previous 113-case checkpoint is in
   `logs/minecolonies-gametest-s2c-sound-payload-113-20260923.log` and `.xml`;

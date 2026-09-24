@@ -6186,6 +6186,22 @@ public final class MineColoniesGameTests implements FabricGameTest
               "Client-bound feedback message was not registered: " + messageClass.getSimpleName());
         }
 
+        final FriendlyByteBuf colonyViewPayload = new FriendlyByteBuf(Unpooled.buffer());
+        final ColonyViewMessage colonyViewMessage;
+        try
+        {
+            colonyViewPayload.writeUtf("fabric-colony-view-codec-fixture");
+            colonyViewPayload.writeVarInt(3);
+            colonyViewMessage = new ColonyViewMessage(731, level.dimension(), colonyViewPayload);
+        }
+        finally
+        {
+            colonyViewPayload.release();
+        }
+        colonyViewMessage.setIsNewSubscription(true);
+        assertClientBoundBufferedRoundTrip(helper, colonyViewMessage, ColonyViewMessage::new,
+          "colonyBuffer", "ColonyViewMessage");
+
         final EntityCitizen citizen = (EntityCitizen) ModEntities.CITIZEN.create(level);
         helper.assertTrue(citizen != null, "Fishing hook fixture could not create a citizen entity");
         level.addFreshEntity(citizen);
