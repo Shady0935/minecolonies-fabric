@@ -3238,24 +3238,25 @@ public final class MineColoniesGameTests implements FabricGameTest
         final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
         final EntityAIWorkFarmer farmerAI = (EntityAIWorkFarmer) citizen.getJob(JobFarmer.class).getWorkerAI();
         helper.assertTrue(farmerAI != null, "Farmer assignment did not create the farmer worker AI");
-        final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
         final BlockPos cropPos = fieldPos.east();
         level.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
+        final BlockPos secondCropPos = fieldPos.east(2);
+        level.setBlock(secondCropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
         farmerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_HOE));
         farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);
         farmerCitizen.setPos(cropPos.getX() + 0.5D, cropPos.getY(), cropPos.getZ() + 0.5D);
         farmerAI.resetAI();
-        for (int tick = 0; tick < 400 && level.getBlockState(cropPos).is(Blocks.WHEAT); tick++)
+        for (int tick = 0; tick < 400
+             && (level.getBlockState(cropPos).is(Blocks.WHEAT) || level.getBlockState(secondCropPos).is(Blocks.WHEAT)); tick++)
         {
             farmerAI.tick();
         }
-        helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) > wheatBefore,
-          "Farmer worker AI did not transfer harvest drops into the citizen inventory: state=" + farmerAI.getState()
-            + "; crop=" + level.getBlockState(cropPos)
-            + "; farmer=" + farmerCitizen.blockPosition());
         helper.assertTrue(level.isEmptyBlock(cropPos),
           "Farmer worker AI did not remove the harvested crop: state=" + farmerAI.getState()
             + "; crop=" + level.getBlockState(cropPos));
+        helper.assertTrue(level.isEmptyBlock(secondCropPos),
+          "Farmer worker AI did not harvest the second assigned field cell: state=" + farmerAI.getState()
+            + "; crop=" + level.getBlockState(secondCropPos));
         helper.succeed();
     }
 

@@ -28,11 +28,12 @@ lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
 114 tests, including two parallel University researches, 24-block Researcher
-navigation/offline-mana checks, FarmField colony-NBT persistence and the
-Farmer's 24-block harvest/return, hut deposit and pickup-request cycle, plus the
-three standalone MultiPiston tests; its log and JUnit report are
-`logs/minecolonies-gametest-farmer-deposit-114-20260924.log` and
-`logs/minecolonies-gametest-farmer-deposit-114-20260924.xml`. It saved
+navigation/offline-mana checks, FarmField colony-NBT persistence, a focused
+two-cell Farmer harvest and the Farmer's 24-block harvest/return, hut deposit
+and pickup-request cycle, plus the three standalone MultiPiston tests; its log
+and JUnit report are
+`logs/minecolonies-gametest-farmer-multicell-114-20260924.log` and
+`logs/minecolonies-gametest-farmer-multicell-114-20260924.xml`. It saved
 all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
@@ -58,7 +59,7 @@ The focused recipe-teaching routes also reach the server-side furnace and
 crafting menus through real split envelopes, update the furnace input and both
 2x2/3x3 crafting shapes, and clear the packet cache; JEI's optional client
 transfer remains pending.
-Its 91-test core batch plus isolated Lumberjack, Farmer hoe/navigation/planting,
+Its 90-test core batch plus isolated Lumberjack, Farmer hoe/navigation/planting,
 Miner, Miner shaft, housing, Builder, Guard, sleep/wake and entity batches also exercise real
 client-to-server Town Hall rename, colony foundation, direct Town Hall
 placement, hut/building rename, colony style settings, colony allocation/flag
