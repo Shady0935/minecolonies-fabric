@@ -776,7 +776,16 @@ public class Permissions implements IPermissions
         {
             return false;
         }
-        final GameProfile gameprofile = world.getServer().getProfileCache().get(player).orElse(null);
+        final MinecraftServer server = world.getServer();
+        if (server == null)
+        {
+            return false;
+        }
+        final ServerPlayer onlinePlayer = server.getPlayerList().getPlayerByName(player);
+        final var profileCache = server.getProfileCache();
+        final GameProfile gameprofile = onlinePlayer != null
+                                          ? onlinePlayer.getGameProfile()
+                                          : profileCache == null ? null : profileCache.get(player).orElse(null);
         //Check if the player already exists so that their rank isn't overridden
 
         // Adds new subscribers

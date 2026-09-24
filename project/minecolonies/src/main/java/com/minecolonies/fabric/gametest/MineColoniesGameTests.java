@@ -6766,6 +6766,161 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void clientToServerPermissionManagementMessagesRespectAuthorization(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+
+        final ServerPlayer owner = makeNonCreativeServerPlayer(level, "PermOwner");
+        final ServerPlayer outsider = makeNonCreativeServerPlayer(level, "PermOutsider");
+        final ServerPlayer invitee = makeNonCreativeServerPlayer(level, "PermInvitee");
+        final IColony colony = IColonyManager.getInstance().createColony(
+          level, townHall, owner, "Fabric C2S Permission Management Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "C2S permission-management fixture colony was not created");
+
+        final MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "C2S permission-management fixture has no running server");
+        final NetworkChannel channel = Network.getNetwork();
+        final int addPlayerId = findMessageId(channel, PermissionsMessage.AddPlayer.class);
+        final int addPlayerOrFakePlayerId = findMessageId(channel, PermissionsMessage.AddPlayerOrFakePlayer.class);
+        final int addRankId = findMessageId(channel, PermissionsMessage.AddRank.class);
+        final int changePlayerRankId = findMessageId(channel, PermissionsMessage.ChangePlayerRank.class);
+        final int removePlayerId = findMessageId(channel, PermissionsMessage.RemovePlayer.class);
+        final int removeRankId = findMessageId(channel, PermissionsMessage.RemoveRank.class);
+        final int editRankTypeId = findMessageId(channel, PermissionsMessage.EditRankType.class);
+        final int setSubscriberId = findMessageId(channel, PermissionsMessage.SetSubscriber.class);
+        helper.assertTrue(addPlayerId > 0, "AddPlayer message was not registered");
+        helper.assertTrue(addPlayerOrFakePlayerId > 0, "AddPlayerOrFakePlayer message was not registered");
+        helper.assertTrue(addRankId > 0, "AddRank message was not registered");
+        helper.assertTrue(changePlayerRankId > 0, "ChangePlayerRank message was not registered");
+        helper.assertTrue(removePlayerId > 0, "RemovePlayer message was not registered");
+        helper.assertTrue(removeRankId > 0, "RemoveRank message was not registered");
+        helper.assertTrue(editRankTypeId > 0, "EditRankType message was not registered");
+        helper.assertTrue(setSubscriberId > 0, "SetSubscriber message was not registered");
+
+        final var permissions = colony.getPermissions();
+        helper.assertTrue(permissions.hasPermission(owner, Action.EDIT_PERMISSIONS),
+          "Colony owner should be allowed to edit permissions");
+        helper.assertTrue(!permissions.hasPermission(outsider, Action.EDIT_PERMISSIONS),
+          "Unranked player unexpectedly has permission to edit colony permissions");
+
+        final String deniedRankName = "Unauthorized C2S Rank";
+        final int deniedRankCommunicationId = 0x504D1001;
+        dispatchServerMessage(channel, server, outsider, addRankId, deniedRankCommunicationId,
+          new PermissionsMessage.AddRank(colony, deniedRankName));
+
+        helper.runAfterDelay(1, () ->
+        {
+            helper.assertTrue(permissions.getRanks().values().stream().noneMatch(rank -> rank.getName().equals(deniedRankName)),
+              "Unauthorized AddRank envelope created a colony rank");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(deniedRankCommunicationId) == null,
+              "Denied AddRank envelope remained in the split-packet cache");
+
+            final String rankName = "Automated C2S Rank";
+            final int addRankCommunicationId = 0x504D1002;
+            dispatchServerMessage(channel, server, owner, addRankId, addRankCommunicationId,
+              new PermissionsMessage.AddRank(colony, rankName));
+
+            helper.runAfterDelay(1, () ->
+            {
+                final var testRank = permissions.getRanks().values().stream()
+                  .filter(rank -> rank.getName().equals(rankName)).findFirst().orElse(null);
+                helper.assertTrue(testRank != null, "Authorized AddRank envelope did not create the requested rank");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(addRankCommunicationId) == null,
+                  "AddRank envelope remained in the split-packet cache");
+
+                final UUID fakePlayerId = UUID.randomUUID();
+                final int addPlayerCommunicationId = 0x504D1003;
+                final int addFakePlayerCommunicationId = 0x504D1004;
+                dispatchServerMessage(channel, server, owner, addPlayerId, addPlayerCommunicationId,
+                  new PermissionsMessage.AddPlayer(colony, invitee.getGameProfile().getName()));
+                dispatchServerMessage(channel, server, owner, addPlayerOrFakePlayerId, addFakePlayerCommunicationId,
+                  new PermissionsMessage.AddPlayerOrFakePlayer(colony, "C2S Fake Player", fakePlayerId));
+
+                helper.runAfterDelay(1, () ->
+                {
+                    helper.assertTrue(permissions.getPlayers().containsKey(invitee.getUUID()),
+                      "Authorized AddPlayer envelope did not add the online player");
+                    helper.assertTrue(permissions.getPlayers().containsKey(fakePlayerId),
+                      "Authorized AddPlayerOrFakePlayer envelope did not add the fake player");
+                    helper.assertTrue(permissions.getRank(invitee).getId() == permissions.getRankNeutral().getId(),
+                      "New AddPlayer entry did not start at the neutral rank");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(addPlayerCommunicationId) == null,
+                      "AddPlayer envelope remained in the split-packet cache");
+                    helper.assertTrue(channel.getMessageCache().getIfPresent(addFakePlayerCommunicationId) == null,
+                      "AddPlayerOrFakePlayer envelope remained in the split-packet cache");
+
+                    final int changeRankCommunicationId = 0x504D1005;
+                    dispatchServerMessage(channel, server, owner, changePlayerRankId, changeRankCommunicationId,
+                      new PermissionsMessage.ChangePlayerRank(colony, invitee.getUUID(), testRank));
+
+                    helper.runAfterDelay(1, () ->
+                    {
+                        helper.assertTrue(permissions.getRank(invitee).getId() == testRank.getId(),
+                          "ChangePlayerRank envelope did not assign the requested rank");
+                        helper.assertTrue(channel.getMessageCache().getIfPresent(changeRankCommunicationId) == null,
+                          "ChangePlayerRank envelope remained in the split-packet cache");
+
+                        final boolean subscriber = !testRank.isSubscriber();
+                        final int setSubscriberCommunicationId = 0x504D1006;
+                        final int editRankTypeCommunicationId = 0x504D1007;
+                        dispatchServerMessage(channel, server, owner, setSubscriberId, setSubscriberCommunicationId,
+                          new PermissionsMessage.SetSubscriber(colony, testRank, subscriber));
+                        dispatchServerMessage(channel, server, owner, editRankTypeId, editRankTypeCommunicationId,
+                          new PermissionsMessage.EditRankType(colony, testRank, 1));
+
+                        helper.runAfterDelay(1, () ->
+                        {
+                            helper.assertTrue(testRank.isSubscriber() == subscriber,
+                              "SetSubscriber envelope did not update the rank subscription state");
+                            helper.assertTrue(testRank.isHostile() && !testRank.isColonyManager(),
+                              "EditRankType envelope did not convert the rank to hostile");
+                            helper.assertTrue(channel.getMessageCache().getIfPresent(setSubscriberCommunicationId) == null,
+                              "SetSubscriber envelope remained in the split-packet cache");
+                            helper.assertTrue(channel.getMessageCache().getIfPresent(editRankTypeCommunicationId) == null,
+                              "EditRankType envelope remained in the split-packet cache");
+
+                            final int removeInviteeCommunicationId = 0x504D1008;
+                            final int removeFakePlayerCommunicationId = 0x504D1009;
+                            dispatchServerMessage(channel, server, owner, removePlayerId, removeInviteeCommunicationId,
+                              new PermissionsMessage.RemovePlayer(colony, invitee.getUUID()));
+                            dispatchServerMessage(channel, server, owner, removePlayerId, removeFakePlayerCommunicationId,
+                              new PermissionsMessage.RemovePlayer(colony, fakePlayerId));
+
+                            helper.runAfterDelay(1, () ->
+                            {
+                                helper.assertTrue(!permissions.getPlayers().containsKey(invitee.getUUID()),
+                                  "RemovePlayer envelope did not remove the hostile-ranked online player");
+                                helper.assertTrue(!permissions.getPlayers().containsKey(fakePlayerId),
+                                  "RemovePlayer envelope did not remove the neutral fake player");
+                                helper.assertTrue(channel.getMessageCache().getIfPresent(removeInviteeCommunicationId) == null,
+                                  "RemovePlayer envelope for the online player remained in the split-packet cache");
+                                helper.assertTrue(channel.getMessageCache().getIfPresent(removeFakePlayerCommunicationId) == null,
+                                  "RemovePlayer envelope for the fake player remained in the split-packet cache");
+
+                                final int removeRankCommunicationId = 0x504D1010;
+                                dispatchServerMessage(channel, server, owner, removeRankId, removeRankCommunicationId,
+                                  new PermissionsMessage.RemoveRank(colony, testRank));
+
+                                helper.runAfterDelay(1, () ->
+                                {
+                                    helper.assertTrue(!permissions.getRanks().containsKey(testRank.getId()),
+                                      "RemoveRank envelope did not remove the non-initial rank");
+                                    helper.assertTrue(channel.getMessageCache().getIfPresent(removeRankCommunicationId) == null,
+                                      "RemoveRank envelope remained in the split-packet cache");
+                                    helper.succeed();
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerColonyControlMessagesUpdateColorHelpAndSpies(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
@@ -10693,8 +10848,13 @@ public final class MineColoniesGameTests implements FabricGameTest
 
     private static ServerPlayer makeNonCreativeServerPlayer(final ServerLevel level)
     {
+        return makeNonCreativeServerPlayer(level, "c2s-research-player");
+    }
+
+    private static ServerPlayer makeNonCreativeServerPlayer(final ServerLevel level, final String playerName)
+    {
         final ServerPlayer player = new ServerPlayer(level.getServer(), level,
-          new GameProfile(UUID.randomUUID(), "c2s-research-player"))
+          new GameProfile(UUID.randomUUID(), playerName))
         {
             @Override
             public boolean isSpectator()

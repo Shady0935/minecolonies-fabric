@@ -2,7 +2,6 @@ package com.minecolonies.coremod.network.messages;
 
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
-import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.permissions.ColonyPlayer;
 import com.minecolonies.api.colony.permissions.Rank;
@@ -220,7 +219,7 @@ public class PermissionsMessage
          * @param colony Colony the permission is set in.
          * @param player New player name to be added.
          */
-        public AddPlayer(@NotNull final IColonyView colony, final String player)
+        public AddPlayer(@NotNull final IColony colony, final String player)
         {
             super();
             this.colonyID = colony.getID();
@@ -298,7 +297,7 @@ public class PermissionsMessage
          * @param colony the colony to add the rank to
          * @param name the name of the rank
          */
-        public AddRank(@NotNull IColonyView colony, @NotNull String name)
+        public AddRank(@NotNull IColony colony, @NotNull String name)
         {
             super();
             this.colonyID = colony.getID();
@@ -362,7 +361,7 @@ public class PermissionsMessage
          * @param playerName New player name to be added.
          * @param id         the id of the player or fakeplayer.
          */
-        public AddPlayerOrFakePlayer(@NotNull final IColonyView colony, final String playerName, final UUID id)
+        public AddPlayerOrFakePlayer(@NotNull final IColony colony, final String playerName, final UUID id)
         {
             super();
             this.colonyID = colony.getID();
@@ -443,7 +442,7 @@ public class PermissionsMessage
          * @param player UUID of the player to set rank.
          * @param rank   Rank to change to.
          */
-        public ChangePlayerRank(@NotNull final IColonyView colony, final UUID player, final Rank rank)
+        public ChangePlayerRank(@NotNull final IColony colony, final UUID player, final Rank rank)
         {
             super();
             this.colonyID = colony.getID();
@@ -518,7 +517,7 @@ public class PermissionsMessage
          * @param colony Colony the player is removed from the permission.
          * @param player UUID of the removed player.
          */
-        public RemovePlayer(@NotNull final IColonyView colony, final UUID player)
+        public RemovePlayer(@NotNull final IColony colony, final UUID player)
         {
             super();
             this.colonyID = colony.getID();
@@ -603,7 +602,7 @@ public class PermissionsMessage
          * @param colony the colony to remove the rank from
          * @param rank the rank to remove
          */
-        public RemoveRank(@NotNull final IColonyView colony, @NotNull final Rank rank)
+        public RemoveRank(@NotNull final IColony colony, @NotNull final Rank rank)
         {
             super();
             colonyId = colony.getID();
@@ -671,7 +670,7 @@ public class PermissionsMessage
          * @param rank the rank
          * @param rankType the new rank type
          */
-        public EditRankType(@NotNull final IColonyView colony, @NotNull final Rank rank, @NotNull final int rankType)
+        public EditRankType(@NotNull final IColony colony, @NotNull final Rank rank, @NotNull final int rankType)
         {
             this.colonyId = colony.getID();
             this.rankId = rank.getId();
@@ -757,7 +756,7 @@ public class PermissionsMessage
          * @param rank the rank
          * @param isSubscriber whether the rank should be a subscriber
          */
-        public SetSubscriber(@NotNull final IColonyView colony, @NotNull final Rank rank, @NotNull final boolean isSubscriber)
+        public SetSubscriber(@NotNull final IColony colony, @NotNull final Rank rank, @NotNull final boolean isSubscriber)
         {
             this.colonyId = colony.getID();
             this.dimension = colony.getDimension();
