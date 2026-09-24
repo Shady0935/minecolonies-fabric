@@ -27,7 +27,10 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-114 required tests, including the three standalone MultiPiston tests. A live
+114 required tests, including the three standalone MultiPiston tests and the
+new isolated long-range Researcher test; its log and JUnit report are
+`logs/minecolonies-gametest-researcher-long-range-114-20260924.log` and
+`logs/minecolonies-gametest-researcher-long-range-114-20260924.xml`. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
 Courier autonomously travels from two Warehouse racks to the Builder through its
@@ -93,8 +96,8 @@ Builder work-order creation/selection,
 decoration work-order creation, plantation/rally routes and University research actions,
 plus focused Farmer harvest/hoe/planting, Lumberjack three-log chopping, vanilla-leaf
 shears selection, oak-sapling replanting and the two-stump planting guard,
-short-range
-Researcher bookshelf navigation/study/mana, short-range Farmer
+long-range Researcher bookshelf navigation/study/mana (starting 24 blocks from
+the registered bookshelf), short-range Farmer
 harvest/navigation and Guard autonomous-target-search/combat cycles with an
 automatic late-arriving registered-chest sword request and normal pickup, plus the
 registered-raider `AttackMoveAI` short-range target/damage path, the
@@ -124,8 +127,8 @@ The following work remains, in order:
    open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
    Guard Tower, warehouse and research cycle. The server-side research manager and
    University worker-tick and focused researcher bookshelf navigation/study/mana
-   paths are automated, so the remaining research work here is long-range researcher
-   AI/walking, work-speed scaling and the GUI cycle.
+   paths, including 24-block researcher navigation, are automated, so the
+   remaining research work here is work-speed scaling and the GUI cycle.
    Include an inventory/GUI visual check for the custom spear renderer.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative server/client network coverage, including the real

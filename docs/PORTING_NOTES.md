@@ -849,12 +849,14 @@ the `minecolonies:effects/blockhutmysticalsite` effect. The same fixture now
 registers a real Colonial University, assigns a live citizen to `JobResearch`
 and drives the configured progress through repeated `BuildingUniversity`
 server-side worker ticks. A focused companion registers a real bookshelf,
-preloads researcher mana and places the live citizen eight blocks away from
-the study site. Normal `CitizenAI` ticks run `EntityAIWorkResearcher`; the
-fixture verifies that the citizen navigates into bookshelf range, consumes
-mana and advances the in-progress research. Long-range bookshelf
-selection/navigation, work-speed scaling and the client GUI remain manual
-validation items.
+preloads researcher mana and places the live citizen 24 blocks away from the
+study site (distance squared greater than 400). Normal `CitizenAI` ticks run
+`EntityAIWorkResearcher`; the fixture verifies that the citizen navigates into
+five-block bookshelf range, consumes mana and advances the in-progress
+research. This long-range case passes in the combined 114-test run recorded in
+`logs/minecolonies-gametest-researcher-long-range-114-20260924.log` and its
+JUnit companion `.xml`. Researcher work-speed scaling and the client GUI remain
+manual validation items.
 
 The same shutdown pass exposed that colony serialization can run after the
 world reference has been detached. `AbstractSchematicProvider.getRotation()`

@@ -260,10 +260,11 @@ completed.
   `effects/blockhutmysticalsite` effect; the real University building can now
   register a researcher and advance that research through its server-side
   worker tick; a focused real `EntityAIWorkResearcher` fixture also registers
-  a bookshelf, navigates a live citizen from an offset position to it,
-  consumes stored mana and advances research through normal `CitizenAI` ticks;
-  long-range researcher navigation, work-speed scaling and GUI interaction
-  remain open
+  a bookshelf, navigates a live citizen from 24 blocks away (distance squared
+  greater than 400) into five-block range, consumes stored mana and advances
+  research through normal `CitizenAI` ticks. The 114-test regression evidence
+  is in `logs/minecolonies-gametest-researcher-long-range-114-20260924.log`
+  and `.xml`; researcher work-speed scaling and GUI interaction remain open
 - [x] MineColonies' Forge-shaped conventional item/block tag references resolve
   at runtime through native Fabric datagen; dedicated startup and `/reload`
   report no missing-tag errors
@@ -310,8 +311,8 @@ completed.
 - [ ] Research
 - [x] Default research datapack tree and effect registry exercised server-side
 - [x] Server-side University registration, researcher-job assignment,
-  configured worker-tick progression and a focused researcher study/mana
-  action exercised by Fabric GameTest
+  configured worker-tick progression and focused researcher study/mana action
+  with 24-block bookshelf navigation exercised by Fabric GameTest
 - [ ] Guards and raids
 - [x] Structurize pack discovery and Town Hall blueprint lookup exercised by Fabric GameTest
 - [x] Server-side builder work-order creation resolves the Colonial Town Hall

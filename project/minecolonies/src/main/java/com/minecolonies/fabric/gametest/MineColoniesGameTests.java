@@ -384,6 +384,7 @@ import java.util.function.Supplier;
 public final class MineColoniesGameTests implements FabricGameTest
 {
     private static final String TEST_BATCH = "minecolonies_fabric_port";
+    private static final String RESEARCHER_LONG_RANGE_TEST_BATCH = "minecolonies_fabric_researcher_long_range_port";
     private static final String FARMER_TEST_BATCH = "minecolonies_fabric_farmer_port";
     private static final String FARMER_PLANT_TEST_BATCH = "minecolonies_fabric_farmer_plant_port";
     private static final String FARMER_HOE_TEST_BATCH = "minecolonies_fabric_farmer_hoe_port";
@@ -662,8 +663,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 1500)
-    public void researcherAIStudiesAtRegisteredBookshelf(final GameTestHelper helper)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = RESEARCHER_LONG_RANGE_TEST_BATCH, timeoutTicks = 1500)
+    public void researcherAIStudiesAtLongRangeRegisteredBookshelf(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -749,40 +750,69 @@ public final class MineColoniesGameTests implements FabricGameTest
         final int manaBefore = job.getCurrentMana();
         final int progressBefore = localResearch.getProgress();
 
-        researcherCitizen.setPos(bookshelfPos.getX() - 8.0D, bookshelfPos.getY(), bookshelfPos.getZ() + 0.5D);
+        for (int x = 17; x <= 48; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        researcherCitizen.setPos(bookshelfPos.getX() + 24.0D, bookshelfPos.getY(), bookshelfPos.getZ() + 0.5D);
         researcherAI.resetAI();
         researcherAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.STUDY));
 
         final int startingX = researcherCitizen.blockPosition().getX();
+        helper.assertTrue(researcherCitizen.blockPosition().distSqr(bookshelfPos) > 400,
+          "Researcher AI fixture did not cross the long-range proxy navigation threshold");
         final int[] researcherTicks = {0};
         helper.onEachTick(() ->
         {
             researcherTicks[0]++;
             if (job.getCurrentMana() < manaBefore)
             {
-                helper.assertTrue(localResearch.getProgress() > progressBefore || localResearch.getState() == ResearchState.FINISHED,
+                final boolean researchAdvanced = localResearch.getProgress() > progressBefore
+                  || localResearch.getState() == ResearchState.FINISHED;
+                final BlockPos researcherPos = researcherCitizen.blockPosition();
+                final boolean movedTowardBookshelf = researcherPos.getX() < startingX;
+                final boolean reachedBookshelf = researcherPos.distSqr(bookshelfPos) <= 25;
+                clearResearcherLongRangeCorridor(helper);
+                helper.assertTrue(researchAdvanced,
                   "Researcher AI consumed mana without advancing research: state=" + researcherAI.getState()
                     + "; progress=" + localResearch.getProgress()
-                    + "; citizen=" + researcherCitizen.blockPosition());
-                helper.assertTrue(researcherCitizen.blockPosition().getX() > startingX,
-                  "Researcher AI consumed mana without leaving its starting position: startX=" + startingX
-                    + "; citizen=" + researcherCitizen.blockPosition());
-                helper.assertTrue(researcherCitizen.blockPosition().distSqr(bookshelfPos) <= 25,
+                    + "; citizen=" + researcherPos);
+                helper.assertTrue(movedTowardBookshelf,
+                  "Researcher AI consumed mana without traveling toward the distant bookshelf: startX=" + startingX
+                    + "; citizen=" + researcherPos);
+                helper.assertTrue(reachedBookshelf,
                   "Researcher AI consumed mana outside the registered bookshelf range: bookshelf="
-                    + bookshelfPos + "; citizen=" + researcherCitizen.blockPosition());
+                    + bookshelfPos + "; citizen=" + researcherPos);
                 helper.succeed();
             }
             else if (researcherTicks[0] >= 1400)
             {
+                final String failure = "Researcher AI did not study at the registered bookshelf: state="
+                  + researcherAI.getState()
+                  + "; mana=" + job.getCurrentMana()
+                  + "; progress=" + localResearch.getProgress()
+                  + "; target=" + university.getRandomBookShelf()
+                  + "; citizen=" + researcherCitizen.blockPosition()
+                  + "; navigationDone=" + researcherCitizen.getNavigation().isDone();
+                clearResearcherLongRangeCorridor(helper);
                 helper.assertTrue(false,
-                  "Researcher AI did not study at the registered bookshelf: state=" + researcherAI.getState()
-                    + "; mana=" + job.getCurrentMana()
-                    + "; progress=" + localResearch.getProgress()
-                    + "; target=" + university.getRandomBookShelf()
-                    + "; citizen=" + researcherCitizen.blockPosition()
-                    + "; navigationDone=" + researcherCitizen.getNavigation().isDone());
+                  failure);
             }
         });
+    }
+
+    private static void clearResearcherLongRangeCorridor(final GameTestHelper helper)
+    {
+        for (int x = 17; x <= 48; x++)
+        {
+            for (int z = 0; z <= 4; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.AIR);
+            }
+        }
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

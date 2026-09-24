@@ -119,9 +119,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   automated selection/progression fixture: a non-creative player pays the
   datapack cost, a real University receives a live `JobResearch` citizen, its
   configured worker ticks complete the research and its effect is applied. A
-  focused companion also runs `EntityAIWorkResearcher` from an offset position
-  to a registered bookshelf, consumes stored mana and advances research through
-  normal `CitizenAI` ticks. Long-range bookshelf selection/navigation,
+  focused companion also runs `EntityAIWorkResearcher` from 24 blocks away
+  (distance squared greater than 400) to a registered bookshelf, verifies
+  navigation into five blocks, consumes stored mana and advances research
+  through normal `CitizenAI` ticks. Long-range bookshelf navigation is covered;
   work-speed scaling, University GUI interaction and the broader set of client
   research packets remain uncovered.
 - The Lumberjack worker cycle is now covered with a valid three-log tree,
@@ -179,8 +180,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   farmer crop growth/field placement and longer harvest navigation/resource
   delivery beyond the covered short-range route (the direct empty-field hoeing
   and hoed-field seed planting paths are covered), broader Lumberjack tree
-  search/navigation, long-range University researcher
-  AI navigation/work-speed and GUI,
+  search/navigation, University researcher work-speed scaling and GUI,
   full guard navigation and long-running ambient target search beyond the
   covered short-range barbarian response, and broader request-driven guard
   equipment (the current checkpoint covers one automatically reassigned
