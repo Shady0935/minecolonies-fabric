@@ -1085,7 +1085,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         final Blueprint blueprint = new Blueprint((short) 30, (short) 1, (short) 1);
         blueprint.setName("fabric-builder-work-order-navigation-test");
         blueprint.addBlockState(new BlockPos(13, 0, 0), Blocks.STONE.defaultBlockState());
-        for (int x = 14; x < 30; x++)
+        blueprint.addBlockState(new BlockPos(14, 0, 0), Blocks.STONE.defaultBlockState());
+        for (int x = 15; x < 30; x++)
         {
             blueprint.addBlockState(new BlockPos(x, 0, 0),
               Blocks.OAK_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true));
@@ -1165,7 +1166,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                     {
                         courierReachedRack[0] = true;
                     }
-                    if (countItem(courier, Items.STONE) == 1)
+                    if (countItem(courier, Items.STONE) == 2)
                     {
                         courierReachedRack[0] = true;
                         courierPickedUpMaterial[0] = true;
@@ -1195,7 +1196,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             for (int x = 13; x < 30; x++)
             {
                 final BlockPos target = builderPos.offset(x, 0, 0);
-                final boolean placed = x == 13
+                final boolean placed = x <= 14
                   ? level.getBlockState(target).is(Blocks.STONE)
                   : level.getBlockState(target).is(Blocks.OAK_LEAVES);
                 if (!placed)
@@ -1217,20 +1218,20 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(observedConstructionRange[0],
               "Builder completed the construction without entering construction range");
             helper.assertTrue(requestSubmitted[0],
-              "Builder completed the work order without requesting its required stone material");
+              "Builder completed the work order without requesting its required stone materials");
             helper.assertTrue(courierDelivered[0],
-              "Builder completed the work order without receiving the requested stone from its Courier");
+              "Builder completed the work order without receiving the requested stones from its Courier");
             helper.assertTrue(courierReachedRack[0] && courierPickedUpMaterial[0],
-              "Courier did not navigate to the Warehouse rack and collect the requested stone; pos="
+              "Courier did not navigate to the Warehouse rack and collect both requested stones; pos="
                 + courier.blockPosition() + "; rack=" + rackPos + "; rackCount="
                 + rack.getCount(new ItemStack(Items.STONE), true, false) + "; inventory="
                 + countItem(courier, Items.STONE));
             helper.assertTrue(courierNavigatedToBuilder[0] && courierReachedBuilder[0],
-              "Courier did not navigate with the collected stone to the Builder building; pos="
+              "Courier did not navigate with both collected stones to the Builder building; pos="
                 + courier.blockPosition() + "; builder=" + builderPos + "; navigationDone="
                 + courier.getNavigation().isDone() + "; destination=" + courier.getNavigation().getDestination());
-            helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 15,
-              "Courier did not decrement the Warehouse rack by the delivered material");
+            helper.assertTrue(rack.getCount(new ItemStack(Items.STONE), true, false) == 14,
+              "Courier did not decrement the Warehouse rack by both delivered stones");
             helper.assertTrue(deliveredToken[0] != null && !courierJob.getTaskQueue().contains(deliveredToken[0]),
               "Courier retained the completed Builder delivery task");
             helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order");
