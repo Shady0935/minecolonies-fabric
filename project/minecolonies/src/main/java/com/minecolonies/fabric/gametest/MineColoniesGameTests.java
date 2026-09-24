@@ -6581,6 +6581,92 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientFarmFieldUpdateRunsOnClientExecutor(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C Farm Field Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C farm-field fixture colony was not created");
+
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        try
+        {
+            final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, colonyViewData, false);
+                manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, dimension);
+            }
+            finally
+            {
+                colonyViewData.release();
+            }
+            final var colonyView = manager.getColonyView(colonyId, dimension);
+            helper.assertTrue(colonyView != null, "S2C farm-field fixture did not install its colony view");
+
+            final BlockPos fieldPosition = helper.absolutePos(new BlockPos(9, 1, 9));
+            final FarmField existingField = FarmField.create(fieldPosition);
+            existingField.setSeed(new ItemStack(Items.WHEAT));
+            existingField.setFieldStage(FarmField.Stage.HOED);
+            existingField.setRadius(Direction.NORTH, 1);
+            colonyView.handleColonyFieldViewUpdateMessage(Set.of(existingField));
+
+            final FarmField updatedField = FarmField.create(fieldPosition);
+            updatedField.setSeed(new ItemStack(Items.CARROT));
+            updatedField.setFieldStage(FarmField.Stage.PLANTED);
+            updatedField.setRadius(Direction.NORTH, 4);
+            final NetworkChannel channel = Network.getNetwork();
+            final int messageId = findMessageId(channel, ColonyViewFieldsUpdateMessage.class);
+            helper.assertTrue(messageId > 0, "Colony farm-field update message has no inner network id");
+            final int communicationId = 0x4D435448;
+            final List<Runnable> clientWork = new ArrayList<>();
+            final byte[] fieldPayload = encode(new ColonyViewFieldsUpdateMessage(colony, Set.of(updatedField)));
+            final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(communicationId, 0, true, messageId, fieldPayload))));
+            try
+            {
+                channel.getRawChannel().handleClient(envelope, clientWork::add);
+            }
+            finally
+            {
+                envelope.release();
+            }
+
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C farm-field update did not enqueue exactly one client handler");
+            final var fieldsBeforeExecution = colonyView.getFields(field -> true);
+            helper.assertTrue(fieldsBeforeExecution.size() == 1
+                && fieldsBeforeExecution.get(0) instanceof FarmField field
+                && field.getSeed().is(Items.WHEAT)
+                && field.getFieldStage() == FarmField.Stage.HOED
+                && field.getRadius(Direction.NORTH) == 1,
+              "S2C farm-field update ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C farm-field update remained in the split-packet cache");
+
+            clientWork.remove(0).run();
+            final var fieldsAfterExecution = colonyView.getFields(field -> true);
+            helper.assertTrue(fieldsAfterExecution.size() == 1
+                && fieldsAfterExecution.get(0) instanceof FarmField field
+                && field.getSeed().is(Items.CARROT)
+                && field.getFieldStage() == FarmField.Stage.PLANTED
+                && field.getRadius(Direction.NORTH) == 4,
+              "S2C ColonyViewFieldsUpdateMessage did not apply the field seed, stage and radius");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, dimension);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void clientToServerEnvelopeReachesColonyHandler(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
