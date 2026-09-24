@@ -767,13 +767,16 @@ The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
 `FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
 `FarmerFieldsModule` then retains the field and its owning building ID. Crop
-growth, longer work-cycle/navigation, field placement, resource delivery and
-the farming GUI remain manual validation items. Focused companions tick the
+growth, work cycles beyond the covered route, field placement, resource delivery
+and the farming GUI remain manual validation items. Focused companions tick the
 real `EntityAIWorkFarmer` state machine against a mature wheat crop, verifying
-both direct harvest/drop transfer and a short-range route from the farm building
-to the assigned field through normal `CitizenAI` ticks. The longer navigation
-fixture runs in its own Farmer GameTest batch and keeps its compact layout
-inside the entity-ticking area of the GameTest structure.
+both direct harvest/drop transfer and a route from the farm building to the
+assigned field through normal `CitizenAI` ticks. The navigation fixture starts
+the live farmer 24 horizontal blocks from the crop (distance squared greater
+than 400), builds a continuous path and verifies crop removal and drop transfer
+without teleporting the farmer. It passes in the combined 114-test run recorded
+in `logs/minecolonies-gametest-farmer-long-range-114-20260924.log` and its JUnit
+companion `.xml`; the route runs in its own Farmer GameTest batch.
 An additional isolated hoed-field fixture drives the real planting transition
 with `WHEAT_SEEDS`, verifies the crop appears on farmland, consumes the seed
 and persists `FarmField.Stage.PLANTED`; its green XML evidence is retained in

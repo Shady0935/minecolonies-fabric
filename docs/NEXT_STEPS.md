@@ -27,11 +27,11 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-114 tests, including two parallel University researches, the 24-block Researcher
-navigation and offline-mana checks, and the three standalone MultiPiston tests;
-its log and JUnit report are
-`logs/minecolonies-gametest-researcher-parallel-114-20260924.log` and
-`logs/minecolonies-gametest-researcher-parallel-114-20260924.xml`. It saved all
+114 tests, including two parallel University researches, 24-block Researcher
+navigation/offline-mana checks, long-range Farmer crop navigation, and the three
+standalone MultiPiston tests; its log and JUnit report are
+`logs/minecolonies-gametest-farmer-long-range-114-20260924.log` and
+`logs/minecolonies-gametest-farmer-long-range-114-20260924.xml`. It saved all
 three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
@@ -99,8 +99,8 @@ decoration work-order creation, plantation/rally routes and University research 
 plus focused Farmer harvest/hoe/planting, Lumberjack three-log chopping, vanilla-leaf
 shears selection, oak-sapling replanting and the two-stump planting guard,
 long-range Researcher bookshelf navigation/study/mana (starting 24 blocks from
-the registered bookshelf), short-range Farmer
-harvest/navigation and Guard autonomous-target-search/combat cycles with an
+the registered bookshelf), 24-block Farmer field navigation/harvest and Guard
+autonomous-target-search/combat cycles with an
 automatic late-arriving registered-chest sword request and normal pickup, plus the
 registered-raider `AttackMoveAI` short-range target/damage path, the
 `RaiderWalkAI` direct-target fallback when waypoints are empty, a real

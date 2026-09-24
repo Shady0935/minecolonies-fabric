@@ -488,15 +488,16 @@ completed.
 - [x] Server-side Farmer registration resolves the Colonial level-one farm
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; crop growth,
-  longer work-cycle/navigation, placement and farming GUI remain open; focused
-  real `EntityAIWorkFarmer` cycles verify mature crop removal, drops and
-  inventory insertion both directly and after short-range navigation from the
-  farm building through normal `CitizenAI` ticks. A focused hoed-field fixture
+  work cycles beyond a harvest, field placement and farming GUI remain open;
+  focused real `EntityAIWorkFarmer` cycles verify mature crop removal, drops and
+  inventory insertion both directly and after 24-block navigation from the farm
+  building through normal `CitizenAI` ticks. A focused hoed-field fixture
   drives the real hoeing state to `HOED`; a second focused fixture drives the
   planting state, consumes one `WHEAT_SEEDS` stack and advances the field to
   `PLANTED`; evidence:
-  `logs/minecolonies-gametest-farmer-hoe-20260920.xml` and
-  `logs/minecolonies-gametest-farmer-plant-20260920.xml`
+  `logs/minecolonies-gametest-farmer-hoe-20260920.xml`,
+  `logs/minecolonies-gametest-farmer-plant-20260920.xml` and
+  `logs/minecolonies-gametest-farmer-long-range-114-20260924.xml`
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
@@ -651,8 +652,8 @@ completed.
   citizen-restart scheduling, resource-scroll warehouse snapshot updates and
   build-tool inventory swapping, warehouse rack-backed courier transfer and
   normal Builder material-request/resolver delivery,
-  miner stone drops, the real `EntityAIWorkFarmer` harvest/drop and short-range
-  navigation cycle and the
+  miner stone drops, the real `EntityAIWorkFarmer` harvest/drop cycle including
+  24-block navigation and the
   real `EntityAIWorkLumberjack` three-log chop/inventory/replant cycle, the focused
   `EntityAIWorkResearcher` bookshelf navigation/study/mana cycle,
   plus the focused real `EntityAIKnight`/`KnightCombatAI` registered-chest tool

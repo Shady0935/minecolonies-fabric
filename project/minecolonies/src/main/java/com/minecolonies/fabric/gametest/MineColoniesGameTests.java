@@ -3455,16 +3455,15 @@ public final class MineColoniesGameTests implements FabricGameTest
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        // Keep the fixture inside the entity-ticking area loaded around the
-        // GameTest structure.  This batch contains only this longer-running
-        // worker fixture, so a compact layout cannot collide with other tests.
+        // Extend the crop route across chunks to exercise real worker navigation.
+        // This batch contains only this long-running fixture, avoiding test overlap.
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos relativeFarmer = new BlockPos(8, 1, 2);
-        final BlockPos relativeField = new BlockPos(13, 1, 2);
+        final BlockPos relativeField = new BlockPos(31, 1, 2);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
         final BlockPos fieldPos = helper.absolutePos(relativeField);
-        for (int x = 0; x <= 16; x++)
+        for (int x = 0; x <= 34; x++)
         {
             for (int z = 0; z <= 4; z++)
             {
@@ -3535,6 +3534,9 @@ public final class MineColoniesGameTests implements FabricGameTest
         farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);
         farmerCitizen.setPos(farmerPos.getX() + 0.5D, farmerPos.getY() + 1.0D, farmerPos.getZ() + 0.5D);
         final int startingX = farmerCitizen.blockPosition().getX();
+        helper.assertTrue(farmerCitizen.blockPosition().distSqr(cropPos) > 400,
+          "Farmer navigation fixture did not start more than 20 blocks from its crop: citizen="
+            + farmerCitizen.blockPosition() + "; crop=" + cropPos);
         final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
         farmerAI.resetAI();
         farmerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.PREPARING));
