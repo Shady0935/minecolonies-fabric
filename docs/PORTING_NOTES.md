@@ -1121,6 +1121,19 @@ actual screen rendering and interaction remain manual validation.
 
 ## Resource and startup fixes
 
+The 2026-09-23 client regression exposed a Structurize localization lookup that
+depended on the thread context class loader and only tried `en_us`. In the
+Fabric client bootstrap that lookup could miss Structurize's bundled
+`default.json` and crash during initialization. `LanguageHandler` now loads
+resources relative to its own class, tries both `en_us` and `default`, closes
+its streams, and safely returns an empty map if neither resource exists. After
+rebuilding Structurize, an isolated 63-mod client reached the main menu and
+Creative inventory, created/saved a world on the integrated server and shut
+down cleanly. Mojang authentication returned HTTP 401, so the run used a local
+development profile and does not verify an authenticated session or
+MineColonies-specific screens. Evidence is in
+`logs/minecolonies-client-language-loader-20260923.log`.
+
 The port includes the missing English language resource, Fabric-compatible
 block/entity tags, upstream sounds, generated MineColonies tags/advancements/
 damage data/quest resources and entity icons, vanilla spear model overrides,

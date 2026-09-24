@@ -72,6 +72,13 @@ completed.
   `logs/minecolonies-runserver-citizen-entity-restart.log`
 - [x] Client bootstrap reaches OpenAL and all texture atlases with MultiPiston
   loaded; evidence is in `logs/minecolonies-multipiston-client-bootstrap-20260922.log`
+- [x] Fresh isolated client smoke after the Structurize language-loader fix
+  loaded 63 mods, reached the main menu and Creative inventory, created and
+  saved a world on the integrated server, and shut down cleanly using the
+  offline development profile; evidence is in
+  `logs/minecolonies-client-language-loader-20260923.log`. Authentication
+  returned HTTP 401 and fell back to the local profile, so this does not count
+  as authenticated-client validation or a MineColonies GUI gameplay pass.
 - [x] BlockUI's in-world hook renderer is wired to Fabric's
   `WorldRenderEvents.LAST`; the full BlockUI module build and the post-change
   client bootstrap both pass (an authenticated in-game hook overlay check is
@@ -601,7 +608,9 @@ completed.
   `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`
   (114 cases, zero failures/errors), with clean saves for all three
-  dimensions and a clean server stop,
+  dimensions and a clean server stop. The fresh regression rerun after the
+  Structurize language-loader fix again passes all 114 tests; evidence is in
+  `logs/minecolonies-gametest-lang-loader-20260923.log`.
   decoration work-order creation and University research
   envelopes, colony style mutations, deconstructed-building style updates,
   colony allocation and flag updates, Builder delivery-priority updates,

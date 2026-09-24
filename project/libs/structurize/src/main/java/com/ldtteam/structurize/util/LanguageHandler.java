@@ -4,11 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import org.apache.commons.io.IOUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -98,22 +99,31 @@ public final class LanguageHandler
 
         private void load(final String path)
         {
-            final String defaultLocale = "en_us";
-
-            // Trust me, Minecraft.getInstance() can be null, when you run Data Generators!
-            // Fabric keeps the language lookup in Minecraft itself. Before the
-            // client language table is available, use the bundled fallback.
-            final String locale = defaultLocale;
-
-            InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format(path, locale));
-            if (is == null)
+            for (final String locale : new String[] {"en_us", "default"})
             {
-                is = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format(path, defaultLocale));
-            }
-            languageMap = new Gson().fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), new TypeToken<Map<String, String>>()
-            {}.getType());
+                final String resourcePath = "/" + String.format(path, locale);
+                try (InputStream inputStream = LanguageHandler.class.getResourceAsStream(resourcePath))
+                {
+                    if (inputStream == null)
+                    {
+                        continue;
+                    }
 
-            IOUtils.closeQuietly(is);
+                    try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                    {
+                        final Map<String, String> loadedLanguageMap = new Gson().fromJson(reader, new TypeToken<Map<String, String>>()
+                        {}.getType());
+                        languageMap = loadedLanguageMap == null ? Collections.emptyMap() : loadedLanguageMap;
+                    }
+                    return;
+                }
+                catch (final IOException exception)
+                {
+                    throw new IllegalStateException("Could not load language resource " + resourcePath, exception);
+                }
+            }
+
+            languageMap = Collections.emptyMap();
         }
 
         private static LanguageCache getInstance()

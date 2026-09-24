@@ -116,8 +116,11 @@ custom-recipe worker cycle, the Stonemason building-request/custom-recipe
   remain open.
 The following work remains, in order:
 
-1. Run a real gameplay pass with an authenticated client or a repeatable
-   offline test profile: place the supply camp/Town Hall, create a colony,
+1. Continue the real gameplay pass. An isolated offline development-profile
+   client now loads 63 mods, reaches the main menu and Creative inventory,
+   creates/saves a world on the integrated server and shuts down cleanly, but
+   does not validate authentication or MineColonies gameplay screens. Still
+   place the supply camp/Town Hall, create a colony,
    open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
    Guard Tower, warehouse and research cycle. The server-side research manager and
    University worker-tick and focused researcher bookshelf navigation/study/mana
