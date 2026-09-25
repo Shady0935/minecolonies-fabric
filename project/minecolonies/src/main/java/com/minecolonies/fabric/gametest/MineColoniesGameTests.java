@@ -7436,7 +7436,7 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
-    public void clientToServerPermissionMessageChangesTargetRank(final GameTestHelper helper)
+    public void permissionChangePersistsAndSyncsToClientView(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
@@ -7447,6 +7447,24 @@ public final class MineColoniesGameTests implements FabricGameTest
         final IColony colony = IColonyManager.getInstance().createColony(
           level, townHall, owner, "Fabric C2S Permission Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "C2S permission fixture colony was not created");
+
+        final IColonyManager manager = IColonyManager.getInstance();
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        final FriendlyByteBuf initialViewData = new FriendlyByteBuf(Unpooled.buffer());
+        try
+        {
+            ColonyView.serializeNetworkData((Colony) colony, initialViewData, false);
+            manager.handleColonyViewMessage(colonyId, initialViewData, level, false, dimension);
+        }
+        finally
+        {
+            initialViewData.release();
+        }
+        final var colonyView = manager.getColonyView(colonyId, dimension);
+        helper.assertTrue(colonyView != null, "Permission-sync fixture did not install a colony view");
+        helper.assertTrue(colonyView.getPermissions().getRanks().isEmpty(),
+          "Permission-sync colony view unexpectedly started with rank data");
 
         final MinecraftServer server = level.getServer();
         helper.assertTrue(server != null, "C2S permission fixture has no running server");
@@ -7464,16 +7482,52 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         helper.runAfterDelay(1, () ->
         {
-            helper.assertTrue(permissions.hasPermission(targetRank, targetAction) == expectedPermission,
-              "Permission envelope did not change ACCESS_HUTS for the selected rank");
-            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
-              "Permission envelope remained in the split-packet cache");
-            final Colony reloaded = Colony.loadColony(colony.getColonyTag().copy(), level);
-            helper.assertTrue(reloaded != null, "C2S permission colony NBT could not be reloaded");
-            helper.assertTrue(reloaded.getPermissions().hasPermission(
-                reloaded.getPermissions().getRankNeutral(), targetAction) == expectedPermission,
-              "C2S permission change did not persist through the colony NBT round-trip");
-            helper.succeed();
+            try
+            {
+                helper.assertTrue(permissions.hasPermission(targetRank, targetAction) == expectedPermission,
+                  "Permission envelope did not change ACCESS_HUTS for the selected rank");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+                  "Permission envelope remained in the split-packet cache");
+
+                final int viewMessageId = findMessageId(channel, PermissionsMessage.View.class);
+                helper.assertTrue(viewMessageId > 0, "Permissions view message has no inner network id");
+                final int viewCommunicationId = 0x50455256;
+                final List<Runnable> clientWork = new ArrayList<>();
+                final byte[] viewPayload = encode(new PermissionsMessage.View(
+                  (Colony) colony, permissions.getRankOwner()));
+                final FriendlyByteBuf viewEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+                  encode(new SplitPacketMessage(viewCommunicationId, 0, true, viewMessageId, viewPayload))));
+                try
+                {
+                    channel.getRawChannel().handleClient(viewEnvelope, clientWork::add);
+                }
+                finally
+                {
+                    viewEnvelope.release();
+                }
+                helper.assertTrue(clientWork.size() == 1,
+                  "Completed S2C permissions update did not enqueue exactly one client handler");
+                helper.assertTrue(colonyView.getPermissions().getRanks().isEmpty(),
+                  "S2C permissions update ran before the client executor drained its queue");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(viewCommunicationId) == null,
+                  "Completed S2C permissions update remained in the split-packet cache");
+                clientWork.remove(0).run();
+                final var clientNeutralRank = colonyView.getPermissions().getRankNeutral();
+                helper.assertTrue(clientNeutralRank != null
+                    && colonyView.getPermissions().hasPermission(clientNeutralRank, targetAction) == expectedPermission,
+                  "S2C PermissionsMessage.View did not apply the updated target-rank permission");
+
+                final Colony reloaded = Colony.loadColony(colony.getColonyTag().copy(), level);
+                helper.assertTrue(reloaded != null, "C2S permission colony NBT could not be reloaded");
+                helper.assertTrue(reloaded.getPermissions().hasPermission(
+                    reloaded.getPermissions().getRankNeutral(), targetAction) == expectedPermission,
+                  "C2S permission change did not persist through the colony NBT round-trip");
+                helper.succeed();
+            }
+            finally
+            {
+                manager.removeColonyView(colonyId, dimension);
+            }
         });
     }
 

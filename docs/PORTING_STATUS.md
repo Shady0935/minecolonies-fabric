@@ -221,6 +221,10 @@ completed.
   colony-view removal, verifies one client callback is queued, the split cache
   is cleared and the view remains absent before dispatch; the live client-world
   callback remains a manual validation item.
+  An eleventh runs the owner-authorized `PermissionsMessage.Permission` update,
+  confirms the local permissions view remains empty until the S2C
+  `PermissionsMessage.View` callback runs, verifies the target-rank action then
+  matches the server and checks that the permission survives colony-NBT reload.
   Twelve particle/audio messages are also
   verified as registered, including item, localized, stream and sleeping
   particle codecs in addition to block, compost, circle, vanilla, stop-music,
@@ -243,8 +247,8 @@ completed.
   including fishing-hook angler synchronization and all nine serverbound
   permission-message families, with an unauthorized rank edit rejected; the
   server saves all three dimensions and stops cleanly. Latest evidence is in
-  `logs/minecolonies-gametest-s2c-colony-subscription-20260924.log` and
-  `logs/minecolonies-gametest-s2c-colony-subscription-20260924.xml`; the
+  `logs/minecolonies-gametest-s2c-permissions-view-20260924.log` and
+  `logs/minecolonies-gametest-s2c-permissions-view-20260924.xml`; the
   previous full-suite evidence is in
   `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
@@ -669,10 +673,10 @@ completed.
   removal, S2C FarmField state synchronization, client-executor queuing for
   building-, citizen- and work-order-view removal, and applied S2C work-order,
   citizen-view, visitor-view and research-manager updates,
-  `logs/minecolonies-gametest-s2c-colony-subscription-20260924.log` and
-  `logs/minecolonies-gametest-s2c-colony-subscription-20260924.xml`
+  `logs/minecolonies-gametest-s2c-permissions-view-20260924.log` and
+  `logs/minecolonies-gametest-s2c-permissions-view-20260924.xml`
   (123 cases, zero failures/errors), and the successful package build at
-  `logs/minecolonies-build-s2c-colony-subscription-20260924.log`, with clean saves for all three
+  `logs/minecolonies-build-s2c-permissions-view-20260924.log`, with clean saves for all three
   dimensions and a clean server stop. The fresh regression rerun after the
   Structurize language-loader fix again passes all 114 tests; evidence is in
   `logs/minecolonies-gametest-lang-loader-20260923.log`.
