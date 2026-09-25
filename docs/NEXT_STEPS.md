@@ -31,8 +31,9 @@ real visitor entity. The latest clean combined Fabric GameTest run passes all
 authorized permission-management routes and a rejected unauthorized rank edit,
 permission/rank/player state surviving a complete colony-NBT reload,
 two parallel University researches, 24-block Researcher
-navigation/offline-mana checks, FarmField colony-NBT persistence, a focused
-two-cell Farmer harvest and the 24-block normal-CitizenAI Farmer/Courier cycle:
+navigation/offline-mana checks, FarmField colony-NBT persistence,
+compost-assisted crop ripening/harvest and the 24-block normal-CitizenAI
+Farmer/Courier cycle:
 two-cell harvest, hut deposit, pickup-request completion and Warehouse-rack
 delivery, the S2C FarmField full refresh (updating an existing
 field, adding one and removing a stale field after dispatch), the queued
@@ -58,8 +59,12 @@ The run also includes the three standalone MultiPiston tests; its log and JUnit
 report are `logs/minecolonies-gametest-s2c-farm-refresh-20260924.log` and
 `logs/minecolonies-gametest-s2c-farm-refresh-20260924.xml`. The full package
 build also passes in `logs/minecolonies-build-s2c-farm-refresh-20260924.log`. It saved
-all three dimensions and shut down cleanly. A live
-Builder end-to-end fixture now proves automatic work-order claim and navigation,
+all three dimensions and shut down cleanly. A Farmer-AI follow-up additionally
+proves that compost ripens and enables
+harvesting wheat one age below maturity; the latest full 123-test run and JUnit
+report are `logs/minecolonies-gametest-farmer-compost-verify-20260925.log` and
+`logs/minecolonies-gametest-farmer-compost-verify-20260925.xml`.
+A live Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
 Courier autonomously travels from two Warehouse racks to the Builder through its
 normal `CitizenAI`, placement of a synthetic 17-block blueprint and order

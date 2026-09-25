@@ -546,13 +546,17 @@ completed.
   blueprint, registers a scarecrow-backed seeded `FarmField`, assigns a live
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; a colony-NBT
   round-trip retains the field's seed, stage, radii and owning Farmer-module
-  link. A focused direct-AI fixture harvests two adjacent mature crop cells.
+  link. A focused Farmer-AI fixture starts wheat one age below maturity,
+  verifies compost is consumed to ripen it, and confirms the ripe crop is
+  harvested.
   A 24-block real `EntityAIWorkFarmer` route harvests two mature field cells,
   returns to the Farmer hut and deposits wheat through normal `CitizenAI` ticks.
   An assigned Courier then resolves the pickup request, navigates to the hut,
   collects the wheat and stores it in a registered Warehouse rack; the finished
-  request leaves the Courier queue. The test passes in 64.373s. Crop growth,
-  field placement and the farming GUI remain open. A
+  request leaves the Courier queue. The test passes in 64.373s. Passive crop
+  growth over time, field placement and the farming GUI remain open. Evidence
+  for the compost-assisted crop cycle and full regression run is in
+  `logs/minecolonies-gametest-farmer-compost-verify-20260925.log` and `.xml`. A
   focused hoed-field fixture
   drives the real hoeing state to `HOED`; a second focused fixture drives the
   planting state, consumes one `WHEAT_SEEDS` stack and advances the field to
@@ -672,17 +676,18 @@ completed.
   material consumption, normal Builder material-request/resolver delivery and
   construction-site navigation through the real Builder proxy, automatic live
   Builder work-order claim/navigation, autonomous stone/cobblestone Warehouse/Courier
-  deliveries, 17-block placement and order completion, the Farmer's focused
-  two-cell harvest and the 24-block Farmer/Courier harvest, hut deposit,
+  deliveries, 17-block placement and order completion, the Farmer's
+  compost-assisted ripening/harvest and the 24-block Farmer/Courier two-cell
+  harvest, hut deposit,
   pickup resolution and Warehouse-rack delivery, permission/rank/player NBT
   persistence, queued S2C colony-view
   removal, S2C FarmField state synchronization, client-executor queuing for
   building-, citizen- and work-order-view removal, and applied S2C work-order,
   citizen-view, visitor-view and research-manager updates,
-  `logs/minecolonies-gametest-s2c-permissions-view-20260924.log` and
-  `logs/minecolonies-gametest-s2c-permissions-view-20260924.xml`
-  (123 cases, zero failures/errors), and the successful package build at
-  `logs/minecolonies-build-s2c-permissions-view-20260924.log`, with clean saves for all three
+  `logs/minecolonies-gametest-farmer-compost-verify-20260925.log` and
+  `logs/minecolonies-gametest-farmer-compost-verify-20260925.xml`
+  (123 cases, zero failures/errors; the GameTest run also rebuilt successfully),
+  with clean saves for all three
   dimensions and a clean server stop. The fresh regression rerun after the
   Structurize language-loader fix again passes all 114 tests; evidence is in
   `logs/minecolonies-gametest-lang-loader-20260923.log`.

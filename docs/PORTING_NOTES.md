@@ -766,15 +766,14 @@ remain open. Evidence is retained in
 The farmer fixture registers a Colonial farmer through its real building entry,
 resolves `agriculture/horticulture/farm1.blueprint`, creates a scarecrow-backed
 `FarmField` with a wheat seed and assigns a live citizen to `JobFarmer`. The
-`FarmerFieldsModule` then retains the field and its owning building ID. Crop
-growth, field placement, warehouse/courier pickup completion and the farming
-GUI remain manual validation items. A focused multi-cell fixture drives the
+`FarmerFieldsModule` then retains the field and its owning building ID. A
+focused Farmer-AI fixture starts wheat one age below maturity, verifies that
+the AI consumes compost to ripen it, and confirms it then harvests the crop.
+Passive crop growth over time, field placement and the farming GUI remain
+manual validation items. The 24-block normal-`CitizenAI` fixture drives the
 real `EntityAIWorkFarmer` across two adjacent mature wheat cells and verifies
-that both crops are harvested; it uses direct AI ticks and does not claim normal
-entity item-pickup behavior for that two-cell case. A separate one-cell fixture
-drives the full route from the farm building to the field and back through
-normal `CitizenAI` ticks, verifying harvest/drop transfer, building deposit and
-pickup-request creation. The navigation fixture starts the live farmer 24
+both crops are harvested, drops transfer into the Farmer building and a pickup
+request is created. The navigation fixture starts the live farmer 24
 horizontal blocks from the crop (distance squared
 greater than 400), limits the test field to its planted cell, and verifies crop
 removal, wheat deposit into the Farmer building and creation of a pickup request
