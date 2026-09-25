@@ -6572,6 +6572,42 @@ public final class MineColoniesGameTests implements FabricGameTest
             clientWork.remove(0).run();
             helper.assertTrue(manager.getColonyView(colonyId, level.dimension()) == null,
               "S2C ColonyViewRemoveMessage did not remove the client colony view");
+
+            final FriendlyByteBuf subscriptionData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, subscriptionData, false);
+                final ColonyViewMessage subscriptionMessage = new ColonyViewMessage(
+                  colonyId, level.dimension(), subscriptionData);
+                subscriptionMessage.setIsNewSubscription(true);
+                final int subscriptionMessageId = findMessageId(channel, ColonyViewMessage.class);
+                helper.assertTrue(subscriptionMessageId > 0,
+                  "Colony-view subscription message has no inner network id");
+                final int subscriptionCommunicationId = 0x4D435458;
+                final byte[] subscriptionPayload = encode(subscriptionMessage);
+                final FriendlyByteBuf subscriptionEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+                  encode(new SplitPacketMessage(subscriptionCommunicationId, 0, true,
+                    subscriptionMessageId, subscriptionPayload))));
+                try
+                {
+                    channel.getRawChannel().handleClient(subscriptionEnvelope, clientWork::add);
+                }
+                finally
+                {
+                    subscriptionEnvelope.release();
+                }
+                helper.assertTrue(clientWork.size() == 1,
+                  "Completed S2C colony-view subscription did not enqueue exactly one client handler");
+                helper.assertTrue(manager.getColonyView(colonyId, level.dimension()) == null,
+                  "S2C colony-view subscription ran before the client executor drained its queue");
+                helper.assertTrue(channel.getMessageCache().getIfPresent(subscriptionCommunicationId) == null,
+                  "Completed S2C colony-view subscription remained in the split-packet cache");
+                clientWork.clear();
+            }
+            finally
+            {
+                subscriptionData.release();
+            }
         }
         finally
         {
