@@ -6756,6 +6756,27 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(workOrdersAfterExecution.size() == 1
                 && workOrdersAfterExecution.iterator().next().getId() == workOrder.getID(),
               "S2C ColonyViewWorkOrderMessage did not apply the work-order view");
+
+            final int removeMessageId = findMessageId(channel, ColonyViewRemoveWorkOrderMessage.class);
+            helper.assertTrue(removeMessageId > 0, "Colony work-order removal message has no inner network id");
+            final int removeCommunicationId = 0x4D435555;
+            final byte[] removePayload = encode(new ColonyViewRemoveWorkOrderMessage(colony, workOrder.getID()));
+            final FriendlyByteBuf removeEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(removeCommunicationId, 0, true, removeMessageId, removePayload))));
+            try
+            {
+                channel.getRawChannel().handleClient(removeEnvelope, clientWork::add);
+            }
+            finally
+            {
+                removeEnvelope.release();
+            }
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C work-order removal did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getWorkOrders().size() == 1,
+              "S2C work-order removal ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+              "Completed S2C work-order removal remained in the split-packet cache");
         }
         finally
         {
@@ -6845,6 +6866,27 @@ public final class MineColoniesGameTests implements FabricGameTest
             final var citizenView = colonyView.getCitizen(citizenId);
             helper.assertTrue(citizenView != null && expectedName.equals(citizenView.getName()),
               "S2C ColonyViewCitizenViewMessage did not apply the citizen name and view");
+
+            final int removeMessageId = findMessageId(channel, ColonyViewRemoveCitizenMessage.class);
+            helper.assertTrue(removeMessageId > 0, "Colony citizen removal message has no inner network id");
+            final int removeCommunicationId = 0x4D435556;
+            final byte[] removePayload = encode(new ColonyViewRemoveCitizenMessage(colony, citizenId));
+            final FriendlyByteBuf removeEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(removeCommunicationId, 0, true, removeMessageId, removePayload))));
+            try
+            {
+                channel.getRawChannel().handleClient(removeEnvelope, clientWork::add);
+            }
+            finally
+            {
+                removeEnvelope.release();
+            }
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C citizen removal did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getCitizen(citizenId) == citizenView,
+              "S2C citizen removal ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(removeCommunicationId) == null,
+              "Completed S2C citizen removal remained in the split-packet cache");
         }
         finally
         {
