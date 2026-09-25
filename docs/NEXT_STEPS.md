@@ -33,7 +33,8 @@ permission/rank/player state surviving a complete colony-NBT reload,
 two parallel University researches, 24-block Researcher
 navigation/offline-mana checks, FarmField colony-NBT persistence, a focused
 two-cell Farmer harvest and the Farmer's 24-block harvest/return, hut deposit
-and pickup-request cycle, the actual S2C FarmField update path, the queued
+and pickup-request cycle, the S2C FarmField full refresh (updating an existing
+field, adding one and removing a stale field after dispatch), the queued
 client-executor building-removal route, the applied ColonyView work-order
 update, and the applied citizen-view and visitor-view updates and research-manager state. The
 citizen and work-order removal routes also enqueue their client handlers, clear
@@ -53,9 +54,9 @@ applies its S2C `PermissionsMessage.View` only after client-executor dispatch;
 the pre-dispatch view and both packet-cache entries are checked, and the change
 also survives colony-NBT reload.
 The run also includes the three standalone MultiPiston tests; its log and JUnit
-report are `logs/minecolonies-gametest-s2c-path-debug-verify-20260924.log` and
-`logs/minecolonies-gametest-s2c-path-debug-verify-20260924.xml`. The full package
-build also passes in `logs/minecolonies-build-s2c-path-debug-20260924.log`. It saved
+report are `logs/minecolonies-gametest-s2c-farm-refresh-20260924.log` and
+`logs/minecolonies-gametest-s2c-farm-refresh-20260924.xml`. The full package
+build also passes in `logs/minecolonies-build-s2c-farm-refresh-20260924.log`. It saved
 all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
