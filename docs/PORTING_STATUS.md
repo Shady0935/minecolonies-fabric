@@ -112,7 +112,7 @@ completed.
   Postbox request creation, citizen-restart scheduling, resource-scroll
   warehouse snapshots, build-tool inventory swapping, plantation-field
   work-order toggling, rally-banner guard state and owner-authorized rank
-  permission changes are covered by the latest 121-test combined GameTest run,
+  permission changes are covered by the latest 122-test combined GameTest run,
   which also executes the three MultiPiston
   tests
 - [x] The owner-only `ColonyDeleteOwnMessage` C2S route is covered by a
@@ -175,7 +175,7 @@ completed.
 - [x] Dedicated GameTest asserts registration of all fifteen
   colony-view/citizen/removal/chunk-claim/visitor/colony-map messages, twelve particle/audio messages,
   four build/suggestion/scanning messages and the four global-quest, research-tree,
-  custom-recipe and compatibility sync messages. The latest fresh isolated 121-test suite
+  custom-recipe and compatibility sync messages. The latest fresh isolated 122-test suite
   round-trips `ColonyViewBuildingViewMessage`, `ColonyViewCitizenViewMessage`
   and `ColonyViewFieldsUpdateMessage` using registered Town Hall, citizen and
   Farmer-field fixtures. This exposed and fixed the citizen-view decoder
@@ -204,6 +204,8 @@ completed.
   executor runs and verifies the registered work-order id in the colony view.
   A fifth split-envelope test applies `ColonyViewCitizenViewMessage` after client
   executor dispatch and verifies the new citizen view and its name.
+  A sixth applies `ColonyVisitorViewDataMessage` after dispatch and verifies the
+  visitor view's name and recruitment cost.
   Twelve particle/audio messages are also
   verified as registered, including item, localized, stream and sleeping
   particle codecs in addition to block, compost, circle, vanilla, stop-music,
@@ -222,12 +224,12 @@ completed.
   before each write. `ColonyViewMessage` now round-trips its colony id,
   subscription flag, dimension and opaque view payload; this exposed and fixed
   its decoder retaining the whole packet header as colony data. Coverage is
-  now 37 targeted payload round-trips. The latest 121-test run passes,
+  now 37 targeted payload round-trips. The latest 122-test run passes,
   including fishing-hook angler synchronization and all nine serverbound
   permission-message families, with an unauthorized rank edit rejected; the
   server saves all three dimensions and stops cleanly. Latest evidence is in
-  `logs/minecolonies-gametest-s2c-citizen-view-verify2-20260924.log` and
-  `logs/minecolonies-gametest-s2c-citizen-view-verify2-20260924.xml`; the
+  `logs/minecolonies-gametest-s2c-visitor-view-verify2-20260924.log` and
+  `logs/minecolonies-gametest-s2c-visitor-view-verify2-20260924.xml`; the
   previous full-suite evidence is in
   `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
@@ -265,7 +267,7 @@ completed.
   core GameTest batch exercises this under concurrent colony fixtures
 - [x] Projectile impacts now dispatch the cancellable `ProjectileImpactEvent`
   with the original projectile and hit result; the focused cancellation bridge
-  is covered by the latest 121-test combined Fabric GameTest run
+  is covered by the latest 122-test combined Fabric GameTest run
 - [x] MineColonies fishing loot dispatches the cancellable `ItemFishedEvent`
   through `NewBobberEntity`, preserving neutral rod damage, listener-modified
   rod damage and cancellation before drops are spawned
@@ -633,7 +635,7 @@ completed.
    server-side CitizenAI/assigned-worker ticking
 - [x] Fabric GameTest verifies the four default research branches, representative
   branch-qualified research IDs, branch metadata and the citizen-cap effect
-- [x] Latest 121-test combined Fabric GameTest run passes with clean saves for all three
+- [x] Latest 122-test combined Fabric GameTest run passes with clean saves for all three
   dimensions; its 90-test core batch plus isolated Lumberjack, Farmer hoe,
   Farmer navigation, Farmer planting, Miner, housing, Builder, Guard, sleep/wake
   and entity batches, plus isolated Miner shaft, Stonemason request, Stone Smeltery, Smeltery, Cook and Baker furnace batches and the focused
@@ -650,11 +652,12 @@ completed.
   two-cell harvest and 24-block harvest/return, hut deposit and pickup-request
   creation, permission/rank/player NBT persistence, queued S2C colony-view
   removal, S2C FarmField state synchronization, client-executor queuing for
-  building-view removal, and applied S2C work-order and citizen-view updates,
-  `logs/minecolonies-gametest-s2c-citizen-view-verify2-20260924.log` and
-  `logs/minecolonies-gametest-s2c-citizen-view-verify2-20260924.xml`
-  (121 cases, zero failures/errors), and the successful package build at
-  `logs/minecolonies-build-s2c-citizen-view-20260924.log`, with clean saves for all three
+  building-view removal, and applied S2C work-order, citizen-view and
+  visitor-view updates,
+  `logs/minecolonies-gametest-s2c-visitor-view-verify2-20260924.log` and
+  `logs/minecolonies-gametest-s2c-visitor-view-verify2-20260924.xml`
+  (122 cases, zero failures/errors), and the successful package build at
+  `logs/minecolonies-build-s2c-visitor-view-20260924.log`, with clean saves for all three
   dimensions and a clean server stop. The fresh regression rerun after the
   Structurize language-loader fix again passes all 114 tests; evidence is in
   `logs/minecolonies-gametest-lang-loader-20260923.log`.

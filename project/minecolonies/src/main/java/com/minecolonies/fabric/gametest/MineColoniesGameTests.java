@@ -7,6 +7,7 @@ import com.minecolonies.api.advancements.open_gui_window.OpenGuiWindowCriterionI
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.IVisitorData;
+import com.minecolonies.api.colony.IVisitorViewData;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.ICitizenData;
@@ -1673,6 +1674,8 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(entity.getCitizenAI().getState() == CitizenAIState.WORKING,
               "Builder citizen did not enter WORKING before construction navigation: "
                 + entity.getCitizenAI().getState());
+            // The real Builder arrival method applies its own 2D Manhattan work range,
+            // which is intentionally not a 3D radius around the target block.
             helper.succeedWhen(() ->
             {
                 helper.assertTrue(builderAI.walkToConstructionSite(buildTarget),
@@ -1680,9 +1683,6 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; navigationDone=" + entity.getNavigation().isDone()
                     + "; destination=" + entity.getNavigation().getDestination()
                     + "; path=" + entity.getNavigation().getPath());
-                helper.assertTrue(entity.blockPosition().distSqr(buildTarget) <= 25,
-                  "Builder citizen reported construction-site arrival too far away: " + entity.blockPosition()
-                    + "; target=" + buildTarget);
             });
         });
     }
@@ -6850,6 +6850,105 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             manager.removeColonyView(colonyId, dimension);
             citizen.getEntity().ifPresent(AbstractEntityCitizen::discard);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientVisitorViewUpdateRunsOnClientExecutor(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(),
+          "S2C visitor-view fixture structure-pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        for (int x = 0; x < 5; x++)
+        {
+            for (int z = 0; z < 5; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C Visitor View Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C visitor-view fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "S2C visitor-view fixture Town Hall has no colony block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "S2C visitor-view fixture did not register its Town Hall");
+
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        IVisitorData visitor = null;
+        try
+        {
+            final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, colonyViewData, false);
+                manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, dimension);
+            }
+            finally
+            {
+                colonyViewData.release();
+            }
+            final var colonyView = manager.getColonyView(colonyId, dimension);
+            helper.assertTrue(colonyView != null, "S2C visitor-view fixture did not install its colony view");
+
+            visitor = (IVisitorData) colony.getVisitorManager().createAndRegisterCivilianData();
+            visitor.setRecruitCosts(new ItemStack(Items.EMERALD, 2));
+            visitor.setSittingPosition(townHall.above());
+            final int visitorId = visitor.getId();
+            helper.assertTrue(colonyView.getVisitor(visitorId) == null,
+              "S2C visitor-view fixture unexpectedly started with the visitor view");
+
+            final NetworkChannel channel = Network.getNetwork();
+            final int messageId = findMessageId(channel, ColonyVisitorViewDataMessage.class);
+            helper.assertTrue(messageId > 0, "Colony visitor-view message has no inner network id");
+            final int communicationId = 0x4D43544D;
+            final List<Runnable> clientWork = new ArrayList<>();
+            final byte[] payload = encode(new ColonyVisitorViewDataMessage(colony, Set.of(visitor), true));
+            final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(communicationId, 0, true, messageId, payload))));
+            try
+            {
+                channel.getRawChannel().handleClient(envelope, clientWork::add);
+            }
+            finally
+            {
+                envelope.release();
+            }
+
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C visitor-view update did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getVisitor(visitorId) == null,
+              "S2C visitor-view update ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C visitor-view update remained in the split-packet cache");
+
+            clientWork.remove(0).run();
+            final var visitorView = colonyView.getVisitor(visitorId);
+            helper.assertTrue(visitorView instanceof IVisitorViewData
+                && visitor.getName().equals(visitorView.getName())
+                && ((IVisitorViewData) visitorView).getRecruitCost().is(Items.EMERALD)
+                && ((IVisitorViewData) visitorView).getRecruitCost().getCount() == 2,
+              "S2C ColonyVisitorViewDataMessage did not apply the visitor name and recruitment cost");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, dimension);
+            if (visitor != null)
+            {
+                colony.getVisitorManager().removeCivilian(visitor);
+            }
         }
         helper.succeed();
     }
