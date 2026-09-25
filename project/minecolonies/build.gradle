@@ -31,9 +31,16 @@ fabricApi {
 // -PgameTestRunDir=run-gametest-<id> for a fresh isolated run; preserve old
 // run directories rather than silently reusing or deleting them.
 def gameTestRunDir = project.providers.gradleProperty('gameTestRunDir').getOrElse('run-gametest')
+// Keep the visual client probe isolated from the saved default `run` profile.
+// Override this with -PclientVisualRunDir=run-client-<id> for a fresh profile.
+def clientVisualRunDir = project.providers.gradleProperty('clientVisualRunDir').getOrElse('run-client')
 loom {
     accessWidenerPath = file('src/main/resources/minecolonies.accesswidener')
     runs {
+        clientVisual {
+            client()
+            runDir clientVisualRunDir
+        }
         gametest {
             server()
             runDir gameTestRunDir
