@@ -3541,7 +3541,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         field.setSeed(new ItemStack(Items.WHEAT_SEEDS));
         field.setRadius(Direction.NORTH, 0);
         field.setRadius(Direction.SOUTH, 0);
-        field.setRadius(Direction.EAST, 1);
+        field.setRadius(Direction.EAST, 2);
         field.setRadius(Direction.WEST, 0);
         field.setFieldStage(FarmField.Stage.PLANTED);
         helper.assertTrue(field.isValidPlacement(colony),
@@ -3550,7 +3550,16 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Farmer navigation fixture field was not registered in the colony");
 
         final BlockPos cropPos = fieldPos.east();
+        level.setBlock(cropPos.below(), Blocks.FARMLAND.defaultBlockState(), 3);
         level.setBlock(cropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
+        final BlockPos secondCropPos = fieldPos.east(2);
+        level.setBlock(secondCropPos.below(), Blocks.FARMLAND.defaultBlockState(), 3);
+        level.setBlock(secondCropPos, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE), 3);
+        helper.assertTrue(level.getBlockState(cropPos).is(Blocks.WHEAT)
+            && level.getBlockState(cropPos).getValue(CropBlock.AGE) == CropBlock.MAX_AGE
+            && level.getBlockState(secondCropPos).is(Blocks.WHEAT)
+            && level.getBlockState(secondCropPos).getValue(CropBlock.AGE) == CropBlock.MAX_AGE,
+          "Farmer navigation fixture did not retain both mature crops on farmland");
 
         final ICitizenData citizen = colony.getCitizenManager()
           .spawnOrCreateCivilian(null, level, farmerPos.above(), true);
@@ -3574,7 +3583,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(farmerCitizen.blockPosition().distSqr(cropPos) > 400,
           "Farmer navigation fixture did not start more than 20 blocks from its crop: citizen="
             + farmerCitizen.blockPosition() + "; crop=" + cropPos);
-        final int wheatBefore = countItem(farmerCitizen, Items.WHEAT);
+        final int wheatBefore = countItem(farmerCitizen, Items.WHEAT) + countItem(farmer, Items.WHEAT);
         final int storedWheatBefore = countItem(farmer, Items.WHEAT);
         farmerAI.resetAI();
         farmerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.PREPARING));
@@ -3588,14 +3597,15 @@ public final class MineColoniesGameTests implements FabricGameTest
             final Collection<IToken<?>> pickupRequests = farmer.getOpenRequestsByRequestableType()
               .getOrDefault(TypeConstants.PICKUP, List.of());
             if (level.isEmptyBlock(cropPos)
+                  && level.isEmptyBlock(secondCropPos)
                   && countItem(farmer, Items.WHEAT) > storedWheatBefore
                   && !pickupRequests.isEmpty())
             {
                 helper.assertTrue(furthestX[0] > startingX,
                   "Farmer worker AI harvested without navigating away from its starting position: startX=" + startingX
                     + "; furthestX=" + furthestX[0]);
-                helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) + countItem(farmer, Items.WHEAT) > wheatBefore,
-                  "Farmer worker AI removed the crop without collecting its wheat drops");
+                helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) + countItem(farmer, Items.WHEAT) >= wheatBefore + 2,
+                  "Farmer worker AI removed both crops without collecting both wheat drops");
                 helper.succeed();
             }
             else if (farmerTicks[0] >= 1300)
@@ -3603,6 +3613,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.assertTrue(false,
                   "Farmer worker AI did not navigate, harvest, return, deposit wheat and request pickup: state=" + farmerAI.getState()
                     + "; crop=" + level.getBlockState(cropPos)
+                    + "; secondCrop=" + level.getBlockState(secondCropPos)
                     + "; farmer=" + farmerCitizen.blockPosition()
                     + "; furthestX=" + furthestX[0]
                     + "; citizenWheat=" + countItem(farmerCitizen, Items.WHEAT)

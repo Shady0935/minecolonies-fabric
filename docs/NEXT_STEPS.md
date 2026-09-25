@@ -32,8 +32,8 @@ authorized permission-management routes and a rejected unauthorized rank edit,
 permission/rank/player state surviving a complete colony-NBT reload,
 two parallel University researches, 24-block Researcher
 navigation/offline-mana checks, FarmField colony-NBT persistence, a focused
-two-cell Farmer harvest and the Farmer's 24-block harvest/return, hut deposit
-and pickup-request cycle, the S2C FarmField full refresh (updating an existing
+two-cell Farmer harvest and the 24-block normal-CitizenAI two-cell Farmer
+harvest/return, hut deposit and pickup-request cycle, the S2C FarmField full refresh (updating an existing
 field, adding one and removing a stale field after dispatch), the queued
 client-executor building-removal route, the applied ColonyView work-order
 update, and the applied citizen-view and visitor-view updates and research-manager state. The
@@ -124,8 +124,8 @@ decoration work-order creation, plantation/rally routes and University research 
 plus focused Farmer harvest/hoe/planting, Lumberjack three-log chopping, vanilla-leaf
 shears selection, oak-sapling replanting and the two-stump planting guard,
 long-range Researcher bookshelf navigation/study/mana (starting 24 blocks from
-the registered bookshelf), 24-block Farmer navigation/harvest/hut deposit and
-pickup-request creation, and Guard
+the registered bookshelf), 24-block two-cell Farmer navigation/harvest/hut
+deposit and pickup-request creation, and Guard
 autonomous-target-search/combat cycles with an
 automatic late-arriving registered-chest sword request and normal pickup, plus the
 registered-raider `AttackMoveAI` short-range target/damage path, the

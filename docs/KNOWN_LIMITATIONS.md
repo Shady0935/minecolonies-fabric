@@ -103,9 +103,9 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   canonical construction or full logistics-backed builds,
   full CitizenAI scheduling/work-cycle
   construction, ore/mining AI and resource delivery, farmer crop growth and field
-  placement, normal-CitizenAI multi-cell harvest/deposit, and warehouse/courier
-  delivery beyond the focused 24-block one-cell harvest → Farmer-hut deposit →
-  pickup-request cycle, a broader
+  placement, and warehouse/courier delivery beyond the focused 24-block
+  normal-CitizenAI two-cell harvest → Farmer-hut deposit → pickup-request cycle,
+  a broader
   Lumberjack autonomous tree-search/navigation cycle,
   tree navigation and resource delivery, or a
   client opening the Town Hall GUI, citizen rendering/full work-cycle
@@ -180,8 +180,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   cycles/scheduling,
   miner shaft construction and mining placement/resource logistics beyond the
   covered stone and vanilla-ore AI cycles,
-  farmer crop growth/field placement, normal-CitizenAI multi-cell work and
-  warehouse/courier delivery beyond the covered 24-block harvest, Farmer-hut
+  farmer crop growth/field placement and warehouse/courier delivery beyond the
+  covered 24-block normal-CitizenAI two-cell harvest, Farmer-hut
   deposit and pickup-request route (direct two-cell crop removal, empty-field hoeing
   and hoed-field seed planting paths are covered), broader Lumberjack tree
   search/navigation and the full University research GUI/gameplay cycle,
@@ -212,7 +212,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   (full CitizenAI navigation/scheduling is still pending),
   Miner work-order/claim selection,
   Farmer field assignment and colony-NBT restoration plus focused 24-block
-  harvest/navigation,
+  two-cell harvest/navigation,
   Lumberjack registration/assignment, focused three-log worker/replant cycle and
   the two-stump planting guard, Guard
   Tower/knight assignment plus the focused

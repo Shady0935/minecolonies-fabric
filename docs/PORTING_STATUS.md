@@ -547,19 +547,19 @@ completed.
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; a colony-NBT
   round-trip retains the field's seed, stage, radii and owning Farmer-module
   link. A focused direct-AI fixture harvests two adjacent mature crop cells.
-  A 24-block real `EntityAIWorkFarmer` route verifies mature crop removal,
-  return to the Farmer hut, wheat deposit and pickup-request creation through
-  normal `CitizenAI` ticks; the field is bounded to its planted cell. Crop
-  growth, field placement, normal-CitizenAI multi-cell deposit/pickup,
-  warehouse/courier pickup completion and the farming GUI remain open. A
+  A 24-block real `EntityAIWorkFarmer` route now harvests two mature field
+  cells, returns to the Farmer hut, deposits the wheat and creates a
+  pickup-request through normal `CitizenAI` ticks. Crop growth, field
+  placement, warehouse/courier pickup completion and the farming GUI remain
+  open. A
   focused hoed-field fixture
   drives the real hoeing state to `HOED`; a second focused fixture drives the
   planting state, consumes one `WHEAT_SEEDS` stack and advances the field to
   `PLANTED`; evidence:
   `logs/minecolonies-gametest-farmer-hoe-20260920.xml`,
   `logs/minecolonies-gametest-farmer-plant-20260920.xml` and
-  `logs/minecolonies-gametest-farmer-multicell-114-20260924.log` and
-  `logs/minecolonies-gametest-farmer-multicell-114-20260924.xml`
+  `logs/minecolonies-gametest-farmer-multicell-citizenai-final-20260924.log`
+  and `.xml` (123 tests; 0 failures/errors).
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
