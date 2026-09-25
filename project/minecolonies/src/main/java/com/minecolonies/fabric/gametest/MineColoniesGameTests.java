@@ -6765,6 +6765,96 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientCitizenViewUpdateRunsOnClientExecutor(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(),
+          "S2C citizen-view fixture structure-pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        for (int x = 0; x < 5; x++)
+        {
+            for (int z = 0; z < 5; z++)
+            {
+                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+            }
+        }
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C Citizen View Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C citizen-view fixture colony was not created");
+
+        final BlockEntity townHallEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(townHallEntity instanceof TileEntityColonyBuilding,
+          "S2C citizen-view fixture Town Hall has no colony block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) townHallEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        helper.assertTrue(colony.getBuildingManager().addNewBuilding(townHallHut, level) != null,
+          "S2C citizen-view fixture did not register its Town Hall");
+        final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, townHall.above());
+        helper.assertTrue(citizen != null, "S2C citizen-view fixture did not create a citizen");
+        final int citizenId = citizen.getId();
+        final String expectedName = citizen.getName();
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        try
+        {
+            final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, colonyViewData, false);
+                manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, dimension);
+            }
+            finally
+            {
+                colonyViewData.release();
+            }
+            final var colonyView = manager.getColonyView(colonyId, dimension);
+            helper.assertTrue(colonyView != null, "S2C citizen-view fixture did not install its colony view");
+            helper.assertTrue(colonyView.getCitizen(citizenId) == null,
+              "S2C citizen-view fixture unexpectedly started with the citizen view");
+
+            final NetworkChannel channel = Network.getNetwork();
+            final int messageId = findMessageId(channel, ColonyViewCitizenViewMessage.class);
+            helper.assertTrue(messageId > 0, "Colony citizen-view message has no inner network id");
+            final int communicationId = 0x4D43544C;
+            final List<Runnable> clientWork = new ArrayList<>();
+            final byte[] payload = encode(new ColonyViewCitizenViewMessage(colony, citizen));
+            final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(communicationId, 0, true, messageId, payload))));
+            try
+            {
+                channel.getRawChannel().handleClient(envelope, clientWork::add);
+            }
+            finally
+            {
+                envelope.release();
+            }
+
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C citizen-view update did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getCitizen(citizenId) == null,
+              "S2C citizen-view update ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C citizen-view update remained in the split-packet cache");
+
+            clientWork.remove(0).run();
+            final var citizenView = colonyView.getCitizen(citizenId);
+            helper.assertTrue(citizenView != null && expectedName.equals(citizenView.getName()),
+              "S2C ColonyViewCitizenViewMessage did not apply the citizen name and view");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, dimension);
+            citizen.getEntity().ifPresent(AbstractEntityCitizen::discard);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void serverToClientFarmFieldUpdateRunsOnClientExecutor(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
