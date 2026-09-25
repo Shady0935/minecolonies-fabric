@@ -6954,6 +6954,90 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientResearchManagerUpdateRunsOnClientExecutor(final GameTestHelper helper)
+    {
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C Research View Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C research-view fixture colony was not created");
+
+        final ResourceLocation branch = new ResourceLocation(Constants.MOD_ID, "civilian");
+        final ResourceLocation researchId = new ResourceLocation(Constants.MOD_ID, "civilian/ambition");
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        try
+        {
+            final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, colonyViewData, false);
+                manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, dimension);
+            }
+            finally
+            {
+                colonyViewData.release();
+            }
+            final var colonyView = manager.getColonyView(colonyId, dimension);
+            helper.assertTrue(colonyView != null, "S2C research-view fixture did not install its colony view");
+            helper.assertTrue(colonyView.getResearchManager().getResearchTree().getResearch(branch, researchId) == null,
+              "S2C research-view fixture unexpectedly started with local research");
+
+            final IGlobalResearch research = IGlobalResearchTree.getInstance().getResearch(branch, researchId);
+            helper.assertTrue(research != null
+                && research.canResearch(1, colony.getResearchManager().getResearchTree()),
+              "S2C research-view fixture entry is unavailable to a fresh colony");
+            final Player player = makeNonCreativeResearchPlayer(level, townHall);
+            player.getInventory().setItem(0, new ItemStack(Items.DIAMOND));
+            colony.getResearchManager().getResearchTree().attemptBeginResearch(player, colony, research);
+            final ILocalResearch serverResearch = colony.getResearchManager().getResearchTree().getResearch(branch, researchId);
+            helper.assertTrue(serverResearch != null && serverResearch.getState() == ResearchState.IN_PROGRESS,
+              "S2C research-view fixture did not create server research state");
+
+            final NetworkChannel channel = Network.getNetwork();
+            final int messageId = findMessageId(channel, ColonyViewResearchManagerViewMessage.class);
+            helper.assertTrue(messageId > 0, "Colony research-manager message has no inner network id");
+            final int communicationId = 0x4D43544E;
+            final List<Runnable> clientWork = new ArrayList<>();
+            final byte[] payload = encode(new ColonyViewResearchManagerViewMessage(colony, colony.getResearchManager()));
+            final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(communicationId, 0, true, messageId, payload))));
+            try
+            {
+                channel.getRawChannel().handleClient(envelope, clientWork::add);
+            }
+            finally
+            {
+                envelope.release();
+            }
+
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C research-manager update did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getResearchManager().getResearchTree().getResearch(branch, researchId) == null,
+              "S2C research-manager update ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C research-manager update remained in the split-packet cache");
+
+            clientWork.remove(0).run();
+            final ILocalResearch viewResearch = colonyView.getResearchManager().getResearchTree()
+              .getResearch(branch, researchId);
+            helper.assertTrue(viewResearch != null
+                && viewResearch.getState() == ResearchState.IN_PROGRESS
+                && viewResearch.getProgress() == serverResearch.getProgress(),
+              "S2C ColonyViewResearchManagerViewMessage did not apply the research state and progress");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, dimension);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void serverToClientFarmFieldUpdateRunsOnClientExecutor(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
