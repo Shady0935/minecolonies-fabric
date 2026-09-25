@@ -6581,6 +6581,105 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientBuildingRemovalQueuesClientExecutor(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(),
+          "S2C building-removal fixture structure-pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C Building Removal Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C building-removal fixture colony was not created");
+        final BlockEntity blockEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "S2C building-removal fixture Town Hall has no colony block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) blockEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        final IBuilding townHallBuilding = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(townHallBuilding != null,
+          "S2C building-removal fixture did not register its Town Hall");
+
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        try
+        {
+            final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, colonyViewData, false);
+                manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, dimension);
+            }
+            finally
+            {
+                colonyViewData.release();
+            }
+            final var colonyView = manager.getColonyView(colonyId, dimension);
+            helper.assertTrue(colonyView != null, "S2C building-removal fixture did not install its colony view");
+
+            final NetworkChannel channel = Network.getNetwork();
+            final int addMessageId = findMessageId(channel, ColonyViewBuildingViewMessage.class);
+            helper.assertTrue(addMessageId > 0, "Colony building-view message has no inner network id");
+            final int addCommunicationId = 0x4D435449;
+            final List<Runnable> clientWork = new ArrayList<>();
+            final byte[] buildingPayload = encode(new ColonyViewBuildingViewMessage(townHallBuilding));
+            final FriendlyByteBuf buildingEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(addCommunicationId, 0, true, addMessageId, buildingPayload))));
+            try
+            {
+                channel.getRawChannel().handleClient(buildingEnvelope, clientWork::add);
+            }
+            finally
+            {
+                buildingEnvelope.release();
+            }
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C building-view update did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getBuilding(townHall) == null,
+              "S2C building-view update ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(addCommunicationId) == null,
+              "Completed S2C building-view update remained in the split-packet cache");
+            clientWork.remove(0).run();
+            helper.assertTrue(colonyView.getBuilding(townHall) != null,
+              "S2C ColonyViewBuildingViewMessage did not add the Town Hall view");
+
+            final int messageId = findMessageId(channel, ColonyViewRemoveBuildingMessage.class);
+            helper.assertTrue(messageId > 0, "Colony building-removal message has no inner network id");
+            final int communicationId = 0x4D43544A;
+            final byte[] payload = encode(new ColonyViewRemoveBuildingMessage(colony, townHall));
+            final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(communicationId, 0, true, messageId, payload))));
+            try
+            {
+                channel.getRawChannel().handleClient(envelope, clientWork::add);
+            }
+            finally
+            {
+                envelope.release();
+            }
+
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C building removal did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getBuilding(townHall) != null,
+              "S2C building removal ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C building removal remained in the split-packet cache");
+
+            helper.assertTrue(colonyView.getBuilding(townHall) != null,
+              "S2C ColonyViewRemoveBuildingMessage changed server state before client executor dispatch");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, dimension);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void serverToClientFarmFieldUpdateRunsOnClientExecutor(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
