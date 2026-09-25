@@ -547,19 +547,21 @@ completed.
   `JobFarmer` and persists the `FarmerFieldsModule` ownership; a colony-NBT
   round-trip retains the field's seed, stage, radii and owning Farmer-module
   link. A focused direct-AI fixture harvests two adjacent mature crop cells.
-  A 24-block real `EntityAIWorkFarmer` route now harvests two mature field
-  cells, returns to the Farmer hut, deposits the wheat and creates a
-  pickup-request through normal `CitizenAI` ticks. Crop growth, field
-  placement, warehouse/courier pickup completion and the farming GUI remain
-  open. A
+  A 24-block real `EntityAIWorkFarmer` route harvests two mature field cells,
+  returns to the Farmer hut and deposits wheat through normal `CitizenAI` ticks.
+  An assigned Courier then resolves the pickup request, navigates to the hut,
+  collects the wheat and stores it in a registered Warehouse rack; the finished
+  request leaves the Courier queue. The test passes in 64.373s. Crop growth,
+  field placement and the farming GUI remain open. A
   focused hoed-field fixture
   drives the real hoeing state to `HOED`; a second focused fixture drives the
   planting state, consumes one `WHEAT_SEEDS` stack and advances the field to
   `PLANTED`; evidence:
   `logs/minecolonies-gametest-farmer-hoe-20260920.xml`,
   `logs/minecolonies-gametest-farmer-plant-20260920.xml` and
-  `logs/minecolonies-gametest-farmer-multicell-citizenai-final-20260924.log`
-  and `.xml` (123 tests; 0 failures/errors).
+  `logs/minecolonies-gametest-farmer-courier-verify2-20260924.log` and `.xml`
+  (123 tests; 0 failures/errors), plus
+  `logs/minecolonies-build-farmer-courier-20260924.log`.
 - [x] Server-side Lumberjack registration resolves the Original level-one
   lumberjack blueprint, assigns a live `JobLumberjack` citizen and exercises
   the real `EntityAIWorkLumberjack` through normal `CitizenAI` ticks; the
@@ -671,8 +673,9 @@ completed.
   construction-site navigation through the real Builder proxy, automatic live
   Builder work-order claim/navigation, autonomous stone/cobblestone Warehouse/Courier
   deliveries, 17-block placement and order completion, the Farmer's focused
-  two-cell harvest and 24-block harvest/return, hut deposit and pickup-request
-  creation, permission/rank/player NBT persistence, queued S2C colony-view
+  two-cell harvest and the 24-block Farmer/Courier harvest, hut deposit,
+  pickup resolution and Warehouse-rack delivery, permission/rank/player NBT
+  persistence, queued S2C colony-view
   removal, S2C FarmField state synchronization, client-executor queuing for
   building-, citizen- and work-order-view removal, and applied S2C work-order,
   citizen-view, visitor-view and research-manager updates,

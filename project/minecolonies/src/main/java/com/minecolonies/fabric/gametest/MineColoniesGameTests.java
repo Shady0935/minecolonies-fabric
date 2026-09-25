@@ -3483,7 +3483,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             + "; farmer=" + farmerCitizen.blockPosition());
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_NAVIGATION_TEST_BATCH, timeoutTicks = 1600)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_NAVIGATION_TEST_BATCH, timeoutTicks = 2600)
     public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
@@ -3492,19 +3492,28 @@ public final class MineColoniesGameTests implements FabricGameTest
         // This batch contains only this long-running fixture, avoiding test overlap.
         final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
         final BlockPos relativeFarmer = new BlockPos(8, 1, 2);
+        final BlockPos relativeWarehouse = new BlockPos(2, 1, 10);
+        final BlockPos relativeCourierHut = new BlockPos(10, 1, 10);
+        final BlockPos relativeRack = new BlockPos(4, 1, 10);
         final BlockPos relativeField = new BlockPos(31, 1, 2);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
+        final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
+        final BlockPos courierHutPos = helper.absolutePos(relativeCourierHut);
+        final BlockPos rackPos = helper.absolutePos(relativeRack);
         final BlockPos fieldPos = helper.absolutePos(relativeField);
         for (int x = 0; x <= 34; x++)
         {
-            for (int z = 0; z <= 4; z++)
+            for (int z = 0; z <= 14; z++)
             {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
             }
         }
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
         helper.setBlock(relativeFarmer, ModBlocks.blockHutFarmer);
+        helper.setBlock(relativeWarehouse, ModBlocks.blockHutWareHouse);
+        helper.setBlock(relativeCourierHut, ModBlocks.blockHutDeliveryman);
+        helper.setBlock(relativeRack, ModBlocks.blockRack);
         helper.setBlock(relativeField, ModBlocks.blockScarecrow);
 
         final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
@@ -3535,6 +3544,34 @@ public final class MineColoniesGameTests implements FabricGameTest
         final BuildingFarmer farmer = (BuildingFarmer) registered;
         helper.assertTrue(farmer.getBuildingLevel() >= 1,
           "Farmer navigation fixture did not resolve its level-one farm blueprint");
+
+        final BlockEntity warehouseEntity = level.getBlockEntity(warehousePos);
+        helper.assertTrue(warehouseEntity instanceof TileEntityColonyBuilding,
+          "Farmer navigation fixture did not create a warehouse block entity");
+        final TileEntityColonyBuilding warehouseHut = (TileEntityColonyBuilding) warehouseEntity;
+        warehouseHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        warehouseHut.setBlueprintPath("craftsmanship/storage/warehouse1.blueprint");
+        warehouseHut.setSchematicName("warehouse1");
+        final IBuilding warehouseBuilding = colony.getBuildingManager().addNewBuilding(warehouseHut, level);
+        helper.assertTrue(warehouseBuilding instanceof BuildingWareHouse,
+          "Farmer navigation fixture registered the wrong warehouse implementation: " + warehouseBuilding);
+        final BuildingWareHouse warehouse = (BuildingWareHouse) warehouseBuilding;
+
+        final BlockEntity courierHutEntity = level.getBlockEntity(courierHutPos);
+        helper.assertTrue(courierHutEntity instanceof TileEntityColonyBuilding,
+          "Farmer navigation fixture did not create a courier-hut block entity");
+        final TileEntityColonyBuilding courierHut = (TileEntityColonyBuilding) courierHutEntity;
+        courierHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        courierHut.setBlueprintPath("craftsmanship/storage/courier1.blueprint");
+        courierHut.setSchematicName("courier1");
+        final IBuilding courierBuilding = colony.getBuildingManager().addNewBuilding(courierHut, level);
+        helper.assertTrue(courierBuilding instanceof BuildingDeliveryman,
+          "Farmer navigation fixture registered the wrong courier implementation: " + courierBuilding);
+
+        final BlockEntity rackEntity = level.getBlockEntity(rackPos);
+        helper.assertTrue(rackEntity instanceof TileEntityRack,
+          "Farmer navigation fixture did not create a warehouse-rack block entity");
+        warehouse.registerBlockPosition(ModBlocks.blockRack, rackPos, level);
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 4, level, true);
 
         final FarmField field = FarmField.create(fieldPos);
@@ -3576,6 +3613,32 @@ public final class MineColoniesGameTests implements FabricGameTest
         final AbstractEntityCitizen farmerCitizen = (AbstractEntityCitizen) citizen.getEntity().get();
         final EntityAIWorkFarmer farmerAI = (EntityAIWorkFarmer) citizen.getJob(JobFarmer.class).getWorkerAI();
         helper.assertTrue(farmerAI != null, "Farmer navigation assignment did not create the worker AI");
+
+        final ICitizenData courierData = colony.getCitizenManager()
+          .spawnOrCreateCitizen(null, level, courierHutPos.above());
+        helper.assertTrue(courierData != null && courierData.getEntity().isPresent(),
+          "Farmer navigation fixture could not create a live courier citizen");
+        final WorkerBuildingModule courierWork = courierBuilding.getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.delivery.get());
+        helper.assertTrue(courierWork instanceof DeliverymanAssignmentModule && courierWork.assignCitizen(courierData),
+          "Farmer navigation fixture could not assign its courier citizen");
+        helper.assertTrue(courierData.getJob() instanceof JobDeliveryman,
+          "Farmer navigation fixture did not create the deliveryman job");
+        final CourierAssignmentModule couriers = warehouse.getFirstModuleOccurance(CourierAssignmentModule.class);
+        helper.assertTrue(couriers != null && couriers.assignCitizen(courierData),
+          "Farmer navigation fixture could not register the courier at the warehouse");
+        courierData.setWorking(true);
+        final AbstractEntityCitizen courier = (AbstractEntityCitizen) courierData.getEntity().get();
+        final JobDeliveryman courierJob = courierData.getJob(JobDeliveryman.class);
+        final TileEntityWareHouse warehouseTile = (TileEntityWareHouse) warehouse.getTileEntity();
+        final TileEntityRack warehouseRack = (TileEntityRack) rackEntity;
+        helper.assertTrue(courierJob != null && warehouseTile != null,
+          "Farmer navigation fixture did not initialize its courier job or warehouse storage");
+        for (int slot = 0; slot < courier.getInventoryCitizen().getSlots(); slot++)
+        {
+            courier.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
+        }
+
         farmerCitizen.getInventoryCitizen().setStackInSlot(0, new ItemStack(Items.STONE_HOE));
         farmerCitizen.getCitizenItemHandler().setMainHeldItem(0);
         farmerCitizen.setPos(farmerPos.getX() + 0.5D, farmerPos.getY() + 1.0D, farmerPos.getZ() + 0.5D);
@@ -3583,35 +3646,51 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(farmerCitizen.blockPosition().distSqr(cropPos) > 400,
           "Farmer navigation fixture did not start more than 20 blocks from its crop: citizen="
             + farmerCitizen.blockPosition() + "; crop=" + cropPos);
-        final int wheatBefore = countItem(farmerCitizen, Items.WHEAT) + countItem(farmer, Items.WHEAT);
-        final int storedWheatBefore = countItem(farmer, Items.WHEAT);
         farmerAI.resetAI();
         farmerAI.registerTarget(new AIOneTimeEventTarget<>(AIWorkerState.PREPARING));
 
         final int[] farmerTicks = {0};
         final int[] furthestX = {startingX};
+        final IToken<?>[] pickupRequestToken = {null};
         helper.onEachTick(() ->
         {
             farmerTicks[0]++;
             furthestX[0] = Math.max(furthestX[0], farmerCitizen.blockPosition().getX());
             final Collection<IToken<?>> pickupRequests = farmer.getOpenRequestsByRequestableType()
               .getOrDefault(TypeConstants.PICKUP, List.of());
+            if (pickupRequestToken[0] == null && !pickupRequests.isEmpty())
+            {
+                pickupRequestToken[0] = pickupRequests.iterator().next();
+            }
+            final IRequest<?> pickupRequest = pickupRequestToken[0] == null
+              ? null
+              : colony.getRequestManager().getRequestForToken(pickupRequestToken[0]);
             if (level.isEmptyBlock(cropPos)
                   && level.isEmptyBlock(secondCropPos)
-                  && countItem(farmer, Items.WHEAT) > storedWheatBefore
-                  && !pickupRequests.isEmpty())
+                  && pickupRequestToken[0] != null
+                  && (pickupRequest == null
+                    || pickupRequest.getState() == RequestState.RESOLVED
+                    || pickupRequest.getState() == RequestState.COMPLETED)
+                  && warehouseRack.getCount(new ItemStack(Items.WHEAT), true, false) >= 2
+                  && countItem(courier, Items.WHEAT) == 0
+                  && !courierJob.getTaskQueue().contains(pickupRequestToken[0]))
             {
                 helper.assertTrue(furthestX[0] > startingX,
                   "Farmer worker AI harvested without navigating away from its starting position: startX=" + startingX
                     + "; furthestX=" + furthestX[0]);
-                helper.assertTrue(countItem(farmerCitizen, Items.WHEAT) + countItem(farmer, Items.WHEAT) >= wheatBefore + 2,
-                  "Farmer worker AI removed both crops without collecting both wheat drops");
+                helper.assertTrue(pickupRequest == null
+                    || pickupRequest.getState() == RequestState.RESOLVED
+                    || pickupRequest.getState() == RequestState.COMPLETED,
+                  "Courier pickup request did not reach a terminal state: "
+                    + (pickupRequest == null ? "removed" : pickupRequest.getState()));
+                helper.assertTrue(warehouseTile.hasMatchingItemStackInWarehouse(new ItemStack(Items.WHEAT), 2, true),
+                  "Courier deposited less than two harvested wheat items into the Warehouse");
                 helper.succeed();
             }
-            else if (farmerTicks[0] >= 1300)
+            else if (farmerTicks[0] >= 2300)
             {
                 helper.assertTrue(false,
-                  "Farmer worker AI did not navigate, harvest, return, deposit wheat and request pickup: state=" + farmerAI.getState()
+                  "Farmer/Courier cycle did not navigate, harvest two crops, deposit and complete the Warehouse pickup: state=" + farmerAI.getState()
                     + "; crop=" + level.getBlockState(cropPos)
                     + "; secondCrop=" + level.getBlockState(secondCropPos)
                     + "; farmer=" + farmerCitizen.blockPosition()
@@ -3619,7 +3698,14 @@ public final class MineColoniesGameTests implements FabricGameTest
                     + "; citizenWheat=" + countItem(farmerCitizen, Items.WHEAT)
                     + "; storedWheat=" + countItem(farmer, Items.WHEAT)
                     + "; pickupRequests=" + pickupRequests.size()
-                    + "; navigationDone=" + farmerCitizen.getNavigation().isDone());
+                    + "; pickupToken=" + pickupRequestToken[0]
+                    + "; pickupState=" + (pickupRequest == null ? "missing" : pickupRequest.getState())
+                    + "; courier=" + courier.blockPosition()
+                    + "; courierAI=" + (courierJob.getWorkerAI() == null ? "missing" : courierJob.getWorkerAI().getState())
+                    + "; courierQueue=" + courierJob.getTaskQueue()
+                    + "; courierWheat=" + countItem(courier, Items.WHEAT)
+                    + "; warehouseWheat=" + warehouseRack.getCount(new ItemStack(Items.WHEAT), true, false)
+                    + "; farmerNavigationDone=" + farmerCitizen.getNavigation().isDone());
             }
         });
     }
