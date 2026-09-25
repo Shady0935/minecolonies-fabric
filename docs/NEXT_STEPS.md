@@ -41,6 +41,10 @@ their split-packet cache entries and leave the server-side fake views untouched
 before client-executor dispatch; those client-only callbacks remain unexecuted.
 An empty visitor refresh also preserves the existing visitor until dispatch,
 then removes it from the client view.
+`SyncPathMessage` and `SyncPathReachedMessage` now also traverse real S2C split
+envelopes, clear their packet-cache entries and drain client-executor callbacks
+in the dedicated-server test; visible renderer-state changes remain a live-client
+check.
 The full `ColonyViewMessage` subscription envelope also queues exactly one
 client callback, clears its packet-cache entry and leaves the view absent before
 that callback; applying it still requires a live client world.
@@ -49,9 +53,9 @@ applies its S2C `PermissionsMessage.View` only after client-executor dispatch;
 the pre-dispatch view and both packet-cache entries are checked, and the change
 also survives colony-NBT reload.
 The run also includes the three standalone MultiPiston tests; its log and JUnit
-report are `logs/minecolonies-gametest-s2c-permissions-view-20260924.log` and
-`logs/minecolonies-gametest-s2c-permissions-view-20260924.xml`. The full package
-build also passes in `logs/minecolonies-build-s2c-permissions-view-20260924.log`. It saved
+report are `logs/minecolonies-gametest-s2c-path-debug-verify-20260924.log` and
+`logs/minecolonies-gametest-s2c-path-debug-verify-20260924.xml`. The full package
+build also passes in `logs/minecolonies-build-s2c-path-debug-20260924.log`. It saved
 all three dimensions and shut down cleanly. A live
 Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned

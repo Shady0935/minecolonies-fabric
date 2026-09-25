@@ -91,6 +91,9 @@ completed.
 - [x] Fabric play networking registered in both directions
 - [x] Client-bound message codecs are server-loadable; visual execution is
   isolated behind the client bridge while preserving the upstream message IDs
+- [x] `SyncPathMessage` and `SyncPathReachedMessage` traverse real S2C split
+  envelopes with cache cleanup and client-executor dispatch in dedicated-server
+  GameTests; visible renderer updates still require a client-side check
 - [x] Real client-to-server split envelopes reach colony handlers on the
   server executor; the owner-permission path, Town Hall rename, colony
   foundation, hut/building rename, direct Town Hall placement, Builder work-order

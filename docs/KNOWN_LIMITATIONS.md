@@ -245,6 +245,10 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `ServerUUIDMessage`; the seven registered MineColonies menu types also have
   automated extended-opening-buffer forwarding coverage. GUI rendering and
   interaction are still pending.
+- The headless 123-test suite now sends `SyncPathMessage` and
+  `SyncPathReachedMessage` through real S2C split envelopes, checking packet-cache
+  cleanup and queued callback execution without loading client rendering classes.
+  The debug-node display and reached-node coloring still need a live-client pass.
 - The MineColonies spear now has a lifecycle-safe Fabric built-in renderer
   registration, and client bootstrap reaches resource reload and OpenAL without
   the previous `EntityModelSet` initialization crash. No automated screenshot

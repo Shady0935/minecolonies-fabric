@@ -6463,6 +6463,53 @@ public final class MineColoniesGameTests implements FabricGameTest
           && decodedPath.lastDebugNodesPath.iterator().next().pos.equals(pathNode.pos),
           "SyncPathMessage changed the unvisited node or selected path position");
 
+        // The GameTest runner is a dedicated server, so exercise packet dispatch without loading the client renderer.
+        final int syncPathMessageId = findMessageId(channel, SyncPathMessage.class);
+        helper.assertTrue(syncPathMessageId > 0, "SyncPathMessage has no inner network id");
+        final int pathCommunicationId = 0x4D4355A1;
+        final List<Runnable> pathClientWork = new ArrayList<>();
+        final FriendlyByteBuf pathEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+          encode(new SplitPacketMessage(pathCommunicationId, 0, true, syncPathMessageId, pathPayload))));
+        try
+        {
+            channel.getRawChannel().handleClient(pathEnvelope, pathClientWork::add);
+        }
+        finally
+        {
+            pathEnvelope.release();
+        }
+
+        helper.assertTrue(pathClientWork.size() == 1,
+          "Completed S2C path-debug message did not enqueue exactly one client handler");
+        helper.assertTrue(channel.getMessageCache().getIfPresent(pathCommunicationId) == null,
+          "Completed S2C path-debug packet was not removed from the cache");
+        pathClientWork.remove(0).run();
+        helper.assertTrue(pathClientWork.isEmpty(),
+          "S2C path-debug client handler did not drain from the executor queue");
+
+        final int syncPathReachedMessageId = findMessageId(channel, SyncPathReachedMessage.class);
+        helper.assertTrue(syncPathReachedMessageId > 0, "SyncPathReachedMessage has no inner network id");
+        final int reachedCommunicationId = 0x4D4355A2;
+        final FriendlyByteBuf reachedEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+          encode(new SplitPacketMessage(reachedCommunicationId, 0, true, syncPathReachedMessageId,
+            encode(new SyncPathReachedMessage(Set.of(pathNode.pos)))))));
+        try
+        {
+            channel.getRawChannel().handleClient(reachedEnvelope, pathClientWork::add);
+        }
+        finally
+        {
+            reachedEnvelope.release();
+        }
+
+        helper.assertTrue(pathClientWork.size() == 1,
+          "Completed S2C reached-path message did not enqueue exactly one client handler");
+        helper.assertTrue(channel.getMessageCache().getIfPresent(reachedCommunicationId) == null,
+          "Completed S2C reached-path packet was not removed from the cache");
+        pathClientWork.remove(0).run();
+        helper.assertTrue(pathClientWork.isEmpty(),
+          "S2C reached-path client handler did not drain from the executor queue");
+
         final int serverUuidId = findMessageId(channel, ServerUUIDMessage.class);
         helper.assertTrue(serverUuidId > 0, "Server UUID message has no inner network id");
         final UUID expected = UUID.fromString("11111111-2222-3333-4444-555555555555");
