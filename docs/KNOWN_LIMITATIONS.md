@@ -265,15 +265,15 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest combined 119-test GameTest run still logs the upstream-style warning that
+- The latest combined 120-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the latest evidence is in
-  `logs/minecolonies-gametest-s2c-building-removal-verify3-20260924.log`. The
+  `logs/minecolonies-gametest-s2c-work-order-view-verify2-20260924.log`. The
   blueprint data should be audited before treating this warning as resolved.
-- The latest clean combined 119-case suite hardens only the transient Raider combat
+- The latest clean combined 120-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
-  and records 119/119 required tests passed, including the three focused
+  and records 120/120 required tests passed, including the three focused
   MultiPiston tests. Long-range and fully in-game raid
   behavior, including client interaction, remain manual validation items.
 

@@ -6680,6 +6680,91 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void serverToClientWorkOrderUpdateRunsOnClientExecutor(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(),
+          "S2C work-order fixture structure-pack discovery was interrupted");
+        final ServerLevel level = helper.getLevel();
+        final IColonyManager manager = IColonyManager.getInstance();
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
+        final BlockPos townHall = helper.absolutePos(relativeTownHall);
+        helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        final Colony colony = (Colony) manager.createColony(
+          level, townHall, owner, "Fabric S2C Work Order Colony", Constants.DEFAULT_STYLE);
+        helper.assertTrue(colony != null, "S2C work-order fixture colony was not created");
+
+        final BlockEntity blockEntity = level.getBlockEntity(townHall);
+        helper.assertTrue(blockEntity instanceof TileEntityColonyBuilding,
+          "S2C work-order fixture Town Hall has no colony block entity");
+        final TileEntityColonyBuilding townHallHut = (TileEntityColonyBuilding) blockEntity;
+        townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
+        townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
+        final IBuilding building = colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        helper.assertTrue(building != null, "S2C work-order fixture did not register its Town Hall");
+        ChunkDataHelper.staticClaimInRange(colony.getID(), true, townHall, 2, level, true);
+
+        final int colonyId = colony.getID();
+        final var dimension = level.dimension();
+        try
+        {
+            final FriendlyByteBuf colonyViewData = new FriendlyByteBuf(Unpooled.buffer());
+            try
+            {
+                ColonyView.serializeNetworkData(colony, colonyViewData, false);
+                manager.handleColonyViewMessage(colonyId, colonyViewData, level, false, dimension);
+            }
+            finally
+            {
+                colonyViewData.release();
+            }
+            final var colonyView = manager.getColonyView(colonyId, dimension);
+            helper.assertTrue(colonyView != null, "S2C work-order fixture did not install its colony view");
+            helper.assertTrue(colonyView.getWorkOrders().isEmpty(),
+              "S2C work-order fixture unexpectedly started with client work orders");
+
+            final WorkOrderBuilding workOrder = WorkOrderBuilding.create(WorkOrderType.BUILD, building);
+            colony.getWorkManager().addWorkOrder(workOrder, false);
+            helper.assertTrue(workOrder.getID() > 0, "S2C work-order fixture did not assign a persistent id");
+
+            final NetworkChannel channel = Network.getNetwork();
+            final int messageId = findMessageId(channel, ColonyViewWorkOrderMessage.class);
+            helper.assertTrue(messageId > 0, "Colony work-order view message has no inner network id");
+            final int communicationId = 0x4D43544B;
+            final List<Runnable> clientWork = new ArrayList<>();
+            final byte[] payload = encode(new ColonyViewWorkOrderMessage(colony, List.of(workOrder)));
+            final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(communicationId, 0, true, messageId, payload))));
+            try
+            {
+                channel.getRawChannel().handleClient(envelope, clientWork::add);
+            }
+            finally
+            {
+                envelope.release();
+            }
+
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C work-order update did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getWorkOrders().isEmpty(),
+              "S2C work-order update ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+              "Completed S2C work-order update remained in the split-packet cache");
+
+            clientWork.remove(0).run();
+            final var workOrdersAfterExecution = colonyView.getWorkOrders();
+            helper.assertTrue(workOrdersAfterExecution.size() == 1
+                && workOrdersAfterExecution.iterator().next().getId() == workOrder.getID(),
+              "S2C ColonyViewWorkOrderMessage did not apply the work-order view");
+        }
+        finally
+        {
+            manager.removeColonyView(colonyId, dimension);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void serverToClientFarmFieldUpdateRunsOnClientExecutor(final GameTestHelper helper)
     {
         final ServerLevel level = helper.getLevel();
