@@ -214,6 +214,9 @@ completed.
   split-packet cache entry and leave the corresponding server-side fake view
   unchanged before client-executor dispatch; the client-only removal callbacks
   are deliberately not executed by this dedicated-server fixture.
+  A ninth extends the visitor view update with an empty full-refresh payload:
+  it keeps the current visitor until client-executor dispatch, then removes the
+  stale visitor from the view.
   Twelve particle/audio messages are also
   verified as registered, including item, localized, stream and sleeping
   particle codecs in addition to block, compost, circle, vanilla, stop-music,
@@ -236,8 +239,8 @@ completed.
   including fishing-hook angler synchronization and all nine serverbound
   permission-message families, with an unauthorized rank edit rejected; the
   server saves all three dimensions and stops cleanly. Latest evidence is in
-  `logs/minecolonies-gametest-s2c-removal-view-20260924.log` and
-  `logs/minecolonies-gametest-s2c-removal-view-20260924.xml`; the
+  `logs/minecolonies-gametest-s2c-visitor-refresh-20260924.log` and
+  `logs/minecolonies-gametest-s2c-visitor-refresh-20260924.xml`; the
   previous full-suite evidence is in
   `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
@@ -662,10 +665,10 @@ completed.
   removal, S2C FarmField state synchronization, client-executor queuing for
   building-, citizen- and work-order-view removal, and applied S2C work-order,
   citizen-view, visitor-view and research-manager updates,
-  `logs/minecolonies-gametest-s2c-removal-view-20260924.log` and
-  `logs/minecolonies-gametest-s2c-removal-view-20260924.xml`
+  `logs/minecolonies-gametest-s2c-visitor-refresh-20260924.log` and
+  `logs/minecolonies-gametest-s2c-visitor-refresh-20260924.xml`
   (123 cases, zero failures/errors), and the successful package build at
-  `logs/minecolonies-build-s2c-removal-view-20260924.log`, with clean saves for all three
+  `logs/minecolonies-build-s2c-visitor-refresh-20260924.log`, with clean saves for all three
   dimensions and a clean server stop. The fresh regression rerun after the
   Structurize language-loader fix again passes all 114 tests; evidence is in
   `logs/minecolonies-gametest-lang-loader-20260923.log`.

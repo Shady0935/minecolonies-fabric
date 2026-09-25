@@ -6983,6 +6983,28 @@ public final class MineColoniesGameTests implements FabricGameTest
                 && ((IVisitorViewData) visitorView).getRecruitCost().is(Items.EMERALD)
                 && ((IVisitorViewData) visitorView).getRecruitCost().getCount() == 2,
               "S2C ColonyVisitorViewDataMessage did not apply the visitor name and recruitment cost");
+
+            final int refreshCommunicationId = 0x4D435557;
+            final byte[] refreshPayload = encode(new ColonyVisitorViewDataMessage(colony, Set.of(), true));
+            final FriendlyByteBuf refreshEnvelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+              encode(new SplitPacketMessage(refreshCommunicationId, 0, true, messageId, refreshPayload))));
+            try
+            {
+                channel.getRawChannel().handleClient(refreshEnvelope, clientWork::add);
+            }
+            finally
+            {
+                refreshEnvelope.release();
+            }
+            helper.assertTrue(clientWork.size() == 1,
+              "Completed S2C visitor refresh did not enqueue exactly one client handler");
+            helper.assertTrue(colonyView.getVisitor(visitorId) == visitorView,
+              "S2C visitor refresh ran before the client executor drained its queue");
+            helper.assertTrue(channel.getMessageCache().getIfPresent(refreshCommunicationId) == null,
+              "Completed S2C visitor refresh remained in the split-packet cache");
+            clientWork.remove(0).run();
+            helper.assertTrue(colonyView.getVisitor(visitorId) == null,
+              "S2C visitor refresh did not remove visitors absent from the refreshed payload");
         }
         finally
         {
