@@ -86,7 +86,8 @@ completed.
   still manual)
 - [x] Fabric built-in renderer registration for the MineColonies spear is
   lifecycle-safe; renderer construction is deferred until `EntityModelSet` is
-  available (visual item rendering still needs a manual pass)
+  available; manual Creative-search/tooltip/hotbar and first-person held-model
+  checks passed in a fresh isolated client profile on 2026-09-25
 - [x] Client/server classloading audit completed without a startup crash
 - [x] Fabric play networking registered in both directions
 - [x] Client-bound message codecs are server-loadable; visual execution is

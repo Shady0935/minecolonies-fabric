@@ -163,7 +163,9 @@ The following work remains, in order:
    two active University research projects progressing in parallel and the
    Researcher's 24-block bookshelf navigation, study and offline-mana scaling;
    the authenticated University GUI/gameplay cycle remains manual.
-   Include an inventory/GUI visual check for the custom spear renderer.
+   The spear's Creative search result, attributes tooltip and first-person held
+   model have now passed a visual check; retain the actual BlockUI screens and
+   authenticated gameplay cycle as manual work.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative server/client network coverage, including the real
      client-to-server Town Hall rename, colony foundation, direct Town Hall
