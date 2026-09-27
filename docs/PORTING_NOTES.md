@@ -141,10 +141,20 @@ both computation and finalization. Start cancellation, living damage, block
 filtering and non-living entity filtering are covered by the 13-test GameTest
 batch in `logs/minecolonies-gametest-research-tree.log`.
 
-The client entrypoint also forwards item tooltip and play-connection disconnect
-callbacks. The adapter is deliberately callback-only: Fabric 1.20.1 does not
-expose a direct equivalent for every Forge event, so unsupported event points
-remain documented gaps instead of being represented by no-op shims.
+The client entrypoint also forwards item-tooltip and play-connection
+disconnect callbacks. A retained-event audit found two additional client
+events that had handlers but no Fabric publisher. Client-only mixins now post
+`PlaySoundEvent` at the `SoundManager.play` and `playDelayed` boundaries,
+honoring both replacement sounds and `null` suppression, and post
+`CustomizeGuiOverlayEvent.DebugText` when `DebugScreenOverlay` builds its game
+information lines. The isolated client bootstrap loaded these mixins through
+resource reload, OpenAL and atlas creation without a mixin failure; actual
+sound filtering and visible F3 text still need the deferred client pass.
+
+Only event points consumed by MineColonies' retained 1.20.1 handlers are
+bridged; unrelated Forge events are not recreated as no-op shims. The known
+block-placement timing difference and the direct Fabric capability-provider
+adaptation are recorded in `KNOWN_LIMITATIONS.md`.
 
 The Forge-shaped bow compatibility surface preserves the upstream
 `ArrowNock` contract: it posts a result-bearing `ArrowNockEvent`, returns

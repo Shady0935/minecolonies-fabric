@@ -83,6 +83,11 @@ completed.
   and produced no crash report; it was stopped after the startup-only check.
   Optional mods were absent and no world/UI interaction was performed. Evidence:
   `project/minecolonies/run-client-optional-compat-20260927/logs/latest.log`.
+- [x] Client-only sound/debug event mixins compile and survive a fresh isolated
+  63-mod client bootstrap through resource reload, OpenAL and texture-atlas
+  creation without a Mixin failure. This checked class application only; sound
+  suppression/replacement and visible F3 output remain manual. Evidence:
+  `project/minecolonies/run-client-event-hooks-20260927/logs/latest.log`.
 - [x] Fresh isolated client smoke after the Structurize language-loader fix
   loaded 63 mods, reached the main menu and Creative inventory, created and
   saved a world on the integrated server, and shut down cleanly using the
@@ -310,7 +315,10 @@ completed.
 - [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,
   pre-break, pre-place, dimension-change, damage, death and mob-conversion
   callbacks; the retained bow adapter dispatches and respects cancellation of
-  `ArrowLooseEvent`; client tooltip and disconnect callbacks are also connected
+  `ArrowLooseEvent`; client tooltip, disconnect, mutable sound and debug-overlay
+  callbacks are also connected. Block placement remains a preflight timing
+  adaptation, and capability providers use `CapabilityHooks` directly rather
+  than replaying `AttachCapabilitiesEvent`.
 - [x] The Forge-shaped Fabric event bus uses copy-on-write listener snapshots,
   honors Forge priority order and discovers inherited listener methods, so
   colony-scoped registration/removal cannot race event dispatch; the 33-test

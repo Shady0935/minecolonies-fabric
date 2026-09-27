@@ -13,7 +13,9 @@
     "ServerPlayerDimensionTravelMixin"
   ],
   "client": [
-    "AbstractContainerScreenAccessor"
+    "AbstractContainerScreenAccessor",
+    "DebugScreenOverlayMixin",
+    "SoundManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

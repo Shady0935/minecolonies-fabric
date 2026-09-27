@@ -184,6 +184,15 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   validates `BlockPlaceContext` and prevents placement when the retained event
   denies it, but it is not a byte-for-byte replacement for Forge's post-place
   timing.
+- The retained client `PlaySoundEvent` and debug-overlay text event now have
+  narrow client-only mixin publishers. A startup-only client check confirms
+  both targets load without a mixin failure, but actual sound suppression or
+  replacement and visible F3 text have not been exercised in-game.
+- MineColonies' world/chunk capability data is supplied directly by the
+  Fabric `CapabilityHooks` provider adapter rather than by replaying Forge's
+  `AttachCapabilitiesEvent` at object construction. Current MineColonies
+  consumers use those providers; third-party listeners expecting that generic
+  Forge event are outside the verified compatibility surface.
 
 ## Validation still pending
 

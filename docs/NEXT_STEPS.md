@@ -174,7 +174,8 @@ migrated to Fabric APIs and compiles against compile-only APIs. Client-only
 behavior requiring live rendering, UI, audio, or a map stays in the deferred
 list.
 
-1. Continue the real gameplay pass. A fresh offline development-profile client
+1. Deferred until after the automated port goal: continue the real gameplay
+   pass. A fresh offline development-profile client
    loads 63 mods and now keeps the saved-world identity stable as `Player847`.
    The user's 2026-09-26 session log confirms supply placement, colony
    foundation, the first citizen, Builder's Hut placement/build progression,
@@ -195,23 +196,27 @@ list.
    authenticated gameplay cycle as manual work. The live UI pass also exposed
    a plural/singular texture path typo in Structurize's switch-pack window;
    fix it and rebuild that dependency before the next client relaunch.
-2. Extend the Fabric GameTest/focused integration fixtures from the current
-   representative server/client network coverage, including the real
+2. Network coverage: the source/test inventory found no concrete serverbound
+   message class without a GameTest reference. Continue split-envelope payload
+   and callback-queue checks only for client-bound families that can be tested
+   headlessly; leave client UI, rendering and audio execution for the deferred
+   in-game pass. Existing focused fixtures include the real
      client-to-server Town Hall rename, colony foundation, direct Town Hall
       placement, hut/building rename, Builder work-order creation/selection,
    decoration work-order creation, building reactivation, Miner level selection, Guard Tower patrol-mine assignment, building dirty marking, move-in policy, citizen pause/resume, Farmer hire/fire and hiring-mode transitions, residence assignment/unassignment, free-interaction permission changes, Builder inventory transfer, minimum-stock module updates, Guard Tower entity-filter updates, Smeltery item-filter updates, GiveTool inventory binding, citizen-inventory transfer, single-citizen recall, assigned-citizen worker/hut recall, Stone Smeltery recipe/menu routes, colony color/help and spy-hiring routes, citizen-inventory menu opening, request-state updates, building pickup, force pickup, warehouse sort/upgrade, Enchanter station assignment, Postbox request creation, citizen-restart scheduling, resource-scroll warehouse snapshots, build-tool inventory swapping, and University research actions. The latest fresh 123-test suite verifies all fifteen colony-view/citizen/removal/chunk-claim/visitor/colony-map S2C registrations, twelve particle/audio registrations and four build/suggestion/scanning registrations, with 37 targeted payload round-trips across colony-view framing and opaque view data, colony-map summaries, colony/building/chunk/visitor state, opaque global-quest/research/recipe/compatibility sync, particle/audio feedback, build and suggestion windows, scan NBT and path debugging. It verifies all nine serverbound `PermissionsMessage` routes through the real C2S split envelope: owner-authorized rank permission changes; authorized rank/player add/remove, player-rank assignment, rank-type and subscriber edits; and rejection of an unauthorized rank addition. `AddPlayer` resolves connected players before consulting the optional profile cache. Every tested route confirms cache cleanup. The `ColonyViewMessage` round-trip caught and fixed its decoder retaining the full packet header as view data. The four opaque sync payloads remain byte-identical across repeated encoding; the citizen, permissions, work-order and visitor view decoders copy only the message payload; split `ServerUUIDMessage` client-executor dispatch and fishing-hook angler synchronization also remain covered. The full `ColonyViewMessage` S2C subscription envelope queues its client callback, clears the split cache and leaves the view absent before dispatch; application requires a live client world. The permissions route now changes an authorized neutral-rank action through C2S, confirms the local view stays unchanged until S2C `PermissionsMessage.View` dispatch, then matches the server and survives colony-NBT reload. Other S2C split-envelope tests verify colony-view removal, FarmField updates, and applied citizen-view, visitor-view, work-order and research-manager updates after the client executor runs. Building-, citizen- and work-order-removal cases verify client-executor queuing/cache cleanup without mutating the dedicated-server views; the citizen/work-order client-only callbacks are not executed, so all client-only removal behavior remains a manual pass. The visitor full-refresh case proves an empty payload keeps the prior visitor until client-executor dispatch, then removes it. Continue payload/dispatch coverage across other client-bound families. Evidence: `logs/minecolonies-gametest-s2c-permissions-view-20260924.log` and `.xml`. The seven registered menu opening buffers already have an
    automated contract test. The dedicated restart probe confirms
    representative citizen and visitor reappearance; broaden it to every
    custom entity family when their gameplay fixtures exist.
-3. Continue covering the remaining Forge event points only where a narrow mixin
-   or server hook can preserve semantics. Item toss/pickup, farmland trampling
-   and bucket filling now have focused Fabric bridges and cancellation coverage;
-   hostile natural/chunk-generation position checks, living-entity explosion
-   damage, `ExplosionEvent.Start` cancellation and complete detonate block and
-   entity filtering are also covered. The retained
-   `ArrowNockEvent`, `ArrowLooseEvent`, projectile-impact, fishing-loot and
-   pre-dimension-travel bridges are covered; remaining unsupported Forge points
-   stay documented individually.
+3. The retained-event audit found and restored two missing client publishers:
+   `PlaySoundEvent` at the vanilla sound-manager boundary and
+   `CustomizeGuiOverlayEvent.DebugText` at debug-text assembly. Item toss/pickup,
+   farmland trampling, bucket filling, hostile natural/chunk-generation spawn
+   checks, living-entity explosion damage, explosion start/detonate filtering,
+   bow hooks, projectile impact, fishing loot and pre-dimension travel already
+   have focused bridges/tests. Keep the documented block-placement preflight
+   timing and direct `CapabilityHooks` provider adaptation explicit; defer sound
+   and visible-overlay behavior checks to the user-facing pass, and do not add
+   shims for Forge events MineColonies does not consume.
 4. Keep the documented DataFixer policy aligned with upstream: no custom
    MineColonies 1.20.1 entity schemas exist in either the Forge source or the
    modern Fabric reference, so do not invent migrations. Revisit only if
