@@ -37,12 +37,17 @@ def gameTestManualRunDir = project.providers.gradleProperty('gameTestManualRunDi
 // Keep the visual client probe isolated from the saved default `run` profile.
 // Override this with -PclientVisualRunDir=run-client-<id> for a fresh profile.
 def clientVisualRunDir = project.providers.gradleProperty('clientVisualRunDir').getOrElse('run-client')
+// Keep the offline development identity stable so a relaunched client can own
+// and continue testing the same saved single-player colony.
+def clientVisualUsername = project.providers.gradleProperty('clientVisualUsername').getOrElse('Player847')
 loom {
     accessWidenerPath = file('src/main/resources/minecolonies.accesswidener')
     runs {
         clientVisual {
             client()
             runDir clientVisualRunDir
+            programArg '--username'
+            programArg clientVisualUsername
         }
         gametest {
             server()
@@ -104,12 +109,50 @@ dependencies {
 processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     inputs.property 'version', project.version
+    inputs.files(
+        'src/main/resources/assets/minecolonies/lang/manual_en_us.json',
+        'src/main/resources/assets/minecolonies/lang/en_us.json',
+        'src/main/generated/resources/assets/minecolonies/lang/default.json',
+        'src/main/generated/resources/assets/minecolonies/lang/quests.json'
+    ).withPropertyName('minecoloniesEnglishTranslations')
     filesMatching('fabric.mod.json') {
         expand 'version': project.version
     }
     exclude 'META-INF/mods.toml'
     exclude 'META-INF/accesstransformer.cfg'
     exclude '**/.cache/**'
+
+    // Minecraft only loads language files named for a real locale. MineColonies keeps
+    // authored translations in manual_en_us.json and datagen emits research/quest
+    // strings separately, so fold all four sources into the runtime en_us.json.
+    doLast {
+        final File languageDirectory = new File(destinationDir, 'assets/minecolonies/lang')
+        final List<File> languageSources = [
+            file('src/main/resources/assets/minecolonies/lang/manual_en_us.json'),
+            file('src/main/resources/assets/minecolonies/lang/en_us.json'),
+            file('src/main/generated/resources/assets/minecolonies/lang/default.json'),
+            file('src/main/generated/resources/assets/minecolonies/lang/quests.json')
+        ]
+        final Map<String, Object> mergedTranslations = new LinkedHashMap<>()
+        languageSources.each { File languageSource ->
+            if (!languageSource.isFile()) {
+                throw new GradleException("Required MineColonies language source is missing: ${languageSource}")
+            }
+
+            final Object parsed = new groovy.json.JsonSlurper().parse(languageSource, 'UTF-8')
+            if (!(parsed instanceof Map)) {
+                throw new GradleException("MineColonies language source must be a JSON object: ${languageSource}")
+            }
+            // The port-owned en_us overlay wins over upstream manual text; generated
+            // research and quest names are distinct keys and are appended last.
+            mergedTranslations.putAll((Map<String, Object>) parsed)
+        }
+
+        final File runtimeLanguage = new File(languageDirectory, 'en_us.json')
+        runtimeLanguage.parentFile.mkdirs()
+        runtimeLanguage.setText(groovy.json.JsonOutput.prettyPrint(
+            groovy.json.JsonOutput.toJson(mergedTranslations)) + System.lineSeparator(), 'UTF-8')
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

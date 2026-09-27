@@ -80,6 +80,17 @@ completed.
   `logs/minecolonies-client-language-loader-20260923.log`. Authentication
   returned HTTP 401 and fell back to the local profile, so this does not count
   as authenticated-client validation or a MineColonies GUI gameplay pass.
+- [x] Runtime English localization now merges the authored, port-owned and
+  datagen research/quest sources into Minecraft's `en_us.json`; all 11 raw
+  MineColonies chat keys observed in the 2026-09-26 user gameplay pass are
+  present in the 3,199-entry bundle. The full build passed in
+  `logs/minecolonies-build-language-merge-20260926.log`, and the client
+  relaunched with 63 mods and the same offline identity, `Player847`. Visible
+  translation confirmation remains pending; the nested default-colony-name
+  key in one formatted mourning message still needs follow-up.
+- [x] The visual test run now pins its default offline username to `Player847`
+  and accepts `-PclientVisualUsername=<name>`, preserving the player's saved
+  UUID and colony permissions across future client restarts.
 - [x] BlockUI's in-world hook renderer is wired to Fabric's
   `WorldRenderEvents.LAST`; the full BlockUI module build and the post-change
   client bootstrap both pass (an authenticated in-game hook overlay check is

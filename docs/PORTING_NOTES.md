@@ -1154,6 +1154,27 @@ development profile and does not verify an authenticated session or
 MineColonies-specific screens. Evidence is in
 `logs/minecolonies-client-language-loader-20260923.log`.
 
+The 2026-09-26 gameplay pass exposed a second, separate localization gap:
+Minecraft ignores `manual_en_us.json` because it is not named for a locale.
+That left supply-placement, colony-progress, Builder and research messages as
+raw keys even though their English strings were present in the source tree.
+`processResources` now merges that authored file, the port-owned `en_us.json`
+overlay, and datagen's research (`default.json`) and quest (`quests.json`)
+translations into the standard runtime `en_us.json`. The overlay wins the five
+overlapping keys. The resulting resource has 3,199 entries; all 11 MineColonies
+chat keys observed during the live test resolve in it, as do representative
+research and quest keys. The complete package build passed, and a fresh 63-mod
+client reloaded resources under the same `Player847` offline identity as the
+saved test world. The user still needs to confirm the visible labels in-game.
+One later mourning message still embeds the Town Hall default-name key as
+literal text even though that key is in the merged bundle; investigate how the
+server formats nested translatable arguments.
+
+The client visual run now defaults to the saved development name `Player847`
+and accepts `-PclientVisualUsername=<name>` to select another profile. This
+keeps the offline UUID stable across relaunches so a saved single-player colony
+does not appear owned by a newly generated test identity.
+
 The port includes the missing English language resource, Fabric-compatible
 block/entity tags, upstream sounds, generated MineColonies tags/advancements/
 damage data/quest resources and entity icons, vanilla spear model overrides,

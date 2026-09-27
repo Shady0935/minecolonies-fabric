@@ -153,13 +153,16 @@ custom-recipe worker cycle, the Stonemason building-request/custom-recipe
   remain open.
 The following work remains, in order:
 
-1. Continue the real gameplay pass. An isolated offline development-profile
-   client now loads 63 mods, reaches the main menu and Creative inventory,
-   creates/saves a world on the integrated server and shuts down cleanly, but
-   does not validate authentication or MineColonies gameplay screens. Still
-   place the supply camp/Town Hall, create a colony,
-   open each BlockUI screen, and exercise a builder, citizen, farmer, miner,
-   Guard Tower, warehouse and research cycle. Automated coverage now verifies
+1. Continue the real gameplay pass. A fresh offline development-profile client
+   loads 63 mods and now keeps the saved-world identity stable as `Player847`.
+   The user's 2026-09-26 session log confirms supply placement, colony
+   foundation, the first citizen, Builder's Hut placement/build progression,
+   and Town Hall/research interactions. That pass exposed the missing runtime
+   language merge, now fixed at resource processing; visible confirmation of
+   the translated buttons and messages remains pending. Continue with the
+   supply ship in water and the remaining BlockUI screens and worker cycles:
+   citizen, farmer, miner, Guard Tower, warehouse and research. Automated
+   coverage now verifies
    two active University research projects progressing in parallel and the
    Researcher's 24-block bookshelf navigation, study and offline-mana scaling;
    the authenticated University GUI/gameplay cycle remains manual.
