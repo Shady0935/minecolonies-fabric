@@ -27,7 +27,7 @@ entrypoint, the generated resource set is the runtime source of truth, retained
 lifecycle/event handlers receive real Fabric callbacks, structure packs load
 through Fabric server lifecycle, and the populated-tavern conversion creates a
 real visitor entity. The latest clean combined Fabric GameTest run passes all
-123 tests, including the owner-controlled colony-rank permission envelope,
+125 tests, including the owner-controlled colony-rank permission envelope,
 authorized permission-management routes and a rejected unauthorized rank edit,
 permission/rank/player state surviving a complete colony-NBT reload,
 two parallel University researches, 24-block Researcher
@@ -61,9 +61,9 @@ report are `logs/minecolonies-gametest-s2c-farm-refresh-20260924.log` and
 build also passes in `logs/minecolonies-build-s2c-farm-refresh-20260924.log`. It saved
 all three dimensions and shut down cleanly. A Farmer-AI follow-up additionally
 proves that compost ripens and enables
-harvesting wheat one age below maturity; the latest full 123-test run and JUnit
-report are `logs/minecolonies-gametest-farmer-compost-verify-20260925.log` and
-`logs/minecolonies-gametest-farmer-compost-verify-20260925.xml`.
+harvesting wheat one age below maturity; the fresh 125-test run and JUnit report
+are `project/minecolonies/run-gametest-supply-diagnostic-20260926/logs/latest.log`
+and `project/minecolonies/build/gametest/junit.xml`.
 A live Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
 Courier autonomously travels from two Warehouse racks to the Builder through its
@@ -153,13 +153,34 @@ custom-recipe worker cycle, the Stonemason building-request/custom-recipe
   remain open.
 The following work remains, in order:
 
+The user has clarified that the active goal should continue through the
+remaining port work without interruptions for interactive testing. Do not
+launch the client or wait on user GUI actions during this goal. GUI-, audio- and
+visual-only checks in the numbered list below, plus a fresh authenticated
+client/server gameplay pass, are deferred until after the automated port work.
+The later in-game iteration list is: overlapping citizen-dialogue sounds and
+the missing citizen interaction window; the Town Hall/colony-selection anomaly
+(the test colony was deleted and its original state is unavailable); slight
+construction-hologram drift while moving; visible BlockUI translations; and
+the Structurize switch-pack icon path. These remain pending, not claimed fixes.
+Detailed network notes that cite a 123-case run below describe the earlier
+focused baseline; the current combined GameTest result is 125/125.
+
+For the active goal, continue the code-only sequence below: finish auditing
+server-testable network/event parity, keep the documented upstream DataFixer
+and generated-resource decisions, and complete the optional JEI/JourneyMap
+Fabric integrations using their Fabric APIs. Client-only callbacks whose
+effect requires a live `ClientLevel`, rendering, UI, or audio output stay in
+the deferred list.
+
 1. Continue the real gameplay pass. A fresh offline development-profile client
    loads 63 mods and now keeps the saved-world identity stable as `Player847`.
    The user's 2026-09-26 session log confirms supply placement, colony
    foundation, the first citizen, Builder's Hut placement/build progression,
    and Town Hall/research interactions. That pass exposed the missing runtime
-   language merge, now fixed at resource processing; visible confirmation of
-   the translated buttons and messages remains pending. Continue with the
+   language merge, now fixed at resource processing; the relaunched client
+   logs readable colony and Builder messages, while the Town Hall/BlockUI
+   button labels still need the user's visual confirmation. Continue with the
    supply ship in water and the remaining BlockUI screens and worker cycles:
    citizen, farmer, miner, Guard Tower, warehouse and research. Automated
    coverage now verifies
@@ -170,7 +191,9 @@ The following work remains, in order:
    sites, but actual full-blueprint placement still needs the in-game pass. The
    spear's Creative search result, attributes tooltip and first-person held
    model have now passed a visual check; retain the actual BlockUI screens and
-   authenticated gameplay cycle as manual work.
+   authenticated gameplay cycle as manual work. The live UI pass also exposed
+   a plural/singular texture path typo in Structurize's switch-pack window;
+   fix it and rebuild that dependency before the next client relaunch.
 2. Extend the Fabric GameTest/focused integration fixtures from the current
    representative server/client network coverage, including the real
      client-to-server Town Hall rename, colony foundation, direct Town Hall
@@ -185,9 +208,9 @@ The following work remains, in order:
    hostile natural/chunk-generation position checks, living-entity explosion
    damage, `ExplosionEvent.Start` cancellation and complete detonate block and
    entity filtering are also covered. The retained
-   `ArrowNockEvent`, `ArrowLooseEvent`, projectile-impact and fishing-loot
-   bridges are covered; remaining unsupported Forge points stay documented
-   individually.
+   `ArrowNockEvent`, `ArrowLooseEvent`, projectile-impact, fishing-loot and
+   pre-dimension-travel bridges are covered; remaining unsupported Forge points
+   stay documented individually.
 4. Keep the documented DataFixer policy aligned with upstream: no custom
    MineColonies 1.20.1 entity schemas exist in either the Forge source or the
    modern Fabric reference, so do not invent migrations. Revisit only if
@@ -199,7 +222,7 @@ The following work remains, in order:
    set.
 6. MultiPiston's separate Fabric 1.20.1 module is implemented and its focused
    registration, redstone stroke/retraction and NBT tests pass. The combined
-   123-test MineColonies + MultiPiston run also passes. Keep it as a required
+   125-test MineColonies + MultiPiston run also passes. Keep it as a required
    runtime dependency; the BlockUI screen still needs visual in-game validation.
 7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
    using explicit Fabric APIs and keeping them optional.

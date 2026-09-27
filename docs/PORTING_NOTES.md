@@ -175,6 +175,15 @@ cancellation and listener removal. The custom fishing hook now also posts
 listeners can change rod damage or cancel the drops, matching Forge's retained
 1.20.1 hook semantics while using MineColonies' `NewBobberEntity` type.
 
+Forge's `EntityTravelToDimensionEvent` is a cancellable pre-transfer event, not
+the post-transfer player notification. Fabric has no equivalent callback, so
+the port posts it at the head of the vanilla entity and server-player
+dimension-change methods, and before cross-world `ServerPlayer.teleportTo`.
+Same-world teleports do not emit it. Each bridge stops the transfer when a
+listener cancels; a dedicated-server GameTest checks all three entry paths,
+exactly-once dispatch and destination dimension. The combined 125-test run
+passes this coverage.
+
 ## Server-side colony fixture and structure packs
 
 Fabric GameTest is enabled through the `fabric-gametest` entrypoint in
@@ -1165,10 +1174,18 @@ overlapping keys. The resulting resource has 3,199 entries; all 11 MineColonies
 chat keys observed during the live test resolve in it, as do representative
 research and quest keys. The complete package build passed, and a fresh 63-mod
 client reloaded resources under the same `Player847` offline identity as the
-saved test world. The user still needs to confirm the visible labels in-game.
-One later mourning message still embeds the Town Hall default-name key as
-literal text even though that key is in the merged bundle; investigate how the
-server formats nested translatable arguments.
+saved test world. Live follow-up messages show translated supply/colony
+progress, Builder guidance and `Player847's Colony`; the excerpt is in
+`logs/minecolonies-language-live-chat-20260926.log`. The first cleanup of the
+older colony briefly printed its nested default-name key, but this did not
+recur after the new colony was founded. Visible BlockUI button labels still
+need confirmation.
+
+The same client log exposed one unrelated screen asset typo: Structurize's
+`windowswitchpack.xml` requests `structurize:textures/items/sceptersteel.png`,
+while the packaged texture is under `textures/item/`. The switch-pack window
+reports a missing icon; correct the XML and rebuild Structurize before the next
+client visual checkpoint.
 
 The client visual run now defaults to the saved development name `Player847`
 and accepts `-PclientVisualUsername=<name>` to select another profile. This

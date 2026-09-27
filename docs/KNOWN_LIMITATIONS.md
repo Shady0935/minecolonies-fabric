@@ -22,6 +22,13 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   darkened border; byte-for-byte PNG identity with the Forge NativeImage
   implementation is not promised.
 - JEI and JourneyMap integrations are excluded from the target source set.
+- The user's latest instruction defers live-client and in-game confirmations
+  until the automated port goal is complete. The later manual pass should
+  revisit the overlapping citizen-dialogue sounds and missing citizen
+  interaction window, the earlier Town Hall/colony-selection anomaly (Colony 1
+  was deleted during testing, so its original state is unavailable),
+  construction-hologram drift while moving, visible BlockUI translations and
+  the Structurize switch-pack icon. These are not verified fixes.
 - The command/entity smoke test summons a citizen without a colony only to
   exercise registration, entity construction and serialization. The upstream
   `CitizenColonyHandler` intentionally removes that isolated citizen on the
@@ -246,7 +253,7 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `ServerUUIDMessage`; the seven registered MineColonies menu types also have
   automated extended-opening-buffer forwarding coverage. GUI rendering and
   interaction are still pending.
-- The headless 123-test suite now sends `SyncPathMessage` and
+- The headless 125-test suite now sends `SyncPathMessage` and
   `SyncPathReachedMessage` through real S2C split envelopes, checking packet-cache
   cleanup and queued callback execution without loading client rendering classes.
   The debug-node display and reached-node coloring still need a live-client pass.
@@ -270,15 +277,15 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest combined 123-test GameTest run still logs the upstream-style warning that
+- The latest combined 125-test GameTest run still logs the upstream-style warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the latest evidence is in
   `logs/minecolonies-gametest-s2c-permissions-view-20260924.log`. The
   blueprint data should be audited before treating this warning as resolved.
-- The latest clean combined 123-case suite hardens only the transient Raider combat
+- The latest clean combined 125-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
-  and records 123/123 required tests passed, including the three focused
+  and records 125/125 required tests passed, including the three focused
   MultiPiston tests. Long-range and fully in-game raid
   behavior, including client interaction, remain manual validation items.
 

@@ -4,11 +4,13 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "FarmBlockMixin",
+    "EntityDimensionTravelMixin",
     "ExplosionMixin",
     "ItemEntityMixin",
     "NaturalSpawnerMixin",
     "PlayerDropMixin",
-    "RandomizableContainerBlockEntityMixin"
+    "RandomizableContainerBlockEntityMixin",
+    "ServerPlayerDimensionTravelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

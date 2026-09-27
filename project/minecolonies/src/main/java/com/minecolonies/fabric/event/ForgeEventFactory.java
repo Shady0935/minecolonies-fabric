@@ -9,6 +9,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.phys.HitResult;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import com.minecolonies.fabric.event.entity.player.ArrowNockEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowLooseEvent;
 import com.minecolonies.fabric.event.entity.player.ItemFishedEvent;
 import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
+import com.minecolonies.fabric.event.entity.EntityTravelToDimensionEvent;
 
 /** Small compatibility surface for Forge hooks that have no direct Fabric event. */
 public final class ForgeEventFactory
@@ -55,6 +57,12 @@ public final class ForgeEventFactory
     public static boolean onProjectileImpact(final Entity projectile, final HitResult hitResult)
     {
         return MinecraftForge.EVENT_BUS.post(new ProjectileImpactEvent(projectile, hitResult));
+    }
+
+    /** Post Forge's cancellable pre-dimension-travel event while the entity is still in its source world. */
+    public static boolean onTravelToDimension(final Entity entity, final ResourceKey<Level> dimension)
+    {
+        return MinecraftForge.EVENT_BUS.post(new EntityTravelToDimensionEvent(entity, dimension));
     }
 
     public static ItemFishedEvent onPlayerFishedItem(final List<ItemStack> drops, final int rodDamage,

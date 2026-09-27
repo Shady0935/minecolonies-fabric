@@ -294,6 +294,7 @@ import com.minecolonies.fabric.event.ForgeEventFactory;
 import com.minecolonies.fabric.event.SubscribeEvent;
 import com.minecolonies.fabric.event.entity.item.ItemTossEvent;
 import com.minecolonies.fabric.event.entity.ProjectileImpactEvent;
+import com.minecolonies.fabric.event.entity.EntityTravelToDimensionEvent;
 import com.minecolonies.fabric.event.entity.living.LivingConversionEvent;
 import com.minecolonies.fabric.event.entity.living.MobSpawnEvent;
 import com.minecolonies.fabric.event.entity.player.ArrowNockEvent;
@@ -327,6 +328,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -383,6 +385,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -489,6 +493,77 @@ public final class MineColoniesGameTests implements FabricGameTest
         finally
         {
             MinecraftForge.EVENT_BUS.unregister(probe);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void dimensionTravelHooksPostAndHonorCancellation(final GameTestHelper helper)
+    {
+        final ServerLevel source = helper.getLevel();
+        final ServerLevel destination = source.getServer().getLevel(
+          source.dimension() == Level.OVERWORLD ? Level.NETHER : Level.OVERWORLD);
+        helper.assertTrue(destination != null && destination != source,
+          "Dimension-travel fixture could not resolve a second server world");
+
+        final AtomicReference<Entity> expectedEntity = new AtomicReference<>();
+        final AtomicReference<EntityTravelToDimensionEvent> observedEvent = new AtomicReference<>();
+        final AtomicInteger observedEventCount = new AtomicInteger();
+        final Object cancellationProbe = new Object()
+        {
+            @SubscribeEvent(priority = EventPriority.HIGHEST)
+            public void cancelExpectedTravel(final EntityTravelToDimensionEvent event)
+            {
+                if (event.getEntity() == expectedEntity.get())
+                {
+                    observedEvent.set(event);
+                    observedEventCount.incrementAndGet();
+                    event.setCanceled(true);
+                }
+            }
+        };
+        MinecraftForge.EVENT_BUS.register(cancellationProbe);
+        try
+        {
+            final Entity pig = EntityType.PIG.create(source);
+            helper.assertTrue(pig != null, "Dimension-travel fixture could not create a pig");
+            pig.setPos(helper.absolutePos(new BlockPos(2, 1, 2)).getCenter());
+            expectedEntity.set(pig);
+            observedEventCount.set(0);
+            final Entity entityResult = pig.changeDimension(destination);
+            final EntityTravelToDimensionEvent entityEvent = observedEvent.getAndSet(null);
+            helper.assertTrue(observedEventCount.get() == 1 && entityEvent != null && entityEvent.getEntity() == pig
+                  && entityEvent.getDimension() == destination.dimension(),
+              "Entity#changeDimension did not post exactly one pre-travel event with its destination");
+            helper.assertTrue(entityResult == null && pig.level() == source && !pig.isRemoved(),
+              "Canceled non-player dimension travel still changed the entity");
+
+            final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            expectedEntity.set(player);
+            observedEventCount.set(0);
+            final Entity playerResult = player.changeDimension(destination);
+            final EntityTravelToDimensionEvent playerEvent = observedEvent.getAndSet(null);
+            helper.assertTrue(observedEventCount.get() == 1 && playerEvent != null && playerEvent.getEntity() == player
+                  && playerEvent.getDimension() == destination.dimension(),
+              "ServerPlayer#changeDimension did not post exactly one pre-travel event");
+            helper.assertTrue(playerResult == null && player.level() == source,
+              "Canceled ServerPlayer#changeDimension still changed the player's world");
+
+            expectedEntity.set(player);
+            observedEventCount.set(0);
+            final boolean teleportResult = player.teleportTo(destination, 8.5, 80.0, 8.5,
+              Set.of(), player.getYRot(), player.getXRot());
+            final EntityTravelToDimensionEvent teleportEvent = observedEvent.getAndSet(null);
+            helper.assertTrue(observedEventCount.get() == 1 && teleportEvent != null && teleportEvent.getEntity() == player
+                  && teleportEvent.getDimension() == destination.dimension(),
+              "Cross-dimension ServerPlayer#teleportTo did not post exactly one pre-travel event");
+            helper.assertTrue(!teleportResult && player.level() == source,
+              "Canceled cross-dimension ServerPlayer#teleportTo still changed the player's world");
+            pig.discard();
+        }
+        finally
+        {
+            MinecraftForge.EVENT_BUS.unregister(cancellationProbe);
         }
         helper.succeed();
     }
@@ -5685,7 +5760,18 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         final ServerLevel level = helper.getLevel();
         final ServerPlayer player = helper.makeMockServerPlayerInLevel();
-        final BlockPos placement = helper.absolutePos(new BlockPos(2, 1, 2));
+        BlockPos relativePlacement = null;
+        for (int offset = 256; offset <= 32768 && relativePlacement == null; offset += 256)
+        {
+            final BlockPos candidate = new BlockPos(offset, 1, offset);
+            if (IColonyManager.getInstance().isFarEnoughFromColonies(level, helper.absolutePos(candidate)))
+            {
+                relativePlacement = candidate;
+            }
+        }
+        helper.assertTrue(relativePlacement != null,
+          "Supply placement fixture could not find a site outside all colony claims");
+        final BlockPos placement = helper.absolutePos(relativePlacement);
         final Blueprint campReference = StructurePacks.getBlueprint(Constants.DEFAULT_STYLE, "decorations/supplies/supplycamp.blueprint");
         helper.assertTrue(campReference != null && campReference.getSizeX() > 0 && campReference.getSizeZ() > 0,
           "Default supply-camp blueprint could not be resolved");
@@ -5708,7 +5794,8 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         final List<PlacementError> campErrors = new ArrayList<>();
         helper.assertTrue(ItemSupplyCampDeployer.canCampBePlaced(level, placement, campErrors, player, camp),
-          "A camp blueprint on solid ground with clear overhead was rejected: " + campErrors);
+          "A camp blueprint on solid ground with clear overhead was rejected: "
+            + campErrors.stream().map(error -> error.getType() + "@" + error.getPos()).toList());
         helper.assertTrue(campErrors.isEmpty(), "Valid camp placement unexpectedly reported terrain errors");
 
         final BlockPos obstruction = new BlockPos(campOrigin.getX(), campGroundY + 1, campOrigin.getZ());
