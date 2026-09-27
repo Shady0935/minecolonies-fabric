@@ -1097,8 +1097,9 @@ message IDs while their client behavior is isolated in `ClientNetworkHooks`.
 The same isolation now covers the remaining client-bound message families:
 colony-list/view removal, particles, audio, pathfinding debug updates, build
 window opening and scan saving. Their common message classes contain codecs and
-server-safe dispatch only; `ClientMessageBridge` resolves the client hook by
-reflection after the Fabric client entrypoint is present. `NetworkChannel`
+server-safe dispatch only; `ClientMessageBridge` checks Fabric's environment
+before resolving the client hook by reflection, so dedicated servers never
+attempt to link client-only types such as `LocalPlayer`. `NetworkChannel`
 registers these classes on both logical environments without shifting the
 upstream numeric IDs. The dedicated server was started, asked to save and stop,
 then restarted on the same world after this change; `logs/minecolonies-runserver-citizen-restart.log`

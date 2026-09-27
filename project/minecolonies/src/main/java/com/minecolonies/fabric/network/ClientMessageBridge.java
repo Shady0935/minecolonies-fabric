@@ -1,5 +1,8 @@
 package com.minecolonies.fabric.network;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -20,6 +23,11 @@ public final class ClientMessageBridge
     /** Invoke a named client hook, ignoring the bridge only on a dedicated server. */
     public static void invoke(final String methodName, final Class<?>[] parameterTypes, final Object... arguments)
     {
+        if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT)
+        {
+            return;
+        }
+
         try
         {
             final Class<?> bridge = Class.forName(CLIENT_HOOKS);

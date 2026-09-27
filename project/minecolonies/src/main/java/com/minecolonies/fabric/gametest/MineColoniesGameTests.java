@@ -370,6 +370,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.AABB;
 import com.minecolonies.fabric.LogicalSide;
+import com.minecolonies.fabric.network.ClientMessageBridge;
 import com.minecolonies.fabric.network.NetworkEvent;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
@@ -6834,6 +6835,39 @@ public final class MineColoniesGameTests implements FabricGameTest
         clientWork.remove(0).run();
         helper.assertTrue(IColonyManager.getInstance().getServerUUID().equals(expectedServerUuid),
           "Fabric client receiver did not dispatch the reassembled ServerUUIDMessage");
+
+        // Verify remaining client-targeted routes without executing callbacks that require a live client,
+        // renderer, GUI or audio engine. Dedicated-server GameTests can prove scheduling and reassembly only.
+        final List<IMessage> clientQueueFixtures = List.of(
+          original,
+          new OpenSuggestionWindowMessage(Blocks.DIAMOND_BLOCK.defaultBlockState(), townHall, new ItemStack(Items.IRON_INGOT)),
+          new OpenPlantationFieldBuildWindowMessage(townHall, "colonial", "fields/plantation",
+            Rotation.NONE, Mirror.NONE),
+          new SaveStructureNBTMessage(scanNbt, "client-scan.nbt"),
+          new ColonyListMessage(List.of(colony)),
+          new UpdateChunkCapabilityMessage(townHallChunkCapability, townHall.getX() >> 4, townHall.getZ() >> 4),
+          new UpdateChunkRangeCapabilityMessage(level, townHall.getX() >> 4, townHall.getZ() >> 4, 0, true),
+          new BlockParticleEffectMessage(townHall, Blocks.OAK_PLANKS.defaultBlockState(), 3),
+          new CompostParticleMessage(townHall),
+          new ItemParticleEffectMessage(new ItemStack(Items.APPLE, 2), 1.25D, 70.5D, -2.75D,
+            -0.25D, 0.5D, 0.75D),
+          new LocalizedParticleEffectMessage(new ItemStack(Items.REDSTONE, 2), townHall),
+          new StreamParticleEffectMessage(new Vec3(1.25D, 70.5D, -2.75D), new Vec3(3.5D, 72.0D, 4.25D),
+            ParticleTypes.HAPPY_VILLAGER, 1, 3),
+          new SleepingParticleMessage(1.25D, 70.5D, -2.75D),
+          new CircleParticleEffectMessage(new Vec3(1.25D, 70.5D, -2.75D), ParticleTypes.CRIT, 3),
+          new VanillaParticleMessage(1.25D, 70.5D, -2.75D, ParticleTypes.HAPPY_VILLAGER),
+          new StopMusicMessage(),
+          new PlayAudioMessage(SoundEvents.MUSIC_DISC_CAT, SoundSource.MUSIC),
+          new PlayMusicAtPosMessage(SoundEvents.MUSIC_DISC_13, townHall, level, 0.625F, 1.25F),
+          new PlaySoundForCitizenMessage(123, SoundEvents.MUSIC_DISC_CAT, SoundSource.MUSIC,
+            townHall, level, 0.375F, 1.625F, 40, 3));
+        int clientQueueCommunicationId = 0x4D435600;
+        for (final IMessage message : clientQueueFixtures)
+        {
+            assertClientBoundDispatchQueued(helper, channel, message, clientQueueCommunicationId++);
+        }
+        ClientMessageBridge.invoke("dedicatedServerMustNotResolveClientHooks", new Class<?>[0]);
         helper.succeed();
     }
 
@@ -12053,6 +12087,37 @@ public final class MineColoniesGameTests implements FabricGameTest
           messageName + " changed during its client-bound codec round-trip");
         helper.assertTrue(decoded.getExecutionSide() == LogicalSide.CLIENT,
           messageName + " no longer targets the client logical side");
+    }
+
+    private static void assertClientBoundDispatchQueued(final GameTestHelper helper,
+                                                         final NetworkChannel channel,
+                                                         final IMessage message,
+                                                         final int communicationId)
+    {
+        helper.assertTrue(message.getExecutionSide() != LogicalSide.SERVER,
+          message.getClass().getSimpleName() + " is not valid for client-side dispatch");
+        final int messageId = findMessageId(channel, message.getClass());
+        helper.assertTrue(messageId > 0,
+          message.getClass().getSimpleName() + " has no registered inner network id");
+
+        final List<Runnable> clientWork = new ArrayList<>();
+        final FriendlyByteBuf envelope = new FriendlyByteBuf(Unpooled.wrappedBuffer(
+          encode(new SplitPacketMessage(communicationId, 0, true, messageId, encode(message)))));
+        try
+        {
+            channel.getRawChannel().handleClient(envelope, clientWork::add);
+        }
+        finally
+        {
+            envelope.release();
+        }
+
+        helper.assertTrue(clientWork.size() == 1,
+          message.getClass().getSimpleName() + " did not enqueue exactly one client handler");
+        helper.assertTrue(channel.getMessageCache().getIfPresent(communicationId) == null,
+          message.getClass().getSimpleName() + " remained in the split-packet cache after dispatch");
+        // The callback is deliberately not invoked: these fixtures cover headless transport, not client behavior.
+        clientWork.clear();
     }
 
     private static <T extends IMessage> void assertClientBoundBufferedRoundTrip(final GameTestHelper helper,

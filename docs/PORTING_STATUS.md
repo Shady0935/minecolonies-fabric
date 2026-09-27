@@ -124,6 +124,8 @@ completed.
 - [x] Fabric play networking registered in both directions
 - [x] Client-bound message codecs are server-loadable; visual execution is
   isolated behind the client bridge while preserving the upstream message IDs
+- [x] Common client-message bridge exits on dedicated servers before resolving
+  client-only classes; the dedicated network GameTest exercises this boundary
 - [x] `SyncPathMessage` and `SyncPathReachedMessage` traverse real S2C split
   envelopes with cache cleanup and client-executor dispatch in dedicated-server
   GameTests; visible renderer updates still require a client-side check
@@ -281,10 +283,15 @@ completed.
   its decoder retaining the whole packet header as colony data. Coverage is
   now 37 targeted payload round-trips. The latest 125-test run passes,
   including fishing-hook angler synchronization and all nine serverbound
-  permission-message families, with an unauthorized rank edit rejected; the
-  server saves all three dimensions and stops cleanly. Latest evidence is in
-  `logs/minecolonies-gametest-s2c-permissions-view-20260924.log` and
-  `logs/minecolonies-gametest-s2c-permissions-view-20260924.xml`; the
+  permission-message families, with an unauthorized rank edit rejected.
+  Nineteen additional map, chunk-capability, build/suggestion/scan and
+  particle/audio S2C messages now traverse the split envelope, queue one client
+  callback and clear their cache without running visual, GUI or audio effects.
+  The same dedicated-server case confirms `ClientMessageBridge` returns before
+  resolving client-only classes. The server saves all three dimensions and
+  stops cleanly. Latest evidence is in
+  `project/minecolonies/run-gametest-client-bridge-20260927/logs/latest.log`
+  and `project/minecolonies/build/gametest/junit.xml`; the
   previous full-suite evidence is in
   `logs/minecolonies-gametest-builder-two-racks-20260923.log` and
   `logs/minecolonies-gametest-builder-two-racks-20260923.xml`; the
@@ -309,7 +316,8 @@ completed.
   dispatch and registration-only results remain in
   `logs/minecolonies-gametest-s2c-client-dispatch-113-20260922.log` and
   `logs/minecolonies-gametest-s2c-colony-family-113-20260922.log`.
-  Payload/dispatch coverage for other client-bound families remains open.
+  Client-world synchronization and client-only removal/subscription callbacks
+  that require a live world remain deferred for the in-game pass.
 - [x] Fabric lifecycle bridge dispatches server/client ticks, world/chunk/entity
   lifecycle, commands, login/logout and datapack reload callbacks
 - [x] Fabric gameplay bridge dispatches right-click block/item/entity, attack,
@@ -723,7 +731,7 @@ completed.
   removal, S2C FarmField state synchronization, client-executor queuing for
   building-, citizen- and work-order-view removal, and applied S2C work-order,
   citizen-view, visitor-view and research-manager updates,
-  `project/minecolonies/run-gametest-optional-compat-20260927/logs/latest.log`
+  `project/minecolonies/run-gametest-client-bridge-20260927/logs/latest.log`
   and `project/minecolonies/build/gametest/junit.xml`
   (125 cases, zero failures/errors; the GameTest run also rebuilt successfully),
   with clean saves for all three
