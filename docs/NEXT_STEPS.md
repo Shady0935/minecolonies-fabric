@@ -168,10 +168,11 @@ focused baseline; the current combined GameTest result is 125/125.
 
 For the active goal, continue the code-only sequence below: finish auditing
 server-testable network/event parity, keep the documented upstream DataFixer
-and generated-resource decisions, and complete the optional JEI/JourneyMap
-Fabric integrations using their Fabric APIs. Client-only callbacks whose
-effect requires a live `ClientLevel`, rendering, UI, or audio output stay in
-the deferred list.
+and generated-resource decisions, and verify the optional JEI/JourneyMap Fabric
+integrations and packaged dependency boundaries. Their source has been
+migrated to Fabric APIs and compiles against compile-only APIs. Client-only
+behavior requiring live rendering, UI, audio, or a map stays in the deferred
+list.
 
 1. Continue the real gameplay pass. A fresh offline development-profile client
    loads 63 mods and now keeps the saved-world identity stable as `Player847`.
@@ -224,8 +225,10 @@ the deferred list.
    registration, redstone stroke/retraction and NBT tests pass. The combined
    125-test MineColonies + MultiPiston run also passes. Keep it as a required
    runtime dependency; the BlockUI screen still needs visual in-game validation.
-7. Revisit JEI and JourneyMap integrations only after the core gameplay pass,
-   using explicit Fabric APIs and keeping them optional.
+7. The MineColonies JEI and JourneyMap Fabric adapters and the Domum Ornamentum
+   Architect's Cutter JEI adapter are now ported and compile-only. Keep actual
+   recipe/transfer, ghost-slot, map-overlay and waypoint checks in the deferred
+   client pass, with the optional mods installed.
 8. The server-mod ZIP now builds and passes a fresh standalone Fabric server
    launch/save/clean-stop test with secure authentication settings. Next, join
    it from a fresh authenticated client and complete a real in-game pass; the

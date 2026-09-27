@@ -10,9 +10,11 @@ import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.mobs.AbstractEntityRaiderMob;
 import com.minecolonies.coremod.colony.jobs.AbstractJobGuard;
 import com.minecolonies.coremod.entity.citizen.VisitorCitizen;
-import journeymap.client.api.display.Context;
-import journeymap.client.api.event.forge.EntityRadarUpdateEvent;
-import journeymap.client.api.model.WrappedEntity;
+import journeymap.api.v2.client.entity.WrappedEntity;
+import journeymap.api.v2.client.event.EntityRadarUpdateEvent;
+import journeymap.api.v2.client.util.UIState;
+import journeymap.api.v2.common.Context;
+import journeymap.api.v2.common.event.ClientEventRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -50,6 +52,7 @@ public class EventListener
         this.jmap = jmap;
 
         MinecraftForge.EVENT_BUS.register(this);
+        ClientEventRegistry.ENTITY_RADAR_UPDATE_EVENT.subscribe(MOD_ID, this::onUpdateEntityRadar);
     }
 
     @SubscribeEvent
@@ -57,6 +60,7 @@ public class EventListener
     {
         ColonyDeathpoints.clear();
         this.jmap.getApi().removeAll(MOD_ID);
+        this.jmap.getApi().removeAllWaypoints(MOD_ID);
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
@@ -93,7 +97,11 @@ public class EventListener
     public void onUpdateEntityRadar(@NotNull final EntityRadarUpdateEvent event)
     {
         final WrappedEntity wrapper = event.getWrappedEntity();
-        final LivingEntity entity = wrapper.getEntityLivingRef().get();
+        final net.minecraft.world.entity.Entity reference = wrapper.getEntityRef().get();
+        if (!(reference instanceof LivingEntity entity))
+        {
+            return;
+        }
 
         if (entity instanceof AbstractEntityCitizen)
         {
@@ -138,7 +146,8 @@ public class EventListener
                 }
             }
 
-            final boolean showName = event.getActiveUiState().ui.equals(Context.UI.Minimap)
+            final UIState activeUiState = event.getActiveUiState();
+            final boolean showName = activeUiState != null && activeUiState.ui.equals(Context.UI.Minimap)
                     ? JourneymapOptions.getShowColonistNameMinimap(this.jmap.getOptions())
                     : JourneymapOptions.getShowColonistNameFullscreen(this.jmap.getOptions());
 

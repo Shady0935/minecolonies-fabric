@@ -360,7 +360,8 @@ public abstract class JobBasedRecipeCategory<T> implements IRecipeCategory<T>
             if (modIdHelper.isDisplayingModNameEnabled())
             {
                 final String recipeModId = id.getNamespace();
-                final String ingredientModId = ingredient.getItem().getCreatorModId(ingredient);
+                final String ingredientModId = com.minecolonies.fabric.registry.FabricRegistries.ITEMS
+                        .getKey(ingredient.getItem()).getNamespace();
                 if (!recipeModId.equals(ingredientModId))
                 {
                     final String modName = modIdHelper.getFormattedModNameForModId(recipeModId);

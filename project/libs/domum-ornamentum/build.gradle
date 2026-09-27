@@ -7,7 +7,13 @@ version = project.mod_version
 group = project.modGroup
 base { archivesName = project.modBaseName + '-fabric-1.20.1' }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+    maven {
+        name = 'JEI'
+        url = 'https://maven.blamejared.com'
+    }
+}
 
 sourceSets {
     main {
@@ -19,7 +25,7 @@ sourceSets {
             // under the original datagen output tree.
             'src/datagen/generated/domum_ornamentum'
         ]
-        java.exclude('**/datagen/**', '**/jei/**')
+        java.exclude('**/datagen/**')
     }
 }
 
@@ -28,6 +34,8 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // JEI support is optional at runtime and its API is never bundled.
+    modCompileOnly 'mezz.jei:jei-1.20.1-fabric-api:15.62.0.216'
 }
 
 processResources {

@@ -6,11 +6,9 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
-import com.minecolonies.fabric.client.model.data.ModelData;
 
 /**
  * JEI GUI rendering utility helpers
@@ -52,7 +50,7 @@ public class RenderHelper
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         final MultiBufferSource.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
-        mc.getBlockRenderer().renderSingleBlock(block, matrixStack, buffers, 0x00F000F0, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, RenderType.solid());
+        mc.getBlockRenderer().renderSingleBlock(block, matrixStack, buffers, 0x00F000F0, OverlayTexture.NO_OVERLAY);
         buffers.endBatch();
         matrixStack.popPose();
 

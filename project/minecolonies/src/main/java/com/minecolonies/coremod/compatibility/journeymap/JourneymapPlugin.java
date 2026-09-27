@@ -1,20 +1,19 @@
 package com.minecolonies.coremod.compatibility.journeymap;
 
-import journeymap.client.api.ClientPlugin;
-import journeymap.client.api.IClientAPI;
-import journeymap.client.api.IClientPlugin;
-import journeymap.client.api.event.ClientEvent;
-import journeymap.client.api.event.RegistryEvent;
+import journeymap.api.v2.client.IClientAPI;
+import journeymap.api.v2.client.IClientPlugin;
+import journeymap.api.v2.client.JmApiVersion;
+import journeymap.api.v2.common.JourneyMapPlugin;
+import journeymap.api.v2.common.event.ClientEventRegistry;
+import journeymap.api.v2.client.event.MappingEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.EnumSet;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
 /**
  * Plugin entrypoint for JourneyMap
  */
-@ClientPlugin
+@JourneyMapPlugin(apiVersion = JmApiVersion.VERSION)
 public class JourneymapPlugin implements IClientPlugin
 {
     private Journeymap jmap;
@@ -26,10 +25,27 @@ public class JourneymapPlugin implements IClientPlugin
         this.jmap = new Journeymap(api);
         this.listener = new EventListener(this.jmap);
 
-        api.subscribe(MOD_ID, EnumSet.of(
-                ClientEvent.Type.MAPPING_STARTED,
-                ClientEvent.Type.MAPPING_STOPPED,
-                ClientEvent.Type.REGISTRY));
+        ClientEventRegistry.MAPPING_EVENT.subscribe(MOD_ID, event ->
+        {
+            if (event.getStage() == MappingEvent.Stage.MAPPING_STARTED)
+            {
+                this.jmap.beginMapping(event.dimension);
+                ColonyBorderMapping.load(this.jmap, event.dimension);
+            }
+            else if (event.getStage() == MappingEvent.Stage.MAPPING_STOPPED)
+            {
+                ColonyBorderMapping.unload(this.jmap, event.dimension);
+                ColonyDeathpoints.unload(this.jmap, event.dimension);
+                this.jmap.endMapping(event.dimension);
+            }
+        });
+
+        ClientEventRegistry.OPTIONS_REGISTRY_EVENT.subscribe(MOD_ID,
+          event -> this.jmap.setOptions(new JourneymapOptions()));
+
+        ClientEventRegistry.INFO_SLOT_REGISTRY_EVENT.subscribe(MOD_ID,
+          event -> event.register(MOD_ID, "com.minecolonies.coremod.journeymap.currentcolony",
+            2500, ColonyBorderMapping::getCurrentColony));
     }
 
     @Override
@@ -38,32 +54,4 @@ public class JourneymapPlugin implements IClientPlugin
         return MOD_ID;
     }
 
-    @Override
-    public void onEvent(@NotNull final ClientEvent event)
-    {
-        switch (event.type)
-        {
-            case MAPPING_STARTED:
-                ColonyBorderMapping.load(this.jmap, event.dimension);
-                break;
-
-            case MAPPING_STOPPED:
-                ColonyBorderMapping.unload(this.jmap, event.dimension);
-                ColonyDeathpoints.unload(this.jmap, event.dimension);
-                break;
-
-            case REGISTRY:
-                final RegistryEvent registryEvent = (RegistryEvent) event;
-                if (RegistryEvent.RegistryType.OPTIONS.equals(registryEvent.getRegistryType()))
-                {
-                    this.jmap.setOptions(new JourneymapOptions());
-                }
-                else if (RegistryEvent.RegistryType.INFO_SLOT.equals(registryEvent.getRegistryType()))
-                {
-                    final RegistryEvent.InfoSlotRegistryEvent infoSlotRegistry = (RegistryEvent.InfoSlotRegistryEvent) registryEvent;
-                    infoSlotRegistry.register(MOD_ID, "com.minecolonies.coremod.journeymap.currentcolony", 2500, ColonyBorderMapping::getCurrentColony);
-                }
-                break;
-        }
-    }
 }

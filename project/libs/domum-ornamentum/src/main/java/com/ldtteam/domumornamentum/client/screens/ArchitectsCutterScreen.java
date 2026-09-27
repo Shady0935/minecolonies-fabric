@@ -77,6 +77,16 @@ public class ArchitectsCutterScreen extends AbstractContainerScreen<ArchitectsCu
         this.imageHeight = CUTTER_BG_H;
     }
 
+    /** Exposes the vanilla screen origin to optional client integrations such as JEI. */
+    public int getGuiLeft() {
+        return this.leftPos;
+    }
+
+    /** Exposes the vanilla screen origin to optional client integrations such as JEI. */
+    public int getGuiTop() {
+        return this.topPos;
+    }
+
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.render(graphics, mouseX, mouseY, partialTicks);

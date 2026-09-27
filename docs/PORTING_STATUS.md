@@ -1,6 +1,6 @@
 # Porting status
 
-Checkpoint: 2026-09-26. A checked item is verified in the target workspace;
+Checkpoint: 2026-09-27. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually
 completed.
@@ -20,6 +20,11 @@ completed.
 - [x] Fabric Loader/API and Java 17 pinned
 - [x] BlockUI Fabric development dependency resolved
 - [x] Domum Ornamentum Fabric development dependency built and loaded
+- [x] MineColonies' JEI recipe/transfer and JourneyMap Fabric adapters are
+  migrated to the 1.20.1 Fabric APIs and use compile-only dependencies;
+  Domum Ornamentum's Architect's Cutter JEI category/ghost-slot adapter is
+  likewise ported and optional. The API classes are not bundled; live client
+  behavior remains explicitly pending.
 - [x] Structurize Fabric development dependency built and loaded
 - [x] MultiPiston ported as a separate Fabric 1.20.1 module and declared as a
   required MineColonies runtime dependency; its focused 3-test GameTest batch

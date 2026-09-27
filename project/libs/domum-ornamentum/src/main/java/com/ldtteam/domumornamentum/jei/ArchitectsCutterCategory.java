@@ -11,6 +11,8 @@ import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.item.interfaces.IDoItem;
 import com.ldtteam.domumornamentum.recipe.architectscutter.ArchitectsCutterRecipe;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -33,19 +35,16 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.ldtteam.domumornamentum.util.Constants.MOD_ID;
 import static com.ldtteam.domumornamentum.util.GuiConstants.*;
 
-@OnlyIn(Dist.CLIENT)
 public class ArchitectsCutterCategory implements IRecipeCategory<ArchitectsCutterRecipe>
 {
     public static final RecipeType<ArchitectsCutterRecipe> TYPE
@@ -130,14 +129,19 @@ public class ArchitectsCutterCategory implements IRecipeCategory<ArchitectsCutte
                           @NotNull final ArchitectsCutterRecipe recipe,
                           @NotNull final IFocusGroup focuses)
     {
-        final Block generatedBlock = ForgeRegistries.BLOCKS.getValue(recipe.getBlockName());
+        if (!BuiltInRegistries.BLOCK.containsKey(recipe.getBlockName()))
+            return;
+
+        final Block generatedBlock = BuiltInRegistries.BLOCK.get(recipe.getBlockName());
 
         if (!(generatedBlock instanceof final IMateriallyTexturedBlock materiallyTexturedBlock))
             return;
 
         final Collection<IMateriallyTexturedBlockComponent> components = materiallyTexturedBlock.getComponents();
         final List<List<ItemStack>> inputs = components.stream()
-                .map(component -> ForgeRegistries.BLOCKS.tags().getTag(component.getValidSkins()).stream()
+                .map(component -> StreamSupport.stream(
+                                BuiltInRegistries.BLOCK.getTagOrEmpty(component.getValidSkins()).spliterator(), false)
+                        .map(Holder::value)
                         .map(ItemStack::new)
                         .collect(Collectors.collectingAndThen(
                                 Collectors.toCollection(ArrayList::new),

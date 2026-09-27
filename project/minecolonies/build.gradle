@@ -12,6 +12,12 @@ base {
 
 repositories {
     mavenCentral()
+    // Optional Fabric compatibility APIs; these remain compile-only and are
+    // never bundled or required by MineColonies at runtime.
+    maven {
+        name = 'FabricModApis'
+        url = 'https://maven.blamejared.com'
+    }
 }
 
 def serverBundleFabricApi = configurations.create('serverBundleFabricApi') {
@@ -77,12 +83,9 @@ sourceSets {
     main {
         java {
             srcDirs = ['src/main/java', 'src/api/java']
-            // Optional integrations stay out of the Fabric runtime. Datagen is
-            // compiled again so the Fabric entrypoint can reuse the portable
-            // 1.20.1 providers; the remaining Forge-only adapters are listed
-            // explicitly until their Fabric implementations replace them.
-            exclude '**/compatibility/jei/**'
-            exclude '**/compatibility/journeymap/**'
+            // Optional integrations compile against their public APIs but are
+            // only discovered when the corresponding client mod is present.
+            // Their APIs are compile-only and are never bundled.
         }
         resources {
             // The native Fabric datagen output is the runtime source of truth.
@@ -104,6 +107,9 @@ dependencies {
     implementation files(project.domum_jar)
     implementation files(project.structurize_jar)
     modImplementation files(project.multipiston_jar)
+
+    modCompileOnly 'mezz.jei:jei-1.20.1-fabric-api:15.62.0.216'
+    modCompileOnlyApi 'info.journeymap:journeymap-api-fabric:1.20.1-2.0.0'
 }
 
 processResources {

@@ -21,7 +21,13 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   The implementation preserves the upstream 8x8 head crop, 16x16 output and
   darkened border; byte-for-byte PNG identity with the Forge NativeImage
   implementation is not promised.
-- JEI and JourneyMap integrations are excluded from the target source set.
+- MineColonies' JEI recipe/transfer integration and JourneyMap Fabric API
+  integration, plus Domum Ornamentum's Architect's Cutter JEI integration,
+  are now included and compile against optional, compile-only APIs. The APIs
+  are not bundled and neither JEI nor JourneyMap is required to launch the
+  mods. Build/package validation does not prove their live-client rendering,
+  recipe transfer, ghost-slot, map-overlay or waypoint behavior; those remain
+  for the deferred client pass.
 - The user's latest instruction defers live-client and in-game confirmations
   until the automated port goal is complete. The later manual pass should
   revisit the overlapping citizen-dialogue sounds and missing citizen

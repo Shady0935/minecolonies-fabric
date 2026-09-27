@@ -7,8 +7,8 @@ import com.google.gson.stream.JsonWriter;
 import com.minecolonies.api.util.Log;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import journeymap.client.api.IClientAPI;
-import journeymap.client.api.display.Displayable;
+import journeymap.api.v2.client.IClientAPI;
+import journeymap.api.v2.client.display.Displayable;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.io.File;
 
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
 
@@ -28,6 +29,7 @@ public class Journeymap
 
     private IClientAPI jmap;
     private JourneymapOptions options;
+    private final Map<ResourceKey<Level>, Path> dataPaths = new HashMap<>();
 
     public Journeymap(final IClientAPI jmap)
     {
@@ -72,6 +74,22 @@ public class Journeymap
         this.options = options;
     }
 
+    /** Cache JourneyMap's per-world addon path while it is valid. */
+    public void beginMapping(final ResourceKey<Level> dimension)
+    {
+        final File basePath = this.jmap.getDataPath(MOD_ID);
+        if (basePath != null)
+        {
+            this.dataPaths.put(dimension, basePath.toPath().resolve(dimension.location().getPath()));
+        }
+    }
+
+    /** Release a cached addon path after all dimension data has been saved. */
+    public void endMapping(final ResourceKey<Level> dimension)
+    {
+        this.dataPaths.remove(dimension);
+    }
+
     /**
      * Helper method to simplify showing displayables.
      *
@@ -97,8 +115,7 @@ public class Journeymap
      */
     public Path getDataPath(final ResourceKey<Level> dimension)
     {
-        final String name = dimension.location().getPath();
-        return this.jmap.getDataPath(MOD_ID).toPath().resolve(name);
+        return this.dataPaths.get(dimension);
     }
 
     /**

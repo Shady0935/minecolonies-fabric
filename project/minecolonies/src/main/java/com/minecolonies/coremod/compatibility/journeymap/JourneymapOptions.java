@@ -1,6 +1,6 @@
 package com.minecolonies.coremod.compatibility.journeymap;
 
-import journeymap.client.api.option.*;
+import journeymap.api.v2.common.option.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.TextColor;
 import org.jetbrains.annotations.NotNull;

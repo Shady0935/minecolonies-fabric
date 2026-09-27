@@ -12,6 +12,9 @@
     "RandomizableContainerBlockEntityMixin",
     "ServerPlayerDimensionTravelMixin"
   ],
+  "client": [
+    "AbstractContainerScreenAccessor"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

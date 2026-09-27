@@ -8,13 +8,13 @@ import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.colony.permissions.Action;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import journeymap.client.api.display.Context;
-import journeymap.client.api.display.DisplayType;
-import journeymap.client.api.display.PolygonOverlay;
-import journeymap.client.api.model.MapPolygonWithHoles;
-import journeymap.client.api.model.ShapeProperties;
-import journeymap.client.api.model.TextProperties;
-import journeymap.client.api.util.PolygonHelper;
+import journeymap.api.v2.client.display.DisplayType;
+import journeymap.api.v2.client.display.PolygonOverlay;
+import journeymap.api.v2.client.model.MapPolygonWithHoles;
+import journeymap.api.v2.client.model.ShapeProperties;
+import journeymap.api.v2.client.model.TextProperties;
+import journeymap.api.v2.client.util.PolygonHelper;
+import journeymap.api.v2.common.Context;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -56,8 +56,13 @@ public class ColonyBorderMapping
      */
     public static String getCurrentColony()
     {
-        final BlockPos pos = Minecraft.getInstance().player.blockPosition();
-        final IColony colony = IColonyManager.getInstance().getIColony(Minecraft.getInstance().level, pos);
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.level == null)
+        {
+            return "";
+        }
+        final BlockPos pos = minecraft.player.blockPosition();
+        final IColony colony = IColonyManager.getInstance().getIColony(minecraft.level, pos);
         return colony != null ? colony.getName() : "";
     }
 
@@ -72,7 +77,12 @@ public class ColonyBorderMapping
         final Map<Integer, ColonyBorderOverlay> dimensionOverlays =
                 overlays.computeIfAbsent(dimension, k -> new HashMap<>());
 
-        final Path dataPath = jmap.getDataPath(dimension).resolve("border.json");
+        final Path basePath = jmap.getDataPath(dimension);
+        if (basePath == null)
+        {
+            return;
+        }
+        final Path dataPath = basePath.resolve("border.json");
         jmap.loadData(dataPath, "colony border data", DIM_BORDER_CODEC)
                 .ifPresent(saved ->
                 {
@@ -98,9 +108,12 @@ public class ColonyBorderMapping
                 overlay.unload(jmap);
             }
 
-            final Path dataPath = jmap.getDataPath(dimension).resolve("border.json");
-            jmap.saveData(dataPath, "colony border data", DIM_BORDER_CODEC,
-                    new ArrayList<>(dimensionOverlays.values()));
+            final Path basePath = jmap.getDataPath(dimension);
+            if (basePath != null)
+            {
+                jmap.saveData(basePath.resolve("border.json"), "colony border data", DIM_BORDER_CODEC,
+                        new ArrayList<>(dimensionOverlays.values()));
+            }
         }
     }
 
@@ -245,7 +258,7 @@ public class ColonyBorderMapping
                     .setFontShadow(true);
 
             this.noText = new TextProperties()
-                    .setActiveUIs(EnumSet.noneOf(Context.UI.class));
+                    .setActiveUIs();
         }
 
         /** Add or remove chunks from this overlay */
@@ -329,7 +342,6 @@ public class ColonyBorderMapping
 
                     final List<MapPolygonWithHoles> polygons = PolygonHelper.createChunksPolygon(this.chunks, 256);
 
-                    int index = 0;
                     for (final MapPolygonWithHoles polygon : polygons)
                     {
                         // fullscreen map
@@ -338,9 +350,9 @@ public class ColonyBorderMapping
                             final ShapeProperties shape = JourneymapOptions.BorderStyle.FILLED.equals(fullscreenStyle)
                                     ? this.fill : this.stroke;
 
-                            final PolygonOverlay overlay = new PolygonOverlay(MOD_ID, String.format("%s_%s", this.name, ++index), this.dimension, shape, polygon.hull, polygon.holes);
+                            final PolygonOverlay overlay = new PolygonOverlay(MOD_ID, this.dimension, shape, polygon);
                             overlay.setOverlayGroupName(this.name)
-                                    .setActiveUIs(EnumSet.of(Context.UI.Fullscreen, Context.UI.Webmap))
+                                    .setActiveUIs(Context.UI.Fullscreen, Context.UI.Webmap)
                                     .setTextProperties(this.text)
                                     .setLabel(this.colonyName);
                             this.overlays.add(overlay);
@@ -353,9 +365,9 @@ public class ColonyBorderMapping
                             final ShapeProperties shape = JourneymapOptions.BorderStyle.FILLED.equals(minimapStyle)
                                     ? this.fill : this.stroke;
 
-                            final PolygonOverlay mini = new PolygonOverlay(MOD_ID, String.format("%s_%s", this.name, ++index), this.dimension, shape, polygon.hull, polygon.holes);
+                            final PolygonOverlay mini = new PolygonOverlay(MOD_ID, this.dimension, shape, polygon);
                             mini.setOverlayGroupName(this.name)
-                                    .setActiveUIs(EnumSet.of(Context.UI.Minimap))
+                                    .setActiveUIs(Context.UI.Minimap)
                                     .setTextProperties(this.noText);
                             this.overlays.add(mini);
                             jmap.show(mini);

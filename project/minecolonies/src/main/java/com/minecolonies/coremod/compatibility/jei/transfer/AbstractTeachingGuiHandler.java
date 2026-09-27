@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.jobs.registry.JobEntry;
 import com.minecolonies.coremod.colony.buildings.moduleviews.CraftingModuleView;
 import com.minecolonies.coremod.colony.buildings.views.AbstractBuildingView;
 import com.minecolonies.coremod.compatibility.jei.JobBasedRecipeCategory;
+import com.minecolonies.fabric.mixin.AbstractContainerScreenAccessor;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.ingredients.ITypedIngredient;
@@ -82,7 +83,9 @@ public abstract class AbstractTeachingGuiHandler<W extends AbstractContainerScre
             {
                 if (!slot.isActive() || !isSupportedSlot(slot)) continue;
 
-                final Rect2i bounds = new Rect2i(gui.getGuiLeft() + slot.x, gui.getGuiTop() + slot.y, 17, 17);
+                final AbstractContainerScreenAccessor screen = (AbstractContainerScreenAccessor) gui;
+                final Rect2i bounds = new Rect2i(screen.minecolonies$getLeftPos() + slot.x,
+                        screen.minecolonies$getTopPos() + slot.y, 17, 17);
 
                 targets.add(new Target<I>()
                 {
