@@ -287,8 +287,8 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the latest evidence is in
-  `logs/minecolonies-gametest-s2c-permissions-view-20260924.log`. The
-  blueprint data should be audited before treating this warning as resolved.
+  `project/minecolonies/run-gametest-optional-compat-20260927/logs/latest.log`.
+  The blueprint data should be audited before treating this warning as resolved.
 - The latest clean combined 125-case suite hardens only the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
   and records 125/125 required tests passed, including the three focused

@@ -78,6 +78,11 @@ completed.
   `logs/minecolonies-runserver-citizen-entity-restart.log`
 - [x] Client bootstrap reaches OpenAL and all texture atlases with MultiPiston
   loaded; evidence is in `logs/minecolonies-multipiston-client-bootstrap-20260922.log`
+- [x] Fresh isolated client startup after the optional JEI/JourneyMap source
+  changes loaded 63 mods, reached resource reload/OpenAL/texture-atlas creation,
+  and produced no crash report; it was stopped after the startup-only check.
+  Optional mods were absent and no world/UI interaction was performed. Evidence:
+  `project/minecolonies/run-client-optional-compat-20260927/logs/latest.log`.
 - [x] Fresh isolated client smoke after the Structurize language-loader fix
   loaded 63 mods, reached the main menu and Creative inventory, created and
   saved a world on the integrated server, and shut down cleanly using the
@@ -710,7 +715,7 @@ completed.
   removal, S2C FarmField state synchronization, client-executor queuing for
   building-, citizen- and work-order-view removal, and applied S2C work-order,
   citizen-view, visitor-view and research-manager updates,
-  `project/minecolonies/run-gametest-supply-diagnostic-20260926/logs/latest.log`
+  `project/minecolonies/run-gametest-optional-compat-20260927/logs/latest.log`
   and `project/minecolonies/build/gametest/junit.xml`
   (125 cases, zero failures/errors; the GameTest run also rebuilt successfully),
   with clean saves for all three

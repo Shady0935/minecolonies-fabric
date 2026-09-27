@@ -62,7 +62,7 @@ build also passes in `logs/minecolonies-build-s2c-farm-refresh-20260924.log`. It
 all three dimensions and shut down cleanly. A Farmer-AI follow-up additionally
 proves that compost ripens and enables
 harvesting wheat one age below maturity; the fresh 125-test run and JUnit report
-are `project/minecolonies/run-gametest-supply-diagnostic-20260926/logs/latest.log`
+are `project/minecolonies/run-gametest-optional-compat-20260927/logs/latest.log`
 and `project/minecolonies/build/gametest/junit.xml`.
 A live Builder end-to-end fixture now proves automatic work-order claim and navigation,
 separate stone and cobblestone Stack/Delivery requests fulfilled as the assigned
