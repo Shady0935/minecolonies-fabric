@@ -31,6 +31,9 @@ fabricApi {
 // -PgameTestRunDir=run-gametest-<id> for a fresh isolated run; preserve old
 // run directories rather than silently reusing or deleting them.
 def gameTestRunDir = project.providers.gradleProperty('gameTestRunDir').getOrElse('run-gametest')
+// Run selected Fabric GameTests through the in-game /test command without
+// auto-running the complete suite; keep this server profile isolated as well.
+def gameTestManualRunDir = project.providers.gradleProperty('gameTestManualRunDir').getOrElse('run-gametest-manual')
 // Keep the visual client probe isolated from the saved default `run` profile.
 // Override this with -PclientVisualRunDir=run-client-<id> for a fresh profile.
 def clientVisualRunDir = project.providers.gradleProperty('clientVisualRunDir').getOrElse('run-client')
@@ -46,6 +49,14 @@ loom {
             runDir gameTestRunDir
             vmArg '-Dfabric-api.gametest=true'
             vmArg "-Dfabric-api.gametest.report-file=${project.file('build/gametest/junit.xml').absolutePath}"
+        }
+        gametestManual {
+            server()
+            runDir gameTestManualRunDir
+            vmArg '-Dfabric-api.gametest.command=true'
+            programArg '--nogui'
+            programArg '--port'
+            programArg '0'
         }
         multipistonDedicatedServer {
             server()

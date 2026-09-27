@@ -153,6 +153,8 @@ import com.minecolonies.coremod.colony.requestsystem.locations.EntityLocation;
 import com.minecolonies.coremod.colony.requestsystem.locations.StaticLocation;
 import com.minecolonies.coremod.colony.workorders.WorkOrderMiner;
 import com.minecolonies.coremod.items.ItemBannerRallyGuards;
+import com.minecolonies.coremod.items.ItemSupplyCampDeployer;
+import com.minecolonies.coremod.items.ItemSupplyChestDeployer;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.EntityUtils;
@@ -281,6 +283,8 @@ import com.minecolonies.coremod.network.messages.server.colony.building.warehous
 import com.minecolonies.coremod.network.messages.server.colony.building.warehouse.UpgradeWarehouseMessage;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
+import com.ldtteam.structurize.blueprints.v1.BlueprintTagUtils;
+import com.ldtteam.structurize.placement.handlers.placement.PlacementError;
 import com.ldtteam.structurize.util.PlacementSettings;
 import com.minecolonies.fabric.common.MinecraftForge;
 import com.minecolonies.fabric.common.extensions.IForgeMenuType;
@@ -366,6 +370,8 @@ import net.minecraft.world.phys.AABB;
 import com.minecolonies.fabric.LogicalSide;
 import com.minecolonies.fabric.network.NetworkEvent;
 import io.netty.buffer.Unpooled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -387,6 +393,7 @@ import java.util.function.Supplier;
  */
 public final class MineColoniesGameTests implements FabricGameTest
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MineColoniesGameTests.class);
     private static final String TEST_BATCH = "minecolonies_fabric_port";
     private static final String RESEARCHER_LONG_RANGE_TEST_BATCH = "minecolonies_fabric_researcher_long_range_port";
     private static final String FARMER_TEST_BATCH = "minecolonies_fabric_farmer_port";
@@ -5667,6 +5674,87 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(campFound, "Supply camp loot was not added to a configured vanilla chest table");
         helper.assertTrue(shipFound, "Supply ship loot was not added to a configured vanilla chest table");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void supplyCampAndShipPlacementValidateTerrain(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Supply placement fixture could not load structure packs");
+        helper.assertTrue(!MineColonies.getConfig().getServer().noSupplyPlacementRestrictions.get(),
+          "Supply placement terrain checks are disabled by noSupplyPlacementRestrictions");
+
+        final ServerLevel level = helper.getLevel();
+        final ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        final BlockPos placement = helper.absolutePos(new BlockPos(2, 1, 2));
+        final Blueprint campReference = StructurePacks.getBlueprint(Constants.DEFAULT_STYLE, "decorations/supplies/supplycamp.blueprint");
+        helper.assertTrue(campReference != null && campReference.getSizeX() > 0 && campReference.getSizeZ() > 0,
+          "Default supply-camp blueprint could not be resolved");
+
+        // Exercise the exact terrain rules with a tiny fixture; validating the full
+        // rendered structure footprint would make this server-side test needlessly costly.
+        final Blueprint camp = new Blueprint((short) 3, (short) 1, (short) 3);
+        camp.setCachePrimaryOffset(BlockPos.ZERO);
+
+        final BlockPos campOrigin = placement.subtract(camp.getPrimaryBlockOffset());
+        final int campGroundY = campOrigin.getY() + BlueprintTagUtils.getNumberOfGroundLevels(camp, 1) - 1;
+        for (int x = 0; x < camp.getSizeX(); x++)
+        {
+            for (int z = 0; z < camp.getSizeZ(); z++)
+            {
+                final BlockPos ground = new BlockPos(campOrigin.getX() + x, campGroundY, campOrigin.getZ() + z);
+                level.setBlock(ground, Blocks.STONE.defaultBlockState(), 2);
+            }
+        }
+
+        final List<PlacementError> campErrors = new ArrayList<>();
+        helper.assertTrue(ItemSupplyCampDeployer.canCampBePlaced(level, placement, campErrors, player, camp),
+          "A camp blueprint on solid ground with clear overhead was rejected: " + campErrors);
+        helper.assertTrue(campErrors.isEmpty(), "Valid camp placement unexpectedly reported terrain errors");
+
+        final BlockPos obstruction = new BlockPos(campOrigin.getX(), campGroundY + 1, campOrigin.getZ());
+        level.setBlock(obstruction, Blocks.STONE.defaultBlockState(), 3);
+        campErrors.clear();
+        helper.assertTrue(!ItemSupplyCampDeployer.canCampBePlaced(level, placement, campErrors, player, camp),
+          "A camp blueprint with a solid block overhead was accepted");
+        helper.assertTrue(campErrors.stream().anyMatch(error ->
+            error.getType() == PlacementError.PlacementErrorType.NEEDS_AIR_ABOVE),
+          "Camp overhead obstruction did not report NEEDS_AIR_ABOVE");
+
+        final Blueprint shipReference = StructurePacks.getBlueprint(Constants.DEFAULT_STYLE, "decorations/supplies/supplyship.blueprint");
+        helper.assertTrue(shipReference != null && shipReference.getSizeX() > 0 && shipReference.getSizeZ() > 0,
+          "Default supply-ship blueprint could not be resolved");
+
+        final Blueprint ship = new Blueprint((short) 3, (short) 1, (short) 3);
+        ship.setCachePrimaryOffset(BlockPos.ZERO);
+        final BlockPos shipOrigin = placement.subtract(ship.getPrimaryBlockOffset());
+        final int waterLevels = BlueprintTagUtils.getNumberOfGroundLevels(ship, 3);
+        for (int x = 0; x < ship.getSizeX(); x++)
+        {
+            for (int z = 0; z < ship.getSizeZ(); z++)
+            {
+                for (int y = 0; y <= waterLevels + 7; y++)
+                {
+                    final BlockPos pos = new BlockPos(shipOrigin.getX() + x, shipOrigin.getY() + y, shipOrigin.getZ() + z);
+                    level.setBlock(pos, y < waterLevels ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        final List<PlacementError> shipErrors = new ArrayList<>();
+        helper.assertTrue(ItemSupplyChestDeployer.canShipBePlaced(level, placement, ship, shipErrors, player),
+          "A ship blueprint over water with clear overhead was rejected: " + shipErrors);
+        helper.assertTrue(shipErrors.isEmpty(), "Valid ship placement unexpectedly reported terrain errors");
+
+        final BlockPos missingWater = new BlockPos(shipOrigin.getX(), shipOrigin.getY(), shipOrigin.getZ());
+        level.setBlock(missingWater, Blocks.AIR.defaultBlockState(), 2);
+        shipErrors.clear();
+        helper.assertTrue(!ItemSupplyChestDeployer.canShipBePlaced(level, placement, ship, shipErrors, player),
+          "A ship blueprint with a dry waterline was accepted");
+        helper.assertTrue(shipErrors.stream().anyMatch(error ->
+            error.getType() == PlacementError.PlacementErrorType.NOT_WATER),
+          "Ship waterline error did not report NOT_WATER");
+        helper.succeed();
+        LOGGER.info("GameTest supplyCampAndShipPlacementValidateTerrain passed all assertions");
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

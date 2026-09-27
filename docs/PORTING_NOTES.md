@@ -43,6 +43,11 @@ entity icons.
 - Supply loot uses `LootTableEvents.MODIFY` and the exact upstream target table
   sets. The Forge global-loot-modifier JSON files were removed because Fabric
   does not load that registry.
+- Supply-camp terrain validation is separated from the client preview cache by
+  an explicit-blueprint overload, while the original UI entry point preserves
+  its selected-preview lookup. A focused server GameTest resolves the real
+  Colonial camp/ship resources and checks placement rules against small
+  synthetic footprints without loading client-only rendering classes.
 - Forge composite block models are flattened into ordinary vanilla model JSON;
   the resource audit found no remaining Forge/NeoForge model loader entries.
 - Forge worldgen tag names such as `forge:is_plains` and `forge:is_peak` are

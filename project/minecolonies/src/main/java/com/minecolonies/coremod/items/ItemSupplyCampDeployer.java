@@ -118,6 +118,41 @@ public class ItemSupplyCampDeployer extends AbstractItemMinecolonies
         }
 
         final Blueprint blueprint = RenderingCache.getOrCreateBlueprintPreviewData("supplies").getBlueprint();
+        return hasTerrainForCamp(world, pos, placementErrorList, placer, blueprint);
+    }
+
+    /**
+     * Checks a supplied camp blueprint without consulting the client-only preview cache.
+     *
+     * @param world              the world.
+     * @param pos                the placement position.
+     * @param placementErrorList the list to receive placement errors.
+     * @param placer             the player attempting placement.
+     * @param blueprint          the selected supply-camp blueprint.
+     * @return true when the selected blueprint fits the terrain.
+     */
+    public static boolean canCampBePlaced(
+      @NotNull final Level world,
+      @NotNull final BlockPos pos,
+      @NotNull final List<PlacementError> placementErrorList,
+      final Player placer,
+      @Nullable final Blueprint blueprint)
+    {
+        if (MineColonies.getConfig().getServer().noSupplyPlacementRestrictions.get())
+        {
+            return true;
+        }
+
+        return hasTerrainForCamp(world, pos, placementErrorList, placer, blueprint);
+    }
+
+    private static boolean hasTerrainForCamp(
+      @NotNull final Level world,
+      @NotNull final BlockPos pos,
+      @NotNull final List<PlacementError> placementErrorList,
+      final Player placer,
+      @Nullable final Blueprint blueprint)
+    {
         if (blueprint == null)
         {
             return false;

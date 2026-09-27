@@ -1,6 +1,6 @@
 # Porting status
 
-Checkpoint: 2026-09-24. A checked item is verified in the target workspace;
+Checkpoint: 2026-09-26. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually
 completed.
@@ -88,6 +88,10 @@ completed.
   lifecycle-safe; renderer construction is deferred until `EntityModelSet` is
   available; manual Creative-search/tooltip/hotbar and first-person held-model
   checks passed in a fresh isolated client profile on 2026-09-25
+- [x] Supply-camp and supply-ship placement terrain rules pass a focused server
+  GameTest; the real Colonial blueprint resources resolve, and the fixture
+  verifies solid-ground/clearance and waterline requirements. Full-size
+  in-world placement through the client UI remains manual.
 - [x] Client/server classloading audit completed without a startup crash
 - [x] Fabric play networking registered in both directions
 - [x] Client-bound message codecs are server-loadable; visual execution is
