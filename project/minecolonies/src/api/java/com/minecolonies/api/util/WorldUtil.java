@@ -284,11 +284,32 @@ public class WorldUtil
 
         if ((flags & 2) != 0)
         {
-            final Set<Mob> navigators = new java.util.HashSet<>(com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world));
-            com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world).clear();
-            final boolean result = world.setBlock(pos, state, flags);
-            com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world).addAll(navigators);
-            return result;
+            final Set<Mob> activeNavigators = com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs((ServerLevel) world);
+            if (activeNavigators == null)
+            {
+                return world.setBlock(pos, state, flags);
+            }
+
+            final Set<Mob> navigators = new java.util.HashSet<>(activeNavigators);
+            try
+            {
+                activeNavigators.clear();
+            }
+            catch (final UnsupportedOperationException ignored)
+            {
+                // Some Fabric/mapping combinations do not expose this private vanilla set.
+                // Keep placement functional even when the pathfinding optimization is unavailable.
+                return world.setBlock(pos, state, flags);
+            }
+
+            try
+            {
+                return world.setBlock(pos, state, flags);
+            }
+            finally
+            {
+                activeNavigators.addAll(navigators);
+            }
         }
         else
         {

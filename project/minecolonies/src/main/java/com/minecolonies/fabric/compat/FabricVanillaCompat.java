@@ -147,10 +147,10 @@ public final class FabricVanillaCompat
     }
 
     @SuppressWarnings("unchecked")
+    @Nullable
     public static Set<Mob> navigatingMobs(final ServerLevel level)
     {
-        final Set<Mob> mobs = readField(level, "navigatingMobs", Set.class);
-        return mobs == null ? Set.of() : mobs;
+        return readField(level, "navigatingMobs", Set.class);
     }
 
     /**

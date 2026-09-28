@@ -437,6 +437,17 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.succeed();
     }
 
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void placingStructureBlockWithUpdateFlagDoesNotCrash(final GameTestHelper helper)
+    {
+        final BlockPos position = helper.absolutePos(new BlockPos(1, 1, 1));
+        helper.assertTrue(WorldUtil.setBlockState(helper.getLevel(), position, Blocks.STONE.defaultBlockState(), 2),
+          "Structure block placement with neighbor updates failed");
+        helper.assertTrue(helper.getLevel().getBlockState(position).is(Blocks.STONE),
+          "Structure block placement did not update the target state");
+        helper.succeed();
+    }
+
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = ENTITY_TEST_BATCH, timeoutTicks = 200)
     public void customEntityTypesInstantiateAndReload(final GameTestHelper helper)
     {

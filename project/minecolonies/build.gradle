@@ -118,9 +118,10 @@ processResources {
     inputs.files(
         'src/main/resources/assets/minecolonies/lang/manual_en_us.json',
         'src/main/resources/assets/minecolonies/lang/en_us.json',
+        'src/main/resources/assets/minecolonies/lang/es_es.json',
         'src/main/generated/resources/assets/minecolonies/lang/default.json',
         'src/main/generated/resources/assets/minecolonies/lang/quests.json'
-    ).withPropertyName('minecoloniesEnglishTranslations')
+    ).withPropertyName('minecoloniesTranslations')
     filesMatching('fabric.mod.json') {
         expand 'version': project.version
     }
@@ -129,8 +130,9 @@ processResources {
     exclude '**/.cache/**'
 
     // Minecraft only loads language files named for a real locale. MineColonies keeps
-    // authored translations in manual_en_us.json and datagen emits research/quest
-    // strings separately, so fold all four sources into the runtime en_us.json.
+    // authored translations in manual_<locale>.json and datagen emits research/quest
+    // strings separately, so fold the English sources together and overlay available
+    // translations for Spanish (Spain and Mexico) into complete runtime locale files.
     doLast {
         final File languageDirectory = new File(destinationDir, 'assets/minecolonies/lang')
         final List<File> languageSources = [
@@ -154,10 +156,26 @@ processResources {
             mergedTranslations.putAll((Map<String, Object>) parsed)
         }
 
-        final File runtimeLanguage = new File(languageDirectory, 'en_us.json')
-        runtimeLanguage.parentFile.mkdirs()
-        runtimeLanguage.setText(groovy.json.JsonOutput.prettyPrint(
+        final File englishRuntimeLanguage = new File(languageDirectory, 'en_us.json')
+        englishRuntimeLanguage.parentFile.mkdirs()
+        englishRuntimeLanguage.setText(groovy.json.JsonOutput.prettyPrint(
             groovy.json.JsonOutput.toJson(mergedTranslations)) + System.lineSeparator(), 'UTF-8')
+
+        ['es_es', 'es_mx'].each { String locale ->
+            final Map<String, Object> localizedTranslations = new LinkedHashMap<>(mergedTranslations)
+            final File localizedSource = file('src/main/resources/assets/minecolonies/lang/es_es.json')
+            if (localizedSource.isFile()) {
+                final Object parsed = new groovy.json.JsonSlurper().parse(localizedSource, 'UTF-8')
+                if (!(parsed instanceof Map)) {
+                    throw new GradleException("MineColonies translation source must be a JSON object: ${localizedSource}")
+                }
+                localizedTranslations.putAll((Map<String, Object>) parsed)
+            }
+
+            final File runtimeLanguage = new File(languageDirectory, "${locale}.json")
+            runtimeLanguage.setText(groovy.json.JsonOutput.prettyPrint(
+                groovy.json.JsonOutput.toJson(localizedTranslations)) + System.lineSeparator(), 'UTF-8')
+        }
     }
 }
 
