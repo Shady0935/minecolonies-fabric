@@ -6,17 +6,9 @@ import com.ldtteam.blockui.PaneParams;
 import com.ldtteam.blockui.mod.Log;
 import com.ldtteam.blockui.util.cursor.Cursor;
 import com.ldtteam.blockui.views.View;
-import com.mojang.blaze3d.platform.GlStateManager.LogicOp;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -26,8 +18,10 @@ public class TextField extends Pane
 {
     protected InputHandler handler;
 
-    private static final int     RECT_COLOR              = -3_092_272;
-    private static final int     DEFAULT_MAX_TEXT_LENGTH = 32;
+    private static final int     RECT_COLOR                 = -3_092_272;
+    private static final int     SELECTION_BACKGROUND_COLOR = 0xFF0000FF;
+    private static final int     SELECTION_TEXT_COLOR       = 0xFFFFFFFF;
+    private static final int     DEFAULT_MAX_TEXT_LENGTH    = 32;
     // Attributes
     protected            int     maxTextLength           = DEFAULT_MAX_TEXT_LENGTH;
     protected            int     textColor               = 0xE0E0E0;
@@ -350,42 +344,35 @@ public class TextField extends Pane
         final String visibleString = mc.font.plainSubstrByWidth(text.substring(scrollOffset), drawWidth);
 
         final int relativeCursorPosition = cursorPosition - scrollOffset;
-        int relativeSelectionEnd = selectionEnd - scrollOffset;
         final boolean cursorVisible = relativeCursorPosition >= 0 && relativeCursorPosition <= visibleString.length();
         final boolean cursorBeforeEnd = cursorPosition < text.length() || text.length() >= maxTextLength;
 
-        // Enforce selection to the length limit of the visible string
-        if (relativeSelectionEnd > visibleString.length())
+        target.drawString(visibleString, drawX, drawY, color, shadow);
+
+        final int cursorX;
+        if (cursorVisible)
         {
-            relativeSelectionEnd = visibleString.length();
+            cursorX = drawX + mc.font.width(visibleString.substring(0, relativeCursorPosition))
+                - (cursorBeforeEnd && shadow ? 1 : 0);
+        }
+        else
+        {
+            cursorX = relativeCursorPosition > 0 ? drawX + drawWidth : drawX;
         }
 
-        // Draw string up through cursor
-        int textX = drawX;
-        if (visibleString.length() > 0)
+        final int selectionStart = Mth.clamp(Math.min(cursorPosition, selectionEnd) - scrollOffset, 0, visibleString.length());
+        final int selectionFinish = Mth.clamp(Math.max(cursorPosition, selectionEnd) - scrollOffset, 0, visibleString.length());
+        if (selectionFinish > selectionStart)
         {
-            final String s1 = cursorVisible ? visibleString.substring(0, relativeCursorPosition) : visibleString;
-            textX = target.drawString(s1, textX, drawY, color, shadow);
+            final String selectedText = visibleString.substring(selectionStart, selectionFinish);
+            final int selectionX = drawX + mc.font.width(visibleString.substring(0, selectionStart));
+            final int selectionWidth = mc.font.width(selectedText);
+
+            fill(target.pose(), selectionX, drawY - 1, selectionWidth, 1 + mc.font.lineHeight, SELECTION_BACKGROUND_COLOR);
+            target.drawString(selectedText, selectionX, drawY, SELECTION_TEXT_COLOR, shadow);
         }
 
-        int cursorX = textX;
-        if (!cursorVisible)
-        {
-            cursorX = relativeCursorPosition > 0 ? (drawX + width) : drawX;
-        }
-        else if (cursorBeforeEnd && shadow)
-        {
-            textX -= 1;
-            cursorX -= 1;
-        }
-
-        // Draw string after cursor
-        if (visibleString.length() > 0 && cursorVisible && relativeCursorPosition < visibleString.length())
-        {
-            target.drawString(visibleString.substring(relativeCursorPosition), textX, drawY, color, shadow);
-        }
-
-        // Should we draw the cursor this frame?
+        // Draw the cursor last so it remains visible when it borders a selection.
         if (isFocus() && cursorVisible && (cursorBlinkCounter / 6 % 2 == 0))
         {
             if (cursorBeforeEnd)
@@ -396,43 +383,6 @@ public class TextField extends Pane
             {
                 target.drawString("_", cursorX, drawY, color, shadow);
             }
-        }
-
-        // Draw selection
-        if (relativeSelectionEnd != relativeCursorPosition)
-        {
-            final int selectedDrawX = drawX + mc.font.width(visibleString.substring(0, relativeSelectionEnd));
-
-            int selectionStartX = Math.min(cursorX, selectedDrawX - 1);
-            int selectionEndX = Math.max(cursorX, selectedDrawX - 1);
-
-            if (selectionStartX > (x + width))
-            {
-                selectionStartX = x + width;
-            }
-
-            if (selectionEndX > (x + width))
-            {
-                selectionEndX = x + width;
-            }
-
-            final Matrix4f m = target.pose().last().pose();
-            final Tesselator tessellator = Tesselator.getInstance();
-            RenderSystem.setShaderColor(0.0F, 0.0F, 1.0F, 1.0F);
-            RenderSystem.enableColorLogicOp();
-            RenderSystem.logicOp(LogicOp.OR_REVERSE);
-            RenderSystem.setShader(GameRenderer::getPositionShader);
-
-            final BufferBuilder vertexBuffer = tessellator.getBuilder();
-            vertexBuffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION);
-            vertexBuffer.vertex(m, selectionStartX, drawY - 1, 0.0f).endVertex();
-            vertexBuffer.vertex(m, selectionStartX, drawY + 1 + mc.font.lineHeight, 0.0f).endVertex();
-            vertexBuffer.vertex(m, selectionEndX, drawY + 1 + mc.font.lineHeight, 0.0f).endVertex();
-            vertexBuffer.vertex(m, selectionEndX, drawY - 1, 0.0f).endVertex();
-            tessellator.end();
-
-            RenderSystem.disableColorLogicOp();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 
