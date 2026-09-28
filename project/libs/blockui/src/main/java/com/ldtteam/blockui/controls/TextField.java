@@ -368,8 +368,13 @@ public class TextField extends Pane
             final int selectionX = drawX + mc.font.width(visibleString.substring(0, selectionStart));
             final int selectionWidth = mc.font.width(selectedText);
 
+            // The highlight is drawn immediately, while glyphs are queued in the
+            // screen's shared buffer. Keep their order explicit so white text stays
+            // above the blue selection rectangle on every renderer.
+            target.flush();
             fill(target.pose(), selectionX, drawY - 1, selectionWidth, 1 + mc.font.lineHeight, SELECTION_BACKGROUND_COLOR);
             target.drawString(selectedText, selectionX, drawY, SELECTION_TEXT_COLOR, shadow);
+            target.flush();
         }
 
         // Draw the cursor last so it remains visible when it borders a selection.

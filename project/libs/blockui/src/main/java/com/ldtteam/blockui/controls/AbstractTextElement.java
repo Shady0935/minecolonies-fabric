@@ -110,6 +110,9 @@ public abstract class AbstractTextElement extends Pane
     private Tooltip overflowTooltip;
     @Nullable
     private String overflowTooltipText;
+    private float marqueeOffset;
+    private boolean marqueeMovingForward = true;
+    private int marqueePauseTicks = 24;
 
     /**
      * Creates a stock text element using the programmed defaults
@@ -221,17 +224,28 @@ public abstract class AbstractTextElement extends Pane
         updateOverflowTooltip((int) (textWidth / textScale) - (textShadow ? 1 : 0));
     }
 
-    /** Adds a full-text hover tooltip only when a non-wrapped line is clipped. */
+    /** Adds a full-text hover tooltip when any text is clipped by its bounds. */
     private void updateOverflowTooltip(final int maxWidth)
     {
-        if (window == null || textWrap || textScale <= 0.0d || isTextEmpty() || maxWidth < 1
+        if (window == null || textScale <= 0.0d || isTextEmpty() || maxWidth < 1
               || !onHoverId.isEmpty() || (onHover != null && onHover != overflowTooltip))
         {
             removeOverflowTooltip();
             return;
         }
 
-        final boolean clipped = text.stream().anyMatch(line -> mc.font.width(line) > maxWidth);
+        final boolean clipped;
+        if (textWrap)
+        {
+            final int maxHeight = (int) (textHeight / textScale) + 1;
+            final int linesToRender = Math.max(0, maxHeight / (mc.font.lineHeight + textLinespace));
+            final int actualLines = text.stream().mapToInt(line -> mc.font.split(line, maxWidth).size()).sum();
+            clipped = actualLines > linesToRender;
+        }
+        else
+        {
+            clipped = text.stream().anyMatch(line -> mc.font.width(line) > maxWidth);
+        }
         if (!clipped)
         {
             removeOverflowTooltip();
@@ -265,6 +279,55 @@ public abstract class AbstractTextElement extends Pane
             }
             overflowTooltip = null;
             overflowTooltipText = null;
+        }
+    }
+
+    @Override
+    public void onUpdate()
+    {
+        if (!(this instanceof Text) || text == null || text.size() != 1 || textScale <= 0.0d)
+        {
+            marqueeOffset = 0;
+            return;
+        }
+
+        final int maxWidth = (int) (textWidth / textScale) - (textShadow ? 1 : 0);
+        final float overflow = mc.font.width(text.get(0)) - maxWidth;
+        if (overflow <= 0 || !isEnabled())
+        {
+            marqueeOffset = 0;
+            marqueePauseTicks = 24;
+            marqueeMovingForward = true;
+            return;
+        }
+
+        // Hold at each end for readability. Hovering resets to the beginning so
+        // the full-text tooltip can be read without competing with the animation.
+        if (wasCursorInPane)
+        {
+            marqueeOffset = 0;
+            marqueePauseTicks = 24;
+            marqueeMovingForward = true;
+            return;
+        }
+        if (marqueePauseTicks > 0)
+        {
+            marqueePauseTicks--;
+            return;
+        }
+
+        marqueeOffset += marqueeMovingForward ? 0.4f : -0.4f;
+        if (marqueeOffset >= overflow)
+        {
+            marqueeOffset = overflow;
+            marqueeMovingForward = false;
+            marqueePauseTicks = 24;
+        }
+        else if (marqueeOffset <= 0)
+        {
+            marqueeOffset = 0;
+            marqueeMovingForward = true;
+            marqueePauseTicks = 24;
         }
     }
 
@@ -347,6 +410,13 @@ public abstract class AbstractTextElement extends Pane
     protected void innerDrawSelf(final BOGuiGraphics target, final double mx, final double my)
     {
         final PoseStack ms = target.pose();
+        final boolean marquee = this instanceof Text && text != null && text.size() == 1
+                                  && mc.font.width(text.get(0)) > (int) (textWidth / textScale) - (textShadow ? 1 : 0);
+
+        if (marquee)
+        {
+            scissorsStart(ms, width, height);
+        }
 
         final int color = enabled ? (wasCursorInPane ? textHoverColor : textColor) : textDisabledColor;
 
@@ -372,7 +442,7 @@ public abstract class AbstractTextElement extends Pane
         }
 
         ms.pushPose();
-        ms.translate(x + offsetX, y + offsetY, 0.0d);
+        ms.translate(x + offsetX - marqueeOffset, y + offsetY, 0.0d);
         ms.scale((float) textScale, (float) textScale, 1.0f);
 
         final Matrix4f matrix4f = ms.last().pose();
@@ -411,6 +481,11 @@ public abstract class AbstractTextElement extends Pane
                 continue;
             }
 
+            if (marquee && lineShift == 0)
+            {
+                row = text.get(0).getVisualOrderText();
+            }
+
             final int xOffset;
 
             if (textAlignment.isRightAligned())
@@ -434,6 +509,10 @@ public abstract class AbstractTextElement extends Pane
         RenderSystem.disableBlend();
 
         ms.popPose();
+        if (marquee)
+        {
+            scissorsEnd(target);
+        }
     }
 
     public Alignment getTextAlignment()
