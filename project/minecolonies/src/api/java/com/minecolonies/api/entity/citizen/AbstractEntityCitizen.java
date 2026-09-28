@@ -215,15 +215,15 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
         {
             if (this.getPose() == Pose.SLEEPING)
             {
-                SoundUtils.playSoundAtCitizenWith(CompatibilityUtils.getWorldFromCitizen(this), this.blockPosition(), EventType.OFF_TO_BED, this.getCitizenData(), 100);
+                SoundUtils.playInteractionSoundAtCitizenWith(CompatibilityUtils.getWorldFromCitizen(this), this.blockPosition(), EventType.OFF_TO_BED, this.getCitizenData());
             }
             else if (getCitizenData() != null && getCitizenData().isIdleAtJob())
             {
-                SoundUtils.playSoundAtCitizenWith(CompatibilityUtils.getWorldFromCitizen(this), this.blockPosition(), EventType.MISSING_EQUIPMENT, this.getCitizenData(), 100);
+                SoundUtils.playInteractionSoundAtCitizenWith(CompatibilityUtils.getWorldFromCitizen(this), this.blockPosition(), EventType.MISSING_EQUIPMENT, this.getCitizenData());
             }
             else
             {
-                SoundUtils.playSoundAtCitizenWith(CompatibilityUtils.getWorldFromCitizen(this), this.blockPosition(), EventType.INTERACTION, this.getCitizenData(), 100);
+                SoundUtils.playInteractionSoundAtCitizenWith(CompatibilityUtils.getWorldFromCitizen(this), this.blockPosition(), EventType.INTERACTION, this.getCitizenData());
             }
         }
 

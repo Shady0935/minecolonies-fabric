@@ -3,18 +3,16 @@ package com.minecolonies.coremod.blocks.huts;
 import com.minecolonies.api.MinecoloniesAPIProxy;
 import com.minecolonies.api.blocks.AbstractBlockHut;
 import com.minecolonies.api.colony.IColonyManager;
-import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.ModBuildings;
 import com.minecolonies.api.colony.buildings.registry.BuildingEntry;
-import com.minecolonies.api.colony.buildings.views.IBuildingView;
-import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.MessageUtils;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.api.util.constant.TranslationConstants;
 import com.minecolonies.coremod.MineColonies;
-import com.minecolonies.coremod.client.gui.townhall.WindowTownHallColonyManage;
+import com.minecolonies.coremod.Network;
+import com.minecolonies.coremod.network.messages.server.OpenTownHallWindowRequestMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -189,18 +187,7 @@ public class BlockHutTownHall extends AbstractBlockHut<BlockHutTownHall>
          */
         if (worldIn.isClientSide)
         {
-            @Nullable final IBuildingView building = IColonyManager.getInstance().getBuildingView(worldIn.dimension(), pos);
-
-            if (building != null
-                  && building.getColony() != null
-                  && building.getColony().getPermissions().hasPermission(player, Action.ACCESS_HUTS))
-            {
-                building.openGui(player.isShiftKeyDown());
-            }
-            else
-            {
-                new WindowTownHallColonyManage(player, pos, worldIn).open();
-            }
+            Network.getNetwork().sendToServer(new OpenTownHallWindowRequestMessage(pos, player.isShiftKeyDown()));
         }
         return InteractionResult.SUCCESS;
     }

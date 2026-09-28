@@ -1,5 +1,6 @@
 package com.minecolonies.coremod.entity.citizen;
 
+import io.netty.buffer.Unpooled;
 import com.minecolonies.api.blocks.AbstractBlockHut;
 import com.minecolonies.api.colony.*;
 import com.minecolonies.api.colony.buildings.IBuilding;
@@ -40,6 +41,7 @@ import com.minecolonies.api.util.constant.TypeConstants;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.colony.Colony;
+import com.minecolonies.coremod.colony.ColonyView;
 import com.minecolonies.coremod.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.colonyEvents.citizenEvents.CitizenDiedEvent;
@@ -61,7 +63,10 @@ import com.minecolonies.coremod.event.EventHandler;
 import com.minecolonies.coremod.network.messages.client.ItemParticleEffectMessage;
 import com.minecolonies.coremod.network.messages.client.VanillaParticleMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.ColonyViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.OpenCitizenWindowMessage;
 import com.minecolonies.coremod.network.messages.client.colony.PlaySoundForCitizenMessage;
+import com.minecolonies.coremod.network.messages.PermissionsMessage;
 import com.minecolonies.coremod.network.messages.server.colony.OpenInventoryMessage;
 import com.minecolonies.coremod.util.TeleportHelper;
 import net.minecraft.ChatFormatting;
@@ -70,6 +75,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -394,26 +400,34 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
             return result;
         }
 
-        if (CompatibilityUtils.getWorldFromCitizen(this).isClientSide && iColonyView != null)
+        if (CompatibilityUtils.getWorldFromCitizen(this).isClientSide && !isInvisible())
         {
-            if (player.isShiftKeyDown() && !isInvisible())
+            if (player.isShiftKeyDown())
             {
-                Network.getNetwork().sendToServer(new OpenInventoryMessage(iColonyView, this.getName().getString(), this.getId()));
-            }
-            else
-            {
-                final ICitizenDataView citizenDataView = getCitizenDataView();
-                if (citizenDataView != null && !isInvisible())
-                {
-                    MineColonies.proxy.showCitizenWindow(citizenDataView);
-                }
+                Network.getNetwork().sendToServer(new OpenInventoryMessage(player.level().dimension(),
+                  citizenColonyHandler.getColonyId(), this.getName().getString(), this.getId()));
             }
         }
 
-        if (!level().isClientSide && getCitizenData() != null)
+        if (!level().isClientSide && getCitizenData() != null && player instanceof ServerPlayer serverPlayer
+              && getCitizenData().getColony().getPermissions().hasPermission(serverPlayer, Action.ACCESS_HUTS))
         {
-            final ColonyViewCitizenViewMessage message = new ColonyViewCitizenViewMessage((Colony) getCitizenData().getColony(), getCitizenData());
-            Network.getNetwork().sendToPlayer(message, (ServerPlayer) player);
+            final Colony colony = (Colony) getCitizenData().getColony();
+            final FriendlyByteBuf viewData = new FriendlyByteBuf(Unpooled.buffer());
+            ColonyView.serializeNetworkData(colony, viewData, false);
+            final ColonyViewMessage colonyViewMessage = new ColonyViewMessage(colony.getID(), colony.getDimension(), viewData);
+            viewData.release();
+            Network.getNetwork().sendToPlayer(colonyViewMessage, serverPlayer);
+            Network.getNetwork().sendToPlayer(new PermissionsMessage.View(colony,
+              colony.getPermissions().getRank(serverPlayer)), serverPlayer);
+
+            final ColonyViewCitizenViewMessage message = new ColonyViewCitizenViewMessage(colony, getCitizenData());
+            Network.getNetwork().sendToPlayer(message, serverPlayer);
+            if (!player.isShiftKeyDown() && !isInvisible())
+            {
+                Network.getNetwork().sendToPlayer(new OpenCitizenWindowMessage(colony.getID(),
+                  getCitizenData().getId(), colony.getDimension()), serverPlayer);
+            }
         }
 
         if (citizenData != null && citizenData.getJob() != null)

@@ -77,7 +77,6 @@ public final class ClientEventSubscriber
         final Vec3 viewPosition = context.camera().getPosition();
         final var lineBuffers = WorldRenderMacros.getBufferSource();
         poseStack.pushPose();
-        poseStack.translate(-viewPosition.x(), -viewPosition.y(), -viewPosition.z());
 
         for (final BlueprintPreviewData previewData : RenderingCache.getBlueprintsToRender())
         {
@@ -91,23 +90,32 @@ public final class ClientEventSubscriber
             final BlockPos pos = previewData.getPos();
             final BlockPos posMinusOffset = pos.subtract(blueprint.getPrimaryBlockOffset());
             BlueprintHandler.getInstance().draw(previewData, pos, context);
+            poseStack.pushPose();
+            poseStack.translate(-viewPosition.x(), -viewPosition.y(), -viewPosition.z());
             WorldRenderMacros.renderRedGlintLineBox(lineBuffers, poseStack, pos, pos, 0.02f);
             WorldRenderMacros.renderWhiteLineBox(lineBuffers, poseStack, posMinusOffset,
                 posMinusOffset.offset(blueprint.getSizeX() - 1, blueprint.getSizeY() - 1, blueprint.getSizeZ() - 1), 0.02f);
+            poseStack.popPose();
             mc.getProfiler().pop();
         }
 
         for (final BoxPreviewData previewData : RenderingCache.getBoxesToRender())
         {
             mc.getProfiler().push("struct_box");
+            poseStack.pushPose();
+            poseStack.translate(-viewPosition.x(), -viewPosition.y(), -viewPosition.z());
             previewData.getAnchor().ifPresent(anchor ->
                 WorldRenderMacros.renderRedGlintLineBox(lineBuffers, poseStack, anchor, anchor, 0.02f));
             WorldRenderMacros.renderWhiteLineBox(lineBuffers, poseStack,
                 previewData.getPos1(), previewData.getPos2(), 0.02f);
+            poseStack.popPose();
             mc.getProfiler().pop();
         }
 
+        poseStack.pushPose();
+        poseStack.translate(-viewPosition.x(), -viewPosition.y(), -viewPosition.z());
         renderTagTool(mc, poseStack, lineBuffers);
+        poseStack.popPose();
         lineBuffers.endBatch();
         poseStack.popPose();
     }

@@ -178,6 +178,7 @@ import com.minecolonies.coremod.network.messages.client.LocalizedParticleEffectM
 import com.minecolonies.coremod.network.messages.client.OpenDecoBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.OpenPlantationFieldBuildWindowMessage;
 import com.minecolonies.coremod.network.messages.client.OpenSuggestionWindowMessage;
+import com.minecolonies.coremod.network.messages.client.OpenTownHallWindowMessage;
 import com.minecolonies.coremod.network.messages.client.PlayAudioMessage;
 import com.minecolonies.coremod.network.messages.client.SaveStructureNBTMessage;
 import com.minecolonies.coremod.network.messages.client.ServerUUIDMessage;
@@ -193,6 +194,7 @@ import com.minecolonies.coremod.network.messages.client.colony.ColonyListMessage
 import com.minecolonies.coremod.research.GlobalResearchTreeMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewBuildingViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewCitizenViewMessage;
+import com.minecolonies.coremod.network.messages.client.colony.OpenCitizenWindowMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewFieldsUpdateMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewMessage;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyViewRemoveBuildingMessage;
@@ -210,6 +212,7 @@ import com.minecolonies.coremod.network.messages.server.DirectPlaceMessage;
 import com.minecolonies.coremod.network.messages.server.ClickGuiButtonTriggerMessage;
 import com.minecolonies.coremod.network.messages.server.OpenGuiWindowTriggerMessage;
 import com.minecolonies.coremod.network.messages.server.PlantationFieldBuildRequestMessage;
+import com.minecolonies.coremod.network.messages.server.OpenTownHallWindowRequestMessage;
 import com.minecolonies.coremod.network.messages.server.ReactivateBuildingMessage;
 import com.minecolonies.coremod.network.messages.server.RemoveFromRallyingListMessage;
 import com.minecolonies.coremod.network.messages.server.ResourceScrollSaveWarehouseSnapshotMessage;
@@ -6786,6 +6789,21 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         final int serverUuidId = findMessageId(channel, ServerUUIDMessage.class);
         helper.assertTrue(serverUuidId > 0, "Server UUID message has no inner network id");
+        helper.assertTrue(findMessageId(channel, OpenTownHallWindowRequestMessage.class) > 0,
+          "Town Hall window request has no inner network id");
+        final byte[] townHallRequestPayload = encode(new OpenTownHallWindowRequestMessage(townHall, false));
+        final FriendlyByteBuf townHallRequestBuffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(townHallRequestPayload));
+        final OpenTownHallWindowRequestMessage decodedTownHallRequest = new OpenTownHallWindowRequestMessage();
+        try
+        {
+            decodedTownHallRequest.fromBytes(townHallRequestBuffer);
+        }
+        finally
+        {
+            townHallRequestBuffer.release();
+        }
+        helper.assertTrue(Arrays.equals(townHallRequestPayload, encode(decodedTownHallRequest)),
+          "Town Hall window request did not survive a codec round trip");
         final UUID expected = UUID.fromString("11111111-2222-3333-4444-555555555555");
         final UUID previousServerUuid = IColonyManager.getInstance().getServerUUID();
         final UUID expectedServerUuid = expected.equals(previousServerUuid)
@@ -6840,6 +6858,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         // renderer, GUI or audio engine. Dedicated-server GameTests can prove scheduling and reassembly only.
         final List<IMessage> clientQueueFixtures = List.of(
           original,
+          new OpenCitizenWindowMessage(1, 2, level.dimension()),
+          new OpenTownHallWindowMessage(townHall, true, false),
           new OpenSuggestionWindowMessage(Blocks.DIAMOND_BLOCK.defaultBlockState(), townHall, new ItemStack(Items.IRON_INGOT)),
           new OpenPlantationFieldBuildWindowMessage(townHall, "colonial", "fields/plantation",
             Rotation.NONE, Mirror.NONE),

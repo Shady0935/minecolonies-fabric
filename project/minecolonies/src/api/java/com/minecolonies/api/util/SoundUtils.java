@@ -2,6 +2,7 @@ package com.minecolonies.api.util;
 
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.ICivilianData;
+import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IVisitorData;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.sounds.EventType;
@@ -21,8 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import static com.minecolonies.api.sounds.ModSoundEvents.CITIZEN_SOUND_EVENTS;
+import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 
 /**
  * Utilities for playing sounds.
@@ -43,6 +47,12 @@ public final class SoundUtils
      * Random object.
      */
     private static final Random rand = new Random();
+
+    /** Minimum spacing between ambient citizen voices in the same colony. */
+    private static final long CITIZEN_VOICE_COOLDOWN_TICKS = 2L * TICKS_SECOND;
+
+    /** Weak keys avoid retaining colonies after their worlds are unloaded. */
+    private static final Map<IColony, Long> LAST_CITIZEN_VOICE_TICK = new WeakHashMap<>();
 
     /**
      * Volume to play at.
@@ -115,7 +125,7 @@ public final class SoundUtils
 
         if (citizen.isAsleep())
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.OFF_TO_BED, citizen);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.OFF_TO_BED, citizen);
             return;
         }
 
@@ -124,47 +134,47 @@ public final class SoundUtils
         {
             if (citizen.getSaturation() < 2)
             {
-                playSoundAtCitizenWith(worldIn, pos, EventType.SATURATION_LOW, citizen);
+                playAmbientSoundAtCitizenWith(worldIn, pos, EventType.SATURATION_LOW, citizen);
             }
             else
             {
-                playSoundAtCitizenWith(worldIn, pos, EventType.SATURATION_HIGH, citizen);
+                playAmbientSoundAtCitizenWith(worldIn, pos, EventType.SATURATION_HIGH, citizen);
             }
         }
         else if (v <= 0.2)
         {
             if (citizen.getCitizenHappinessHandler().getHappiness(citizen.getColony(), citizen) < 5)
             {
-                playSoundAtCitizenWith(worldIn, pos, EventType.UNHAPPY, citizen);
+                playAmbientSoundAtCitizenWith(worldIn, pos, EventType.UNHAPPY, citizen);
             }
             else
             {
-                playSoundAtCitizenWith(worldIn, pos, EventType.HAPPY, citizen);
+                playAmbientSoundAtCitizenWith(worldIn, pos, EventType.HAPPY, citizen);
             }
         }
         else if (v <= 0.3)
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.GENERAL, citizen);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.GENERAL, citizen);
         }
         else if (v <= 0.4 && citizen.getEntity().isPresent() && citizen.getEntity().get().getCitizenDiseaseHandler().isSick())
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.SICKNESS, citizen);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.SICKNESS, citizen);
         }
         else if (v <= 0.5 && (citizen.getHomeBuilding() == null || citizen.getHomeBuilding().getBuildingLevel() <= 2))
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.BAD_HOUSING, citizen);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.BAD_HOUSING, citizen);
         }
         else if (v <= 0.6 && worldIn.isRaining())
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.BAD_WEATHER, citizen);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.BAD_WEATHER, citizen);
         }
         else if (v <= 0.8 && citizen.isIdleAtJob())
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.MISSING_EQUIPMENT, citizen);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.MISSING_EQUIPMENT, citizen);
         }
         else
         {
-            playSoundAtCitizenWith(worldIn, pos, EventType.NOISE, citizen, EventType.NOISE.getChance(), VOLUME/2);
+            playAmbientSoundAtCitizenWith(worldIn, pos, EventType.NOISE, citizen, EventType.NOISE.getChance(), VOLUME / 2);
         }
     }
 
@@ -264,6 +274,51 @@ public final class SoundUtils
       @Nullable final EventType type,
       @Nullable final ICivilianData citizenData, final double chance, final double volume)
     {
+        playSoundAtCitizenWith(worldIn, position, type, citizenData, chance, volume, false, false);
+    }
+
+    /** Play a citizen's occasional ambient line, serialized with other ambient voices nearby. */
+    public static void playAmbientSoundAtCitizenWith(
+      @NotNull final Level worldIn,
+      @NotNull final BlockPos position,
+      @NotNull final EventType type,
+      @Nullable final ICivilianData citizenData)
+    {
+        playAmbientSoundAtCitizenWith(worldIn, position, type, citizenData, type.getChance(), VOLUME);
+    }
+
+    /** Play an ambient line with a custom chance and volume. */
+    public static void playAmbientSoundAtCitizenWith(
+      @NotNull final Level worldIn,
+      @NotNull final BlockPos position,
+      @NotNull final EventType type,
+      @Nullable final ICivilianData citizenData,
+      final double chance,
+      final double volume)
+    {
+        playSoundAtCitizenWith(worldIn, position, type, citizenData, chance, volume, true, false);
+    }
+
+    /** Play the single voice directly triggered by a player interaction, ahead of ambient speech. */
+    public static void playInteractionSoundAtCitizenWith(
+      @NotNull final Level worldIn,
+      @NotNull final BlockPos position,
+      @NotNull final EventType type,
+      @Nullable final ICivilianData citizenData)
+    {
+        playSoundAtCitizenWith(worldIn, position, type, citizenData, ONE_HUNDRED, VOLUME, false, true);
+    }
+
+    private static void playSoundAtCitizenWith(
+      @NotNull final Level worldIn,
+      @NotNull final BlockPos position,
+      @Nullable final EventType type,
+      @Nullable final ICivilianData citizenData,
+      final double chance,
+      final double volume,
+      final boolean ambient,
+      final boolean priority)
+    {
         if (citizenData == null)
         {
             return;
@@ -292,12 +347,46 @@ public final class SoundUtils
         final SoundEvent event = citizenData.isFemale() ? CITIZEN_SOUND_EVENTS.get(jobDesc).get(type).get(citizenData.getSoundProfile()).getB() : CITIZEN_SOUND_EVENTS.get(jobDesc).get(type).get(citizenData.getSoundProfile()).getA();
         if (chance > rand.nextDouble() * ONE_HUNDRED)
         {
+            if ((ambient || priority) && !shouldPlayCitizenVoice(worldIn, citizenData, priority))
+            {
+                return;
+            }
+
             worldIn.playSound(null,
               position,
               event,
               SoundSource.NEUTRAL,
               (float) volume,
               (float) PITCH);
+        }
+    }
+
+    /**
+     * Allow only one ambient voice to start per colony during the cooldown. Explicit interaction
+     * voices take priority and restart the cooldown, so nearby citizens do not immediately talk
+     * over the player afterwards.
+     */
+    private static boolean shouldPlayCitizenVoice(final Level world,
+                                                  final ICivilianData citizen,
+                                                  final boolean priority)
+    {
+        final IColony colony = citizen.getColony();
+        if (colony == null)
+        {
+            return true;
+        }
+
+        synchronized (LAST_CITIZEN_VOICE_TICK)
+        {
+            final long now = world.getGameTime();
+            final Long lastVoice = LAST_CITIZEN_VOICE_TICK.get(colony);
+            if (!priority && lastVoice != null && now - lastVoice < CITIZEN_VOICE_COOLDOWN_TICKS)
+            {
+                return false;
+            }
+
+            LAST_CITIZEN_VOICE_TICK.put(colony, now);
+            return true;
         }
     }
 

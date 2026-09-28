@@ -251,6 +251,11 @@ public class NetworkChannel
 
         // Resource scroll NBT share message
         registerMessage(++idx, ResourceScrollSaveWarehouseSnapshotMessage.class, ResourceScrollSaveWarehouseSnapshotMessage::new);
+
+        // Server-authoritative citizen and Town Hall screens.
+        registerMessage(++idx, OpenCitizenWindowMessage.class, OpenCitizenWindowMessage::new);
+        registerMessage(++idx, OpenTownHallWindowMessage.class, OpenTownHallWindowMessage::new);
+        registerMessage(++idx, OpenTownHallWindowRequestMessage.class, OpenTownHallWindowRequestMessage::new);
     }
 
     /** Register the Fabric play receiver after common message registration. */

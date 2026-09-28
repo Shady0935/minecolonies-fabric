@@ -197,9 +197,12 @@ public class BlueprintRenderer implements AutoCloseable
         final PoseStack poseStack = context.matrixStack();
         final MultiBufferSource buffers = context.consumers();
         final BlockRenderDispatcher blockRenderer = mc.getBlockRenderer();
+        final Vec3 cameraPosition = context.camera().getPosition();
 
         poseStack.pushPose();
-        poseStack.translate(anchorPos.getX(), anchorPos.getY(), anchorPos.getZ());
+        // Apply anchor-camera as one delta to avoid large-world float cancellation causing preview drift.
+        poseStack.translate(anchorPos.getX() - cameraPosition.x(),
+            anchorPos.getY() - cameraPosition.y(), anchorPos.getZ() - cameraPosition.z());
         for (final Map.Entry<BlockPos, BlockState> entry : renderStates.entrySet())
         {
             final BlockState state = entry.getValue();

@@ -3,6 +3,7 @@ package com.minecolonies.api.entity.citizen;
 import com.minecolonies.api.colony.ICivilianData;
 import com.minecolonies.api.entity.AbstractFastMinecoloniesEntity;
 import com.minecolonies.api.sounds.SoundManager;
+import com.minecolonies.api.util.SoundUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.*;
@@ -14,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.minecolonies.api.sounds.EventType.GREETING;
-import static com.minecolonies.api.util.SoundUtils.playSoundAtCitizenWith;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 
 public abstract class AbstractCivilianEntity extends AbstractFastMinecoloniesEntity implements Npc
@@ -135,7 +135,7 @@ public abstract class AbstractCivilianEntity extends AbstractFastMinecoloniesEnt
             getNavigation().stop();
             getLookControl().setLookAt(player);
 
-            playSoundAtCitizenWith(level(), blockPosition(), GREETING, getCivilianData());
+            SoundUtils.playAmbientSoundAtCitizenWith(level(), blockPosition(), GREETING, getCivilianData());
         }
     }
 

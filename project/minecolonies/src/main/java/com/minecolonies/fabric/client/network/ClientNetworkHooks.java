@@ -2,6 +2,8 @@ package com.minecolonies.fabric.client.network;
 
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.IColonyTagCapability;
+import com.minecolonies.api.colony.buildings.views.IBuildingView;
+import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
 import com.minecolonies.api.entity.citizen.AbstractCivilianEntity;
 import com.minecolonies.api.util.Log;
@@ -10,6 +12,7 @@ import com.minecolonies.apiimp.initializer.ModParticleTypesInitializer;
 import com.minecolonies.coremod.client.render.worldevent.PathfindingDebugRenderer;
 import com.minecolonies.coremod.client.gui.WindowBuildDecoration;
 import com.minecolonies.coremod.client.gui.map.WindowColonyMap;
+import com.minecolonies.coremod.client.gui.townhall.WindowTownHallColonyManage;
 import com.minecolonies.coremod.entity.pathfinding.MNode;
 import com.minecolonies.coremod.network.messages.client.colony.ColonyListMessage;
 import com.minecolonies.coremod.network.messages.server.DecorationBuildRequestMessage;
@@ -114,6 +117,58 @@ public final class ClientNetworkHooks
         {
             IColonyManager.getInstance().handleColonyViewRemoveCitizenMessage(colonyId, citizenId,
               Minecraft.getInstance().level.dimension());
+        }
+    }
+
+    /** Open a citizen interaction window only after its view packet has been applied. */
+    public static void handleOpenCitizenWindowMessage(final int colonyId,
+                                                      final int citizenId,
+                                                      final ResourceKey<Level> dimension)
+    {
+        final Minecraft client = Minecraft.getInstance();
+        if (client.level == null || client.player == null || client.level.dimension() != dimension)
+        {
+            return;
+        }
+
+        final var colony = IColonyManager.getInstance().getColonyView(colonyId, dimension);
+        if (colony == null || !colony.getPermissions().hasPermission(client.player, Action.ACCESS_HUTS))
+        {
+            return;
+        }
+
+        final var citizen = colony.getCitizen(citizenId);
+        if (citizen != null)
+        {
+            com.minecolonies.coremod.MineColonies.proxy.showCitizenWindow(citizen);
+        }
+    }
+
+    /** Open the screen selected by the server for a Town Hall click. */
+    public static void handleOpenTownHallWindowMessage(final BlockPos pos,
+                                                       final boolean registeredBuilding,
+                                                       final boolean openInventory)
+    {
+        final Minecraft client = Minecraft.getInstance();
+        if (client.level == null || client.player == null)
+        {
+            return;
+        }
+
+        if (!registeredBuilding)
+        {
+            new WindowTownHallColonyManage(client.player, pos, client.level).open();
+            return;
+        }
+
+        final IBuildingView building = IColonyManager.getInstance().getBuildingView(client.level.dimension(), pos);
+        if (building != null)
+        {
+            building.openGui(openInventory);
+        }
+        else
+        {
+            Log.getLogger().warn("Server confirmed a Town Hall at {}, but its building view did not arrive before the open request", pos);
         }
     }
 
