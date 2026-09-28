@@ -3,7 +3,9 @@ package com.ldtteam.blockui.controls;
 import com.ldtteam.blockui.Alignment;
 import com.ldtteam.blockui.BOGuiGraphics;
 import com.ldtteam.blockui.Pane;
+import com.ldtteam.blockui.PaneBuilders;
 import com.ldtteam.blockui.PaneParams;
+import com.ldtteam.blockui.views.BOWindow;
 import com.ldtteam.blockui.util.SpacerTextComponent;
 import com.ldtteam.blockui.util.SpacerTextComponent.FormattedSpacerComponent;
 import com.ldtteam.blockui.util.ToggleableTextComponent;
@@ -103,6 +105,12 @@ public abstract class AbstractTextElement extends Pane
     protected int textWidth = width;
     protected int textHeight = height;
 
+    /** Tooltip created for text that does not fit its single-line bounds. */
+    @Nullable
+    private Tooltip overflowTooltip;
+    @Nullable
+    private String overflowTooltipText;
+
     /**
      * Creates a stock text element using the programmed defaults
      */
@@ -197,11 +205,67 @@ public abstract class AbstractTextElement extends Pane
         if (textScale <= 0.0d || textWidth < 1 || textHeight < 1 || isTextEmpty())
         {
             preparedText = Collections.emptyList();
+            updateOverflowTooltip(0);
             return;
         }
 
         final int maxWidth = (int) (textWidth / textScale) - (textShadow ? 1 : 0);
         preparedText = text.stream().flatMap(textBlock -> toFormattedSequence(maxWidth, textBlock)).collect(Collectors.toList());
+        updateOverflowTooltip(maxWidth);
+    }
+
+    @Override
+    public void setWindow(final BOWindow window)
+    {
+        super.setWindow(window);
+        updateOverflowTooltip((int) (textWidth / textScale) - (textShadow ? 1 : 0));
+    }
+
+    /** Adds a full-text hover tooltip only when a non-wrapped line is clipped. */
+    private void updateOverflowTooltip(final int maxWidth)
+    {
+        if (window == null || textWrap || textScale <= 0.0d || isTextEmpty() || maxWidth < 1
+              || !onHoverId.isEmpty() || (onHover != null && onHover != overflowTooltip))
+        {
+            removeOverflowTooltip();
+            return;
+        }
+
+        final boolean clipped = text.stream().anyMatch(line -> mc.font.width(line) > maxWidth);
+        if (!clipped)
+        {
+            removeOverflowTooltip();
+            return;
+        }
+
+        final String currentText = text.stream().map(MutableComponent::getString).collect(Collectors.joining("\n"));
+        if (overflowTooltip != null && currentText.equals(overflowTooltipText))
+        {
+            return;
+        }
+        removeOverflowTooltip();
+
+        final var builder = PaneBuilders.tooltipBuilder().hoverPane(this);
+        builder.append(text.get(0));
+        for (int i = 1; i < text.size(); i++)
+        {
+            builder.appendNL(text.get(i));
+        }
+        overflowTooltip = builder.build();
+        overflowTooltipText = currentText;
+    }
+
+    private void removeOverflowTooltip()
+    {
+        if (overflowTooltip != null)
+        {
+            if (onHover == overflowTooltip)
+            {
+                setHoverPane(null);
+            }
+            overflowTooltip = null;
+            overflowTooltipText = null;
+        }
     }
 
     private Stream<? extends FormattedCharSequence> toFormattedSequence(final int maxWidth, MutableComponent textBlock)
