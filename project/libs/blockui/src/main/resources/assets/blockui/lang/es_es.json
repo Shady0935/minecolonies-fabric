@@ -1,0 +1,6 @@
+{
+  "blockui.container_gui.client_side_only": "El contenido de este contenedor solo es visible al jugar en un servidor integrado (partida individual, sin LAN).",
+  "blockui.container_gui.empty": "Este contenedor está vacío.",
+  "blockui.tooltip.item_additional_info": "Mantén pulsado %s para mostrar información adicional",
+  "blockui.tooltip.properties": "Propiedades del estado del bloque:"
+}
