@@ -215,8 +215,11 @@ public class BlueprintRenderer implements AutoCloseable
             poseStack.pushPose();
             final BlockPos blockPos = entry.getKey();
             poseStack.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-            blockRenderer.renderSingleBlock(state, poseStack, buffers,
-                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+            if (!FabricPreviewModelRenderer.render(blockAccess, state, blockPos, poseStack, buffers))
+            {
+                blockRenderer.renderSingleBlock(state, poseStack, buffers,
+                    LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+            }
             poseStack.popPose();
         }
 

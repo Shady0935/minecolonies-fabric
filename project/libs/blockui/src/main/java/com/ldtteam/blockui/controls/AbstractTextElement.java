@@ -65,6 +65,9 @@ public abstract class AbstractTextElement extends Pane
      */
     protected int textColor = DEFAULT_TEXT_COLOR;
 
+    /** Explicit XML color attributes take precedence over colors embedded in components. */
+    private boolean forceConfiguredTextColor;
+
     /**
      * The hover text color.
      */
@@ -177,6 +180,9 @@ public abstract class AbstractTextElement extends Pane
         final boolean defaultTextWrap)
     {
         super(params);
+
+        forceConfiguredTextColor = params.hasAttribute("color") || params.hasAttribute("textcolor")
+                                     || params.hasAttribute("texthovercolor") || params.hasAttribute("textdisabledcolor");
 
         textAlignment = params.getEnum("textalign", Alignment.class, defaultTextAlignment);
         if (params.hasAttribute("color"))
@@ -501,6 +507,10 @@ public abstract class AbstractTextElement extends Pane
                 xOffset = 0;
             }
 
+            if (forceConfiguredTextColor)
+            {
+                row = withoutComponentColors(row);
+            }
             mc.font.drawInBatch(row, xOffset, lineShift, color, textShadow, matrix4f, drawBuffer, Font.DisplayMode.NORMAL, 0, 15728880);
             lineShift += mc.font.lineHeight + textLinespace;
         }
@@ -513,6 +523,17 @@ public abstract class AbstractTextElement extends Pane
         {
             scissorsEnd(target);
         }
+    }
+
+    /**
+     * Retains formatting such as bold and italics while letting the control's configured color
+     * apply uniformly. Formatted translations can carry their own white color, which otherwise
+     * overrides the XML color passed to Font.drawInBatch.
+     */
+    private static FormattedCharSequence withoutComponentColors(final FormattedCharSequence sequence)
+    {
+        return sink -> sequence.accept((index, style, codePoint) ->
+            sink.accept(index, style.withColor((net.minecraft.network.chat.TextColor) null), codePoint));
     }
 
     public Alignment getTextAlignment()
