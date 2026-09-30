@@ -65,7 +65,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -82,6 +84,9 @@ public class BlueprintBlockAccess extends Level
      * The blueprint with the info we need.
      */
     private Blueprint blueprint;
+
+    /** Block entities already transformed and initialized for the active preview. */
+    private final Map<BlockPos, BlockEntity> previewBlockEntities = new HashMap<>();
 
     /**
      * Current rendering worldPos so we can use local real world info
@@ -129,6 +134,21 @@ public class BlueprintBlockAccess extends Level
     public void setBlueprint(final Blueprint blueprintIn)
     {
         blueprint = blueprintIn;
+        previewBlockEntities.clear();
+    }
+
+    /**
+     * Makes the preview use the prepared block entities instead of reconstructing raw
+     * blueprint NBT on every model query. Fabric model wrappers read block data directly
+     * from this simulated level, while Forge supplied the equivalent ModelData separately.
+     */
+    public void setPreviewBlockEntities(final Collection<BlockEntity> blockEntities)
+    {
+        previewBlockEntities.clear();
+        for (final BlockEntity blockEntity : blockEntities)
+        {
+            previewBlockEntities.put(blockEntity.getBlockPos().immutable(), blockEntity);
+        }
     }
 
     public void setWorldPos(final BlockPos worldPos)
@@ -140,7 +160,8 @@ public class BlueprintBlockAccess extends Level
     @Override
     public BlockEntity getBlockEntity(final BlockPos pos)
     {
-        return BlueprintUtils.getTileEntityFromPos(blueprint, pos, this);
+        final BlockEntity prepared = previewBlockEntities.get(pos);
+        return prepared != null ? prepared : BlueprintUtils.getTileEntityFromPos(blueprint, pos, this);
     }
 
     @Override

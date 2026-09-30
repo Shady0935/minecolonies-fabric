@@ -208,7 +208,9 @@ public final class BackUpHelper
                     // Load colony if null
                     if (IColonyManager.getInstance().getColonyByDimension(i, dimensionType) == null)
                     {
-                        loadColonyBackup(i, dimensionType, false, false);
+                        // Chunk claims live in Fabric-backed chunk capabilities, so restore
+                        // them from the colony backup when a missing colony is recovered.
+                        loadColonyBackup(i, dimensionType, false, true);
                     }
                 }
                 else

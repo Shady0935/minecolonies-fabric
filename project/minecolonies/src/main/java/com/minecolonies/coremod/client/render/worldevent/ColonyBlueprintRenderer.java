@@ -23,6 +23,7 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -319,12 +320,15 @@ public class ColonyBlueprintRenderer
 
                     if (blueprintAABB.intersects(new AABB(cornerA, cornerB)))
                     {
+                        final String schemPath = getStructurePathAtMaxLevel(
+                            buildingView.getStructurePath(), buildingView.getBuildingMaxLevel());
+                        if (schemPath == null)
+                        {
+                            continue;
+                        }
+
                         desired.put(currentPosition, () ->
                         {
-                            String schemPath = buildingView.getStructurePath();
-                            schemPath = schemPath.replace(".blueprint", "");
-                            schemPath = schemPath.substring(0, schemPath.length() - 1) + buildingView.getBuildingMaxLevel() + ".blueprint";
-
                             final String structurePack = buildingView.getStructurePack();
 
                             final Future<Blueprint> localBlueprint = StructurePacks.getBlueprintFuture(structurePack, schemPath);
@@ -338,6 +342,33 @@ public class ColonyBlueprintRenderer
             }
 
             return desired;
+        }
+
+        /**
+         * Gets the path for a building's maximum-level blueprint. Some incomplete or
+         * newly-created building views have no structure path; ignore those instead of
+         * aborting the whole world-render event.
+         */
+        @Nullable
+        private static String getStructurePathAtMaxLevel(final String structurePath, final int maxLevel)
+        {
+            if (structurePath == null || structurePath.isBlank() || maxLevel < 1
+                    || !structurePath.endsWith(".blueprint"))
+            {
+                return null;
+            }
+
+            final int extensionStart = structurePath.length() - ".blueprint".length();
+            int levelStart = extensionStart;
+            while (levelStart > 0 && Character.isDigit(structurePath.charAt(levelStart - 1)))
+            {
+                levelStart--;
+            }
+            if (levelStart == extensionStart)
+            {
+                return null;
+            }
+            return structurePath.substring(0, levelStart) + maxLevel + ".blueprint";
         }
     }
 

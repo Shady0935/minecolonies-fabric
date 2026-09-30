@@ -99,6 +99,7 @@ public class BlueprintRenderer implements AutoCloseable
         entities = BlueprintUtils.instantiateEntities(blueprint, blockAccess);
         final Map<BlockPos, Object> modelData = new HashMap<>();
         tileEntities = new ArrayList<>(BlueprintUtils.instantiateTileEntities(blueprint, blockAccess, modelData));
+        blockAccess.setPreviewBlockEntities(tileEntities);
 
         for (final BlockInfo blockInfo : blueprint.getBlockInfoAsList())
         {
@@ -163,6 +164,8 @@ public class BlueprintRenderer implements AutoCloseable
                 LOGGER.error("Error while preparing structure part for rendering", exception);
             }
         }
+        // Retain replacement block entities created while resolving placeholder blocks too.
+        blockAccess.setPreviewBlockEntities(tileEntities);
     }
 
     /**
