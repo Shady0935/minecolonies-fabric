@@ -52,7 +52,9 @@ final class FabricPreviewModelRenderer
 
         final var renderer = RendererAccess.INSTANCE.getRenderer();
         final var meshBuilder = renderer.meshBuilder();
-        final RenderMaterial defaultMaterial = renderer.materialFinder().blendMode(BlendMode.DEFAULT).find();
+        // Vanilla baked quads do not carry a Fabric blend mode; use the opaque layer
+        // rather than DEFAULT, whose blockRenderLayer is null in the Renderer API.
+        final RenderMaterial defaultMaterial = renderer.materialFinder().blendMode(BlendMode.SOLID).find();
         final List<RenderContext.QuadTransform> transforms = new ArrayList<>();
         final QuadEmitter transformedEmitter = transformedEmitter(meshBuilder.getEmitter(), transforms);
         final Supplier<RandomSource> random = () -> RandomSource.create(pos.asLong());
@@ -135,7 +137,8 @@ final class FabricPreviewModelRenderer
     {
         final QuadView rendered = quad;
         final RenderMaterial material = rendered.material();
-        final RenderType renderType = material.blendMode().blockRenderLayer;
+        final RenderType renderType = material.blendMode().blockRenderLayer != null
+            ? material.blendMode().blockRenderLayer : RenderType.solid();
         final VertexConsumer consumer = buffers.getBuffer(renderType);
         final Vector3f faceNormal = rendered.faceNormal();
         for (int vertex = 0; vertex < 4; vertex++)
