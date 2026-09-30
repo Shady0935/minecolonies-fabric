@@ -11,6 +11,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -109,7 +110,14 @@ public final class CapabilityHooks
         else if (target instanceof Level)
         {
             providers.add(new MinecoloniesWorldCapabilityProvider());
-            providers.add(new MinecoloniesWorldColonyManagerCapabilityProvider());
+            if (target instanceof ServerLevel serverLevel)
+            {
+                providers.add(MinecoloniesColonySavedData.get(serverLevel).getProvider());
+            }
+            else
+            {
+                providers.add(new MinecoloniesWorldColonyManagerCapabilityProvider());
+            }
         }
         else if (target instanceof Container container)
         {

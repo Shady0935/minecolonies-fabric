@@ -1024,6 +1024,22 @@ public final class MineColoniesGameTests implements FabricGameTest
           "Colony center changed during NBT round-trip");
         helper.assertTrue(loaded.getName().equals(colony.getName()),
           "Colony name changed during NBT round-trip");
+
+        final com.minecolonies.fabric.capability.MinecoloniesColonySavedData savedData =
+          com.minecolonies.fabric.capability.MinecoloniesColonySavedData.get(level);
+        savedData.setDirty();
+        final CompoundTag worldSave = savedData.save(new CompoundTag());
+        helper.assertTrue(worldSave.getList(NbtTagConstants.TAG_COLONIES, net.minecraft.nbt.Tag.TAG_COMPOUND).size() > 0,
+          "Minecraft SavedData did not include the live colony capability");
+        final com.minecolonies.coremod.event.capabilityproviders.MinecoloniesWorldColonyManagerCapabilityProvider restoredProvider =
+          new com.minecolonies.coremod.event.capabilityproviders.MinecoloniesWorldColonyManagerCapabilityProvider();
+        restoredProvider.deserializeNBT(worldSave.copy());
+        final com.minecolonies.coremod.colony.IColonyManagerCapability restoredCapability =
+          restoredProvider.getCapability(MineColonies.COLONY_MANAGER_CAP, null).resolve().orElse(null);
+        helper.assertTrue(restoredCapability != null && restoredCapability.getColony(colony.getID()) != null,
+          "SavedData reload did not restore the colony manager entry");
+        helper.assertTrue(restoredCapability.getColony(colony.getID()).getName().equals(colony.getName()),
+          "SavedData reload reverted the colony to older data");
         helper.succeed();
     }
 

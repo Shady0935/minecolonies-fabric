@@ -670,6 +670,9 @@ public final class ColonyManager implements IColonyManager
     {
         if (!world.isClientSide)
         {
+            // Force Fabric SavedData to bind and deserialize before considering
+            // one-time migration from the legacy recovery files.
+            com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null);
             // Late-load restore if cap was not loaded
             if (!capLoaded)
             {

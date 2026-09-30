@@ -75,13 +75,15 @@ public final class BackUpHelper
      */
     public static boolean backupColonyData()
     {
+        // The per-colony NBT files are the legacy/export recovery format. Keep
+        // them current on every flush; only creation of the dated ZIP is throttled.
+        BackUpHelper.saveColonies();
         if (System.currentTimeMillis() - lastBackupTime < MAX_TIME_TO_NEXT_BACKUP)
         {
             return false;
         }
         lastBackupTime = System.currentTimeMillis();
 
-        BackUpHelper.saveColonies();
         try (FileOutputStream fos = new FileOutputStream(getBackupSaveLocation(new Date())))
         {
             @NotNull final File saveDir =
@@ -291,16 +293,33 @@ public final class BackUpHelper
      */
     public static void saveNBTToPath(@Nullable final File file, @NotNull final CompoundTag compound)
     {
+        File temporaryFile = null;
         try
         {
             if (file != null)
             {
                 file.getParentFile().mkdirs();
-                NbtIo.write(compound, file);
+                temporaryFile = new File(file.getParentFile(), file.getName() + ".tmp");
+                NbtIo.write(compound, temporaryFile);
+                try
+                {
+                    java.nio.file.Files.move(temporaryFile.toPath(), file.toPath(),
+                      java.nio.file.StandardCopyOption.ATOMIC_MOVE,
+                      java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+                catch (final java.nio.file.AtomicMoveNotSupportedException ignored)
+                {
+                    java.nio.file.Files.move(temporaryFile.toPath(), file.toPath(),
+                      java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
             }
         }
         catch (final IOException exception)
         {
+            if (temporaryFile != null)
+            {
+                temporaryFile.delete();
+            }
             Log.getLogger().error("Exception when saving ColonyManager", exception);
         }
     }

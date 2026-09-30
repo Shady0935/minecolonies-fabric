@@ -158,7 +158,14 @@ public final class MineColoniesFabric implements ModInitializer
             MinecraftForge.EVENT_BUS.post(new ServerStartedEvent(server));
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server ->
-            MinecraftForge.EVENT_BUS.post(new ServerStoppingEvent(server)));
+        {
+            MinecraftForge.EVENT_BUS.post(new ServerStoppingEvent(server));
+            for (final net.minecraft.server.level.ServerLevel level : server.getAllLevels())
+            {
+                com.minecolonies.fabric.capability.MinecoloniesColonySavedData.markDirty(level);
+            }
+            com.minecolonies.coremod.util.BackUpHelper.saveColonies();
+        });
         ServerLifecycleEvents.SERVER_STOPPED.register(server ->
         {
             STARTED_SERVERS.remove(server);
@@ -184,6 +191,10 @@ public final class MineColoniesFabric implements ModInitializer
         ServerTickEvents.END_SERVER_TICK.register(server ->
         {
             MinecraftForge.EVENT_BUS.post(new TickEvent.ServerTickEvent(TickEvent.Phase.END));
+            for (final net.minecraft.server.level.ServerLevel level : server.getAllLevels())
+            {
+                com.minecolonies.fabric.capability.MinecoloniesColonySavedData.markDirty(level);
+            }
             for (final net.minecraft.server.level.ServerPlayer player : server.getPlayerList().getPlayers())
             {
                 MinecraftForge.EVENT_BUS.post(new TickEvent.PlayerTickEvent(player, TickEvent.Phase.END));

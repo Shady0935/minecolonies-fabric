@@ -166,9 +166,6 @@ public interface IColonyManagerCapability
                     }
                 }
 
-                // Check if some colonies are missing
-                BackUpHelper.loadMissingColonies();
-
                 // Check colonies for duplicates causing issues.
                 for (final BlockPos pos : tempColonies.keySet())
                 {
@@ -194,11 +191,8 @@ public interface IColonyManagerCapability
                     IColonyManager.getInstance().read(compound.getCompound(TAG_COLONY_MANAGER));
                 }
             }
-            else
-            {
-                BackUpHelper.loadMissingColonies();
-                BackUpHelper.loadManagerBackup();
-            }
+            // A valid SavedData payload is authoritative. Legacy file recovery is
+            // performed only once when no native payload exists, by onWorldLoad.
         }
     }
 }
