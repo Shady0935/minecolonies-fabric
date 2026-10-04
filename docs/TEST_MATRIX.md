@@ -1,5 +1,31 @@
 # Test matrix
 
+## Packaged creative mine placement regression (2026-10-03)
+
+- `AUTOMATED_PASS`: final JAR `build` and access-widener validation; remapped
+  bytecode and widener both refer to `ChunkMap` intermediary `field_17220`.
+- `AUTOMATED_PASS`: dedicated Fabric Loader 0.15.11 server using packaged mod
+  JARs and intermediary mappings, with opt-in creative probes. Both
+  `creative_miner_pretty` and `creative_miner_complete` emitted `passed all
+  assertions in intermediary`. Coverage: visible loaded-chunk lookup and key
+  enumeration; real async Pagoda miner blueprint placement with rotation/mirror;
+  completion of the ticked world operation; constructed-mode BuildingMiner
+  registration, live block entity, pack/path, built level one, mirror and colony
+  NBT reload; raw-paste block entity and schematic NBT reload. The raw mode's
+  initial incorrect active-building expectation was corrected to upstream
+  semantics before the final run.
+- `AUTOMATED_PASS`: probe server reached `Done`, saved/stopped cleanly and
+  all five installed profile mod hashes match their workspace artifacts.
+- `MANUAL_VALIDATION_PENDING`: original client/world retry using `Construido`;
+  subsequent GUI interaction with the placed mine and other style/level variants.
+
+Evidence: `logs/minecolonies-creative-miner-build-20261003.log`,
+`logs/creative-miner-packaged-final-20261003.log`,
+`logs/creative-miner-profile-install-20261003.json`.
+Run the opt-in test commands in separate areas of the isolated packaged
+`test-instance/creative-miner-packaged-20261003` server; enable
+`-Dfabric-api.gametest.command=true -Dminecolonies.creative-placement-tests=true`.
+
 ## Town Hall label color regression (2026-10-03)
 
 - `AUTOMATED_PASS`: production overflow-tooltip builder preserves original

@@ -1,5 +1,42 @@
 # Porting notes
 
+## Creative miner placement crash in packaged runtime (2026-10-03)
+
+The profile crash at 22:33:11 occurred in the integrated server while the
+creative `Pretty` placement callback registered a Pagoda miner. The block
+entity existed, but `AbstractBuilding.getTileEntity()` gated its lookup on
+`WorldUtil.isBlockLoaded()`, which reported false. The subsequent
+`AbstractSchematicProvider.setStructurePack()` dereferenced null, leaving a
+partially registered building with no blueprint path.
+
+Root cause: `FabricVanillaCompat.getVisibleChunk()` reflected on the literal
+Mojang field name `visibleChunkMap`. Loom remaps compiled field references,
+not strings; the packaged intermediary runtime renames that field. Reflection
+silently returned null for every chunk. `getVisibleChunkKeys()` had the same
+problem. This escaped development GameTests because they run with named mappings.
+
+Both helpers now access `ChunkMap.visibleChunkMap` directly through a narrow
+access widener, preserving the official 1.20.1 full-chunk readiness check.
+The field access and access-widener target are both remapped in the final JAR.
+The fix also reaches the existing pathfinding chunk-cache consumer of the
+same helper. No null guard or changes to creative-placement gameplay mask
+the missing chunk lookup.
+
+Opt-in `MineColoniesCreativePlacementGameTests` probes the actual asynchronous
+Structurize placement and ticked operation with the bundled Pagoda level-one
+miner, rotation and mirroring, loaded-chunk lookups, building registration,
+selected pack/path, built level and colony NBT reload. Enable with
+`-Dminecolonies.creative-placement-tests=true` and
+`-Dfabric-api.gametest.command=true`, then run `creative_miner_pretty` and
+`creative_miner_complete` sequentially at separate locations in an isolated
+packaged server. These probes are disabled in normal runs.
+
+The `Complete` probe checks raw schematic anchor/NBT rather than active
+colony-building registration: official `AbstractBlockHut.setup()` explicitly
+skips that setup for a creative non-fancy paste. An initial test expectation
+incorrectly required an active mine in this mode; it was corrected without
+changing the upstream gameplay behavior.
+
 ## Town Hall label color regression (2026-10-03)
 
 The automatic overflow tooltip added in `6bc332c8d9` passed the label's

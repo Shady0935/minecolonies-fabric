@@ -125,18 +125,16 @@ public final class FabricVanillaCompat
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static ChunkHolder getVisibleChunk(final ServerChunkCache source, final long key)
     {
-        final Map<Long, ChunkHolder> visible = readField(source.chunkMap, "visibleChunkMap", Map.class);
-        return visible == null ? null : visible.get(key);
+        // Direct references and the access widener are remapped by Loom. A
+        // reflective named field lookup silently fails in intermediary jars.
+        return source.chunkMap.visibleChunkMap.get(key);
     }
 
-    @SuppressWarnings("unchecked")
     public static Set<Long> getVisibleChunkKeys(final ServerChunkCache source)
     {
-        final Map<Long, ChunkHolder> visible = readField(source.chunkMap, "visibleChunkMap", Map.class);
-        return visible == null ? Set.of() : visible.keySet();
+        return source.chunkMap.visibleChunkMap.keySet();
     }
 
     @SuppressWarnings("unchecked")

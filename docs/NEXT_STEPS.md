@@ -1,5 +1,18 @@
 # Next steps
 
+## Profile validation after 2026-10-03 creative mine placement fix
+
+1. Relaunch `Minecolonies Fabric` with the already-installed final MineColonies JAR.
+2. Place a Pagoda mine in creative using `Construido`; verify placement finishes
+   and the mine's hut/interface has level one and its selected blueprint.
+3. Save/exit/re-enter and verify the mine remains registered and readable.
+4. Repeat other styles/levels as needed; the automated packaged probe covers
+   Pagoda level one with rotation/mirroring and colony NBT reload.
+
+The original profile save was not edited. The previous MineColonies JAR is in
+`mods/codex-backups/2026-10-03-creative-miner-placement`. Final packaged server
+probes pass in intermediary mappings, with a clean save and shutdown.
+
 ## Profile validation after 2026-10-03 Town Hall color fix
 
 1. Fully close Minecraft and relaunch CurseForge profile `Minecolonies Fabric`.

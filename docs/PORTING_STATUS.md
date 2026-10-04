@@ -1,5 +1,31 @@
 # Porting status
 
+## 2026-10-03 creative mine placement correction
+
+- [x] Diagnosed the profile's 22:33:11 integrated-server crash: named-field
+  reflection made loaded chunks appear unloaded in the intermediary runtime,
+  causing a null building block-entity lookup during `Pretty` placement.
+- [x] Replaced visible-chunk lookup/key enumeration with direct field access
+  and a remapped access widener; official full-chunk readiness semantics remain.
+- [x] Final MineColonies build and access-widener validation passed. JAR inspection
+  confirms compiled references and widener both target intermediary `field_17220`.
+- [x] Final packaged server probes passed in intermediary: Pagoda miner level 1,
+  `Pretty` built registration/pack/path/mirror and colony-NBT reload, and
+  `Complete` raw schematic placement/block-entity-NBT reload. Both use real
+  asynchronous blueprint handling and wait for the ticked placement to finish.
+- [x] Packaged probe server reached `Done`, saved all dimensions and stopped
+  cleanly; no placement crash occurred. Development-only mappings were not used.
+- [x] Installed final MineColonies in CurseForge `Minecolonies Fabric`, SHA-256
+  `D7B9915FD641C6CA2537CB3D9E3EA7B91269034F7CA65191A9D6A2749D292683`.
+  All five mod artifacts match workspace hashes. Backup:
+  `mods/codex-backups/2026-10-03-creative-miner-placement`.
+- [ ] User retries the mine with `Construido` in the original profile.
+
+Evidence: `logs/creative-miner-profile-crash-20261003.txt`,
+`logs/minecolonies-creative-miner-build-20261003.log`,
+`logs/creative-miner-packaged-final-20261003.log`,
+`logs/creative-miner-profile-install-20261003.json`.
+
 ## 2026-10-03 Town Hall text color correction
 
 - [x] Fixed overflow tooltips mutating label components to white; tooltip
@@ -12,8 +38,8 @@
   BlockUI SHA-256: `3D632BF5F821D7FC15BE57B2BDD72298A62579E96CF8D287616061FB8775E36F`.
   MineColonies retains the claim-persistence build hash listed below.
   Backup: `mods/codex-backups/2026-10-03-townhall-text-colors`.
-- [ ] Manual visual check after fully restarting Minecraft: Town Hall labels,
-  overflow tooltips/marquees and rename input/selection.
+- [x] User confirmed the Town Hall color correction worked perfectly after
+  testing the updated profile; that correction is closed.
 
 Evidence: `logs/blockui-townhall-tooltip-color-20261003.log`,
 `logs/blockui-townhall-tooltip-color-regression-before-20261003.log`,
