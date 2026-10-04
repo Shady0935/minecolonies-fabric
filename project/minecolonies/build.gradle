@@ -65,6 +65,9 @@ loom {
             server()
             runDir gameTestManualRunDir
             vmArg '-Dfabric-api.gametest.command=true'
+            if (project.providers.gradleProperty('persistenceProbe').getOrElse('false').toBoolean()) {
+                vmArg '-Dminecolonies.persistence-tests=true'
+            }
             programArg '--nogui'
             programArg '--port'
             programArg '0'

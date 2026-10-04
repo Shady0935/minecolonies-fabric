@@ -1,5 +1,46 @@
 # Porting notes
 
+## Claim persistence correction (2026-10-03)
+
+The profile's 19:13:49 load migrated colony 1 from the legacy per-colony
+file; the 19:20 load used native SavedData, with no recovery warning. Its
+`data/minecolonies_colonies.dat` contains colony 1. Claims nevertheless
+vanished because the Fabric capability bridge only retained chunk and queued
+claim providers in memory. Forge automatically serializes all three providers;
+porting only the colony-manager provider did not reproduce that behavior.
+
+- `ChunkSerializerMixin` stores `minecolonies:claims` in the vanilla region
+  chunk NBT, restoring full chunks through `ImposterProtoChunk` before the
+  Fabric chunk-load callback. Upstream claim mutations already mark chunks
+  unsaved, so normal chunk saves/unloads now preserve owners, static claims
+  and building claim anchors.
+- Per-dimension `minecolonies_chunk_updates.dat` preserves operations for
+  unloaded chunks. Both insertion/merge and consumption mark SavedData dirty.
+  `ChunkLoadStorage.toNBT` now writes the building claim/unclaim keys that its
+  constructor reads, rather than overwriting both lists under `buildings`.
+  Merging and applying queued updates preserve both static and building
+  operations when they target the same chunk; previously one family was dropped.
+- World providers are published before colony deserialization; recursive
+  capability lookup cannot construct and then discard a second provider.
+  Deserialization failure blocks subsequent colony writes instead of saving a
+  partial/empty provider over the native record.
+- Native data, including an intentionally empty colony list, is authoritative
+  per dimension. Legacy migration is restricted to a dimension with no native
+  payload. Another empty dimension no longer reloads the global legacy manager.
+- A persisted `minecolonies:claims_version=1` marker rebuilds inferable Town
+  Hall/building claims once for older Fabric saves, never on every restart.
+  Historical manual claims were not stored by old builds and cannot be inferred.
+
+The modern Fabric reference's world-load path also associates existing colony
+records without unconditional backup recovery. The 1.20.1 Forge providers and
+their NBT schemas remain the functional reference for this implementation.
+
+`MineColoniesPersistenceGameTests` is opt-in (`-PpersistenceProbe=true` on
+`runGametestManual`), since its four disk phases require real process restarts and
+must not run together in the ordinary automatic test suite. Test worlds remain
+under the workspace; an additional mixed-queue round-trip checks both claim
+families. The user's world was inspected read-only.
+
 ## Baseline and architecture
 
 The official MineColonies 1.20.1 Forge source is the gameplay and content

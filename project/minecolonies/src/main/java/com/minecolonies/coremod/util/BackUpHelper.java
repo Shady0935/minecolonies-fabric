@@ -195,30 +195,34 @@ public final class BackUpHelper
      */
     public static void loadMissingColonies()
     {
-        @NotNull final File saveDir = new File(ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT).toFile(), FILENAME_MINECOLONIES_PATH);
-
         for (final ResourceKey<Level> dimensionType : ServerLifecycleHooks.getCurrentServer().levelKeys())
         {
-            int missingFilesInRow = 0;
-            for (int i = 1; i <= MAX_COLONY_LOAD && missingFilesInRow < 5; i++)
+            loadMissingColonies(dimensionType);
+        }
+    }
+
+    /** One-time legacy migration must not restore colonies belonging to an already-loaded native dimension. */
+    public static void loadMissingColonies(final ResourceKey<Level> dimensionType)
+    {
+        @NotNull final File saveDir = new File(ServerLifecycleHooks.getCurrentServer().getWorldPath(LevelResource.ROOT).toFile(), FILENAME_MINECOLONIES_PATH);
+        int missingFilesInRow = 0;
+        for (int i = 1; i <= MAX_COLONY_LOAD && missingFilesInRow < 5; i++)
+        {
+            // Check non-deleted files for colony id + dim
+            @NotNull final File file = new File(saveDir, getFolderForDimension(dimensionType.location()) + String.format(FILENAME_COLONY, i));
+            if (file.exists())
             {
-                // Check non-deleted files for colony id + dim
-                @NotNull final File file = new File(saveDir, getFolderForDimension(dimensionType.location()) + String.format(FILENAME_COLONY, i));
-                if (file.exists())
+                missingFilesInRow = 0;
+                // Legacy colony files have no arbitrary/manual chunk claims. Restore
+                // only the inferable Town Hall and building area during migration.
+                if (IColonyManager.getInstance().getColonyByDimension(i, dimensionType) == null)
                 {
-                    missingFilesInRow = 0;
-                    // Load colony if null
-                    if (IColonyManager.getInstance().getColonyByDimension(i, dimensionType) == null)
-                    {
-                        // Chunk claims live in Fabric-backed chunk capabilities, so restore
-                        // them from the colony backup when a missing colony is recovered.
-                        loadColonyBackup(i, dimensionType, false, true);
-                    }
+                    loadColonyBackup(i, dimensionType, false, true);
                 }
-                else
-                {
-                    missingFilesInRow++;
-                }
+            }
+            else
+            {
+                missingFilesInRow++;
             }
         }
     }

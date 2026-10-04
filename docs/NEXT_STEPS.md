@@ -1,5 +1,15 @@
 # Next steps
 
+## Profile validation after 2026-10-03 claim persistence fix
+
+1. Re-enter the test profile: verify one-time restoration of inferable Town
+   Hall/building territory from the older native colony save.
+2. Claim an extra chunk outside that area, remove a different claim, save/exit
+   and re-enter twice; verify both operations persist and no backup recovery
+   warning appears on ordinary subsequent loads.
+3. Previously lost arbitrary manual claims must be recreated: old builds did
+   not store their coordinates in any colony recovery file.
+
 The datagen, lifecycle, gameplay-callback, mob-conversion, first server-side
 colony fixture, owned-colony deletion, colony teleport permission, mercenary hiring, citizen interaction response/close, GUI button advancement trigger, GUI open advancement trigger, recipe-teaching transfer, builder work-order/assignment, residence assignment and
 unassignment,

@@ -5,6 +5,13 @@ is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
 ## Confirmed technical limitations
 
+- Builds before the 2026-10-03 claim-persistence fix did not serialize Fabric
+  chunk claims or queued updates. Already-lost arbitrary/manual claims cannot
+  be recovered from colony NBT or legacy colony backups. The new version
+  rebuilds inferable Town Hall/building areas once, and persists future claims
+  and unclaims normally. This is historical data loss, not a restriction on
+  creating or saving new claims.
+
 - MineColonies entity types currently have no registered Minecraft DataFixer
   schemas in the official Forge 1.20.1 source or the modern Fabric reference.
   Client/server startup therefore reports `No data fixer registered for

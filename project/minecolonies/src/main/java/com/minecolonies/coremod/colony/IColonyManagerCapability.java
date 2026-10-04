@@ -149,9 +149,7 @@ public interface IColonyManagerCapability
 
                 if (!compound.contains(TAG_COLONIES) || !compound.contains(TAG_COLONY_MANAGER))
                 {
-                    BackUpHelper.loadMissingColonies();
-                    BackUpHelper.loadManagerBackup();
-                    return;
+                    throw new IllegalArgumentException("Invalid MineColonies SavedData payload: missing colonies/manager");
                 }
 
                 // Load all colonies from Nbt
@@ -163,6 +161,10 @@ public interface IColonyManagerCapability
                     {
                         tempColonies.put(colony.getCenter(), colony);
                         instance.addColony(colony);
+                    }
+                    else
+                    {
+                        throw new IllegalArgumentException("Failed to deserialize a colony from MineColonies SavedData");
                     }
                 }
 

@@ -1,5 +1,28 @@
 # Porting status
 
+## 2026-10-03 persistence correction
+
+- [x] Claims now serialize into vanilla chunk NBT, including manual/static
+  owners and building anchors; unloaded-chunk updates use per-dimension SavedData.
+- [x] Four isolated GameTest phases passed across three clean process restarts:
+  prepare, restore/apply pending claims, remove claims, verify removals/latest name.
+  Consumed updates did not replay and removed claims did not resurrect.
+- [x] Mixed static/building queue merge and latest building removal survive NBT
+  round-trips (`claims_mixed_roundtrip`).
+- [x] An isolated copy of the profile's native colony data migrated, restarted
+  without backup recovery, and persisted 25 reconstructed owned chunks plus
+  96 remaining unloaded-chunk operations. The actual profile world was unchanged.
+- [x] Final MineColonies build passed with remapped mixin/refmap verification.
+- [x] Installed the MineColonies JAR into the CurseForge test profile, matching
+  build SHA-256 `853C7B7F7D7950559470E90B8015EF9A8345CAF36610CF81E081E4F251C5411B`.
+  Previous JAR retained in `mods/codex-backups/2026-10-03-claim-persistence`.
+- [x] Legacy recovery restricted to dimensions with no native colony data;
+  an explicit version marker limits older-save territory reconstruction to once.
+- [ ] User's normal profile re-entry and visual border confirmation after this fix.
+
+Evidence: `logs/claims-persistence-20261003-{prepare,verify,remove,verify-removed}.log`.
+See `PORTING_NOTES.md` for root causes and historical manual-claim loss.
+
 Checkpoint: 2026-09-27. A checked item is verified in the target workspace;
 it is not inferred only from an upstream reference. This is a functional
 runtime checkpoint, not a claim that every gameplay path has been manually

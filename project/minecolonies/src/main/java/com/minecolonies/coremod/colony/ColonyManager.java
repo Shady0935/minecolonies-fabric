@@ -673,18 +673,33 @@ public final class ColonyManager implements IColonyManager
             // Force Fabric SavedData to bind and deserialize before considering
             // one-time migration from the legacy recovery files.
             com.minecolonies.fabric.capability.CapabilityHooks.getCapability(world, COLONY_MANAGER_CAP, null);
-            // Late-load restore if cap was not loaded
-            if (!capLoaded)
+            // An empty native save is still authoritative: never resurrect deleted
+            // colonies or reset the manager from legacy files in another dimension.
+            final net.minecraft.server.level.ServerLevel level = (net.minecraft.server.level.ServerLevel) world;
+            if (!com.minecolonies.fabric.capability.MinecoloniesColonySavedData.get(level).wasLoadedFromDisk())
             {
-                BackUpHelper.loadMissingColonies();
-                BackUpHelper.loadManagerBackup();
+                if (world.dimension() == Level.OVERWORLD)
+                {
+                    BackUpHelper.loadManagerBackup();
+                }
+                BackUpHelper.loadMissingColonies(world.dimension());
+                com.minecolonies.fabric.capability.MinecoloniesColonySavedData.markDirty(level);
             }
             capLoaded = false;
 
             for (@NotNull final IColony c : getColonies(world))
             {
                 c.onWorldLoad(world);
+                final com.minecolonies.fabric.capability.MinecoloniesColonySavedData savedData =
+                  com.minecolonies.fabric.capability.MinecoloniesColonySavedData.get(level);
+                if (savedData.wasLoadedFromDisk() && savedData.needsClaimMigration())
+                {
+                    // Old Fabric builds never persisted chunk capabilities. Recover
+                    // inferable claims ONCE; subsequent unclaims must stay unclaimed.
+                    BackUpHelper.reclaimChunks(c);
+                }
             }
+            com.minecolonies.fabric.capability.MinecoloniesColonySavedData.get(level).finishClaimMigration();
 
             MinecraftForge.EVENT_BUS.post(new ColonyManagerLoadedEvent(this));
         }

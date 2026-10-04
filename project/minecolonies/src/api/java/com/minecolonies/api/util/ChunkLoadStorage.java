@@ -164,8 +164,8 @@ public class ChunkLoadStorage
         compound.put(TAG_CLAIM_LIST, owningChanges.stream().map(ChunkLoadStorage::getCompoundOfColonyId).collect(NBTUtils.toListNBT()));
         compound.put(TAG_COLONIES_TO_ADD, coloniesToAdd.stream().map(ChunkLoadStorage::getCompoundOfColonyId).collect(NBTUtils.toListNBT()));
         compound.put(TAG_COLONIES_TO_REMOVE, coloniesToRemove.stream().map(ChunkLoadStorage::getCompoundOfColonyId).collect(NBTUtils.toListNBT()));
-        compound.put(TAG_BUILDINGS, claimingBuilding.stream().map(ChunkLoadStorage::writeTupleToNBT).collect(NBTUtils.toListNBT()));
-        compound.put(TAG_BUILDINGS, unClaimingBuilding.stream().map(ChunkLoadStorage::writeTupleToNBT).collect(NBTUtils.toListNBT()));
+        compound.put(TAG_BUILDINGS_CLAIM, claimingBuilding.stream().map(ChunkLoadStorage::writeTupleToNBT).collect(NBTUtils.toListNBT()));
+        compound.put(TAG_BUILDINGS_UNCLAIM, unClaimingBuilding.stream().map(ChunkLoadStorage::writeTupleToNBT).collect(NBTUtils.toListNBT()));
 
         return compound;
     }
@@ -232,43 +232,38 @@ public class ChunkLoadStorage
      */
     public void applyToCap(final IColonyTagCapability cap, final LevelChunk chunk)
     {
-        if (this.claimingBuilding.isEmpty() && unClaimingBuilding.isEmpty())
+        final int amountOfOperations = Math.max(Math.max(owningChanges.size(), coloniesToAdd.size()), coloniesToRemove.size());
+
+        for (int i = 0; i < amountOfOperations; i++)
         {
-            final int amountOfOperations = Math.max(Math.max(owningChanges.size(), coloniesToAdd.size()), coloniesToRemove.size());
-
-            for (int i = 0; i < amountOfOperations; i++)
+            if (i < owningChanges.size())
             {
-                if (i < owningChanges.size())
+                final int claimID = owningChanges.get(i);
+                if (claimID > NO_COLONY_ID)
                 {
-                    final int claimID = owningChanges.get(i);
-                    if (claimID > NO_COLONY_ID)
-                    {
-                        cap.setOwningColony(claimID, chunk);
-                    }
+                    cap.setOwningColony(claimID, chunk);
                 }
+            }
 
-                if (i < coloniesToAdd.size() && coloniesToAdd.get(i) > NO_COLONY_ID)
-                {
-                    cap.addColony(coloniesToAdd.get(i), chunk);
-                }
+            if (i < coloniesToAdd.size() && coloniesToAdd.get(i) > NO_COLONY_ID)
+            {
+                cap.addColony(coloniesToAdd.get(i), chunk);
+            }
 
-                if (i < coloniesToRemove.size() && coloniesToRemove.get(i) > NO_COLONY_ID)
-                {
-                    cap.removeColony(coloniesToRemove.get(i), chunk);
-                }
+            if (i < coloniesToRemove.size() && coloniesToRemove.get(i) > NO_COLONY_ID)
+            {
+                cap.removeColony(coloniesToRemove.get(i), chunk);
             }
         }
-        else
-        {
-            for (final Tuple<Short, BlockPos> tuple : unClaimingBuilding)
-            {
-                cap.removeBuildingClaim(tuple.getA(), tuple.getB(), chunk);
-            }
 
-            for (final Tuple<Short, BlockPos> tuple : claimingBuilding)
-            {
-                cap.addBuildingClaim(tuple.getA(), tuple.getB(), chunk);
-            }
+        for (final Tuple<Short, BlockPos> tuple : unClaimingBuilding)
+        {
+            cap.removeBuildingClaim(tuple.getA(), tuple.getB(), chunk);
+        }
+
+        for (final Tuple<Short, BlockPos> tuple : claimingBuilding)
+        {
+            cap.addBuildingClaim(tuple.getA(), tuple.getB(), chunk);
         }
         chunk.setUnsaved(true);
     }
@@ -280,7 +275,8 @@ public class ChunkLoadStorage
      */
     public boolean isEmpty()
     {
-        return coloniesToAdd.isEmpty() && coloniesToRemove.isEmpty();
+        return coloniesToAdd.isEmpty() && coloniesToRemove.isEmpty()
+          && claimingBuilding.isEmpty() && unClaimingBuilding.isEmpty();
     }
 
     /**
@@ -290,38 +286,35 @@ public class ChunkLoadStorage
      */
     public void merge(final ChunkLoadStorage newStorage)
     {
-        if (this.claimingBuilding.isEmpty() && unClaimingBuilding.isEmpty())
-        {
-            owningChanges.addAll(newStorage.owningChanges);
-            coloniesToAdd.addAll(newStorage.coloniesToAdd);
-            coloniesToRemove.addAll(newStorage.coloniesToRemove);
+        // A chunk can have both a Town Hall/static claim and building claims.
+        // Preserve both operation families instead of dropping whichever arrives second.
+        owningChanges.addAll(newStorage.owningChanges);
+        coloniesToAdd.addAll(newStorage.coloniesToAdd);
+        coloniesToRemove.addAll(newStorage.coloniesToRemove);
 
-            if (coloniesToAdd.size() > MAX_CHUNK_CLAIMS)
+        if (coloniesToAdd.size() > MAX_CHUNK_CLAIMS)
+        {
+            owningChanges.clear();
+            coloniesToAdd.clear();
+            coloniesToRemove.clear();
+        }
+
+        this.claimingBuilding.removeIf(newStorage.unClaimingBuilding::contains);
+        this.unClaimingBuilding.removeIf(newStorage.claimingBuilding::contains);
+
+        for (final Tuple<Short, BlockPos> tuple : newStorage.unClaimingBuilding)
+        {
+            if (!this.unClaimingBuilding.contains(tuple))
             {
-                owningChanges.clear();
-                coloniesToAdd.clear();
-                coloniesToRemove.clear();
+                this.unClaimingBuilding.add(tuple);
             }
         }
-        else
+
+        for (final Tuple<Short, BlockPos> tuple : newStorage.claimingBuilding)
         {
-            this.claimingBuilding.removeIf(newStorage.unClaimingBuilding::contains);
-            this.unClaimingBuilding.removeIf(newStorage.claimingBuilding::contains);
-
-            for (final Tuple<Short, BlockPos> tuple : newStorage.unClaimingBuilding)
+            if (!this.claimingBuilding.contains(tuple))
             {
-                if (!this.unClaimingBuilding.contains(tuple))
-                {
-                    this.unClaimingBuilding.add(tuple);
-                }
-            }
-
-            for (final Tuple<Short, BlockPos> tuple : newStorage.claimingBuilding)
-            {
-                if (!this.claimingBuilding.contains(tuple))
-                {
-                    this.claimingBuilding.add(tuple);
-                }
+                this.claimingBuilding.add(tuple);
             }
         }
     }

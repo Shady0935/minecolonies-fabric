@@ -1,5 +1,48 @@
 # Test matrix
 
+## Claim persistence regression (2026-10-03)
+
+- `AUTOMATED_PASS`: four sequential opt-in GameTest phases with three real
+  stop/restart boundaries in `run-claims-persistence-20261003-v2`.
+  Coverage includes live colony/Town Hall reload, latest-name mutation, chunk
+  serializer read/write hooks, static/manual claims, building anchors, pending
+  static/building claims, queued building removals, dimension separation,
+  consumption dirty tracking, no replay of consumed operations and no resurrection
+  of removed claims. Each phase emitted `passed all assertions`; shutdowns saved
+  all dimensions and Gradle completed successfully.
+- `MANUAL_VALIDATION_PENDING`: profile re-entry/border rendering and newly
+  placed arbitrary manual claims over repeated client sessions.
+- `AUTOMATED_PASS`: `claims_mixed_roundtrip` preserves static and building
+  claims merged for the same chunk, then preserves the latest merged building
+  removal through another NBT round-trip. Evidence:
+  `logs/claims-persistence-20261003-mixed.log`.
+- `AUTOMATED_PASS`: copied the profile's native colony file (SHA-256
+  `670F28B7864EC36600ABA7EC4B117194809F0C32DC3D8CAF427735F4C9090C53`)
+  into an isolated fresh world, migrated it to claims version 1, saved/stopped,
+  then restarted and force-loaded the colony-center chunk [-18,-8]. The normal
+  chunk-load callback consumed 25 of 121 pending reconstructed claims: region
+  NBT contained 25 owned chunks and the persisted queue retained 96 entries.
+  Colony 1/name/center remained intact; neither run restored a legacy backup
+  or logged a persistence exception. The original profile file retained its
+  original hash. Evidence: `logs/claims-native-migration-20261003.log` and
+  `logs/claims-native-migration-20261003-reload.log`.
+- `AUTOMATED_PASS`: final `gradlew.bat build` with the mixed-queue regression
+  changes; remapped JAR includes the chunk mixin, refmap and queue SavedData.
+
+Evidence: `logs/claims-persistence-20261003-prepare.log`,
+`logs/claims-persistence-20261003-verify.log`,
+`logs/claims-persistence-20261003-remove.log`,
+`logs/claims-persistence-20261003-verify-removed.log`.
+
+Run `gradlew.bat runGametestManual -PgameTestManualRunDir=<isolated-dir>
+-PpersistenceProbe=true`; on the console execute
+`execute positioned 0 80 0 run test run claims_prepare`. Save/stop, restart the
+same directory, then run `claims_verify`, `claims_remove` and
+`claims_verify_removed`, each with another save/stop/restart boundary. The
+optional `claims_mixed_roundtrip` requires the populated probe colony and
+checks merged static/building operations together. Do not run all phases in
+parallel or run `claims_prepare` in an existing non-probe world.
+
 Commands are run from the target workspace using Java 17 and PowerShell.
 
 | Area | Status | Evidence |

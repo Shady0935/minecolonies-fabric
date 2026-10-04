@@ -311,6 +311,8 @@ public interface IColonyTagCapability
         @Override
         public void readFromNBT(final CompoundTag compound)
         {
+            colonies.clear();
+            claimingBuildings.clear();
             // Set owning
             owningColony = compound.getInt(TAG_ID);
 

@@ -3,6 +3,7 @@
   "package": "com.minecolonies.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "ChunkSerializerMixin",
     "FarmBlockMixin",
     "EntityDimensionTravelMixin",
     "ExplosionMixin",

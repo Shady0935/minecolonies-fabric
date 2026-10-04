@@ -1,6 +1,7 @@
 package com.minecolonies.coremod.event.capabilityproviders;
 
 import com.minecolonies.api.colony.IChunkmanagerCapability;
+import com.minecolonies.api.util.ChunkLoadStorage;
 import net.minecraft.nbt.Tag;
 import net.minecraft.core.Direction;
 import com.minecolonies.fabric.capability.Capability;
@@ -31,7 +32,32 @@ public class MinecoloniesWorldCapabilityProvider implements ICapabilitySerializa
      */
     public MinecoloniesWorldCapabilityProvider()
     {
-        this.chunkMap = new IChunkmanagerCapability.Impl();
+        this(() -> { });
+    }
+
+    public MinecoloniesWorldCapabilityProvider(final Runnable markDirty)
+    {
+        this.chunkMap = new IChunkmanagerCapability.Impl()
+        {
+            @Override
+            public boolean addChunkStorage(final int x, final int z, final ChunkLoadStorage storage)
+            {
+                final boolean merged = super.addChunkStorage(x, z, storage);
+                markDirty.run();
+                return merged;
+            }
+
+            @Override
+            public ChunkLoadStorage getChunkStorage(final int x, final int z)
+            {
+                final ChunkLoadStorage storage = super.getChunkStorage(x, z);
+                if (storage != null)
+                {
+                    markDirty.run();
+                }
+                return storage;
+            }
+        };
         this.chunkMapOptional = LazyOptional.of(() -> chunkMap);
     }
 

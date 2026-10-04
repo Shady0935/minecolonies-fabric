@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,7 +96,7 @@ public final class CapabilityHooks
         };
     }
 
-    private static void ensureDefaultProviders(final Object target)
+    private static synchronized void ensureDefaultProviders(final Object target)
     {
         if (ATTACHED.containsKey(target))
         {
@@ -109,13 +110,14 @@ public final class CapabilityHooks
         }
         else if (target instanceof Level)
         {
-            providers.add(new MinecoloniesWorldCapabilityProvider());
             if (target instanceof ServerLevel serverLevel)
             {
+                providers.add(MinecoloniesChunkUpdateSavedData.get(serverLevel).getProvider());
                 providers.add(MinecoloniesColonySavedData.get(serverLevel).getProvider());
             }
             else
             {
+                providers.add(new MinecoloniesWorldCapabilityProvider());
                 providers.add(new MinecoloniesWorldColonyManagerCapabilityProvider());
             }
         }
@@ -133,6 +135,37 @@ public final class CapabilityHooks
         if (!providers.isEmpty())
         {
             ATTACHED.put(target, providers);
+            if (target instanceof ServerLevel serverLevel)
+            {
+                MinecoloniesColonySavedData.get(serverLevel).initializeProvider();
+            }
+        }
+    }
+
+    /** The chunk serializer owns the lifetime of this state, just as Forge did. */
+    public static CompoundTag writeChunkData(final LevelChunk chunk)
+    {
+        ensureDefaultProviders(chunk);
+        for (final ICapabilityProvider provider : ATTACHED.get(chunk))
+        {
+            if (provider instanceof MinecoloniesChunkCapabilityProvider chunkProvider)
+            {
+                return (CompoundTag) chunkProvider.serializeNBT();
+            }
+        }
+        throw new IllegalStateException("Missing MineColonies chunk provider at " + chunk.getPos());
+    }
+
+    public static void readChunkData(final LevelChunk chunk, final CompoundTag data)
+    {
+        ensureDefaultProviders(chunk);
+        for (final ICapabilityProvider provider : ATTACHED.get(chunk))
+        {
+            if (provider instanceof MinecoloniesChunkCapabilityProvider chunkProvider)
+            {
+                chunkProvider.deserializeNBT(data);
+                return;
+            }
         }
     }
 
