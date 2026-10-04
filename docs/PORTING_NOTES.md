@@ -1,5 +1,22 @@
 # Porting notes
 
+## Solid substitution terrain parity (2026-10-03)
+
+The simplified port resolver returned the blueprint state at the replacement
+position itself, so a solid placeholder could become its own replacement.
+Restored official Structurize 1.20.1 `getWorldgenBlock` and `createNoiseBiome`:
+noise-world surface rules use surrounding virtual states for depth; flat-world
+layers and the existing default-block fallback choose actual terrain. The
+existing read-only `OurWorldGenRegion` wrapper is reused. A narrow Fabric
+access widener replaces the original Forge access-transformer permissions for
+surface-rule context/rule and noise-chunk creation; Loom remaps it to intermediary.
+
+Both creative mine probes now place at Y=120, derive every solid-marker position
+from the rotated/mirrored Pagoda blueprint, preserve a gold-block terrain sentinel
+in constructed mode and validate real solid replacements for all other markers.
+Raw mode asserts every original solid marker is retained. Building/pack/mirror
+and colony-NBT assertions from the mine-crash regression remain in place.
+
 ## Creative miner placement crash in packaged runtime (2026-10-03)
 
 The profile crash at 22:33:11 occurred in the integrated server while the

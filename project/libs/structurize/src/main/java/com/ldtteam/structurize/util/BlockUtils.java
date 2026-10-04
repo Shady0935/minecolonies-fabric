@@ -208,15 +208,118 @@ public final class BlockUtils
     @Nullable
     public static BlockState getWorldgenBlock(final Level level, final BlockPos location, @Nullable final Function<BlockPos, BlockState> virtualBlocks)
     {
-        if (virtualBlocks != null)
+        if (level instanceof ServerLevel serverLevel)
         {
-            final BlockState virtual = virtualBlocks.apply(location);
-            if (virtual != null)
+            final ChunkGenerator generator = serverLevel.getChunkSource().getGenerator();
+            if (generator instanceof NoiseBasedChunkGenerator chunkGenerator)
             {
-                return virtual;
+                final NoiseGeneratorSettings generatorSettings = chunkGenerator.generatorSettings().value();
+
+                // VANILLA INLINE: look at usage of generatorSettings.surfaceRule()
+
+                final ChunkAccess chunk = serverLevel.getChunk(location);
+                final SurfaceRules.Context ctx = new SurfaceRules.Context(serverLevel.getChunkSource().randomState().surfaceSystem(),
+                    serverLevel.getChunkSource().randomState(),
+                    chunk,
+                    chunk.getOrCreateNoiseChunk(c -> createNoiseBiome(serverLevel, chunkGenerator, c)),
+                    serverLevel.getBiomeManager()::getBiome,
+                    serverLevel.registryAccess().registryOrThrow(Registries.BIOME),
+                    new WorldGenerationContext(chunkGenerator, serverLevel));
+
+                final int locX = location.getX();
+                final int locY = location.getY();
+                final int locZ = location.getZ();
+
+                int stoneDepthAbove = 1;
+                int stoneDepthBelow = DimensionType.WAY_BELOW_MIN_Y;
+                int waterHeight = Integer.MIN_VALUE;
+
+                final MutableBlockPos temp = new MutableBlockPos(locX, locY, locZ);
+                for (int tempY = locY + 1; tempY <= chunk.getMaxBuildHeight() + 1; ++tempY)
+                {
+                    temp.setY(tempY);
+                    final BlockState bs = virtualBlocks == null ? chunk.getBlockState(temp) :
+                        Objects.requireNonNullElseGet(virtualBlocks.apply(temp), () -> chunk.getBlockState(temp));
+                    if (bs.isAir())
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        if (!bs.getFluidState().isEmpty())
+                        {
+                            waterHeight = tempY + 1;
+                        }
+                        stoneDepthAbove++;
+                    }
+                }
+
+                for (int tempY = locY - 1; tempY >= chunk.getMinBuildHeight() - 1; --tempY)
+                {
+                    temp.setY(tempY);
+                    final BlockState bs = virtualBlocks == null ? chunk.getBlockState(temp) :
+                        Objects.requireNonNullElseGet(virtualBlocks.apply(temp), () -> chunk.getBlockState(temp));
+                    if (bs.isAir() || !bs.getFluidState().isEmpty())
+                    {
+                        stoneDepthBelow = tempY + 1;
+                        break;
+                    }
+                }
+
+                stoneDepthBelow = locY - stoneDepthBelow + 1;
+
+                ctx.updateXZ(locX, locZ);
+                ctx.updateY(stoneDepthAbove, stoneDepthBelow, waterHeight, locX, locY, locZ);
+
+                return generatorSettings.surfaceRule().apply(ctx).tryApply(locX, locY, locZ);
+            }
+            else if (generator instanceof FlatLevelSource chunkGenerator)
+            {
+                final List<BlockState> layers = chunkGenerator.settings().getLayers();
+                final int locY = location.getY() - serverLevel.getMinBuildHeight();
+                if (locY >= 0 && locY < layers.size())
+                {
+                    return layers.get(locY);
+                }
             }
         }
-        return level.getBlockState(location);
+
+        return null;
+    }
+
+    private static NoiseChunk createNoiseBiome(
+        final ServerLevel serverLevel,
+        final NoiseBasedChunkGenerator chunkGenerator,
+        final ChunkAccess chunk)
+    {
+        final int chunkX = chunk.getPos().x;
+        final int chunkZ = chunk.getPos().z;
+        final int chunkRange = ChunkStatus.SURFACE.getRange();
+        final List<ChunkAccess> surroundingChunks = new ArrayList<>(4 * chunkRange * (chunkRange + 1) + 1);
+
+        for (int z = -chunkRange; z <= chunkRange; z++)
+        {
+            for (int x = -chunkRange; x <= chunkRange; x++)
+            {
+                ChunkAccess surroundingChunk = serverLevel.getChunk(chunkX + x, chunkZ + z, ChunkStatus.SURFACE);
+
+                if (surroundingChunk instanceof ImposterProtoChunk imposterProtoChunk)
+                {
+                    surroundingChunk = new ImposterProtoChunk(imposterProtoChunk.getWrapped(), true);
+                }
+                else if (surroundingChunk instanceof LevelChunk levelChunk)
+                {
+                    surroundingChunk = new ImposterProtoChunk(levelChunk, true);
+                }
+
+                surroundingChunks.add(surroundingChunk);
+            }
+        }
+        final WorldGenRegion worldGenRegion = new OurWorldGenRegion(serverLevel, surroundingChunks);
+        return chunkGenerator.createNoiseChunk(chunk,
+            serverLevel.structureManager().forWorldGenRegion(worldGenRegion),
+            Blender.of(worldGenRegion),
+            serverLevel.getChunkSource().randomState());
     }
 
     /**

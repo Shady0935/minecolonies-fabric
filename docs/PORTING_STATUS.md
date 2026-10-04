@@ -1,6 +1,6 @@
 # Porting status
 
-## 2026-10-03 solid substitution review
+## 2026-10-03 solid substitution correction
 
 - [x] Compared `Pretty` versus `Complete` placement and solid replacement with
   exact official Structurize 1.20.1 source and the target implementation.
@@ -8,9 +8,23 @@
   solid placeholder as its own replacement. Markers remaining after `Construido`
   are a regression; terrain filling with real solid blocks is expected.
 - [x] Read-only region snapshots audited; count and fixture coverage limits
-  recorded in `KNOWN_LIMITATIONS.md`. User requested diagnosis; no runtime
-  changes or new JAR installation were performed in this review.
-- [ ] Restore solid terrain replacement parity and add an empty-space fill probe.
+  recorded in `KNOWN_LIMITATIONS.md`; subsequent authorized correction restores
+  the terrain resolver and refreshes the test-profile artifacts.
+- [x] Restored official surface-rule/flat-layer replacement parity with a
+  remapped Structurize access widener. Elevated empty-space probes now reject
+  unresolved markers and preserve suitable existing terrain.
+- [x] Previous packaged Structurize JAR fails the strengthened Pretty probe;
+  final jars pass Pretty/Complete in both flat and normal noise worlds.
+  Both persisted Pretty regions contain zero solid markers; raw regions each
+  retain 2,968, matching upstream raw-paste semantics.
+- [x] Updated CurseForge Minecolonies Fabric with tested Structurize and
+  MineColonies jars; all five artifact SHA-256 hashes match workspace builds.
+  Backup: mods/codex-backups/2026-10-03-solid-substitution.
+- [ ] User restarts the profile and manually validates a new Construido placement.
+
+Evidence: logs/solid-substitution-packaged-{red,flat,noise}-20261003.log,
+logs/solid-substitution-fixed-{flat,noise}-audit-20261003.json and
+logs/solid-substitution-profile-install-20261003.json.
 
 ## 2026-10-03 creative mine placement correction
 

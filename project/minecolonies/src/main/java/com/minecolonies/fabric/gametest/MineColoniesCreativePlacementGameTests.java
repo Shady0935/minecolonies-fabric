@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +60,18 @@ public final class MineColoniesCreativePlacementGameTests implements FabricGameT
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Pack loading interrupted");
         final var level = helper.getLevel();
-        final BlockPos center = helper.absolutePos(new BlockPos(8, 1, 8));
+        // Place above terrain so solid substitution must fill air rather than
+        // silently preserving the existing floor.
+        final BlockPos center = helper.absolutePos(new BlockPos(8, 1, 8)).atY(120);
         final BlockPos minerPos = center.offset(32, 0, 32);
+        final var blueprint = StructurePacks.getBlueprint("Pagoda", "fundamentals/miner1.blueprint");
+        blueprint.rotateWithMirror(Rotation.CLOCKWISE_90, Mirror.FRONT_BACK, level);
+        final BlockPos origin = minerPos.subtract(blueprint.getPrimaryBlockOffset());
+        final var solidPositions = blueprint.getBlockInfoAsList().stream()
+          .filter(info -> info.getState().getBlock() == com.ldtteam.structurize.blocks.ModBlocks.blockSolidSubstitution.get())
+          .map(info -> origin.offset(info.getPos())).toList();
+        helper.assertTrue(solidPositions.size() > 1, "Blueprint must exercise solid substitution");
+        final BlockPos preservedFloor = solidPositions.get(0);
         final ChunkPos centerChunk = new ChunkPos(center);
         for (int x = centerChunk.x - 3; x <= centerChunk.x + 5; x++)
         {
@@ -84,6 +95,7 @@ public final class MineColoniesCreativePlacementGameTests implements FabricGameT
         townHall.setBlueprintPath("fundamentals/townhall1.blueprint");
         colony.getBuildingManager().addNewBuilding(townHall, level);
         ChunkDataHelper.staticClaimInRange(colony.getID(), true, center, 5, level, true);
+        level.setBlockAndUpdate(preservedFloor, Blocks.GOLD_BLOCK.defaultBlockState());
 
         helper.runAfterDelay(10, () ->
         {
@@ -106,6 +118,24 @@ public final class MineColoniesCreativePlacementGameTests implements FabricGameT
               "Creative placement has not completed its ticked world operation");
             helper.assertTrue(level.getBlockState(minerPos).getBlock() == ModBlocks.blockHutMiner,
               "Creative placement lost the miner hut anchor");
+            if (type == BuildToolPlacementMessage.HandlerType.Pretty)
+            {
+                helper.assertTrue(level.getBlockState(preservedFloor).is(Blocks.GOLD_BLOCK),
+                  "Constructed placement replaced suitable existing terrain");
+                for (final BlockPos pos : solidPositions)
+                {
+                    final var state = level.getBlockState(pos);
+                    helper.assertTrue(state.getBlock() != com.ldtteam.structurize.blocks.ModBlocks.blockSolidSubstitution.get()
+                      && com.ldtteam.structurize.util.BlockUtils.isAnySolid(state),
+                      "Constructed placement left a placeholder or empty filler at " + pos);
+                }
+            }
+            else
+            {
+                helper.assertTrue(solidPositions.stream().allMatch(pos -> level.getBlockState(pos).getBlock()
+                  == com.ldtteam.structurize.blocks.ModBlocks.blockSolidSubstitution.get()),
+                  "Raw schematic paste did not preserve its solid markers");
+            }
             if (type == BuildToolPlacementMessage.HandlerType.Complete)
             {
                 // Schematic Paste preserves the raw blueprint. Upstream does

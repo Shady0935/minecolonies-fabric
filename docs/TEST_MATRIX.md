@@ -1,5 +1,29 @@
 # Test matrix
 
+## Solid substitution in packaged creative placement (2026-10-03)
+
+- `REGRESSION_REPRODUCED`: elevated `creative_miner_pretty` fails with the
+  previous Structurize JAR: unresolved placeholder at (5154,114,5144).
+- `AUTOMATED_PASS`: Structurize/MineColonies production builds and remapped
+  access-widener validation. Packaged intermediary server passes both Pretty
+  and Complete on flat and normal noise worlds with final JARs.
+- `AUTOMATED_PASS`: all blueprint solid-marker positions checked at Y=120;
+  Pretty contains real solid replacements and preserves a gold-block existing
+  floor, while Complete retains every blueprint marker. Existing building,
+  rotation/mirror, pack/path and NBT reload assertions continue to pass.
+- `AUTOMATED_PASS`: flat-world persisted-region audit finds 0 solid markers
+  for Pretty and 2,968 for Complete. The stronger elevated probe includes the
+  underground blueprint volume that the former bedrock-level fixture skipped.
+- `MANUAL_VALIDATION_PENDING`: restart the profile and place a new structure
+  using Construido; existing persisted markers require rebuilding separately.
+
+Evidence: `logs/solid-substitution-packaged-red-20261003.log`,
+`logs/solid-substitution-packaged-flat-20261003.log`,
+`logs/solid-substitution-packaged-noise-20261003.log`,
+`logs/solid-substitution-fixed-flat-audit-20261003.json`,
+`logs/structurize-solid-substitution-build-20261003.log`,
+`logs/minecolonies-solid-substitution-build-20261003.log`.
+
 ## Packaged creative mine placement regression (2026-10-03)
 
 - `AUTOMATED_PASS`: final JAR `build` and access-widener validation; remapped

@@ -1,5 +1,17 @@
 # Next steps
 
+## Profile validation after solid substitution fix (2026-10-03)
+
+1. Restart Minecolonies Fabric to load the refreshed Structurize/MineColonies jars.
+2. Place a new structure using Construido over empty space and verify the
+   foundation uses terrain blocks instead of structurize:blocksolidsubstitution.
+3. Check a placement on existing solid ground; suitable terrain is preserved.
+4. Colocar esquema intentionally keeps markers. Existing constructions are
+   not retroactively repaired; rebuild affected structures with Construido.
+
+The original save was not modified. Prior jars are backed up under
+mods/codex-backups/2026-10-03-solid-substitution.
+
 ## Profile validation after 2026-10-03 creative mine placement fix
 
 1. Relaunch `Minecolonies Fabric` with the already-installed final MineColonies JAR.
