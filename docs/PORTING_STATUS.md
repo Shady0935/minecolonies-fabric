@@ -1,5 +1,17 @@
 # Porting status
 
+## 2026-10-03 solid substitution review
+
+- [x] Compared `Pretty` versus `Complete` placement and solid replacement with
+  exact official Structurize 1.20.1 source and the target implementation.
+- [x] Confirmed the port's simplified terrain resolver can return a blueprint
+  solid placeholder as its own replacement. Markers remaining after `Construido`
+  are a regression; terrain filling with real solid blocks is expected.
+- [x] Read-only region snapshots audited; count and fixture coverage limits
+  recorded in `KNOWN_LIMITATIONS.md`. User requested diagnosis; no runtime
+  changes or new JAR installation were performed in this review.
+- [ ] Restore solid terrain replacement parity and add an empty-space fill probe.
+
 ## 2026-10-03 creative mine placement correction
 
 - [x] Diagnosed the profile's 22:33:11 integrated-server crash: named-field

@@ -1,5 +1,32 @@
 # Known limitations
 
+## Confirmed solid substitution regression (2026-10-03)
+
+`KNOWN_LIMITATION`: creative `Construido`/`Pretty` placement can leave
+`structurize:blocksolidsubstitution` in terrain-fill positions. This is a port
+regression, not official 1.20.1 constructed-placement behavior. The retained
+`StructurePlacer` correctly requests a real solid replacement, but the port's
+simplified `BlockUtils.getWorldgenBlock()` returns `virtualBlocks.apply(location)`
+at the target position. That is the blueprint placeholder itself; solidness
+checks can accept it and return it as its own replacement. Official 1.20.1
+instead evaluates world-generation surface rules (or flat-world layers), using
+virtual blueprint states to calculate surrounding depth rather than returning
+the target schematic state.
+
+Read-only inspection of a snapshot of the profile colony region found 3,199
+persisted solid placeholders. This is a region-wide count, not an attribution
+of every block to a particular placement mode. The previous isolated flat-world
+`Pretty` probe had zero remaining solid markers in its region; that fixture
+did not expose empty-space terrain filling and therefore did not cover this
+regression. Its raw `Complete` region contained 354, which is consistent with
+raw schematic paste retaining marker blocks. This review changes no runtime
+code or profile JARs. Restoration of terrain-replacement parity remains pending.
+
+Evidence: `logs/solid-substitution-profile-audit-20261003.json`,
+`logs/solid-substitution-readonly-audit-20261003.json`, and read-only inspector
+`test-instance/substitution_audit.py`. Official source baseline:
+Structurize commit `8bf1f636105ecd0dac69846fa71e78c4b11cbafd`.
+
 These are confirmed observations, not guesses. Incomplete gameplay coverage
 is also tracked in `PORTING_STATUS.md` and `TEST_MATRIX.md`.
 
