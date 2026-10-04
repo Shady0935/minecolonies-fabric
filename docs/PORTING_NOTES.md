@@ -1,5 +1,29 @@
 # Porting notes
 
+## Town Hall label color regression (2026-10-03)
+
+The automatic overflow tooltip added in `6bc332c8d9` passed the label's
+`MutableComponent` objects directly to `AbstractTextBuilder`. Its `build()`
+calls `paragraphBreak()`, which assigns the tooltip's white style in place
+to components with `Style.EMPTY`. This also recolored the source label;
+subsequent text preparation and the marquee's `getVisualOrderText()` rendered
+that explicit white instead of the XML black/green fallback. Longer Spanish
+labels made the issue especially visible in the Town Hall actions page.
+
+The tooltip now receives component copies for every line. Original XML colors,
+embedded formatting and programmatic colors remain authoritative without
+stripping component colors in the renderer. The earlier blanket color override
+in `7d78756503` (reverted in `052fff167d`) is not reinstated. The independent
+TextField input/selection fixes from `b734b2220a` and `db00cdd5e9` remain intact.
+Comparison with the official 1.20.1 Town Hall layouts confirms the intended
+black labels and green colony-name heading; no layout colors were changed.
+
+`OverflowTooltipColorTest` exercises the production overflow builder's styling
+step without a live screen: plain multiline labels and repeated tooltip builds
+retain their XML fallback, tooltip copies become white, and explicit bold/blue
+formatting and sibling components stay intact. Reverting only the component
+copies reproduces the failure. See the before/fixed build logs in `logs/`.
+
 ## Claim persistence correction (2026-10-03)
 
 The profile's 19:13:49 load migrated colony 1 from the legacy per-colony

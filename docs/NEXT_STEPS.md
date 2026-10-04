@@ -1,5 +1,18 @@
 # Next steps
 
+## Profile validation after 2026-10-03 Town Hall color fix
+
+1. Fully close Minecraft and relaunch CurseForge profile `Minecolonies Fabric`.
+2. Open the Town Hall actions page in Spanish. Confirm its black labels and
+   green colony-name heading remain readable, including long scrolling labels.
+3. Hover clipped text: the tooltip should remain white while the source label
+   keeps its original color after hovering, scrolling and reopening the screen.
+4. Open colony rename, type/select text and confirm the input stays readable.
+
+BlockUI's two focused regression tests and full three-test build pass;
+MineColonies builds successfully. Updated jars are already installed, with
+previous copies in `mods/codex-backups/2026-10-03-townhall-text-colors`.
+
 ## Profile validation after 2026-10-03 claim persistence fix
 
 1. Re-enter the test profile: verify one-time restoration of inferable Town

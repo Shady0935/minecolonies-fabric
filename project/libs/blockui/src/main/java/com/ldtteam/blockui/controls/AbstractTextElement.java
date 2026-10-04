@@ -259,14 +259,21 @@ public abstract class AbstractTextElement extends Pane
         }
         removeOverflowTooltip();
 
-        final var builder = PaneBuilders.tooltipBuilder().hoverPane(this);
-        builder.append(text.get(0));
-        for (int i = 1; i < text.size(); i++)
-        {
-            builder.appendNL(text.get(i));
-        }
-        overflowTooltip = builder.build();
+        overflowTooltip = overflowTooltipBuilder(text).hoverPane(this).build();
         overflowTooltipText = currentText;
+    }
+
+    static AbstractTextBuilder.TooltipBuilder overflowTooltipBuilder(final List<MutableComponent> lines)
+    {
+        final var builder = PaneBuilders.tooltipBuilder();
+        // The builder applies its white paragraph style in place. Never share
+        // the label's components: their XML color must remain the fallback.
+        builder.append(lines.get(0).copy());
+        for (int i = 1; i < lines.size(); i++)
+        {
+            builder.appendNL(lines.get(i).copy());
+        }
+        return builder;
     }
 
     private void removeOverflowTooltip()

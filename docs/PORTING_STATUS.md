@@ -1,5 +1,25 @@
 # Porting status
 
+## 2026-10-03 Town Hall text color correction
+
+- [x] Fixed overflow tooltips mutating label components to white; tooltip
+  styling now works on copies and preserves original XML/component colors.
+- [x] Two regression tests fail with the previous shared-component behavior
+  and pass with the fix; BlockUI's full build passes all three JUnit tests.
+- [x] MineColonies build passed against the updated BlockUI development JAR.
+- [x] Installed BlockUI and refreshed MineColonies in CurseForge profile
+  `Minecolonies Fabric`; all five local mod JAR hashes match the built artifacts.
+  BlockUI SHA-256: `3D632BF5F821D7FC15BE57B2BDD72298A62579E96CF8D287616061FB8775E36F`.
+  MineColonies retains the claim-persistence build hash listed below.
+  Backup: `mods/codex-backups/2026-10-03-townhall-text-colors`.
+- [ ] Manual visual check after fully restarting Minecraft: Town Hall labels,
+  overflow tooltips/marquees and rename input/selection.
+
+Evidence: `logs/blockui-townhall-tooltip-color-20261003.log`,
+`logs/blockui-townhall-tooltip-color-regression-before-20261003.log`,
+`logs/minecolonies-townhall-tooltip-color-20261003.log`,
+`logs/townhall-text-colors-profile-install-20261003.json`.
+
 ## 2026-10-03 persistence correction
 
 - [x] Claims now serialize into vanilla chunk NBT, including manual/static

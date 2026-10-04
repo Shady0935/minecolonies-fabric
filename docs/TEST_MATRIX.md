@@ -1,5 +1,25 @@
 # Test matrix
 
+## Town Hall label color regression (2026-10-03)
+
+- `AUTOMATED_PASS`: production overflow-tooltip builder preserves original
+  unstyled labels across multiline/repeated builds; tooltip copies receive white
+  while the original text retains its XML color fallback. Explicit bold/blue
+  formatting and sibling components remain intact. Both focused tests fail when
+  component copying is removed and pass with the fix. Full BlockUI build: 3/3
+  JUnit tests. MineColonies build also passes.
+- `AUTOMATED_PASS`: installed BlockUI's remapped bytecode contains both component
+  copy calls; all five profile mod hashes match the workspace build artifacts.
+- `MANUAL_VALIDATION_PENDING`: restart the CurseForge `Minecolonies Fabric`
+  client; check Town Hall black labels/green heading, clipped labels before and
+  after scrolling/hovering, white tooltips, and readable rename input/selection.
+
+Evidence: `logs/blockui-townhall-tooltip-color-20261003.log`,
+`logs/blockui-townhall-tooltip-color-regression-before-20261003.log`,
+`project/libs/blockui/build/test-results/test/TEST-com.ldtteam.blockui.controls.OverflowTooltipColorTest.xml`,
+`logs/minecolonies-townhall-tooltip-color-20261003.log`,
+`logs/townhall-text-colors-profile-install-20261003.json`.
+
 ## Claim persistence regression (2026-10-03)
 
 - `AUTOMATED_PASS`: four sequential opt-in GameTest phases with three real
