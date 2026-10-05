@@ -230,6 +230,19 @@ public abstract class AbstractEntityCitizen extends AbstractCivilianEntity imple
         return super.interactAt(player, vec, hand);
     }
 
+    /** Fabric's vanilla mob hook replaces Forge's important-interactions hook. */
+    @Override
+    protected InteractionResult mobInteract(final Player player, final InteractionHand hand)
+    {
+        return checkAndHandleImportantInteractions(player, hand);
+    }
+
+    /** Shared fallback for ordinary citizens, visitors and vanilla item handling. */
+    public InteractionResult checkAndHandleImportantInteractions(final Player player, final InteractionHand hand)
+    {
+        return super.mobInteract(player, hand);
+    }
+
     /**
      * Returns false if the newer Entity AI code should be run.
      */

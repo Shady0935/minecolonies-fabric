@@ -1,5 +1,28 @@
 # Porting notes
 
+## Citizen vanilla right-click dispatch (2026-10-05)
+
+Forge calls `checkAndHandleImportantInteractions` during mob interaction. The
+Fabric port retained the citizen and visitor methods but removed their
+`@Override` annotations because vanilla has no such hook. Nothing called them:
+`interactAt` still played the citizen's voice, while the GUI/inventory/direct
+item interaction path remained unreachable. This explains speech without a
+window, without requiring a networking exception.
+
+`AbstractEntityCitizen.mobInteract` now forwards the vanilla hook to the shared
+important-interaction method. Both concrete entity methods are real overrides
+again. Name-tag fallbacks call the base important-interaction implementation,
+which delegates to vanilla `super.mobInteract`; calling `super.interact` here
+would re-enter the new bridge recursively for unnamed name tags. Permissions,
+special items, shift-inventory and the existing ordered citizen-view/open-window
+packets remain in their existing handlers.
+
+Opt-in packaged `citizen_right_click` invokes vanilla `interact` on real citizen
+and visitor types with both hands, verifies named-tag consumption and
+unnamed-tag PASS without recursion. Enable `-Dminecolonies.citizen-interaction-tests=true`
+and `-Dfabric-api.gametest.command=true`. This tests server dispatch/item behavior;
+actual client window rendering remains a manual validation.
+
 ## Solid substitution terrain parity (2026-10-03)
 
 The simplified port resolver returned the blueprint state at the replacement

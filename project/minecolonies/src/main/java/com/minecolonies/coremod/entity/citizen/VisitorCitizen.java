@@ -474,6 +474,7 @@ VisitorCitizen extends AbstractEntityCitizen
      * @param player which interacts with the citizen.
      * @return If citizen should interact or not.
      */
+    @Override
     public InteractionResult checkAndHandleImportantInteractions(final Player player, @NotNull final InteractionHand hand)
     {
         final IColonyView iColonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), player.level().dimension());
@@ -484,7 +485,7 @@ VisitorCitizen extends AbstractEntityCitizen
 
         if (!ItemStackUtils.isEmpty(player.getItemInHand(hand)) && player.getItemInHand(hand).getItem() instanceof NameTagItem)
         {
-            return super.interact(player, hand);
+            return super.checkAndHandleImportantInteractions(player, hand);
         }
 
         final InteractionResult result = directPlayerInteraction(player, hand);

@@ -1,5 +1,29 @@
 # Porting status
 
+## 2026-10-05 citizen right-click correction
+
+- [x] Confirmed Forge's retained important-interactions methods were orphaned
+  on Fabric. The independent interactAt sound still played, explaining speech
+  without GUI or inventory interaction.
+- [x] Connected vanilla mobInteract in AbstractEntityCitizen to both concrete
+  citizen/visitor handlers. Restored Override annotations and a non-recursive
+  vanilla fallback for name tags.
+- [x] Previous production jar augmented only with the new probe fails vanilla
+  citizen MAIN_HAND dispatch. Final packaged intermediary jar passes citizen
+  and visitor dispatch for both hands, named-tag consumption and unnamed-tag
+  PASS without recursion. Final server saved/stopped cleanly.
+- [x] Runtime build/access-widener validation passed; source-jar tasks excluded
+  from final build after interrupting the earlier slow source remapping.
+- [x] Installed tested MineColonies jar in CurseForge Minecolonies Fabric;
+  all five profile artifacts match workspace hashes. Prior jar backed up at
+  mods/codex-backups/2026-10-05-citizen-interaction.
+- [ ] User restarts and validates citizen/Builder windows and shift-inventory.
+
+Evidence: logs/citizen-interaction-packaged-red-20261005.log,
+logs/citizen-interaction-packaged-final-20261005.log,
+logs/minecolonies-citizen-interaction-final-build-20261005.log,
+logs/citizen-interaction-profile-install-20261005.json.
+
 ## 2026-10-03 solid substitution correction
 
 - [x] Compared `Pretty` versus `Complete` placement and solid replacement with

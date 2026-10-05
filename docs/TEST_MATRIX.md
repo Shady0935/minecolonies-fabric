@@ -1,5 +1,28 @@
 # Test matrix
 
+## Citizen vanilla right-click regression (2026-10-05)
+
+- `REGRESSION_REPRODUCED`: previous runtime jar with only the new opt-in probe
+  injected fails citizen vanilla interact dispatch for MAIN_HAND.
+- `AUTOMATED_PASS`: production runtime build with source-jar tasks excluded,
+  access-widener validation and final packaged dedicated server in intermediary.
+  Vanilla interact reaches the ordinary citizen and visitor handlers with both
+  hands. Named tags are consumed; unnamed tags return PASS without recursion.
+- `AUTOMATED_PASS`: final packaged server saves/stops cleanly and all five
+  installed profile artifacts match workspace SHA-256 hashes.
+- `MANUAL_VALIDATION_PENDING`: client GUI appearance for an ordinary citizen,
+  assigned Builder and visitor, plus shift-right-click inventory. The probe has
+  no client and does not claim to verify window rendering or assigned-job GUI.
+
+The initial green fixture expected an unregistered citizen to accept renaming;
+its existing setCustomName correctly requires citizen/colony data. The final
+fixture checks vanilla tag consumption instead; runtime rename policy is intact.
+
+Evidence: logs/citizen-interaction-packaged-red-20261005.log,
+logs/citizen-interaction-packaged-final-20261005.log,
+logs/minecolonies-citizen-interaction-final-build-20261005.log,
+logs/citizen-interaction-profile-install-20261005.json.
+
 ## Solid substitution in packaged creative placement (2026-10-03)
 
 - `REGRESSION_REPRODUCED`: elevated `creative_miner_pretty` fails with the

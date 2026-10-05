@@ -12,7 +12,7 @@
     "client": ["com.minecolonies.coremod.MineColoniesClientFabric"],
     "journeymap": ["com.minecolonies.coremod.compatibility.journeymap.JourneymapPlugin"],
     "fabric-datagen": ["com.minecolonies.coremod.generation.MineColoniesDataGenerator"],
-    "fabric-gametest": ["com.minecolonies.fabric.gametest.MineColoniesGameTests", "com.minecolonies.fabric.gametest.MineColoniesPersistenceGameTests", "com.minecolonies.fabric.gametest.MineColoniesCreativePlacementGameTests"]
+    "fabric-gametest": ["com.minecolonies.fabric.gametest.MineColoniesGameTests", "com.minecolonies.fabric.gametest.MineColoniesPersistenceGameTests", "com.minecolonies.fabric.gametest.MineColoniesCreativePlacementGameTests", "com.minecolonies.fabric.gametest.MineColoniesCitizenInteractionGameTests"]
   },
   "mixins": ["minecolonies.mixins.json"],
   "accessWidener": "minecolonies.accesswidener",

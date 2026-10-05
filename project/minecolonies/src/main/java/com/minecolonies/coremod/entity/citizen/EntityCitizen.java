@@ -381,6 +381,7 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
      * @return If citizen should interact or not.
      */
     @NotNull
+    @Override
     public InteractionResult checkAndHandleImportantInteractions(final Player player, @NotNull final InteractionHand hand)
     {
         final IColonyView iColonyView = IColonyManager.getInstance().getColonyView(citizenColonyHandler.getColonyId(), player.level().dimension());
@@ -391,7 +392,7 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
 
         if (!ItemStackUtils.isEmpty(player.getItemInHand(hand)) && player.getItemInHand(hand).getItem() instanceof NameTagItem)
         {
-            return super.interact(player, hand);
+            return super.checkAndHandleImportantInteractions(player, hand);
         }
 
         final InteractionResult result = directPlayerInteraction(player, hand);

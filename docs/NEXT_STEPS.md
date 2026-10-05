@@ -1,5 +1,14 @@
 # Next steps
 
+## Profile validation after citizen interaction correction (2026-10-05)
+
+Restart Minecolonies Fabric after loading the refreshed MineColonies jar.
+Right-click an ordinary citizen and an assigned Builder with an empty hand;
+the interaction window or citizen main screen should open. Shift-right-click
+should open the inventory. Check a visitor separately and normal name-tag use.
+The automated packaged probe validates vanilla click dispatch and name tags;
+client GUI rendering remains manual. No profile save edits are involved.
+
 ## Profile validation after solid substitution fix (2026-10-03)
 
 1. Restart Minecolonies Fabric to load the refreshed Structurize/MineColonies jars.
