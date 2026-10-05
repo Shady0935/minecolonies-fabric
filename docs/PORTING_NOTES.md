@@ -1,5 +1,21 @@
 # Porting notes
 
+## Builder queued work sounds restored (2026-10-05)
+
+Official Forge 1.20.1 baseline b6987ade retains a generic BAMBOO_HIT work sound
+in AbstractEntityAIStructure, volume 0.5, pitch 0.1, length 10, repetitions 0.
+It does not emit each material's BlockItem placement sound in the Structurize
+placement handlers. The same work sound was already queued by the Fabric AI.
+
+The regression was downstream: the port's client SoundManager.tick called
+Level.playSound with a null Player, replacing upstream's Minecraft local player.
+Vanilla ClientLevel checks that the supplied player equals Minecraft.player;
+null fails while in-game, dropping every sound played through this queue.
+Use playLocalSound at the same BlockPos with unchanged event/source/volume/pitch
+and distance delay disabled. This is client playback after the existing tracked
+entity packet, not a second server broadcast. Queue cadence/repetitions and the
+builder's original work sound remain intact; no per-material sounds are added.
+
 ## Quick Guide dismissal and static wrapped text (2026-10-05)
 
 The profile's check_out_guide advancement was already done after Entendido.

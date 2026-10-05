@@ -1,5 +1,20 @@
 # Porting status
 
+## 2026-10-05 builder work sound correction
+
+- [x] Compared official Forge 1.20.1 b6987ade and Structurize 8bf1f636:
+  builder work uses queued BAMBOO_HIT; generic per-material placement sounds
+  are not part of that baseline path.
+- [x] Diagnosed port SoundManager.tick passing null to client playSound, which
+  vanilla rejects when it differs from the local player. Replaced with local
+  playback; builder event, volume/pitch and queue timing remain unchanged.
+- [x] Runtime build (source-jar tasks excluded) and packaged intermediary
+  networkCodecsAndSplitEnvelopeRoundTrip pass, including citizen-sound codecs.
+  Server saves/stops cleanly. Final bytecode invokes remapped playLocalSound.
+- [x] Installed MineColonies in CurseForge Minecolonies Fabric; all five hashes
+  match workspace artifacts. Backup: mods/codex-backups/2026-10-05-builder-sound.
+- [ ] User restarts and listens to an actively constructing Builder nearby.
+
 ## 2026-10-05 Quick Guide correction
 
 - [x] Read-only profile inspection confirms check_out_guide was already done.

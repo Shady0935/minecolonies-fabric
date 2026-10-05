@@ -1,5 +1,13 @@
 # Next steps
 
+## Builder sound profile validation (2026-10-05)
+
+Restart Minecolonies Fabric with the installed MineColonies jar, stand near a
+Builder actively constructing and listen for the original generic work taps.
+The Forge 1.20.1 baseline uses BAMBOO_HIT rather than a separate placement sound
+for each material. Queued sound playback has been restored; client listening
+remains manual. Prior jar: mods/codex-backups/2026-10-05-builder-sound.
+
 ## Profile validation after Quick Guide fix (2026-10-05)
 
 Restart Minecolonies Fabric with the refreshed BlockUI/MineColonies jars.

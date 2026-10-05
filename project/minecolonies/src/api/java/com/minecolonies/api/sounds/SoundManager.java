@@ -3,7 +3,6 @@ package com.minecolonies.api.sounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayDeque;
@@ -46,7 +45,9 @@ public class SoundManager
         final TimedSound instance = soundQueue.peek();
         if (instance.timeout <= 0)
         {
-            level.playSound((Player) null, instance.pos, instance.soundEvent, instance.source, instance.volume, instance.pitch);
+            // This queue is consumed on the client. ClientLevel.playSound only
+            // plays for the local player; a null player silently drops it.
+            level.playLocalSound(instance.pos, instance.soundEvent, instance.source, instance.volume, instance.pitch, false);
             instance.timeout = instance.length;
             instance.repetitions--;
             if (instance.repetitions < 0)

@@ -1,5 +1,26 @@
 # Test matrix
 
+## Builder queued work-sound routing (2026-10-05)
+
+- `SOURCE_CONFIRMED`: official Forge 1.20.1 builder queues BAMBOO_HIT and its
+  sound manager supplies the local player. Port supplied null. Vanilla
+  ClientLevel bytecode confirms the local-player equality gate and the direct
+  playback path used by playLocalSound.
+- `AUTOMATED_PASS`: production runtime build/access-widener validation with
+  source-jar tasks excluded. Packaged intermediary network codec/split-envelope
+  probe passes, including PlaySoundForCitizenMessage metadata round-trip;
+  test runfailed reports none. Final sound-queue bytecode invokes method_45446.
+- `AUTOMATED_PASS`: dedicated server saves/stops cleanly; all five installed
+  test-profile artifact hashes match workspace builds.
+- `MANUAL_VALIDATION_PENDING`: audible original work sound during nearby Builder
+  construction. Dedicated-server codec checks cannot validate client audio output.
+
+Evidence: logs/builder-sound-clientlevel-routing-20261005.txt,
+logs/builder-sound-remapped-queue-20261005.txt,
+logs/minecolonies-builder-sound-build-20261005.log,
+logs/builder-sound-packaged-codec-20261005.log,
+logs/builder-sound-profile-install-20261005.json.
+
 ## Quick Guide completed-state lookup and text wrapping (2026-10-05)
 
 - `CONFIRMED`: read-only profile advancement JSON already contains done=true
