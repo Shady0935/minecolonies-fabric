@@ -1,5 +1,28 @@
 # Test matrix
 
+## Quick Guide completed-state lookup and text wrapping (2026-10-05)
+
+- `CONFIRMED`: read-only profile advancement JSON already contains done=true
+  for check_out_guide. Repeated display therefore was not a lost server save.
+- `AUTOMATED_PASS`: BlockUI full build/all three JUnit tests and MineColonies
+  runtime build with source-jar tasks excluded, plus access-widener validation.
+  Final compiled field access and access widener both target intermediary
+  ClientAdvancements field_3681, replacing broken named-string reflection.
+- `AUTOMATED_PASS`: packaged intermediary dedicated-server
+  clientToServerClickGuiButtonTriggerCompletesAdvancement completes the guide
+  criterion and clears its split-cache entry. test runfailed reports none.
+  Server saves/stops normally; installed five profile hashes match artifacts.
+- `MANUAL_VALIDATION_PENDING`: client guide no longer repeats after completion,
+  reconnect persistence, and static wrapped Spanish text fitting the three
+  inset parchment cards. Server testing does not exercise client screen rendering.
+
+Evidence: logs/quick-guide-profile-completion-20261005.json,
+logs/quick-guide-remapped-progress-20261005.txt,
+logs/quick-guide-packaged-advancement-20261005.log,
+logs/blockui-quick-guide-build-20261005.log,
+logs/minecolonies-quick-guide-build-20261005.log,
+logs/quick-guide-profile-install-20261005.json.
+
 ## Citizen vanilla right-click regression (2026-10-05)
 
 - `REGRESSION_REPRODUCED`: previous runtime jar with only the new opt-in probe

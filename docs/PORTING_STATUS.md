@@ -1,5 +1,25 @@
 # Porting status
 
+## 2026-10-05 Quick Guide correction
+
+- [x] Read-only profile inspection confirms check_out_guide was already done.
+  The repeated guide came from named-field reflection failing to read client
+  advancement progress in packaged intermediary mappings.
+- [x] Replaced that reflection with direct ClientAdvancements.progress access
+  through a remapped access widener, preserving upstream dismissal behavior.
+- [x] Added a per-text marquee=false opt-out and enabled it only for the three
+  Quick Guide cards. Existing wrapping now renders full static multiline text,
+  with inset margins and line spacing within the original card artwork.
+- [x] BlockUI full build passes all three JUnit tests, including label colors.
+- [x] Runtime MineColonies build/access-widener validation passed (source jars excluded).
+  Final bytecode and widener both reference ClientAdvancements field_3681.
+- [x] Packaged dedicated C2S confirmation probe completes check_out_guide and
+  has no failed tests; server saves/stops cleanly. This verifies server dismissal,
+  not actual client GUI rendering.
+- [x] Installed BlockUI/MineColonies in the CurseForge test profile; all five
+  hashes match workspace artifacts. Backup: mods/codex-backups/2026-10-05-quick-guide.
+- [ ] User validates no repeated guide and visual wrapping after restart.
+
 ## 2026-10-05 citizen right-click correction
 
 - [x] Confirmed Forge's retained important-interactions methods were orphaned

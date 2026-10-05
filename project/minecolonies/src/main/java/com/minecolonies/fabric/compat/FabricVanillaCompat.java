@@ -83,8 +83,8 @@ public final class FabricVanillaCompat
 
     public static boolean isAdvancementDone(final ClientAdvancements advancements, final Advancement advancement)
     {
-        final Map<Advancement, AdvancementProgress> progress = readField(advancements, "progress", Map.class);
-        return progress != null && progress.getOrDefault(advancement, new AdvancementProgress()).isDone();
+        final AdvancementProgress progress = advancements.progress.get(advancement);
+        return progress != null && progress.isDone();
     }
 
     public static Vec3 getExplosionPosition(final Explosion explosion)

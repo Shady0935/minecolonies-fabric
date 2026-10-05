@@ -1,5 +1,14 @@
 # Next steps
 
+## Profile validation after Quick Guide fix (2026-10-05)
+
+Restart Minecolonies Fabric with the refreshed BlockUI/MineColonies jars.
+The profile already completed check_out_guide, so opening the Builder should
+show its normal window directly. In a fresh player/world, check the initial
+Quick Guide has static wrapped readable text in all three cards; press
+Entendido, reopen the Builder and rejoin to verify the saved dismissal state.
+Existing profile advancement/save data was inspected read-only.
+
 ## Profile validation after citizen interaction correction (2026-10-05)
 
 Restart Minecolonies Fabric after loading the refreshed MineColonies jar.

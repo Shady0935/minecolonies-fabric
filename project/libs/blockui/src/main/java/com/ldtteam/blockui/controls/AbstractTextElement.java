@@ -111,6 +111,7 @@ public abstract class AbstractTextElement extends Pane
     @Nullable
     private String overflowTooltipText;
     private float marqueeOffset;
+    private boolean marqueeEnabled = true;
     private boolean marqueeMovingForward = true;
     private int marqueePauseTicks = 24;
 
@@ -192,6 +193,7 @@ public abstract class AbstractTextElement extends Pane
         }
         textShadow = params.getBoolean("shadow", defaultTextShadow);
         textWrap = params.getBoolean("wrap", defaultTextWrap);
+        marqueeEnabled = params.getBoolean("marquee", true);
         textScale = params.getDouble("textscale", textScale);
         textLinespace = params.getInteger("linespace", textLinespace);
 
@@ -292,7 +294,7 @@ public abstract class AbstractTextElement extends Pane
     @Override
     public void onUpdate()
     {
-        if (!(this instanceof Text) || text == null || text.size() != 1 || textScale <= 0.0d)
+        if (!marqueeEnabled || !(this instanceof Text) || text == null || text.size() != 1 || textScale <= 0.0d)
         {
             marqueeOffset = 0;
             return;
@@ -417,7 +419,7 @@ public abstract class AbstractTextElement extends Pane
     protected void innerDrawSelf(final BOGuiGraphics target, final double mx, final double my)
     {
         final PoseStack ms = target.pose();
-        final boolean marquee = this instanceof Text && text != null && text.size() == 1
+        final boolean marquee = marqueeEnabled && this instanceof Text && text != null && text.size() == 1
                                   && mc.font.width(text.get(0)) > (int) (textWidth / textScale) - (textShadow ? 1 : 0);
 
         if (marquee)

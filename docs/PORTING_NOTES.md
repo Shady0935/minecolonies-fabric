@@ -1,5 +1,23 @@
 # Porting notes
 
+## Quick Guide dismissal and static wrapped text (2026-10-05)
+
+The profile's check_out_guide advancement was already done after Entendido.
+FabricVanillaCompat.isAdvancementDone reflected on the named field "progress";
+packaged intermediary classes use another name, so the helper always returned
+false. It now reads ClientAdvancements.progress directly through a narrow,
+remapped access widener. The existing advancement remains the dismissal state,
+including its normal server save/client synchronization; no extra preferences
+or world edits are introduced.
+
+Quick Guide's three 210x75 Text panes already enabled wrapping, but BlockUI's
+single-component marquee replaced the first prepared row with the entire
+component and translated every wrapped row. Added an opt-out XML attribute,
+marquee=false, solely on those guide panes. The existing default remains true.
+The guide now uses inset 194x59 content areas, centered wrapped text and three
+pixels of line spacing within the existing parchment cards. Translation text,
+background artwork and other screens retain their behavior.
+
 ## Citizen vanilla right-click dispatch (2026-10-05)
 
 Forge calls `checkAndHandleImportantInteractions` during mob interaction. The
