@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Minecolonies async PathNavigate.
@@ -195,6 +196,26 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
       final BlockPos dest,
       final double speedFactor, final boolean safeDestination)
     {
+        return setPathJob(job, dest, speedFactor, safeDestination, null);
+    }
+
+    /**
+     * Starts a path job after applying optional job-specific pathing settings.
+     *
+     * @param job the path job.
+     * @param dest the destination used by navigation and stuck recovery.
+     * @param speedFactor the movement speed factor.
+     * @param safeDestination whether to expose the destination as safe for recovery.
+     * @param configureOptions optional job-specific options, applied before async search starts.
+     * @return the path result.
+     */
+    public PathResult<AbstractPathJob> setPathJob(
+      @NotNull final AbstractPathJob job,
+      final BlockPos dest,
+      final double speedFactor,
+      final boolean safeDestination,
+      @Nullable final Consumer<PathingOptions> configureOptions)
+    {
         final boolean repath = pathResult != null && pathResult.isInProgress();
         stop();
 
@@ -208,6 +229,13 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
                 desiredPosTimeout = 50 * 20;
             }
         }
+        else if (dest != null && dest.equals(desiredPos))
+        {
+            // This job explicitly marks the active destination unsafe. Do not let
+            // a previous safe goal accidentally enable full stuck recovery here.
+            desiredPos = null;
+            desiredPosTimeout = 0;
+        }
 
         this.walkSpeedFactor = speedFactor;
 
@@ -218,6 +246,10 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         }
 
         job.setPathingOptions(getPathingOptions());
+        if (configureOptions != null)
+        {
+            configureOptions.accept(job.getPathingOptions());
+        }
         pathResult = job.getResult();
         MinecoloniesAIMetrics.recordPathJobStarted(repath);
         pathResult.startJob(Pathfinding.getExecutor());
@@ -1069,6 +1101,16 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
     public void setStuckHandler(final IStuckHandler stuckHandler)
     {
         this.stuckHandler = stuckHandler;
+    }
+
+    /**
+     * Whether the active handler has moved past its initial path retries.
+     *
+     * @return true while the handler is performing stronger stuck recovery.
+     */
+    public boolean isPathingStuck()
+    {
+        return stuckHandler.isStuck();
     }
 
     @Override

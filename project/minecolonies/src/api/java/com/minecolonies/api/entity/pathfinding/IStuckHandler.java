@@ -6,6 +6,16 @@ package com.minecolonies.api.entity.pathfinding;
 public interface IStuckHandler
 {
     /**
+     * Whether recovery has progressed beyond its initial retry stages.
+     *
+     * @return true once the handler considers the navigator stuck.
+     */
+    default boolean isStuck()
+    {
+        return false;
+    }
+
+    /**
      * Checks if the navigator is stuck
      *
      * @param navigator navigator to check

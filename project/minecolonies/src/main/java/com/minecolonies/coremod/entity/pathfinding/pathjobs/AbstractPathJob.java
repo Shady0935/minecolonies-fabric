@@ -36,6 +36,7 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1113,7 +1114,42 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
      */
     protected double calcAdditionalCost(final double stepCost, final MNode parent, final BlockPos pos, final BlockState state)
     {
-        return stepCost;
+        final int dX = pos.getX() - parent.pos.getX();
+        final int dZ = pos.getZ() - parent.pos.getZ();
+        if (dX == 0 && dZ == 0)
+        {
+            return stepCost;
+        }
+
+        final BlockState below = cachedBlockLookup.getBlockState(pos.below());
+        final BlockState parentState = cachedBlockLookup.getBlockState(parent.pos);
+        final BlockState parentBelow = cachedBlockLookup.getBlockState(parent.pos.below());
+        return stepCost
+                 + getFacingCost(state, dX, dZ)
+                 + getFacingCost(below, dX, dZ)
+                 + getFacingCost(parentState, dX, dZ)
+                 + getFacingCost(parentBelow, dX, dZ);
+    }
+
+    /**
+     * Penalizes crossing a horizontal directional block perpendicular to its facing.
+     *
+     * @param state block being crossed.
+     * @param dX movement on the X axis.
+     * @param dZ movement on the Z axis.
+     * @return the added cost.
+     */
+    private double getFacingCost(final BlockState state, final int dX, final int dZ)
+    {
+        if (state.hasProperty(HorizontalDirectionalBlock.FACING))
+        {
+            final Direction facing = state.getValue(HorizontalDirectionalBlock.FACING);
+            if ((facing.getStepX() != 0 && dZ != 0) || (facing.getStepZ() != 0 && dX != 0))
+            {
+                return pathingOptions.badDirectionCost;
+            }
+        }
+        return 0.0D;
     }
 
     private void performJumpPointSearch(@NotNull final MNode parent, @NotNull final BlockPos dPos, @NotNull final MNode node)
@@ -1235,7 +1271,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
 
     private int checkDrop(@Nullable final MNode parent, @NotNull final BlockPos pos, final boolean isSwimming)
     {
-        final boolean canDrop = parent != null && !parent.isLadder();
+        final boolean canDrop = pathingOptions.canDrop() && parent != null && !parent.isLadder();
         //  Nothing to stand on
         if (!canDrop || ((parent.pos.getX() != pos.getX() || parent.pos.getZ() != pos.getZ()) && isPassable(parent.pos.below(), false, parent)
                            && SurfaceType.getSurfaceType(world, cachedBlockLookup.getBlockState(parent.pos.below()), parent.pos.below()) == SurfaceType.DROPABLE))
@@ -1351,7 +1387,12 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
 
         if (!isPassable(pos.above(), true, parent))
         {
-            final VoxelShape bb1 = cachedBlockLookup.getBlockState(pos.below()).getCollisionShape(world, pos.below());
+            final BlockState belowState = cachedBlockLookup.getBlockState(pos.below());
+            VoxelShape bb1 = belowState.getCollisionShape(world, pos.below());
+            if (isLiquid(belowState))
+            {
+                bb1 = Shapes.block();
+            }
             final VoxelShape bb2 = cachedBlockLookup.getBlockState(pos.above()).getCollisionShape(world, pos.above());
             if ((pos.above().getY() + getStartY(bb2, 1)) - (pos.below().getY() + getEndY(bb1, 0)) < 2)
             {

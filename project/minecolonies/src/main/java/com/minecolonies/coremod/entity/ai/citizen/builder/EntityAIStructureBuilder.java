@@ -8,6 +8,7 @@ import com.minecolonies.api.colony.workorders.IWorkOrder;
 import com.minecolonies.api.colony.workorders.WorkOrderType;
 import com.minecolonies.api.entity.ai.statemachine.AITarget;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
+import com.minecolonies.api.entity.pathfinding.PathResult;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.api.util.Tuple;
@@ -19,17 +20,22 @@ import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.colony.workorders.WorkOrderBuilding;
 import com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIStructureWithWorkOrder;
 import com.minecolonies.coremod.entity.ai.util.BuildingStructureHandler;
+import com.minecolonies.coremod.entity.pathfinding.MinecoloniesAdvancedPathNavigate;
+import com.minecolonies.coremod.entity.pathfinding.pathjobs.AbstractPathJob;
+import com.minecolonies.coremod.entity.pathfinding.pathjobs.PathJobMoveCloseToXNearY;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
+import static com.minecolonies.api.util.constant.CitizenConstants.STANDARD_WORKING_RANGE;
 import static com.minecolonies.api.util.constant.TranslationConstants.*;
 
 /**
@@ -51,6 +57,16 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
      * Building level to purge mobs at the build site.
      */
     private static final int LEVEL_TO_PURGE_MOBS = 4;
+
+    /**
+     * Path used to select the next safe work position.
+     */
+    private PathResult<AbstractPathJob> workPositionPath;
+
+    /**
+     * Last block the Builder worked on while moving between work positions.
+     */
+    private BlockPos previousWorkBlock;
 
     /**
      * Initialize the builder and add all his tasks.
@@ -130,6 +146,8 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
         final StructurePlacer placer = new StructurePlacer(structure, job.getWorkOrder().getIteratorType());
         placer.setTrackBlockChanges(MinecoloniesAIMetrics.isEnabled());
         structurePlacer = new Tuple<>(placer, structure);
+        workPositionPath = null;
+        previousWorkBlock = null;
     }
 
     @Override
@@ -194,38 +212,79 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     @Override
     public boolean walkToConstructionSite(final BlockPos currentBlock)
     {
+        final IWorkOrder workOrder = job.getWorkOrder();
+        final BlockPos nearbyPosition = workOrder == null ? building.getPosition() : workOrder.getLocation();
+
+        if (workFrom != null
+              && workFrom.getX() == currentBlock.getX()
+              && workFrom.getZ() == currentBlock.getZ()
+              && workFrom.getY() >= currentBlock.getY())
+        {
+            updateWorkFrom(null);
+        }
+
         if (workFrom == null)
         {
-            updateWorkFrom(findRandomPositionToWalkTo(5, currentBlock));
-            if (workFrom == null && pathBackupFactor > 10)
+            if (workPositionPath == null || workPositionPath.isCancelled())
             {
-                updateWorkFrom(worker.blockPosition());
+                final PathJobMoveCloseToXNearY pathJob = new PathJobMoveCloseToXNearY(
+                  world,
+                  AbstractPathJob.prepareStart(worker),
+                  currentBlock,
+                  nearbyPosition,
+                  4,
+                  (int) worker.getAttribute(Attributes.FOLLOW_RANGE).getValue(),
+                  worker);
+                workPositionPath = ((MinecoloniesAdvancedPathNavigate) worker.getNavigation()).setPathJob(
+                  pathJob,
+                  currentBlock,
+                  1.0D,
+                  false,
+                  options -> options.setCanDrop(false));
+            }
+            else if (workPositionPath.isDone())
+            {
+                if (workPositionPath.getPath() != null)
+                {
+                    updateWorkFrom(workPositionPath.getPath().getTarget());
+                }
+                workPositionPath = null;
+            }
+
+            return previousWorkBlock != null && previousWorkBlock.distSqr(currentBlock) <= 100;
+        }
+
+        if (!worker.isWorkerAtSiteWithMove(workFrom, STANDARD_WORKING_RANGE))
+        {
+            if (worker.getNavigation() instanceof MinecoloniesAdvancedPathNavigate pathNavigate && pathNavigate.isPathingStuck())
+            {
+                updateWorkFrom(null);
             }
             return false;
         }
 
-        if (BlockPosUtil.getDistance2D(worker.blockPosition(), currentBlock) <= 5L + (pathBackupFactor * 5L))
+        if (BlockPosUtil.getDistance2D(worker.blockPosition(), currentBlock) > 5L)
         {
-            return true;
-        }
-
-        if (walkToBlock(workFrom))
-        {
-            return false;
-        }
-
-        if (BlockPosUtil.getDistance2D(worker.blockPosition(), currentBlock) > 5L + (pathBackupFactor * 5L))
-        {
+            if (workFrom.distSqr(nearbyPosition) < 10000)
+            {
+                previousWorkBlock = currentBlock;
+                updateWorkFrom(null);
+                return true;
+            }
             updateWorkFrom(null);
             return false;
         }
 
-        if (pathBackupFactor > 1)
-        {
-            pathBackupFactor--;
-        }
-
+        previousWorkBlock = currentBlock;
         return true;
+    }
+
+    @Override
+    public void resetCurrentStructure()
+    {
+        super.resetCurrentStructure();
+        workPositionPath = null;
+        previousWorkBlock = null;
     }
 
     @Override

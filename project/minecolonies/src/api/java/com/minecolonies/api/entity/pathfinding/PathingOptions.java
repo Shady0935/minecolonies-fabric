@@ -16,6 +16,11 @@ public class PathingOptions
     public double dropCost = 1.1D;
 
     /**
+     * Additional cost for traversing a directional block from the side.
+     */
+    public double badDirectionCost = 5.0D;
+
+    /**
      * Cost improvement of paths - base 1.
      */
     public double onPathCost = 0.5D;
@@ -75,6 +80,11 @@ public class PathingOptions
      * Whether to path through dangerous blocks.
      */
     private boolean canPassDanger  = false;
+
+    /**
+     * Whether path search may use a drop to reach a lower surface.
+     */
+    private boolean canDrop = true;
 
     public PathingOptions()
     {}
@@ -139,6 +149,16 @@ public class PathingOptions
         return canPassDanger;
     }
 
+    public boolean canDrop()
+    {
+        return canDrop;
+    }
+
+    public void setCanDrop(final boolean canDrop)
+    {
+        this.canDrop = canDrop;
+    }
+
     public PathingOptions withStartSwimCost(final double startSwimCost)
     {
         swimCostEnter = startSwimCost;
@@ -160,6 +180,12 @@ public class PathingOptions
     public PathingOptions withDropCost(final double dropCost)
     {
         this.dropCost = dropCost;
+        return this;
+    }
+
+    public PathingOptions withBadDirectionCost(final double badDirectionCost)
+    {
+        this.badDirectionCost = badDirectionCost;
         return this;
     }
 
@@ -224,6 +250,7 @@ public class PathingOptions
     {
         jumpCost = pathingOptions.jumpCost;
         dropCost = pathingOptions.dropCost;
+        badDirectionCost = pathingOptions.badDirectionCost;
         onPathCost = pathingOptions.onPathCost;
         onRailCost = pathingOptions.onRailCost;
         railsExitCost = pathingOptions.railsExitCost;
@@ -237,6 +264,7 @@ public class PathingOptions
         canOpenDoors = pathingOptions.canOpenDoors;
         canClimbVines = pathingOptions.canClimbVines;
         canPassDanger = pathingOptions.canPassDanger;
+        canDrop = pathingOptions.canDrop;
     }
 
 }

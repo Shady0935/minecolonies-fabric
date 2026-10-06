@@ -43,6 +43,11 @@ public class PathingStuckHandler implements IStuckHandler
     private static final int MIN_DIST_FOR_TP = 10;
 
     /**
+     * Initial recovery level gives the current path several chances to advance before stronger actions.
+     */
+    private static final int STARTING_STUCK_LEVEL = -5;
+
+    /**
      * Amount of path steps allowed to teleport on stuck, 0 = disabled
      */
     private int teleportRange = 0;
@@ -55,7 +60,7 @@ public class PathingStuckHandler implements IStuckHandler
     /**
      * The current stucklevel, determines actions taken
      */
-    private int stuckLevel = 0;
+    private int stuckLevel = STARTING_STUCK_LEVEL;
 
     /**
      * Global timeout counter, used to determine when we're completly stuck
@@ -113,7 +118,7 @@ public class PathingStuckHandler implements IStuckHandler
     /**
      * Delay before taking unstuck actions in ticks, default 60 seconds
      */
-    private int delayBeforeActions       = 10 * 20;
+    private int delayBeforeActions       = 5 * 20;
     private int delayToNextUnstuckAction = delayBeforeActions;
 
     /**
@@ -145,7 +150,12 @@ public class PathingStuckHandler implements IStuckHandler
     @Override
     public void checkStuck(final AbstractAdvancedPathNavigate navigator)
     {
-        if (navigator.getDesiredPos() == null || navigator.getDesiredPos().equals(BlockPos.ZERO))
+        final BlockPos safeDestination = navigator.getDesiredPos();
+        final BlockPos navigationDestination = navigator.getDestination();
+        final boolean hasSafeDestination = safeDestination != null
+                                             && safeDestination.equals(navigationDestination);
+        final BlockPos currentDestination = hasSafeDestination ? safeDestination : navigationDestination;
+        if (currentDestination == null)
         {
             return;
         }
@@ -156,20 +166,25 @@ public class PathingStuckHandler implements IStuckHandler
             return;
         }
 
-        final double distanceToGoal =
-          navigator.getOurEntity().position().distanceTo(new Vec3(navigator.getDesiredPos().getX(), navigator.getDesiredPos().getY(), navigator.getDesiredPos().getZ()));
-
-        // Close enough to be considered at the goal
-        if (distanceToGoal < MIN_TARGET_DIST)
+        if (hasSafeDestination)
         {
-            resetGlobalStuckTimers();
-            return;
+            final double distanceToGoal = navigator.getOurEntity().position().distanceTo(
+              new Vec3(currentDestination.getX(), currentDestination.getY(), currentDestination.getZ()));
+
+            // Close enough to be considered at the goal
+            if (distanceToGoal < MIN_TARGET_DIST)
+            {
+                resetGlobalStuckTimers();
+                return;
+            }
         }
 
-        // Global timeout check
-        if (prevDestination.equals(navigator.getDesiredPos()))
+        // Only safe destinations participate in the full timeout/teleport recovery.
+        if (hasSafeDestination && prevDestination.equals(currentDestination))
         {
             globalTimeout++;
+            final double distanceToGoal = navigator.getOurEntity().position().distanceTo(
+              new Vec3(currentDestination.getX(), currentDestination.getY(), currentDestination.getZ()));
 
             // Try path first, if path fits target pos
             if (globalTimeout > Math.max(MIN_TP_DELAY, timePerBlockDistance * Math.max(MIN_DIST_FOR_TP, distanceToGoal)))
@@ -179,13 +194,31 @@ public class PathingStuckHandler implements IStuckHandler
                 completeStuckAction(navigator);
             }
         }
-        else
+        else if (!prevDestination.equals(currentDestination))
         {
-            resetGlobalStuckTimers();
+            if (hasSafeDestination)
+            {
+                resetGlobalStuckTimers();
+            }
+            else
+            {
+                globalTimeout = 0;
+                resetStuckTimers();
+            }
+        }
+        if (!hasSafeDestination)
+        {
+            globalTimeout = 0;
         }
 
         delayToNextUnstuckAction--;
-        prevDestination = navigator.getDesiredPos();
+        prevDestination = currentDestination;
+
+        // A null path while the async job is still computing is not a stuck state.
+        if (navigator.getPath() == null && !navigator.isDone())
+        {
+            return;
+        }
 
         if (navigator.getPath() == null || navigator.getPath().isDone())
         {
@@ -208,14 +241,21 @@ public class PathingStuckHandler implements IStuckHandler
             }
             else
             {
-                if (lastPathIndex != -1 && navigator.getPath().getTarget().distSqr(prevDestination) < 25)
+                if (lastPathIndex != -1)
                 {
-                    progressedNodes = navigator.getPath().getNextNodeIndex() > lastPathIndex ? progressedNodes + 1 : progressedNodes - 1;
-
-                    if (progressedNodes > 5 && (navigator.getPath().getEndNode() == null || !moveAwayStartPos.equals(navigator.getPath().getEndNode().asBlockPos())))
+                    delayToNextUnstuckAction = Math.max(delayToNextUnstuckAction, 100);
+                    if (stuckLevel == 0 || navigator.getPath().getTarget().distSqr(currentDestination) < 25)
                     {
-                        // Not stuck when progressing
-                        resetStuckTimers();
+                        if (navigator.getPath().getNextNodeIndex() > lastPathIndex)
+                        {
+                            progressedNodes++;
+                        }
+
+                        if (progressedNodes > 5 && (navigator.getPath().getEndNode() == null || !moveAwayStartPos.equals(navigator.getPath().getEndNode().asBlockPos())))
+                        {
+                            // Not stuck when progressing
+                            resetStuckTimers();
+                        }
                     }
                 }
             }
@@ -290,6 +330,23 @@ public class PathingStuckHandler implements IStuckHandler
         }
         MinecoloniesAIMetrics.recordStuckEvent();
         delayToNextUnstuckAction = 100;
+
+        if (stuckLevel < 0)
+        {
+            if (navigator.getPath() != null
+                  && !navigator.getPath().isDone()
+                  && navigator.getPath().getNextNodeIndex() < navigator.getPath().getNodeCount() - 1)
+            {
+                navigator.getPath().setNextNodeIndex(navigator.getPath().getNextNodeIndex() + 1);
+                delayToNextUnstuckAction = 30;
+                stuckLevel++;
+            }
+            else
+            {
+                stuckLevel = 0;
+            }
+            return;
+        }
 
         // Clear path
         if (stuckLevel == 0)
@@ -367,7 +424,14 @@ public class PathingStuckHandler implements IStuckHandler
         if (stuckLevel == 9)
         {
             MinecoloniesAIMetrics.recordStuckRecovery();
-            completeStuckAction(navigator);
+            if (navigator.getDesiredPos() != null && navigator.getDesiredPos().equals(navigator.getDestination()))
+            {
+                completeStuckAction(navigator);
+            }
+            else
+            {
+                navigator.stop();
+            }
             resetStuckTimers();
         }
     }
@@ -393,7 +457,7 @@ public class PathingStuckHandler implements IStuckHandler
         delayToNextUnstuckAction = delayBeforeActions;
         lastPathIndex = -1;
         progressedNodes = 0;
-        stuckLevel = 0;
+        stuckLevel = STARTING_STUCK_LEVEL;
         moveAwayStartPos = BlockPos.ZERO;
     }
 
@@ -645,5 +709,11 @@ public class PathingStuckHandler implements IStuckHandler
     {
         completeStuckBlockBreakRange = range;
         return this;
+    }
+
+    @Override
+    public boolean isStuck()
+    {
+        return stuckLevel > 0;
     }
 }

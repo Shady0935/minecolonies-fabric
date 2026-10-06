@@ -28,6 +28,13 @@ implementation decisions, validation, metrics, and checkpoints.
 - [x] Run and record an unmodified AI-relevant baseline.
 - [x] Add opt-in AI/pathfinding, Builder, and Deliveryman instrumentation.
 
+### Phase 1 — upstream AI and pathfinding backport
+
+- [x] Review upstream history and classify applicable changes against the 1.20.1 port.
+- [x] Backport safe Builder work-position search, directional path costs, liquid headroom collision handling, and staged stuck recovery.
+- [x] Compile and run the full 128-test GameTest suite; inspect logs and metrics.
+- [ ] Commit and push the required upstream-backport checkpoint.
+
 ### Checkpoints
 
 - `checkpoint: baseline AI instrumentation` — `644b4319ee`, committed and pushed to `origin/ai-overhaul`.
@@ -92,6 +99,33 @@ Validation on the latest source:
 - `runDatagen` stops on an existing invalid icon resource name, `minecolonies:citizen/nether/BaseSkelF` (`DefaultEntityIconProvider.java:98`); outside the AI work.
 - A clean `multipiston` build stops because its Structurize development JAR reports `Namespace mismatch, expected intermediary got named`; the MineColonies build used the already-built local dependency artifact.
 
+## Phase 1 — upstream AI and pathfinding backport
+
+### Candidate classification and implementation
+
+- **Applicable with 1.20.1 adaptation — `PathJobMoveCloseToXNearY`:** added a path job that finds a walkable work position near the active construction block while preferring positions close to the work order. Builder path options are configured before async search begins, and drops are disabled for this search. The Builder reuses its selected `workFrom`, invalidates it when standing above the block or after stuck recovery, and can continue an adjacent build step while selecting the next position. The no-work-order GameTest path uses the Builder hut as its nearby anchor.
+- **Applicable — stuck recovery:** starts at recovery level -5 and waits five seconds before early retries. It advances one node at a time before stronger recovery, no longer decreases progress on a non-advancing index, ignores a null path while async calculation is still active, and reserves global timeout/goal teleport for an active safe destination. Unsafe or intermediate routes stop instead of using full-goal recovery. A safe-goal match is cleared when an explicitly unsafe path job reuses that same position.
+- **Applicable — directional path costs:** added upstream's perpendicular-facing penalty through the port's existing `calcAdditionalCost` hook, checking the entered and exited blocks plus their support blocks. The default penalty matches upstream.
+- **Applicable — liquid collision bounds:** when checking headroom over liquid, use a full block shape instead of the liquid's often-empty collision shape.
+- **Already represented — navigation result semantics:** the port already distinguishes path calculation, following, completion, cancellation, and whether the destination was reached in `PathResult`; the shared walk proxy also returns arrival separately from continuing movement. `moveToXYZ` already reuses equivalent active destinations. The broad upstream `EntityNavigationUtils` and public API rename were not copied wholesale because they would replace working 1.20.1 proxy/navigation APIs without adding a distinct behavior benefit.
+- **Already represented — Miner routing and ladder entry:** Miner shaft/ladder/graph proxies and specialized path jobs exist. Ladder following already offsets toward the ladder by 0.4 blocks; the different modern offset was not layered on top.
+- **Deferred — node reopening, corner visitation, and expensive-route cutoffs:** modern commits depend on a substantially different A* visited/open-node loop and search termination. The 1.20.1 port closes nodes under a legacy search and stops at the first destination, so changing these together needs a focused algorithm port and dedicated path fixtures. The node identity fix was unnecessary here: the port stores the node under the same immutable position used to create it.
+- **Deferred — mutable-vector allocation:** no profile evidence showed vector allocation as a current AI bottleneck.
+
+### Validation and observations
+
+- Final MineColonies build: `gradlew build --no-daemon -x sourcesJar -x remapSourcesJar` — passed on Java 17; only the existing deprecation/removal warnings remained.
+- Full GameTest: `runGametest --no-daemon -PgameTestRunDir=run-gametest-ai-overhaul-phase1-recheck-20261006` ran 128 tests in 499.39 seconds. Two required fixtures failed to create citizens: `stonemasonrequestassignsworkerandcompletescustomrecipe` and `farmeraihoesassignedemptyfield`. These are the same two fixture failures as the earlier instrumented Phase 0 run. The other 126 tests passed.
+- Builder navigation and construction tests passed, including `citizenbuilderusesnavigationforconstructionsite`, `buildercompletesmultistageblueprint`, `citizenbuilderexecutesassignedstructurestep`, and the 104.87-second `citizenbuildercompletesworkorderthroughnavigation` end-to-end case. The first Phase 1 attempt exposed a null work order in the navigation-only fixture; the fallback anchor fixed it, and the rerun completed without a server crash.
+- Run output: `logs/ai-overhaul-phase1-gametest-recheck.log`; JUnit report: `logs/ai-overhaul-phase1-gametest-junit-20261006.xml`; isolated server log: `project/minecolonies/run-gametest-ai-overhaul-phase1-recheck-20261006/logs/latest.log` (these are ignored local evidence files).
+- Opt-in telemetry was active during the suite. A mixed-workload window at `09:08:16` reported 109,909 AI ticks, 215 completed paths, 60 repaths, 94,797 nodes visited, 1.038 ms average path time, 2,549.562 blocks moved, and 22 Builder actions with 16 placement steps (1.231 blocks per action). This does not establish a performance improvement over the Phase 0 window because the two samples cover different test mixes and test timing.
+- The sleep-worker batch window at `09:09:16` reported 147 stuck events and 39 recovery attempts, with a 102.836 ms maximum AI tick. The full suite completed, but this artificial shared-world workload is a follow-up signal for an isolated sleep/worker recovery comparison, not evidence of a regression by itself.
+- The run had fixture-sensitive citizen creation failures but successfully exercised long Farmer/Courier navigation, Miner, Builder navigation, and full Builder construction. Interactive play was not run in this headless environment.
+
+### Checkpoint
+
+The code compiles and the phase is ready for the required checkpoint commit and push. Record the commit hash here after it exists on `origin/ai-overhaul`.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.
@@ -99,3 +133,4 @@ Validation on the latest source:
   traced before adding instrumentation or shared caches.
 - Existing excluded build/run state is not present in the fresh worktree; reuse
   only after verifying the worktree's build artifacts and test results.
+- The high stuck/recovery counters in the mixed sleep-worker GameTest window need a focused before/after comparison before treating them as representative worker behavior.
