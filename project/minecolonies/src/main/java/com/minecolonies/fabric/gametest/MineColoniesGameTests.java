@@ -438,6 +438,24 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void deliverymanRouteScoreBalancesPriorityDistanceAndBatching(final GameTestHelper helper)
+    {
+        final double nearNormalPriority = JobDeliveryman.getPriorityWeightedRouteScore(15, 10, 1);
+        final double fartherUrgent = JobDeliveryman.getPriorityWeightedRouteScore(18, 15, 1);
+        final double fartherNormalPriority = JobDeliveryman.getPriorityWeightedRouteScore(18, 10, 1);
+        final double singleDelivery = JobDeliveryman.getPriorityWeightedRouteScore(30, 10, 1);
+        final double groupedDeliveries = JobDeliveryman.getPriorityWeightedRouteScore(30, 10, 4);
+
+        helper.assertTrue(fartherUrgent < nearNormalPriority,
+          "A small route detour should be allowed for the higher-priority request");
+        helper.assertTrue(nearNormalPriority < fartherNormalPriority,
+          "A nearer request should score better when priorities match");
+        helper.assertTrue(groupedDeliveries < singleDelivery,
+          "A destination serving multiple requests should score better than an isolated request");
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void placingStructureBlockWithUpdateFlagDoesNotCrash(final GameTestHelper helper)
     {
         final BlockPos position = helper.absolutePos(new BlockPos(1, 1, 1));
@@ -2673,7 +2691,7 @@ public final class MineColoniesGameTests implements FabricGameTest
         townHallHut.setStructurePack(StructurePacks.getStructurePack(Constants.DEFAULT_STYLE));
         townHallHut.setBlueprintPath("fundamentals/townhall1.blueprint");
         townHallHut.setSchematicName("townhall1");
-        colony.getBuildingManager().addNewBuilding(townHallHut, level);
+        final IBuilding townHallBuilding = colony.getBuildingManager().addNewBuilding(townHallHut, level);
 
         final BlockEntity builderEntity = level.getBlockEntity(builderPos);
         helper.assertTrue(builderEntity instanceof TileEntityColonyBuilding,
@@ -2803,6 +2821,30 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(deliveryRequest != null && deliveryRequest.getRequest() instanceof Delivery
                           && deliveryRequest.getState() == RequestState.IN_PROGRESS,
           "Assigned Delivery child did not enter the in-progress state");
+
+        final IToken<?> nearbyDeliveryToken = colony.getRequestManager().createRequest(
+          townHallBuilding.getRequester(),
+          new Delivery(new StaticLocation(new BlockPos(townHall.getX() + 2, townHall.getY(), townHall.getZ()), level.dimension()),
+            new StaticLocation(townHall, level.dimension()), new ItemStack(Items.COBBLESTONE), 13));
+        colony.getRequestManager().updateRequestState(nearbyDeliveryToken, RequestState.IN_PROGRESS);
+        courierJob.addRequest(nearbyDeliveryToken, courierJob.getTaskQueue().size());
+        courier.setPos(townHall.getX() + 0.5D, townHall.getY() + 1.0D, townHall.getZ() + 0.5D);
+        try
+        {
+            final java.lang.reflect.Method prioritizeNextTask = JobDeliveryman.class.getDeclaredMethod("prioritizeNextTask");
+            prioritizeNextTask.setAccessible(true);
+            prioritizeNextTask.invoke(courierJob);
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            throw new AssertionError("Could not invoke the deliveryman route selector", exception);
+        }
+        helper.assertTrue(courierJob.getCurrentTask() != null && courierJob.getCurrentTask().getId().equals(nearbyDeliveryToken),
+          "Courier did not put the closer useful destination next in its queue");
+        courierJob.onTaskDeletion(nearbyDeliveryToken);
+        colony.getRequestManager().updateRequestState(nearbyDeliveryToken, RequestState.RECEIVED);
+        helper.assertTrue(courierJob.getCurrentTask() != null && courierJob.getCurrentTask().getId().equals(deliveryToken),
+          "Removing the synthetic route fixture changed the existing Builder delivery task");
 
         courier.setPos(rackPos.getX() + 0.5D, rackPos.getY() + 1.0D, rackPos.getZ() + 0.5D);
         final EntityAIWorkDeliveryman deliveryAI = courierJob.generateAI();

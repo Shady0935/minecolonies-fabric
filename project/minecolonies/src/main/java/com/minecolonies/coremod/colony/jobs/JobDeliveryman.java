@@ -18,6 +18,7 @@ import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.Log;
+import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.api.util.Tuple;
 import com.minecolonies.api.util.constant.NbtTagConstants;
 import com.minecolonies.api.util.constant.TypeConstants;
@@ -32,6 +33,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -261,6 +263,7 @@ public class JobDeliveryman extends AbstractJob<EntityAIWorkDeliveryman, JobDeli
             {
                 getTaskQueueFromDataStore().removeFirst();
             }
+            prioritizeNextTask();
             return;
         }
         else if (request.getRequest() instanceof Delivery)
@@ -308,7 +311,159 @@ public class JobDeliveryman extends AbstractJob<EntityAIWorkDeliveryman, JobDeli
             }
         }
 
+        prioritizeNextTask();
         getCitizen().getWorkBuilding().markDirty();
+    }
+
+    /**
+     * Reorders only the unstarted queue after a request finishes. The active request is never changed while its AI state is running.
+     */
+    private void prioritizeNextTask()
+    {
+        final LinkedList<IToken<?>> taskQueue = getTaskQueueFromDataStore();
+        if (taskQueue.size() < 2)
+        {
+            return;
+        }
+
+        final AbstractEntityCitizen worker = getCitizen().getEntity().orElse(null);
+        final BlockPos currentPosition = worker == null ? getCitizen().getLastPosition() : worker.blockPosition();
+        if (currentPosition == null)
+        {
+            return;
+        }
+
+        final boolean carryingItems = worker != null && !worker.getInventoryCitizen().isEmpty();
+        final IWareHouse warehouse = findWareHouse();
+        final int maxDeliveryBatch = getMaxDeliveryBatchSize();
+        final IRequestManager requestManager = getColony().getRequestManager();
+
+        int bestIndex = 0;
+        double bestScore = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < taskQueue.size(); i++)
+        {
+            final IRequest<?> request = requestManager.getRequestForToken(taskQueue.get(i));
+            if (request == null || request.getState() != RequestState.IN_PROGRESS
+                  || !(request.getRequest() instanceof AbstractDeliverymanRequestable))
+            {
+                continue;
+            }
+
+            final AbstractDeliverymanRequestable deliveryRequest = (AbstractDeliverymanRequestable) request.getRequest();
+            int batchCount = 1;
+            int batchPriority = deliveryRequest.getPriority();
+            if (request.getRequest() instanceof Delivery)
+            {
+                final List<IRequest<? extends Delivery>> sameRoute = getTaskListWithSameDestination(
+                  (IRequest<? extends Delivery>) request);
+                int availableBatchCount = 0;
+                for (final IRequest<? extends Delivery> groupedRequest : sameRoute)
+                {
+                    if (groupedRequest.getState() == RequestState.IN_PROGRESS)
+                    {
+                        availableBatchCount++;
+                        batchPriority = Math.max(batchPriority, groupedRequest.getRequest().getPriority());
+                    }
+                }
+                batchCount = Math.max(1, Math.min(maxDeliveryBatch, availableBatchCount));
+            }
+
+            final double routeDistance = getRouteDistance(request, currentPosition, carryingItems, warehouse);
+            final double score = getPriorityWeightedRouteScore(routeDistance, batchPriority, batchCount);
+            if (score < bestScore)
+            {
+                bestScore = score;
+                bestIndex = i;
+            }
+        }
+
+        if (bestIndex == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < bestIndex; i++)
+        {
+            final IRequest<?> delayedRequest = requestManager.getRequestForToken(taskQueue.get(i));
+            if (delayedRequest != null && delayedRequest.getRequest() instanceof IDeliverymanRequestable)
+            {
+                ((IDeliverymanRequestable) delayedRequest.getRequest()).incrementPriorityDueToAging();
+            }
+        }
+
+        taskQueue.addFirst(taskQueue.remove(bestIndex));
+        MinecoloniesAIMetrics.recordDeliveryRouteReorder();
+    }
+
+    private int getMaxDeliveryBatchSize()
+    {
+        if (getCitizen().getWorkBuilding() == null)
+        {
+            return 1;
+        }
+
+        final WorkerBuildingModule workerModule = getCitizen().getWorkBuilding().getModuleMatching(
+          WorkerBuildingModule.class, module -> module.getJobEntry() == getJobRegistryEntry());
+        if (workerModule == null)
+        {
+            return 1;
+        }
+
+        final int secondarySkill = getCitizen().getCitizenSkillHandler().getLevel(workerModule.getSecondarySkill());
+        return 1 + Math.max(0, secondarySkill) / 5;
+    }
+
+    private double getRouteDistance(final IRequest<?> request,
+                                    final BlockPos currentPosition,
+                                    final boolean carryingItems,
+                                    @Nullable final IWareHouse warehouse)
+    {
+        if (request.getRequest() instanceof Delivery)
+        {
+            final Delivery delivery = (Delivery) request.getRequest();
+            final BlockPos source = delivery.getStart().getInDimensionLocation();
+            final BlockPos target = delivery.getTarget().getInDimensionLocation();
+            double distance = 0;
+            BlockPos routeStart = currentPosition;
+            if (carryingItems && warehouse != null)
+            {
+                final BlockPos warehousePosition = warehouse.getPosition();
+                distance += BlockPosUtil.getDistance(routeStart, warehousePosition);
+                routeStart = warehousePosition;
+            }
+            distance += BlockPosUtil.getDistance(routeStart, source);
+            distance += BlockPosUtil.getDistance(source, target);
+            return distance;
+        }
+
+        if (request.getRequest() instanceof Pickup)
+        {
+            final BlockPos target = request.getRequester().getLocation().getInDimensionLocation();
+            return BlockPosUtil.getDistance(currentPosition, target);
+        }
+
+        return Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * Scores an immediate route using distance, request urgency, and the number of requests served in the same delivery
+     * batch. Lower scores are preferred.
+     *
+     * @param routeDistance estimated blocks to complete the route
+     * @param priority request priority, where higher values are more urgent
+     * @param batchCount requests expected to share the same delivery route
+     * @return weighted route score
+     */
+    public static double getPriorityWeightedRouteScore(final double routeDistance, final int priority, final int batchCount)
+    {
+        if (!Double.isFinite(routeDistance) || routeDistance < 0)
+        {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        final double urgencyWeight = 1.0D + Math.max(0, priority) / 10.0D;
+        final double batchWeight = Math.sqrt(Math.max(1, batchCount));
+        return routeDistance / (urgencyWeight * batchWeight);
     }
 
     /**

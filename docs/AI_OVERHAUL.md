@@ -198,6 +198,67 @@ The required checkpoint `checkpoint: smart builder planner` is committed as
 `origin/ai-overhaul`. The full suite remains order-sensitive; the two Builder
 cases that failed there passed in isolation.
 
+## Phase 3 — Deliveryman routing
+
+### Implementation
+
+- Preserved the existing request resolver, same-destination batching, capacity
+  limit, inventory extraction, request completion, cancellation, and concurrent
+  delivery bookkeeping.
+- After the current request completes, the Deliveryman reevaluates the
+  remaining queue from its live position and moves the best next request to the
+  front. The active request is never reordered while its AI state is running.
+- Route cost estimates the warehouse return when the courier is carrying items,
+  travel to a Delivery source and target, or travel to a Pickup requester.
+  Priority reduces the effective route cost; compatible deliveries receive a
+  diminishing batch-size preference capped by secondary skill.
+- Requests overtaken by a selected task receive the existing priority-aging
+  increment. Queue contents and request states are otherwise unchanged by the
+  selector.
+- Added the opt-in `deliveryRouteReorders` AI metric and GameTests for
+  priority/distance/batch scoring and actual next-task reordering. The queue
+  fixture confirms that removing its synthetic request leaves the original
+  Builder delivery assigned.
+
+### Validation and observations
+
+- `project/minecolonies`: final `gradlew build --no-daemon -x sourcesJar
+  -x remapSourcesJar` — passed on Java 17 after the queue-fixture assertion was
+  added; only existing deprecation/removal warnings remained.
+- The complete GameTest suite executed 129 tests in 617.148 seconds and
+  reported three failures:
+  `citizenbuilderusesnavigationforconstructionsite` stopped four blocks from
+  its destination with `path=null`;
+  `farmeraihoesassignedemptyfield` timed out in `PREPARING` with the field
+  marked `HOED` but dirt still at the surface; and
+  `citizenbuildercompletesworkorderthroughnavigation` stopped beside the racks
+  before collecting either item. The navigation and Courier E2E failures match
+  order-sensitive failures seen in earlier full runs; the Farmer fixture has
+  also failed in earlier baseline/port runs. Other Farmer/Courier tests passed
+  in this run.
+- A focused run of the scoring case, `deliverymanMovesWarehouseStackIntoWorkerBuilding`,
+  the Builder/Courier E2E case, and the three Multipiston tests passed all 6
+  tests. After adding the queue-order assertion, an isolated run of that
+  Deliveryman fixture plus the three Multipiston tests passed all 4 tests.
+- In the mixed full-suite window at `11:58:51`, metrics recorded two deliveries
+  to two destinations, 15.942 blocks of delivery-route movement, no grouped
+  deliveries, and no route reorder. This workload did not exercise the
+  selector; the isolated queue-order test verifies its decision, but these
+  measurements do not establish a throughput improvement.
+- Temporary focused-runner source and GameTest manifest changes were removed
+  and restored after the isolated runs.
+- Full-suite server output is preserved in
+  `project/minecolonies/run-gametest-ai-overhaul-phase3-routing-20261006/logs/latest.log`;
+  isolated runs are in the corresponding `phase3-focused` and `phase3-queue`
+  run directories. The shared build JUnit report was overwritten by the later
+  focused run, so this log and the recorded full-suite summary are the evidence
+  for the 129-test run.
+
+### Checkpoint
+
+The required checkpoint is `checkpoint: delivery routing improvements`.
+It remains to be committed and pushed after the final clean build.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.

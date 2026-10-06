@@ -56,6 +56,7 @@ public final class MinecoloniesAIMetrics
     private static final LongAdder WAREHOUSE_RETURNS = new LongAdder();
     private static final LongAdder DELIVERY_DESTINATIONS = new LongAdder();
     private static final LongAdder GROUPED_DELIVERIES = new LongAdder();
+    private static final LongAdder DELIVERY_ROUTE_REORDERS = new LongAdder();
 
     private static volatile long nextReportNanos = System.nanoTime() + REPORT_INTERVAL_NANOS;
 
@@ -304,6 +305,14 @@ public final class MinecoloniesAIMetrics
         }
     }
 
+    public static void recordDeliveryRouteReorder()
+    {
+        if (ENABLED)
+        {
+            DELIVERY_ROUTE_REORDERS.increment();
+        }
+    }
+
     public static void reportIfDue()
     {
         if (!ENABLED || System.nanoTime() < nextReportNanos)
@@ -367,6 +376,7 @@ public final class MinecoloniesAIMetrics
             final long warehouseReturns = WAREHOUSE_RETURNS.sumThenReset();
             final long destinations = DELIVERY_DESTINATIONS.sumThenReset();
             final long groupedDeliveries = GROUPED_DELIVERIES.sumThenReset();
+            final long deliveryRouteReorders = DELIVERY_ROUTE_REORDERS.sumThenReset();
 
             Log.getLogger().info("AI metrics (last 60s): aiTicks=" + aiTicks
                                    + ", avgAiMs=" + averageMillis(aiNanos, aiTicks)
@@ -408,6 +418,7 @@ public final class MinecoloniesAIMetrics
                                    + ", warehouseReturns=" + warehouseReturns
                                    + ", destinations=" + destinations
                                    + ", groupedDeliveries=" + groupedDeliveries
+                                   + ", deliveryRouteReorders=" + deliveryRouteReorders
                                    + ", deliveryDistance=" + milliblocksToBlocks(deliveryDistance)
                                    + ", distancePerDelivery=" + (deliveries == 0 ? 0 : milliblocksToBlocks(deliveryDistance) / deliveries));
         }
