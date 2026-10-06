@@ -259,6 +259,69 @@ cases that failed there passed in isolation.
 The required checkpoint `checkpoint: delivery routing improvements` is
 committed as `8c7f11f34b` and pushed to `origin/ai-overhaul`.
 
+## Phase 4 — spatial production workers
+
+### Implementation and audit
+
+- Added `FieldsModule.getFieldToWorkOnNearestTo`, which selects the closest
+  eligible owned field on the XZ plane while preserving the current-field
+  behavior and the existing checked-field timeout. Farmer and Planter now use
+  this selector; their existing field-stage/action limits remain in control of
+  how long they work a field before moving on.
+- Farmer retains its spiral traversal order, which already groups work around
+  the scarecrow and avoids alternating between opposite field edges. Its
+  incremental parcel cursor is now keyed by field identity, stage, and the four
+  configured radii, and resets when any of those inputs changes. Soil and crop
+  state remains checked immediately before acting so growth and player edits do
+  not leave stale decisions in a block cache.
+- Florist now chooses the closest registered flower or uncomposted ground
+  position. The building already owns the persistent plant-ground position
+  list, so selection is a bounded pass over that list rather than a second
+  mutable cache.
+- Lumberjack already holds the active `Tree` and its log/leaf worklists until
+  that cluster is complete. `PathJobFindTree` performs reachable path search
+  and checks tree validity, colony bounds, restrictions, and configured tree
+  types as candidates are encountered. A second position cache would duplicate
+  those checks and risk stale world state, so no additional tree cache was
+  added.
+- Audited the other listed families. Fisherman already keeps pond candidates
+  in its job and validates them before reuse. Herder actions depend on live
+  animal eligibility and compatible nearby pairs; healer selection follows
+  patient state and cure availability; Undertaker retains an assigned grave
+  through its work cycle. Composter and production/crafting actions are tied to
+  their assigned stations rather than scattered work positions. No shared
+  spatial framework was applied to those flows.
+
+### Validation and observations
+
+- `project/minecolonies`: `gradlew build --no-daemon -x sourcesJar
+  -x remapSourcesJar` — passed on Java 17; existing deprecation/removal
+  warnings remain.
+- Full isolated GameTest run executed 129 tests in 581.494 seconds; 127 passed.
+  `farmerAIWalksToAssignedFieldAndHarvestsCrop`,
+  `farmerAIPlantsAssignedHoedField`, `farmerRegistersAndAssignsSeededField`,
+  and `lumberjackRegistersAndChopsAssignedTree` passed. The existing
+  `farmerAIHoesAssignedEmptyField` failure again timed out with `PREPARING`,
+  stage `HOED`, and dirt still at the surface; this same fixture failure was
+  recorded in earlier runs. `citizenBuilderUsesNavigationForConstructionSite`
+  again had `path=null` four blocks from its destination, also recorded in
+  earlier full runs. No Planter or Florist worker-AI integration test exists in
+  this suite, so those selection paths are compile-checked but not covered by
+  a dedicated behavior fixture.
+- The run's mixed workload produced windows ranging from 0 to 98 stuck events
+  per minute, including Builder E2E, sleep, and worker batches. These are not
+  profession-isolated measurements and do not establish a regression or
+  performance gain from Phase 4.
+- Server output is preserved in
+  `project/minecolonies/run-gametest-ai-overhaul-phase4-spatial-20261006/logs/latest.log`.
+  The JUnit report is in `project/minecolonies/build/gametest/junit.xml` until a
+  later GameTest run overwrites it.
+
+### Checkpoint
+
+The required checkpoint `checkpoint: production worker spatial planning` is
+committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.
