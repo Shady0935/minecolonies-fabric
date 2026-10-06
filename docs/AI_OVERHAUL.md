@@ -322,6 +322,42 @@ committed as `8c7f11f34b` and pushed to `origin/ai-overhaul`.
 The required checkpoint `checkpoint: production worker spatial planning` is
 committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 
+## Phase 5 — Miner navigation assessment
+
+### Findings and decision
+
+- Miner routing already separates logical and physical movement. The level
+  module selects an active node from `MinerLevel`'s open-node queue and
+  parent-linked graph; `searchANodeToMine` backs up to a valid completed parent
+  when needed, then sends the worker to that parent's local anchor with
+  `walkToBlock`. Nodes are spaced seven blocks apart, so this path job covers a
+  neighboring tunnel segment rather than a colony-wide search.
+- Level changes retain their depth and ladder node. The Miner uses the known
+  ladder location for shaft access, extends or repairs one ladder segment at a
+  time, and checks safe floor positions before advancing. Additional midpoint
+  waypoints would submit more local path jobs on the same constrained ladder;
+  no evidence showed that this reduces work compared with the existing ladder
+  traversal.
+- `MinerLevel.getRandomCompletedNode` also supplies mine-patrol destinations to
+  Guard AI. Changing node ordering or active-node selection for navigation
+  would affect patrol behavior and mining progression, so the existing graph
+  and selection rules remain intact.
+- No new route layer or volumetric search was added. The current implementation
+  already follows the plan's logical-node-to-local-path split, and there is no
+  Miner-specific pathfinding metric or controlled before/after result that
+  justifies another layer.
+
+### Validation and checkpoint
+
+- The Phase 4 full GameTest run also passed
+  `minerAssignsRegisteredMineWorkOrderToCitizen`,
+  `minerAIUsesSpecializedMiningCycleToMineStoneAndOre`, and
+  `minerAIExtendsShaftWithMultipleLaddersAndBackfill`; the ladder test covers
+  repeated shaft extension and backfill. These were validation of the existing
+  routing behavior, not an A/B benchmark.
+- Since this assessment made no source changes, there is no code checkpoint
+  for Phase 5. This finding is recorded in the following documentation commit.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.
