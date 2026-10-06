@@ -1,5 +1,18 @@
 # Test matrix
 
+## 2026-10-05 Domum roof orientation
+
+Regression probe domumPlacementPreservesBlueprintOrientation checks 48 shingle
+placements through MineColonies DoBlockPlacementHandler with material entities.
+The already transformed blueprint state must survive NBT placement unchanged.
+AUTOMATED_PASS: packaged baseline fails expected south/actual north for a mirrored
+roof; fixed runtime passes all 48 cases and test runfailed reports no failures.
+Evidence: logs/20261005-domum-orientation-before-fix.log and
+logs/20261005-domum-orientation-after-fix.log. Both builds pass; profile hashes and
+backups recorded in logs/20261005-domum-orientation-profile-install.json.
+Hosted client/world visual validation remains MANUAL_VALIDATION_PENDING; panel
+upload of corrected Structurize remains HOST_DEPLOYMENT_PENDING.
+
 ## 2026-10-05 dedicated preview packet regression
 
 Real hosted crash proves the unguarded preview class fails construction with

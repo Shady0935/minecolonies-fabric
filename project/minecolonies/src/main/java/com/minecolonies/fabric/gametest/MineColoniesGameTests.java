@@ -528,6 +528,40 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void domumPlacementPreservesBlueprintOrientation(final GameTestHelper helper)
+    {
+        final var roof = BuiltInRegistries.BLOCK.get(new ResourceLocation("domum_ornamentum", "shingle"));
+        helper.assertTrue(roof instanceof com.ldtteam.domumornamentum.block.decorative.ShingleBlock,
+          "Shingle block is not registered");
+        final var handler = new com.minecolonies.coremod.placementhandlers.DoBlockPlacementHandler();
+        int index = 0;
+        for (final Rotation rotation : Rotation.values())
+        {
+            for (final Mirror mirror : Mirror.values())
+            {
+                for (final Direction facing : Direction.Plane.HORIZONTAL)
+                {
+                    final BlockState expected = roof.defaultBlockState()
+                      .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, facing)
+                      .mirror(mirror).rotate(rotation);
+                    final BlockPos pos = helper.absolutePos(new BlockPos(2 + (index % 4) * 3, 2, 2 + (index / 4) * 3));
+                    final var entity = new com.ldtteam.domumornamentum.entity.block.MateriallyTexturedBlockEntity(pos, expected);
+                    handler.handle(helper.getLevel(), pos, expected, entity.saveWithFullMetadata(), false, pos,
+                      new com.ldtteam.structurize.util.PlacementSettings(mirror, rotation));
+                    helper.assertTrue(helper.getLevel().getBlockState(pos).equals(expected),
+                      "DO placement rotated an already transformed blueprint state: " + rotation + "/" + mirror
+                        + ", expected " + expected + ", actual " + helper.getLevel().getBlockState(pos));
+                    helper.assertTrue(helper.getLevel().getBlockEntity(pos) instanceof
+                      com.ldtteam.domumornamentum.entity.block.MateriallyTexturedBlockEntity,
+                      "DO placement lost its material block entity");
+                    index++;
+                }
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void eventBusHonorsPriorityAndInheritedListeners(final GameTestHelper helper)
     {
         final StringBuilder invocationOrder = new StringBuilder();

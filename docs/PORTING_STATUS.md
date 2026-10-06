@@ -1,5 +1,26 @@
 # Porting status
 
+## 2026-10-05 Domum blueprint orientation
+
+- User reports Lost Mesa City Builder roofs correct in preview but misoriented
+  after construction. Read hosted/client logs; no related placement exception.
+- Hosted read-only probe at -715 72 275 finds shingle facing south and valid
+  cobblestone_extra/oak_planks textureData. No hosted blocks were modified.
+- Found Structurize handleTileEntityPlacement reapplying rotation/mirror to
+  already transformed blueprint block states. Forge discarded these immutable
+  state-return values; port incorrectly committed them with world.setBlock.
+- Removed the second state transformation, retaining block entity NBT transforms.
+- Added dedicated DoBlockPlacementHandler probe: four facings, four rotations,
+  three mirrors (48 cases), asserting final state and material entity survive.
+  Baseline packaged jar fails NONE/LEFT_RIGHT: expected south, actual north.
+  Corrected packaged jar passes all 48 cases; test runfailed finds no failures.
+- Structurize/MineColonies builds pass; installed both in CurseForge with hashes
+  verified and backups under mods/codex-backups/2026-10-05-domum-orientation.
+- Corrected Structurize: 997709 bytes, SHA256
+  951298DF8A9DB6BA574690AD9AD7261B0ABCB6C4D56153001A9F77FACBBB4B1B.
+  Host still has 997831-byte prior preview fix; manual panel upload needed due
+  unresolved MCP binary-upload failures. Remote world was not modified.
+
 ## 2026-10-05 hosted dedicated preview crash
 
 - Tatnik MCP authorized server Tests Minecolonies is available. Read its actual

@@ -1,5 +1,15 @@
 # Next steps
 
+## Lost Mesa City Builder roof validation (2026-10-05)
+
+Install corrected Structurize on the test server and restart server/client.
+Create a new Lost Mesa City Builder with shingles (level 3 or higher), selecting
+a nonzero rotation or mirror, and compare placed roof orientation with preview.
+The fix prevents a second transform during NBT placement. Existing wrong states
+are not retroactively repaired: rebuild/repair the affected construction.
+Remote MCP binary upload failed earlier (PUT 401/base64 HTTP 500); do not stop
+that host merely to repeat the failed upload path without new evidence.
+
 ## Hosted Town Hall preview validation (2026-10-05)
 
 Host automatic upload failed (PUT 401, MCP base64 HTTP 500). Use the panel to

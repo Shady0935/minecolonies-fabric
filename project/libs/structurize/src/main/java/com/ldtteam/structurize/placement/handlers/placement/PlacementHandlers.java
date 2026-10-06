@@ -922,10 +922,9 @@ public final class PlacementHandlers
                 {
                     world.setBlockEntity(newTile);
                 }
-                final BlockState transformedState = world.getBlockState(pos)
-                    .rotate(settings.rotation)
-                    .mirror(settings.mirror);
-                world.setBlock(pos, transformedState, Constants.UPDATE_FLAG);
+                // Blueprint.rotateWithMirror already transformed the block
+                // state. Only the block entity needs its separate NBT rotation;
+                // rotating the state again misorients materialized roofs.
             }
         }
     }

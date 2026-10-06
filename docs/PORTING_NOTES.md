@@ -1,5 +1,19 @@
 # Porting notes
 
+## 2026-10-05 roof placement orientation regression
+
+Lost Mesa City builder3/4/5 palettes include shingles with multiple facings;
+blueprint previews were correct per user. Hosted diagnostic at -715 72 275
+shows facing=south and retained textureData (cobblestone_extra and oak_planks).
+Orientation lives in block states; material NBT carries the texture selections.
+Blueprint.rotateWithMirror already mirrors/rotates its entire palette. The
+ported handleTileEntityPlacement then rotated/mirrored the placed state again
+and committed it, unlike Forge 1.20.1's discarded immutable state-return values.
+Fix removes only that extra state mutation. IRotatableBlockEntity NBT transforms
+remain, and no saved/hosted blocks are rewritten. Dedicated placement regression
+uses the real MineColonies DoBlockPlacementHandler for all 48 facing/rotation/
+mirror combinations. Existing misoriented placed blocks need rebuilding/repair.
+
 ## 2026-10-05 Tatnik dedicated preview packet crash
 
 Actual authorized server: Tests Minecolonies (b516fc40-dcb4-46bf-ab0f-ab12d0fd8475).
