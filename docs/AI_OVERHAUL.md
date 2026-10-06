@@ -193,9 +193,9 @@ pushed to `origin/ai-overhaul`; the phase 1 build passed before the checkpoint.
 
 ### Checkpoint
 
-The checkpoint uses the required commit title
-`checkpoint: smart builder planner`; push it to `origin/ai-overhaul` before
-beginning Phase 3. The full suite remains order-sensitive; the two Builder
+The required checkpoint `checkpoint: smart builder planner` is committed as
+`bef9ea7b052d6ec9b921a312a5fadf1034c59031` and pushed to
+`origin/ai-overhaul`. The full suite remains order-sensitive; the two Builder
 cases that failed there passed in isolation.
 
 ## Risks and open questions
