@@ -6,6 +6,7 @@
 /project/**/.gradle/
 /project/**/build/
 /project/**/run/
+/project/**/run-*/
 /project/**/libs/*.jar
 /test-instance/
 /logs/
