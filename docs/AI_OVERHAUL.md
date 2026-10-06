@@ -480,6 +480,83 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 - Source and transition call sites were audited; this phase changes only this
   documentation, so no additional build or GameTest run was needed.
 
+## Phase 9 — Advanced pathfinding assessment
+
+### Findings and decision
+
+- Long citizen walks already use proxy staging. `AbstractWalkToProxy` routes
+  paths beyond its direct-path threshold through colony waypoints and building
+  positions, then returns to a local path for each segment. Miners and guards
+  assigned to mine patrols also use the miner shaft/node graph. This is not a
+  complete road graph: colony waypoints do not store adjacency, edge costs, or
+  live walkability, and `PathJobPathway` is a separate job for laying colony
+  pathways.
+- The available mixed GameTest windows recorded average path-job times from
+  0.75 ms to 5.77 ms and a maximum of 32.84 ms. The largest sampled node window
+  visited 321,801 nodes across 126 jobs. Those runs exercise many different
+  fixtures and do not represent a controlled long-distance or large-colony
+  comparison. They show variation, but not a general route-search bottleneck
+  that would justify a second graph layer.
+- A general hierarchy would need to keep route edges valid as roads,
+  buildings, obstacles, and loaded chunks change. The current proxy approach
+  already bounds each A* job to the next segment and has profession-specific
+  handling for mines. No hierarchical route cache or new navigation graph was
+  added. Revisit this only with a repeatable long-distance/large-colony profile
+  that demonstrates lower node counts or better route behavior.
+
+### Validation
+
+- Audited `AbstractWalkToProxy`, `EntityCitizenWalkToProxy`,
+  `PathJobPathway`, colony waypoint persistence/validation, and existing
+  profiler output. This assessment changes documentation only.
+
+## Phase 10 — Progressive stuck recovery assessment
+
+### Findings and decision
+
+- `PathingStuckHandler` already uses staged recovery: it first advances along
+  the current path, then clears/retries, moves away, may skip ahead on a valid
+  path, and can use configured ladder, bridge, and block-break actions before
+  its final behavior. It waits 100 ticks before starting; the measured action
+  intervals are 30 ticks for early node advances, 100 for clearing the path,
+  300 for moving away or skipping forward, and 200 for ladder/bridge/block
+  actions. Safe-destination recovery remains gated separately from intermediate
+  or explicitly unsafe routes.
+- The Phase 1 profiler recorded ordinary mixed-workload windows with 0–25 stuck
+  events and 0–11 recovery actions. Its highest window reported 147 events and
+  39 recovery actions, with 121 path jobs, 58 repaths, 0.88 ms average path
+  time, and 19.13 ms maximum path time. That window overlapped the sleep
+  GameTest batch, whose fixture places its citizen at the bed to isolate sleep
+  state from navigation; other entities from the combined test server could
+  still be active. The aggregate metrics do not identify which citizens or
+  destinations generated the spike, so it cannot establish repeated failure
+  on a specific route.
+- Existing per-action delays already throttle recovery. No additional
+  cross-attempt backoff was added: without a reproducible citizen/destination
+  trace, longer delays could strand workers on difficult but recoverable routes
+  while doing nothing to prove that the observed spike came from navigation
+  retries. A backoff change needs an isolated reproduction and a before/after
+  comparison that also checks worker completion.
+
+### Validation
+
+- Reviewed the stuck handler, its navigator call sites, and the recorded
+  profiler windows. This assessment changes documentation only; the measured
+  outlier remains an open follow-up if it can be reproduced outside the mixed
+  GameTest server.
+
+## Phase 11 — Profiling-driven optimization decision
+
+- The project profiler is opt-in, and the available runs are mixed functional
+  GameTests rather than comparable large-colony benchmarks. No new route cache,
+  general road graph, polling cache, or scheduler throttle was added without a
+  measured workload and safe invalidation contract.
+- The focused work so far preserves existing profession behavior and improves
+  Builder planning, delivery routing, spatial work selection, guard target
+  coordination, and deterministic scheduler staggering. Additional broad
+  performance changes are deferred until a controlled workload can distinguish
+  their benefit from fixture and server-load effects.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.
@@ -487,4 +564,4 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   traced before adding instrumentation or shared caches.
 - Existing excluded build/run state is not present in the fresh worktree; reuse
   only after verifying the worktree's build artifacts and test results.
-- The high stuck/recovery counters in the mixed sleep-worker GameTest window need a focused before/after comparison before treating them as representative worker behavior.
+- The high stuck/recovery counters in the mixed sleep-worker GameTest window still need an isolated reproduction before any cross-attempt backoff change.
