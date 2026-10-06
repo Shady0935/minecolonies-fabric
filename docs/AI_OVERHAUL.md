@@ -30,7 +30,7 @@ implementation decisions, validation, metrics, and checkpoints.
 
 ### Checkpoints
 
-- `checkpoint: baseline AI instrumentation` — pending commit and push.
+- `checkpoint: baseline AI instrumentation` — `644b4319ee`, committed and pushed to `origin/ai-overhaul`.
 
 ## Findings
 
