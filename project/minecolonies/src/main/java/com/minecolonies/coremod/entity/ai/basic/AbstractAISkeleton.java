@@ -52,7 +52,13 @@ public abstract class AbstractAISkeleton<J extends IJob<?>> implements ITickingS
         this.job = job;
         this.worker = this.job.getCitizen().getEntity().get();
         this.world = CompatibilityUtils.getWorldFromCitizen(this.worker);
-        stateMachine = new TickRateStateMachine<>(AIWorkerState.INIT, this::onException);
+        final TickRateStateMachine<IAIState> workerStateMachine = new TickRateStateMachine<>(AIWorkerState.INIT, this::onException);
+        final long citizenSeed = job.getCitizen().getColony() == null
+                                   ? Integer.toUnsignedLong(job.getCitizen().getId())
+                                   : ((long) job.getCitizen().getColony().getID() << 32)
+                                       ^ Integer.toUnsignedLong(job.getCitizen().getId());
+        workerStateMachine.setInitialTickOffsetSeed(citizenSeed);
+        stateMachine = workerStateMachine;
     }
 
     @Override

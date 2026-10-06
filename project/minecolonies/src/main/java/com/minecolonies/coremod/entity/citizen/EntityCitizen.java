@@ -267,7 +267,7 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
     /**
      * The citizen AI
      */
-    private ITickRateStateMachine<IState> citizenAI = new TickRateStateMachine<>(CitizenAIState.IDLE, e -> {});
+    private TickRateStateMachine<IState> citizenAI = new TickRateStateMachine<>(CitizenAIState.IDLE, e -> {});
 
     /**
      * Constructor for a new citizen typed entity.
@@ -439,6 +439,13 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
     @SuppressWarnings(INCREMENT_AND_DECREMENT_OPERATORS_SHOULD_NOT_BE_USED_IN_A_METHOD_CALL_OR_MIXED_WITH_OTHER_OPERATORS_IN_AN_EXPRESSION)
     private void initTasks()
     {
+        if (citizenData != null && citizenData.getColony() != null)
+        {
+            final long citizenSeed = ((long) citizenData.getColony().getID() << 32)
+                                       ^ Integer.toUnsignedLong(citizenData.getId());
+            citizenAI.setInitialTickOffsetSeed(citizenSeed);
+        }
+
         new CitizenAI(this);
 
         int priority = 0;

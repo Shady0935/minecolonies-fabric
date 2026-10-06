@@ -143,7 +143,10 @@ import com.minecolonies.api.colony.requestsystem.resolver.IRequestResolver;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.EntityState;
 import com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState;
+import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.entity.ai.statemachine.AIOneTimeEventTarget;
+import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateStateMachine;
+import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickingTransition;
 import com.minecolonies.api.entity.combat.CombatAIStates;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.DeliveryRequestResolver;
 import com.minecolonies.coremod.colony.requestsystem.resolvers.PickupRequestResolver;
@@ -436,6 +439,68 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(ModBlocks.blockHutTownHall != null, "Town Hall block was not initialized");
         helper.assertTrue(IColonyManager.getInstance() != null, "Colony manager API is unavailable");
         helper.succeed();
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void citizenAITickOffsetsAreStableAndDistributed(final GameTestHelper helper)
+    {
+        final long firstCitizenSeed = (17L << 32) | 42L;
+        final int[] firstSchedule = getInitialAITicks(firstCitizenSeed);
+        final int[] repeatedSchedule = getInitialAITicks(firstCitizenSeed);
+        final int[] secondCitizenSchedule = getInitialAITicks((17L << 32) | 43L);
+
+        helper.assertTrue(Arrays.equals(firstSchedule, repeatedSchedule),
+          "The same citizen identity did not produce a repeatable AI transition schedule");
+        helper.assertTrue(!Arrays.equals(firstSchedule, secondCitizenSchedule),
+          "Different citizen identities received the same initial AI transition schedule");
+
+        int distinctPhases = 0;
+        for (int i = 0; i < firstSchedule.length; i++)
+        {
+            boolean seenEarlier = false;
+            for (int j = 0; j < i; j++)
+            {
+                if (firstSchedule[i] == firstSchedule[j])
+                {
+                    seenEarlier = true;
+                    break;
+                }
+            }
+            if (!seenEarlier)
+            {
+                distinctPhases++;
+            }
+        }
+        helper.assertTrue(distinctPhases >= 3,
+          "Transitions from one citizen were not spread across multiple update ticks");
+        helper.succeed();
+    }
+
+    private static int[] getInitialAITicks(final long seed)
+    {
+        final TickRateStateMachine<IAIState> stateMachine = new TickRateStateMachine<>(AIWorkerState.IDLE, ignored -> {});
+        stateMachine.setInitialTickOffsetSeed(seed);
+        final int[] firstRunTicks = new int[8];
+        final int[] currentTick = {0};
+        for (int i = 0; i < firstRunTicks.length; i++)
+        {
+            final int transitionIndex = i;
+            stateMachine.addTransition(new TickingTransition<>(AIWorkerState.IDLE, () ->
+            {
+                if (firstRunTicks[transitionIndex] == 0)
+                {
+                    firstRunTicks[transitionIndex] = currentTick[0];
+                }
+                return false;
+            }, () -> null, 20));
+        }
+
+        for (int tick = 1; tick <= 20; tick++)
+        {
+            currentTick[0] = tick;
+            stateMachine.tick();
+        }
+        return firstRunTicks;
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)

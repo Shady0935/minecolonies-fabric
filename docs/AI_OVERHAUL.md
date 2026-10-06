@@ -413,6 +413,40 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   metrics from the mixed GameTest server include builder and worker scenarios,
   so they do not establish a guard-specific performance change.
 
+## Phase 7 — Adaptive AI scheduler
+
+### Findings and changes
+
+- Citizen high-level and profession state machines already use context-specific
+  transition rates. Work execution and wait-delay accounting run at 1 tick;
+  movement and inventory actions use roughly 10–20 ticks; request checks and
+  idle, sleep, and leisure decisions use 20–200 ticks. Physical navigation
+  continues on the entity tick. Raising a global machine interval would also
+  delay urgent request, interruption, and recovery events, so the existing
+  per-transition rates remain the context policy.
+- `TickingTransition` previously phased callbacks through a process-global
+  construction counter. That spread work during one session, but a citizen's
+  phase could shift after restart or chunk reload when AI objects registered in
+  a different order. Citizen and worker state machines now seed each initial
+  phase from colony id, citizen id, and transition registration order. This is
+  deterministic across reloads and spreads callbacks both within a citizen and
+  across citizens without storing world/entity references.
+- `TickRateStateMachine.setTickRate` now clamps rates to 1–500 and chooses its
+  initial counter deterministically instead of constructing a `Random`.
+  Current citizen machines keep the default global rate of 1; their registered
+  transitions provide the lower-frequency checks.
+
+### Validation
+
+- The Java 17 `build` passed with the existing deprecation/removal and
+  unchecked-operation warnings.
+- A fresh isolated GameTest profile ran four tests (the new scheduler test and
+  three Multipiston smoke tests); all four passed. The new case verified that
+  the same identity repeats its schedule, different citizen ids produce
+  different schedules, and eight transitions occupy at least three phases.
+- No MSPT before/after comparison was available. This change distributes due
+  callbacks; it does not reduce the number of per-tick state-machine countdowns.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.

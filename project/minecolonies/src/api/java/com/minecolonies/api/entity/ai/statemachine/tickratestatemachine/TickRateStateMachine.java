@@ -8,8 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import java.beans.EventHandler;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Consumer;
+
+import static com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants.MAX_TICKRATE;
 
 /**
  * Statemachine with an added tickrate limiting of transitions, allowing transitions to be checked at a lower rate. Default tickrate is 20 tps (Minecraft default).
@@ -35,6 +36,21 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
      * The counter for the statemachine's tickrate.
      */
     private int tickRateCounter = 0;
+
+    /**
+     * Stable owner seed used to spread transition checks across citizens.
+     */
+    private long tickOffsetSeed;
+
+    /**
+     * Registration order used to give transitions different deterministic phases.
+     */
+    private long transitionOffsetSequence;
+
+    /**
+     * Whether this machine received a stable owner seed before transition registration.
+     */
+    private boolean hasTickOffsetSeed;
 
     /**
      * Currently used transition
@@ -65,6 +81,32 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
         this.eventTransitionMap.put(AIBlockingEventType.STATE_BLOCKING, stateBlockingTransitions);
         eventTransitions = new ArrayList<>();
         this.eventTransitionMap.put(AIBlockingEventType.EVENT, eventTransitions);
+    }
+
+    /**
+     * Seed the initial transition phases from a stable owner identity. Call this
+     * before registering transitions so the same citizen keeps the same schedule
+     * after chunk reloads and server restarts.
+     *
+     * @param seed stable owner seed
+     */
+    public void setInitialTickOffsetSeed(final long seed)
+    {
+        tickOffsetSeed = seed;
+        transitionOffsetSequence = 0L;
+        hasTickOffsetSeed = true;
+        tickRateCounter = deterministicOffset(tickOffsetSeed, -1L, tickRate);
+    }
+
+    @Override
+    public void addTransition(final ITickingTransition<S> transition)
+    {
+        super.addTransition(transition);
+        if (hasTickOffsetSeed)
+        {
+            transition.setTicksToUpdate(deterministicOffset(tickOffsetSeed, transitionOffsetSequence, transition.getTickRate()));
+        }
+        transitionOffsetSequence++;
     }
 
     /**
@@ -142,8 +184,26 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
     @Override
     public void setTickRate(final int tickRate)
     {
-        this.tickRate = tickRate;
-        tickRateCounter = new Random().nextInt(tickRate);
+        this.tickRate = Math.max(1, Math.min(tickRate, MAX_TICKRATE));
+        tickRateCounter = deterministicOffset(tickOffsetSeed, -1L, this.tickRate);
+    }
+
+    /**
+     * Pick a reproducible phase within a transition interval.
+     *
+     * @param seed stable machine seed
+     * @param sequence transition registration order
+     * @param rate transition interval
+     * @return initial countdown offset
+     */
+    private static int deterministicOffset(final long seed, final long sequence, final int rate)
+    {
+        final int safeRate = Math.max(1, rate);
+        long value = seed + 0x9E3779B97F4A7C15L * (sequence + 1L);
+        value = (value ^ (value >>> 30)) * 0xBF58476D1CE4E5B9L;
+        value = (value ^ (value >>> 27)) * 0x94D049BB133111EBL;
+        value ^= value >>> 31;
+        return (int) Long.remainderUnsigned(value, safeRate);
     }
 
     @Override
