@@ -256,8 +256,8 @@ cases that failed there passed in isolation.
 
 ### Checkpoint
 
-The required checkpoint is `checkpoint: delivery routing improvements`.
-It remains to be committed and pushed after the final clean build.
+The required checkpoint `checkpoint: delivery routing improvements` is
+committed as `8c7f11f34b` and pushed to `origin/ai-overhaul`.
 
 ## Risks and open questions
 
