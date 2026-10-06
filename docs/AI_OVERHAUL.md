@@ -447,6 +447,39 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 - No MSPT before/after comparison was available. This change distributes due
   callbacks; it does not reduce the number of per-tick state-machine countdowns.
 
+## Phase 8 — Polling and event invalidation audit
+
+### Findings and decision
+
+- `AIEventTarget` is a rate-limited condition transition, not a push event.
+  `TickRateStateMachine.tick` still checks registered conditions on their
+  countdown. Request completion/cancellation callbacks update the building's
+  authoritative per-citizen request maps, but they do not currently signal the
+  worker state machine or reschedule its next transition.
+- Worker request checks are bounded to 20 ticks for synchronous/completed
+  pickup requests and 200 ticks for asynchronous cleanup. Replacing them with
+  event-only checks would require a server-thread dispatch bridge, plus dirty
+  state for requests that complete while a citizen or building is unloaded.
+  The current map checks are small and remain as recovery paths.
+- Inventory scans consume MineColonies, vanilla, and mod-provided item
+  handlers. The workspace has no shared inventory-change callback covering
+  those sources. A cached availability result could miss direct container
+  edits, external pipes, or load/reload changes, so scans remain at their
+  existing task transitions.
+- Job, home, building, and work-order setters already update their owning
+  objects directly; workers consult those objects in their normal transitions.
+  Day/night and external resource changes also have no single reliable event
+  source across the supported 1.20.1 integrations.
+- No code cache or event hook was added in this phase. That keeps the current
+  bounded polling as a fallback for chunk reloads and external mutations. New
+  event-driven invalidation should wait for a complete event contract and a
+  measured hot path.
+
+### Validation
+
+- Source and transition call sites were audited; this phase changes only this
+  documentation, so no additional build or GameTest run was needed.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.
