@@ -1,5 +1,18 @@
 # Next steps
 
+## Hosted Town Hall preview validation (2026-10-05)
+
+Host automatic upload failed (PUT 401, MCP base64 HTTP 500). Use the panel to
+replace mods/structurize-fabric-1.20.1-1.0.0-port.jar with the corrected workspace
+artifact (997831 bytes; SHA256 2FA1CD0ACD8265581874DFF97140FAB8AD78D2DF13D78A1B8755669FBF07A023).
+The CurseForge profile already has this correction. Host was restarted with
+its prior jar after aborted deployment; no world/config edits were performed.
+After refreshed Structurize is installed and the test host/client restarted,
+open a Town Hall blueprint preview, move/rotate/mirror it, and place the Town Hall.
+Check the hosted crash/log catalog for new SyncPreviewCacheToServer exceptions.
+The regression probe exercises decoding and distribution; interactive placement
+on the remote server remains manual validation.
+
 ## Dedicated client structure-pack validation (2026-10-05)
 
 Restart the CurseForge Minecolonies Fabric client after the refreshed jars.

@@ -1,5 +1,25 @@
 # Porting status
 
+## 2026-10-05 hosted dedicated preview crash
+
+- Tatnik MCP authorized server Tests Minecolonies is available. Read its actual
+  crash-2026-10-06_01.54.58-server.txt: SyncPreviewCacheToServer constructor
+  fails with NoClassDefFoundError net/minecraft/class_638 (ClientLevel).
+- Forge BlueprintPreviewData marks getBlueprint/setBlueprint/mirror/rotate
+  OnlyIn CLIENT. The port lost these markers; restored Fabric Environment CLIENT
+  so the dedicated loader strips client rendering methods before verification.
+- Added dedicated preview packet decoding/roundtrip/distribution GameTest.
+- Host backup fadf97d9-d389-41db-b6b0-348584d56603 completed successfully before
+  deployment. Both builds and packaged dedicated preview packet GameTest pass;
+  server saves/stops cleanly (logs/20261005-preview-side-packaged-server.log).
+- CurseForge Structurize/MineColonies jars updated with hashes verified and backed
+  up under mods/codex-backups/2026-10-05-dedicated-preview-crash.
+- Hosted upload remains incomplete: raw PUT returns 401 (upload URL needs auth
+  unavailable to this client), official base64 fallback returns MCP HTTP 500
+  twice. Host mod size remains 997766 vs corrected 997831 bytes. Stopped normally
+  for installation, then started with its unchanged jar after upload failure.
+  User must upload corrected Structurize via panel before placement retest.
+
 ## 2026-10-05 dedicated-client bundled structure packs
 
 - Client profile log shows all styles in integrated play, but only Shady935

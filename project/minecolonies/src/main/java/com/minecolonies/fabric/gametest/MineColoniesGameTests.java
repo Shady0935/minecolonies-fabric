@@ -493,6 +493,41 @@ public final class MineColoniesGameTests implements FabricGameTest
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
+    public void structurizePreviewPacketIsDedicatedServerSafe(final GameTestHelper helper)
+    {
+        helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery interrupted");
+        final FriendlyByteBuf payload = new FriendlyByteBuf(Unpooled.buffer());
+        final FriendlyByteBuf forwarded = new FriendlyByteBuf(Unpooled.buffer());
+        try
+        {
+            final BlockPos position = helper.absolutePos(new BlockPos(2, 1, 2));
+            payload.writeBlockPos(position);
+            payload.writeUtf(Constants.DEFAULT_STYLE);
+            payload.writeUtf("fundamentals/townhall1.blueprint");
+            payload.writeInt(Rotation.CLOCKWISE_90.ordinal());
+            payload.writeInt(Mirror.FRONT_BACK.ordinal());
+            // This exact constructor crashed on dedicated servers when the
+            // preview class retained methods referring to ClientLevel.
+            final var message = new com.ldtteam.structurize.network.messages.SyncPreviewCacheToServer(payload);
+            helper.assertTrue(!payload.isReadable(), "Preview decoder left unread data");
+            message.toBytes(forwarded);
+            helper.assertTrue(position.equals(forwarded.readBlockPos()), "Preview position changed");
+            helper.assertTrue(Constants.DEFAULT_STYLE.equals(forwarded.readUtf()), "Preview pack changed");
+            helper.assertTrue("fundamentals/townhall1.blueprint".equals(forwarded.readUtf()), "Preview path changed");
+            helper.assertTrue(forwarded.readInt() == Rotation.CLOCKWISE_90.ordinal(), "Preview rotation changed");
+            helper.assertTrue(forwarded.readInt() == Mirror.FRONT_BACK.ordinal(), "Preview mirror changed");
+            message.onExecute(new com.ldtteam.structurize.network.NetworkEvent.Context(
+              helper.makeMockServerPlayerInLevel(), com.ldtteam.structurize.network.LogicalSide.CLIENT), true);
+            helper.succeed();
+        }
+        finally
+        {
+            payload.release();
+            forwarded.release();
+        }
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = TEST_BATCH, timeoutTicks = 200)
     public void eventBusHonorsPriorityAndInheritedListeners(final GameTestHelper helper)
     {
         final StringBuilder invocationOrder = new StringBuilder();

@@ -6,6 +6,8 @@ import com.ldtteam.structurize.config.BlueprintRenderSettings;
 import com.ldtteam.structurize.network.messages.SyncPreviewCacheToServer;
 import com.ldtteam.structurize.storage.StructurePacks;
 import com.ldtteam.structurize.util.PlacementSettings;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -144,6 +146,7 @@ public class BlueprintPreviewData
      * Get the current blueprint to render.
      * @return the blueprint or null if not ready yet.
      */
+    @Environment(EnvType.CLIENT)
     public Blueprint getBlueprint()
     {
         if (pos == null)
@@ -175,6 +178,7 @@ public class BlueprintPreviewData
      * Set a blueprint that is alreayd loaded.
      * @param blueprint the blueprint to set.
      */
+    @Environment(EnvType.CLIENT)
     public void setBlueprint(final Blueprint blueprint)
     {
         this.blueprintFuture = null;
@@ -193,6 +197,7 @@ public class BlueprintPreviewData
     /**
      * Mirror the blueprint.
      */
+    @Environment(EnvType.CLIENT)
     public void mirror()
     {
         if (blueprint == null)
@@ -217,6 +222,7 @@ public class BlueprintPreviewData
      * Rotate the preview by a certain quantity.
      * @param rotation the rotation factor.
      */
+    @Environment(EnvType.CLIENT)
     public void rotate(final Rotation rotation)
     {
         this.rotation = this.rotation.getRotated(rotation);

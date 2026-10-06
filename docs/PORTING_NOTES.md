@@ -1,5 +1,18 @@
 # Porting notes
 
+## 2026-10-05 Tatnik dedicated preview packet crash
+
+Actual authorized server: Tests Minecolonies (b516fc40-dcb4-46bf-ab0f-ab12d0fd8475).
+Crash catalog ID: logs:crash-reports/crash-2026-10-06_01.54.58-server.txt.
+The split envelope decodes SyncPreviewCacheToServer, constructing BlueprintPreviewData.
+Its methods had unguarded Minecraft.level/ClientLevel references. JVM verification
+can resolve those types before any rendering method is called. Forge's four
+OnlyIn CLIENT markers were missing; restored equivalent Fabric Environment CLIENT.
+Packet fields and server preview distribution remain unchanged. Regression test
+structurizePreviewPacketIsDedicatedServerSafe uses the Town Hall path, nontrivial
+mirror/rotation, decodes on dedicated SERVER, re-encodes all fields and executes
+the distributor. Hosted backup completed before changing its mod jar.
+
 ## 2026-10-05 structure styles missing on dedicated joins
 
 Evidence: logs/20261005-dedicated-missing-styles-client.log. Client-only loading

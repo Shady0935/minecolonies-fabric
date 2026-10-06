@@ -1,5 +1,21 @@
 # Test matrix
 
+## 2026-10-05 dedicated preview packet regression
+
+Real hosted crash proves the unguarded preview class fails construction with
+NoClassDefFoundError ClientLevel. Added structurizePreviewPacketIsDedicatedServerSafe
+for the packet constructor, Town Hall preview field roundtrip and server dispatch.
+AUTOMATED_PASS: Structurize and MineColonies runtime builds, packaged dedicated
+preview decoding/field roundtrip/distribution GameTest, no failed tests, clean save
+and stop. Evidence logs/20261005-preview-side-structurize-build.log,
+logs/20261005-preview-side-minecolonies-build.log,
+logs/20261005-preview-side-packaged-server.log. CurseForge jars updated and hashes
+recorded in logs/20261005-preview-crash-profile-install.json.
+Hosted backup: fadf97d9-d389-41db-b6b0-348584d56603 (successful).
+HOST_DEPLOYMENT_PENDING: raw upload PUT 401, base64 MCP fallback HTTP 500 twice;
+host retained prior 997766-byte jar and was restarted after aborted installation.
+Remote Town Hall preview/placement remains MANUAL_VALIDATION_PENDING.
+
 ## 2026-10-05 dedicated client pack discovery
 
 Regression evidence: logs/20261005-dedicated-missing-styles-client.log records
