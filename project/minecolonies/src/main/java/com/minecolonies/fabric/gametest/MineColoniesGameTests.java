@@ -22,6 +22,7 @@ import com.minecolonies.api.colony.managers.interfaces.IRaiderManager;
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.combat.threat.ThreatTableEntry;
 import com.minecolonies.api.entity.mobs.AbstractEntityRaiderMob;
 import com.minecolonies.api.entity.pathfinding.IPathJob;
 import com.minecolonies.api.entity.pathfinding.PathFindingStatus;
@@ -5142,6 +5143,51 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(hostileList != null, "Guard tower hostile-entity list module was not registered");
 
         final EntityCitizen guardCitizen = (EntityCitizen) citizen.getEntity().get();
+        guardCitizen.getThreatTable().resetTable();
+        final AbstractEntityRaiderMob expiredThreat = ModEntities.BARBARIAN.create(level);
+        final AbstractEntityRaiderMob activeThreat = ModEntities.BARBARIAN.create(level);
+        helper.assertTrue(expiredThreat != null, "Threat-table cleanup fixture could not create a stale target");
+        helper.assertTrue(activeThreat != null, "Threat-table cleanup fixture could not create an active target");
+        guardCitizen.getThreatTable().addThreat(expiredThreat, 0);
+        guardCitizen.getThreatTable().addThreat(activeThreat, 100);
+        final ThreatTableEntry activeEntry = guardCitizen.getThreatTable().getTarget();
+        helper.assertTrue(activeEntry != null && activeEntry.getEntity() == activeThreat,
+          "Threat-table cleanup fixture did not select its active target");
+        final java.lang.reflect.Field threatListField;
+        try
+        {
+            threatListField = guardCitizen.getThreatTable().getClass().getDeclaredField("threatList");
+            threatListField.setAccessible(true);
+        }
+        catch (final ReflectiveOperationException exception)
+        {
+            helper.assertTrue(false, "Threat-table cleanup fixture could not inspect its stale entry: " + exception);
+            return;
+        }
+        ThreatTableEntry expiredEntry = null;
+        try
+        {
+            for (final Object entry : (java.util.List<?>) threatListField.get(guardCitizen.getThreatTable()))
+            {
+                if (entry instanceof ThreatTableEntry threatEntry && threatEntry.getEntity() == expiredThreat)
+                {
+                    expiredEntry = threatEntry;
+                    break;
+                }
+            }
+        }
+        catch (final IllegalAccessException exception)
+        {
+            helper.assertTrue(false, "Threat-table cleanup fixture could not read its stale entry: " + exception);
+            return;
+        }
+        helper.assertTrue(expiredEntry != null, "Threat-table cleanup fixture did not retain its non-current entry");
+        expiredEntry.setLastSeen(level.getGameTime() - 20L * 121L);
+        guardCitizen.getThreatTable().getTarget();
+        helper.assertTrue(guardCitizen.getThreatTable().getThreatFor(expiredThreat) == 0,
+          "Threat table retained an expired non-current entity reference");
+        guardCitizen.getThreatTable().resetTable();
+
         for (int slot = 0; slot < guardCitizen.getInventoryCitizen().getSlots(); slot++)
         {
             guardCitizen.getInventoryCitizen().setStackInSlot(slot, ItemStack.EMPTY);
@@ -5150,6 +5196,13 @@ public final class MineColoniesGameTests implements FabricGameTest
         guardCitizen.getInventoryCitizen().setStackInSlot(2, new ItemStack(Items.LEATHER_CHESTPLATE));
         guardCitizen.getInventoryCitizen().setStackInSlot(3, new ItemStack(Items.LEATHER_HELMET));
         guardCitizen.getInventoryCitizen().setStackInSlot(4, new ItemStack(Items.LEATHER_LEGGINGS));
+
+        final ICitizenData citizenNeedingProtection = colony.getCitizenManager().spawnOrCreateCitizen(null, level, guardTowerPos.west().south());
+        helper.assertTrue(citizenNeedingProtection != null && citizenNeedingProtection.getEntity().isPresent(),
+          "Guard combat fixture could not create a colony citizen to protect");
+        final EntityCitizen protectedCitizen = (EntityCitizen) citizenNeedingProtection.getEntity().get();
+        protectedCitizen.setNoAi(true);
+        protectedCitizen.setInvulnerable(true);
 
         final BlockPos equipmentChestPos = guardTowerPos.east();
         level.setBlock(equipmentChestPos, Blocks.CHEST.defaultBlockState(), 3);
@@ -5196,6 +5249,12 @@ public final class MineColoniesGameTests implements FabricGameTest
         hostile.setColony(colony);
         hostile.setEventID(guardRaidEvent.getID());
         hostile.setHealth(40.0F);
+        final AbstractEntityRaiderMob decoy = ModEntities.BARBARIAN.create(level);
+        helper.assertTrue(decoy != null, "Guard combat fixture could not create a nearby decoy raider");
+        decoy.setNoAi(true);
+        decoy.setColony(colony);
+        decoy.setEventID(guardRaidEvent.getID());
+        decoy.setHealth(40.0F);
         guardCitizen.setInvulnerable(true);
         final float initialHostileHealth = hostile.getHealth();
         final java.lang.reflect.Method lookForRequests;
@@ -5292,9 +5351,14 @@ public final class MineColoniesGameTests implements FabricGameTest
             if (!hostileAdded[0])
             {
                 hostile.setPos(guardCitizen.getX() + 1.0D, guardCitizen.getY(), guardCitizen.getZ());
+                hostile.tickCount = 1;
+                hostile.setLastHurtMob(protectedCitizen);
+                decoy.setPos(guardCitizen.getX() + 4.0D, guardCitizen.getY(), guardCitizen.getZ());
                 guardCitizen.setLastHurtByMob(hostile);
+                helper.assertTrue(level.addFreshEntity(decoy), "Guard combat fixture could not add its nearby decoy raider");
                 helper.assertTrue(level.addFreshEntity(hostile), "Guard combat fixture could not add its barbarian target");
                 hostile.registerWithColony();
+                decoy.registerWithColony();
                 hostileAdded[0] = true;
                 return;
             }
@@ -5307,6 +5371,11 @@ public final class MineColoniesGameTests implements FabricGameTest
             if (!searchFound[0] && guardCitizen.getThreatTable().getTargetMob() == hostile)
             {
                 searchFound[0] = true;
+            }
+            if (searchFound[0])
+            {
+                helper.assertTrue(guardCitizen.getThreatTable().getThreatFor(hostile) > guardCitizen.getThreatTable().getThreatFor(decoy),
+                  "Knight did not prioritize a raider attacking a colony citizen over a nearby raider");
             }
 
             if (searchFound[0] && hostile.getHealth() < lastHostileHealth[0] - 0.01F)

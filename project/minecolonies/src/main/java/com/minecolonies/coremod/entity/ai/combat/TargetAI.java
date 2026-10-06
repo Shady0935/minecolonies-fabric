@@ -160,12 +160,33 @@ public class TargetAI<T extends Mob & IThreatTableEntity> implements IStateAI
 
             if (isEntityValidTarget(entity) && user.getSensing().hasLineOfSight(entity))
             {
-                user.getThreatTable().addThreat(entity, 0);
+                addTargetThreat(entity);
                 foundTarget = true;
             }
         }
 
         return foundTarget;
+    }
+
+    /**
+     * Add a candidate to the threat table, applying its initial priority only
+     * once. Repeated target scans must not continually inflate its threat.
+     */
+    protected void addTargetThreat(final LivingEntity entity)
+    {
+        final int additionalThreat = user.getThreatTable().getThreatFor(entity) > 0 ? 0 : getAdditionalThreat(entity);
+        user.getThreatTable().addThreat(entity, additionalThreat);
+    }
+
+    /**
+     * Priority bonus for a newly discovered target.
+     *
+     * @param entity discovered target
+     * @return additional threat to apply once
+     */
+    protected int getAdditionalThreat(final LivingEntity entity)
+    {
+        return 0;
     }
 
     /**

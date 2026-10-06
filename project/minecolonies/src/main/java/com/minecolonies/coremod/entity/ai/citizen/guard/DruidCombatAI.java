@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.guardtype.registry.ModGuardTypes;
 import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.ITickRateStateMachine;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.combat.threat.IThreatTableEntity;
+import com.minecolonies.api.entity.combat.threat.ThreatTableEntry;
 import com.minecolonies.api.entity.pathfinding.PathResult;
 import com.minecolonies.api.entity.pathfinding.PathingOptions;
 import com.minecolonies.api.items.ModItems;
@@ -34,9 +35,15 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.Level;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.BiPredicate;
 
 import static com.minecolonies.api.research.util.ResearchConstants.DRUID_USE_POTIONS;
@@ -49,6 +56,18 @@ import static com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIFight.SPE
  */
 public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
 {
+    /**
+     * Short reservations keep nearby Druids from throwing support potions at
+     * the same ally while the first potion is still in flight. Keys are entity
+     * ids rather than entity references, and the Level keys are weak.
+     */
+    private static final Map<Level, Map<Integer, SupportReservation>> SUPPORT_TARGET_RESERVATIONS = new WeakHashMap<>();
+
+    /**
+     * How long a support target stays reserved while its potion travels.
+     */
+    private static final long SUPPORT_RESERVATION_TICKS = 60;
+
     /**
      * List of potential positive effects.
      */
@@ -142,18 +161,30 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
         {
             gotMaterial = true;
         }
-        if (AbstractEntityAIGuard.isAttackableTarget(user, target))
+        final boolean hostileTarget = AbstractEntityAIGuard.isAttackableTarget(user, target);
+        if (hostileTarget)
         {
             effect = ADVERSE_EFFECTS.get(user.getRandom().nextInt(gotMaterial ? 2 : 1));
             predicate = (entity, eff) -> AbstractEntityAIGuard.isAttackableTarget(user, entity);
         }
         else
         {
-            effect = SUPPORT_EFFECTS.get(user.getRandom().nextInt(gotMaterial ? 4 : 1));
+            if (gotMaterial && isSupportAlly(target) && target.getHealth() <= target.getMaxHealth() * 0.5f)
+            {
+                effect = MobEffects.HEAL;
+            }
+            else
+            {
+                effect = SUPPORT_EFFECTS.get(user.getRandom().nextInt(gotMaterial ? 4 : 1));
+            }
             predicate = (entity, eff) -> !AbstractEntityAIGuard.isAttackableTarget(user, entity);
         }
 
         PotionUtils.setCustomEffects(stack, Collections.singleton(new MobEffectInstance(effect, time, gotMaterial ? 2 : 0)));
+        if (!hostileTarget && isSupportAlly(target))
+        {
+            reserveSupportTarget(user.level(), target, user);
+        }
         DruidPotionEntity.throwPotionAt(stack, target, user, user.getCommandSenderWorld(), POTION_VELOCITY, inaccuracy, predicate);
 
         if (gotMaterial)
@@ -242,8 +273,58 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
     {
         return (AbstractEntityAIGuard.isAttackableTarget(user, entity)
                   || (entity instanceof IThreatTableEntity && ((IThreatTableEntity) entity).getThreatTable().getTarget() != null )
-                  || (entity instanceof Player && entity.getLastHurtByMobTimestamp() != 0 && entity.tickCount > entity.getLastHurtByMobTimestamp() && entity.tickCount - entity.getLastHurtByMobTimestamp() < 20 * 30))
+                  || (entity instanceof Player && entity.getLastHurtByMobTimestamp() != 0 && entity.tickCount > entity.getLastHurtByMobTimestamp() && entity.tickCount - entity.getLastHurtByMobTimestamp() < 20 * 30)
+                  || isSupportAlly(entity))
                  && !wasAffectedByDruid(entity);
+    }
+
+    @Override
+    protected int getAdditionalThreat(final LivingEntity entity)
+    {
+        final int hostilePriority = GuardThreatPriority.getInitialPriority(user, entity);
+        if (hostilePriority > 0)
+        {
+            return hostilePriority;
+        }
+
+        if (!isSupportAlly(entity))
+        {
+            return 0;
+        }
+
+        final EntityCitizen ally = (EntityCitizen) entity;
+        final float healthRatio = ally.getHealth() / ally.getMaxHealth();
+        if (healthRatio <= 0.3f)
+        {
+            return 120;
+        }
+        if (isGuardInCombat(ally))
+        {
+            return 95;
+        }
+
+        return 65 + Math.round((1.0f - healthRatio) * 20);
+    }
+
+    @Override
+    protected boolean checkForTarget()
+    {
+        final ThreatTableEntry current = user.getThreatTable().getTarget();
+        if (current != null && isSupportAlly(current.getEntity())
+              && isSupportTargetReservedByOther(user.level(), current.getEntity(), user))
+        {
+            if (target == null)
+            {
+                user.getThreatTable().removeCurrentTarget();
+            }
+            else
+            {
+                resetTarget();
+            }
+            return false;
+        }
+
+        return super.checkForTarget();
     }
 
     @Override
@@ -263,6 +344,20 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
 
         int targetsUnderEffect = 0;
         boolean foundTarget = false;
+        final Set<Integer> targetsHandledByOtherDruids = new HashSet<>();
+        for (final LivingEntity entity : entities)
+        {
+            if (entity instanceof EntityCitizen otherDruid && otherDruid != user
+                  && otherDruid.getCitizenData() != null && otherDruid.getCitizenData().getJob() instanceof JobDruid)
+            {
+                final ThreatTableEntry otherTarget = otherDruid.getThreatTable().getTarget();
+                if (otherTarget != null && otherTarget.getEntity().isAlive())
+                {
+                    targetsHandledByOtherDruids.add(otherTarget.getEntity().getId());
+                }
+            }
+        }
+
         for (final LivingEntity entity : entities)
         {
             if (!entity.isAlive())
@@ -275,11 +370,17 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
                 return false;
             }
 
+            if (isSupportAlly(entity) && (targetsHandledByOtherDruids.contains(entity.getId())
+                  || isSupportTargetReservedByOther(user.level(), entity, user)))
+            {
+                continue;
+            }
+
             if (isEntityValidTarget(entity))
             {
                 if (user.hasLineOfSight(entity))
                 {
-                    user.getThreatTable().addThreat(entity, 0);
+                    addTargetThreat(entity);
                     foundTarget = true;
                 }
             }
@@ -290,6 +391,72 @@ public class DruidCombatAI extends AttackMoveAI<EntityCitizen>
         }
 
         return foundTarget && targetsUnderEffect <= parentAI.building.getBuildingLevel() * 2;
+    }
+
+    /**
+     * Whether an entity is a colony ally that can benefit from a support potion.
+     */
+    private boolean isSupportAlly(final LivingEntity entity)
+    {
+        if (!(entity instanceof EntityCitizen ally) || ally == user || ally.getCitizenData() == null)
+        {
+            return false;
+        }
+
+        final var colony = user.getCitizenColonyHandler().getColony();
+        if (colony == null || ally.getCitizenColonyHandler().getColony() != colony)
+        {
+            return false;
+        }
+
+        return ally.getHealth() < ally.getMaxHealth() || isGuardInCombat(ally);
+    }
+
+    /**
+     * Whether a colony guard has an active combat target.
+     */
+    private boolean isGuardInCombat(final EntityCitizen citizen)
+    {
+        return citizen.getCitizenData() != null && citizen.getCitizenData().getJob() instanceof AbstractJobGuard
+                 && citizen.getThreatTable().getTargetMob() != null;
+    }
+
+    private static boolean isSupportTargetReservedByOther(final Level level, final LivingEntity target, final EntityCitizen druid)
+    {
+        synchronized (SUPPORT_TARGET_RESERVATIONS)
+        {
+            final Map<Integer, SupportReservation> reservations = SUPPORT_TARGET_RESERVATIONS.get(level);
+            if (reservations == null)
+            {
+                return false;
+            }
+
+            final long gameTime = level.getGameTime();
+            reservations.entrySet().removeIf(entry -> entry.getValue().expiresAt <= gameTime);
+            final SupportReservation reservation = reservations.get(target.getId());
+            return reservation != null && reservation.ownerEntityId != druid.getId();
+        }
+    }
+
+    private static void reserveSupportTarget(final Level level, final LivingEntity target, final EntityCitizen druid)
+    {
+        synchronized (SUPPORT_TARGET_RESERVATIONS)
+        {
+            SUPPORT_TARGET_RESERVATIONS.computeIfAbsent(level, ignored -> new HashMap<>())
+              .put(target.getId(), new SupportReservation(druid.getId(), level.getGameTime() + SUPPORT_RESERVATION_TICKS));
+        }
+    }
+
+    private static final class SupportReservation
+    {
+        private final int ownerEntityId;
+        private final long expiresAt;
+
+        private SupportReservation(final int ownerEntityId, final long expiresAt)
+        {
+            this.ownerEntityId = ownerEntityId;
+            this.expiresAt = expiresAt;
+        }
     }
 
     /**

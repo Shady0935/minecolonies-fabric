@@ -145,6 +145,8 @@ public class ThreatTable<T extends LivingEntity & IThreatTableEntity>
      */
     public ThreatTableEntry getTarget()
     {
+        removeInvalidEntries();
+
         if (threatList.isEmpty())
         {
             return null;
@@ -175,18 +177,38 @@ public class ThreatTable<T extends LivingEntity & IThreatTableEntity>
             }
         }
 
-        if (Math.abs(owner.level().getGameTime() - current.getLastSeen()) > MAX_TRACKING_TICKS || !current.getEntity().isAlive())
-        {
-            removeCurrentTarget();
-            return getTarget();
-        }
-
         if (current.getThreat() < 0)
         {
             return null;
         }
 
         return current;
+    }
+
+    /**
+     * Remove dead, unloaded, or expired entries, including entries that are
+     * not currently selected. Keep the selected index valid as entries move.
+     */
+    private void removeInvalidEntries()
+    {
+        final long gameTime = owner.level().getGameTime();
+        for (int i = threatList.size() - 1; i >= 0; i--)
+        {
+            final ThreatTableEntry entry = threatList.get(i);
+            if (entry.getEntity().isRemoved() || !entry.getEntity().isAlive()
+                  || Math.abs(gameTime - entry.getLastSeen()) > MAX_TRACKING_TICKS)
+            {
+                threatList.remove(i);
+                if (i < currentTargetIndex)
+                {
+                    currentTargetIndex--;
+                }
+                else if (i == currentTargetIndex)
+                {
+                    currentTargetIndex = 0;
+                }
+            }
+        }
     }
 
     /**

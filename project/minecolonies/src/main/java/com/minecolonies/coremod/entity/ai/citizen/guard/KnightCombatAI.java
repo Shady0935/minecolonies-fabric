@@ -312,6 +312,12 @@ public class KnightCombatAI extends AttackMoveAI<EntityCitizen>
     }
 
     @Override
+    protected int getAdditionalThreat(final LivingEntity entity)
+    {
+        return GuardThreatPriority.getInitialPriority(user, entity);
+    }
+
+    @Override
     protected boolean isWithinPersecutionDistance(final LivingEntity target)
     {
         return parentAI.isWithinPersecutionDistance(target.blockPosition(), getAttackDistance());

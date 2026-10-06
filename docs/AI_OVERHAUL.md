@@ -358,6 +358,61 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 - Since this assessment made no source changes, there is no code checkpoint
   for Phase 5. This finding is recorded in the following documentation commit.
 
+## Phase 6 — Guards and coordination
+
+### Findings and changes
+
+- Knights and Druids already share `TargetAI` discovery and per-citizen
+  `ThreatTable` selection. The table's switching threshold already provides
+  target hysteresis, and guard target changes already notify assigned guards
+  and nearby towers through `CombatUtils`. The raid manager chooses targets at
+  raid/building events rather than running a duplicate colony-wide threat scan
+  each tick, so a second persistent `ColonyThreatIndex` would duplicate state.
+- Threat tables previously expired only the currently selected entry. They now
+  prune every dead, removed, or 120-second-expired entry whenever a target is
+  requested, keeping the selected index valid. This bounds stale references
+  even when they are not currently at the head of the table.
+- `TargetAI` now supports a one-time initial threat bonus. Knight and Druid
+  scans give extra weight to a recent hostile attack on a colony citizen, then
+  a guard, then a raider currently inside the colony. Druid support priorities
+  can rank urgent allies above hostile targets. Existing threat-table
+  hysteresis is unchanged, and rescans do not continually inflate scores.
+  Citizen help callbacks and patrol diversion remain intact.
+- Ranger positioning already respects a valid shot: `AttackMoveAI` asks for a
+  movement path only when the target is outside attack range or not visible.
+  Ranger combat retreats at close range, uses a visibility path job around its
+  guard position when obstructed, and keeps an active path until it completes.
+  No replacement route planner was justified by the audit.
+- Druid target scoring now prioritizes an ally below 30% health, a guard with an
+  active combat target, and then other injured colony citizens. When research
+  enables magic potions and one is available, an allied target at or below 50%
+  health receives an instant healing potion. A 60-tick reservation keyed by
+  entity id prevents another Druid in the same level from choosing that ally
+  while the potion is in flight; nearby Druids' active threat targets also
+  suppress duplicate support decisions. Reservations retain no entity
+  references, expire against level game time, and are held behind weak level
+  keys. The local scan remains per Druid because line of sight and range are
+  owner-specific; a shared result cache was not justified.
+
+### Validation
+
+- The Java 17 build passed, including a fresh `runGametest` compile, with the
+  existing deprecation/removal and unchecked-operation warnings.
+- A fresh isolated GameTest profile ran four tests: the focused Knight guard
+  scenario plus three Multipiston smoke tests. All four passed. The guard case
+  verified stale non-current threat cleanup, priority for a raider attacking a
+  colony citizen over a nearby decoy, and the knight's real combat response.
+- The complete suite rerun did not produce a final report after its process
+  stopped during the long Builder end-to-end scenario. An earlier 129-test
+  report, before the guard fixture reset was added, had four failures: the
+  guard fixture retained its synthetic target, a barrier-navigation path was
+  cancelled, a Builder construction route ended short, and a Stonemason fixture
+  could not create a live citizen. Only the guard fixture was changed here;
+  the other three still need a completed full-suite rerun for classification.
+- No controlled before/after guard workload was available. The optional AI
+  metrics from the mixed GameTest server include builder and worker scenarios,
+  so they do not establish a guard-specific performance change.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.
