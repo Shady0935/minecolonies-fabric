@@ -5,6 +5,7 @@ import com.minecolonies.api.colony.buildings.modules.IBuildingModule;
 import com.minecolonies.api.colony.buildings.modules.IPersistentModule;
 import com.minecolonies.api.colony.fields.IField;
 import com.minecolonies.coremod.util.CollectorUtils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import org.jetbrains.annotations.NotNull;
@@ -113,6 +114,49 @@ public abstract class FieldsModule extends AbstractBuildingModule implements IPe
             }
         }
         return null;
+    }
+
+    /**
+     * Retrieves the nearest eligible field to a worker's current position.
+     * The existing field remains selected until it is explicitly reset, and the
+     * checked-field timeout is applied exactly as it is by {@link #getFieldToWorkOn()}.
+     *
+     * @param referencePosition the position from which field distance is measured
+     * @return the nearest eligible field, or {@code null} if every owned field is waiting
+     */
+    @Nullable
+    public IField getFieldToWorkOnNearestTo(@NotNull final BlockPos referencePosition)
+    {
+        if (currentField != null)
+        {
+            return currentField;
+        }
+
+        final Instant now = Instant.now();
+        IField nearestField = null;
+        long nearestDistance = Long.MAX_VALUE;
+        for (final IField field : getOwnedFields())
+        {
+            final Instant checkedUntil = checkedFields.get(field);
+            if (checkedUntil != null && !now.isAfter(checkedUntil))
+            {
+                continue;
+            }
+
+            checkedFields.remove(field);
+            final BlockPos fieldPosition = field.getPosition();
+            final long deltaX = (long) fieldPosition.getX() - referencePosition.getX();
+            final long deltaZ = (long) fieldPosition.getZ() - referencePosition.getZ();
+            final long distance = deltaX * deltaX + deltaZ * deltaZ;
+            if (distance < nearestDistance)
+            {
+                nearestField = field;
+                nearestDistance = distance;
+            }
+        }
+
+        currentField = nearestField;
+        return nearestField;
     }
 
     /**

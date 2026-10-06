@@ -119,7 +119,7 @@ public class EntityAIWorkPlanter extends AbstractEntityAICrafting<JobPlanter, Bu
 
         // Get the next field to work on, if any.
         final IField lastField = module.getCurrentField();
-        final IField fieldToWork = module.getFieldToWorkOn();
+        final IField fieldToWork = module.getFieldToWorkOnNearestTo(worker.blockPosition());
         if (fieldToWork != null)
         {
             // If we suddenly have to work on a new field, always reset the working position.

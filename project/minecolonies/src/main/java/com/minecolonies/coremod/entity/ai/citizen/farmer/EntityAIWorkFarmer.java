@@ -121,6 +121,20 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
     private BlockPos prevPos;
 
     /**
+     * Field, stage and dimensions associated with the cached spiral parcel cursor.
+     */
+    @Nullable
+    private FarmField traversalField;
+
+    @Nullable
+    private FarmField.Stage traversalStage;
+
+    private int traversalNorthRadius = -1;
+    private int traversalEastRadius = -1;
+    private int traversalSouthRadius = -1;
+    private int traversalWestRadius = -1;
+
+    /**
      * The current index within the current field
      */
     private int cell = -1;
@@ -246,7 +260,7 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
         }
 
         module.resetCurrentField();
-        final IField fieldToWork = module.getFieldToWorkOn();
+        final IField fieldToWork = module.getFieldToWorkOnNearestTo(worker.blockPosition());
         if (fieldToWork instanceof FarmField farmField)
         {
             worker.getCitizenData().setIdleAtJob(false);
@@ -285,6 +299,39 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
     }
 
     /**
+     * Keeps the incremental parcel walk scoped to the current field geometry and work stage.
+     * Block states are still checked immediately before each action, so world changes do not
+     * leave stale crop or soil decisions in the cursor.
+     *
+     * @param farmField the field being traversed
+     */
+    private void updateFieldTraversalCache(@NotNull final FarmField farmField)
+    {
+        final int northRadius = farmField.getRadius(Direction.NORTH);
+        final int eastRadius = farmField.getRadius(Direction.EAST);
+        final int southRadius = farmField.getRadius(Direction.SOUTH);
+        final int westRadius = farmField.getRadius(Direction.WEST);
+        final FarmField.Stage stage = farmField.getFieldStage();
+        if (traversalField != farmField
+              || traversalStage != stage
+              || traversalNorthRadius != northRadius
+              || traversalEastRadius != eastRadius
+              || traversalSouthRadius != southRadius
+              || traversalWestRadius != westRadius)
+        {
+            traversalField = farmField;
+            traversalStage = stage;
+            traversalNorthRadius = northRadius;
+            traversalEastRadius = eastRadius;
+            traversalSouthRadius = southRadius;
+            traversalWestRadius = westRadius;
+            workingOffset = null;
+            prevPos = null;
+            cell = -1;
+        }
+    }
+
+    /**
      * Handles the offset of the field for the farmer. Checks if the field needs a certain operation checked with a given predicate.
      *
      * @param farmField the field object.
@@ -293,6 +340,7 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
      */
     private boolean checkIfShouldExecute(@NotNull final FarmField farmField, @NotNull final Predicate<BlockPos> predicate)
     {
+        updateFieldTraversalCache(farmField);
         BlockPos position;
         do
         {
@@ -476,6 +524,7 @@ public class EntityAIWorkFarmer extends AbstractEntityAICrafting<JobFarmer, Buil
         final IField field = module.getCurrentField();
         if (field instanceof FarmField farmField)
         {
+            updateFieldTraversalCache(farmField);
             if (workingOffset != null)
             {
                 final BlockPos position = farmField.getPosition().below().south(workingOffset.getZ()).east(workingOffset.getX());

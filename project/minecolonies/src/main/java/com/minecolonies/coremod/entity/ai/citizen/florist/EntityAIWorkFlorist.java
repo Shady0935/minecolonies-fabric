@@ -299,14 +299,21 @@ public class EntityAIWorkFlorist extends AbstractEntityAIInteract<JobFlorist, Bu
     @Nullable
     private BlockPos areThereFlowersToGather()
     {
+        BlockPos nearestFlower = null;
+        long nearestDistance = Long.MAX_VALUE;
         for (final BlockPos pos : building.getPlantGround())
         {
             if (!world.isEmptyBlock(pos.above()))
             {
-                return pos.above();
+                final long distance = horizontalDistanceSquared(pos);
+                if (distance < nearestDistance)
+                {
+                    nearestFlower = pos.above();
+                    nearestDistance = distance;
+                }
             }
         }
-        return null;
+        return nearestFlower;
     }
 
     /**
@@ -316,6 +323,8 @@ public class EntityAIWorkFlorist extends AbstractEntityAIInteract<JobFlorist, Bu
      */
     private BlockPos getFirstNotCompostedLand()
     {
+        BlockPos nearestLand = null;
+        long nearestDistance = Long.MAX_VALUE;
         for (final BlockPos pos : building.getPlantGround())
         {
             if (WorldUtil.isEntityBlockLoaded(world, pos))
@@ -325,7 +334,12 @@ public class EntityAIWorkFlorist extends AbstractEntityAIInteract<JobFlorist, Bu
                 {
                     if (!((TileEntityCompostedDirt) entity).isComposted())
                     {
-                        return pos;
+                        final long distance = horizontalDistanceSquared(pos);
+                        if (distance < nearestDistance)
+                        {
+                            nearestLand = pos;
+                            nearestDistance = distance;
+                        }
                     }
                 }
                 else
@@ -334,7 +348,21 @@ public class EntityAIWorkFlorist extends AbstractEntityAIInteract<JobFlorist, Bu
                 }
             }
         }
-        return null;
+        return nearestLand;
+    }
+
+    /**
+     * Calculates horizontal distance from the florist to a ground position.
+     *
+     * @param position the target position
+     * @return squared distance on the XZ plane
+     */
+    private long horizontalDistanceSquared(@NotNull final BlockPos position)
+    {
+        final BlockPos current = worker.blockPosition();
+        final long deltaX = (long) position.getX() - current.getX();
+        final long deltaZ = (long) position.getZ() - current.getZ();
+        return deltaX * deltaX + deltaZ * deltaZ;
     }
 
     @Override
