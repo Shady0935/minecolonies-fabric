@@ -34,6 +34,7 @@ import com.minecolonies.coremod.colony.buildings.modules.BuildingResourcesModule
 import com.minecolonies.coremod.colony.buildings.utils.BuilderBucket;
 import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
 import com.minecolonies.coremod.colony.jobs.AbstractJobStructure;
+import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.entity.ai.util.BuildingStructureHandler;
 import com.minecolonies.coremod.tileentities.TileEntityDecorationController;
 import net.minecraft.core.BlockPos;
@@ -55,6 +56,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 
@@ -120,6 +122,24 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
      * Position where the Builders constructs from.
      */
     protected BlockPos workFrom;
+
+    /**
+     * Update the current construction position and count Builder target changes when profiling is enabled.
+     *
+     * @param position the new position, or {@code null} when no position is selected.
+     */
+    protected void updateWorkFrom(@Nullable final BlockPos position)
+    {
+        if (Objects.equals(workFrom, position))
+        {
+            return;
+        }
+        workFrom = position;
+        if (job instanceof JobBuilder)
+        {
+            MinecoloniesAIMetrics.recordBuilderWorkFromChange();
+        }
+    }
 
     /**
      * Block to mine.
@@ -258,7 +278,7 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
         }
 
         resetGatheringItems();
-        workFrom = null;
+        updateWorkFrom(null);
         structurePlacer = null;
 
         return IDLE;
@@ -316,7 +336,7 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
     {
         if (workFrom == null)
         {
-            workFrom = getWorkingPosition(currentBlock);
+            updateWorkFrom(getWorkingPosition(currentBlock));
         }
 
         //The miner shouldn't search for a save position. Just let him build from where he currently is.
@@ -467,6 +487,21 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
                 break;
         }
 
+        if (job instanceof JobBuilder)
+        {
+            MinecoloniesAIMetrics.recordBuilderAction();
+            MinecoloniesAIMetrics.recordBuilderBlocksPlaced(result.getBlocksPlaced());
+            MinecoloniesAIMetrics.recordBuilderBlocksBroken(result.getBlocksRemoved());
+            if (result.getBlockResult().getResult() == BlockPlacementResult.Result.SUCCESS
+                  && (structurePlacer.getB().getStage() == BUILD_SOLID
+                        || structurePlacer.getB().getStage() == WEAK_SOLID
+                        || structurePlacer.getB().getStage() == DECORATE))
+            {
+                // Track successful phase steps separately from changed block positions.
+                MinecoloniesAIMetrics.recordBuilderPlacementStep();
+            }
+        }
+
         if (result.getBlockResult().getResult() == BlockPlacementResult.Result.FAIL)
         {
             Log.getLogger().error("Failed placement at: " + result.getBlockResult().getWorldPos().toShortString());
@@ -561,6 +596,10 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
             worker.swing(InteractionHand.MAIN_HAND);
             return getState();
         }
+        if (job instanceof JobBuilder)
+        {
+            MinecoloniesAIMetrics.recordBuilderBlockBroken();
+        }
         worker.decreaseSaturationForContinuousAction();
         return BUILDING_STEP;
     }
@@ -639,7 +678,12 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
      */
     public void setStructurePlacer(final BuildingStructureHandler<J, B> structure)
     {
-        structurePlacer = new Tuple<>(new StructurePlacer(structure), structure);
+        final StructurePlacer placer = new StructurePlacer(structure);
+        if (job instanceof JobBuilder)
+        {
+            placer.setTrackBlockChanges(MinecoloniesAIMetrics.isEnabled());
+        }
+        structurePlacer = new Tuple<>(placer, structure);
     }
 
     /**
@@ -949,7 +993,7 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
      */
     public void resetCurrentStructure()
     {
-        workFrom = null;
+        updateWorkFrom(null);
         structurePlacer = null;
         building.setProgressPos(null, null);
     }

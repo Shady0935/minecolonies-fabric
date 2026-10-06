@@ -24,12 +24,13 @@ implementation decisions, validation, metrics, and checkpoints.
 - [x] Read the full `AI_OVERHAUL.md` plan (1,100 lines).
 - [x] Review workspace layout, upstream mapping, recent port status, test
   matrix, pending validation, and known limitations.
-- [ ] Audit the current AI/navigation code and identify baseline metrics.
-- [ ] Run and record an unmodified AI-relevant baseline.
+- [x] Audit the current AI/navigation code and identify baseline metrics.
+- [x] Run and record an unmodified AI-relevant baseline.
+- [x] Add opt-in AI/pathfinding, Builder, and Deliveryman instrumentation.
 
 ### Checkpoints
 
-- None yet.
+- `checkpoint: baseline AI instrumentation` — pending commit and push.
 
 ## Findings
 
@@ -37,11 +38,59 @@ The stable workspace documentation records a 125-test combined Fabric GameTest
 run and a packaged dedicated-server start/save/stop baseline. Interactive
 in-game worker behavior and several client GUI checks remain pending. These
 existing results are context, not measurements of AI pathing or worker
-efficiency; this branch must establish AI-specific metrics before optimization.
+efficiency.
+
+The AI branch ran the current 128-test GameTest suite before instrumentation.
+That run had one required failure: `farmeraiwalkstoassignedfieldandharvestscrop`
+timed out with the farmer still `PREPARING` and the crop untouched. A later
+instrumented run also executed 128 tests and had two different required
+failures: the Stonemason and Farmer hoe fixtures could not create live
+citizens. The long Farmer-to-Courier navigation case passed in that run. The
+changing failures indicate a flaky or fixture-sensitive suite; they do not
+establish that instrumentation caused either failure. Console and JUnit logs
+are kept locally in ignored files under `logs/`.
+
+Audited flows include citizen/state-machine tick dispatch, worker AI skeletons,
+walk proxies/navigation, asynchronous path jobs, stuck recovery, structure
+work, Builder, Deliveryman, Farmer, Miner, guards, request interactions, and
+citizen scheduling. Existing Deliveryman destination batching and Miner shaft,
+ladder, graph, and proxy behavior are already present and should be preserved
+unless later measurements show a specific problem. The Builder currently picks
+one random work position and invalidates it by distance; a later planner must
+build on this behavior rather than replace it blindly.
 
 ## Metrics
 
-No AI-specific baseline has been measured yet.
+The opt-in profiler is enabled with `-Dminecolonies.ai.metrics=true` and is
+disabled by default. It reports 60-second aggregates for AI tick time, async
+path duration/node counts, submitted/completed/cancelled paths, repaths, stuck
+events/recovery attempts, movement distance/activity ticks, state/target
+changes, Builder work-position changes/actions/placement steps/block changes,
+and Deliveryman deliveries/items/returns/destinations/grouped deliveries and
+route distance. Structure block-state comparisons only run when enabled.
+Builder placed/removed counts describe changed blueprint positions, not
+physical blocks represented by multi-block structures. One Builder action is
+one `StructurePlacer` call; placement steps are successful build-phase results.
+
+The profiling run is instrumentation evidence rather than a comparable
+performance baseline: it contains mixed GameTest workloads, and counters reset
+each minute. One sample window (`08:27:25`) reported 100,632 citizen AI ticks,
+119 submitted/completed paths, 11 repaths, 39,838 visited nodes, 0.749 ms
+average path time, 1,834.151 blocks of citizen movement, 12 Builder actions
+(11 successful placement steps), and 2 deliveries of 2 items over 20.159
+blocks of delivery-route distance. That runtime preceded the final per-position
+Builder block counters and `maxPathMs` output; the latest source including
+those additions compiled, but those fields have not yet been captured in a
+runtime session.
+
+Validation on the latest source:
+
+- `project/libs/structurize`: `gradlew build --no-daemon -x sourcesJar -x remapSourcesJar` — passed.
+- `project/minecolonies`: `gradlew build --no-daemon -x sourcesJar -x remapSourcesJar` — passed (Java 17; existing deprecation/removal warnings).
+- Full baseline GameTest: 128 tests, 1 required failure: `farmeraiwalkstoassignedfieldandharvestscrop` timed out with the farmer `PREPARING` and the crop untouched (`logs/ai-overhaul-baseline-gametest-20261006.log`, ignored by Git).
+- Full instrumented GameTest: 128 tests, 2 different required fixture failures: Stonemason and Farmer hoe fixtures could not create live citizens. The long Farmer-to-Courier navigation case passed. Logs and JUnit output are in ignored local files under `logs/`.
+- `runDatagen` stops on an existing invalid icon resource name, `minecolonies:citizen/nether/BaseSkelF` (`DefaultEntityIconProvider.java:98`); outside the AI work.
+- A clean `multipiston` build stops because its Structurize development JAR reports `Namespace mismatch, expected intermediary got named`; the MineColonies build used the already-built local dependency artifact.
 
 ## Risks and open questions
 

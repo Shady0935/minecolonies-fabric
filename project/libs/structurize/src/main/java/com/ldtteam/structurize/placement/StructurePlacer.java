@@ -50,6 +50,11 @@ public class StructurePlacer
     protected final IStructureHandler handler;
 
     /**
+     * Whether to count changed block states for opt-in AI profiling.
+     */
+    private boolean trackBlockChanges;
+
+    /**
      * Create a new structure placer.
      *
      * @param handler the structure handler.
@@ -69,6 +74,16 @@ public class StructurePlacer
     {
         this.iterator = StructureIterators.getIterator(id, handler);
         this.handler = handler;
+    }
+
+    /**
+     * Enables per-step block-state comparisons for profiling.
+     *
+     * @param trackBlockChanges whether to collect changed block counts.
+     */
+    public void setTrackBlockChanges(final boolean trackBlockChanges)
+    {
+        this.trackBlockChanges = trackBlockChanges;
     }
 
     /**
@@ -101,6 +116,8 @@ public class StructurePlacer
         AbstractBlueprintIterator.Result iterationResult = iterateFunction.get();
         BlockPos lastPos = inputPos;
         int count = 0;
+        int blocksPlaced = 0;
+        int blocksRemoved = 0;
 
         while (iterationResult == AbstractBlueprintIterator.Result.NEW_BLOCK)
         {
@@ -109,7 +126,10 @@ public class StructurePlacer
 
             if (count >= handler.getStepsPerCall())
             {
-                return new StructurePhasePlacementResult(lastPos, new BlockPlacementResult(worldPos, BlockPlacementResult.Result.LIMIT_REACHED, requiredItems));
+                return new StructurePhasePlacementResult(lastPos,
+                  new BlockPlacementResult(worldPos, BlockPlacementResult.Result.LIMIT_REACHED, requiredItems),
+                  blocksPlaced,
+                  blocksRemoved);
             }
 
             final BlockState localState = handler.getBluePrint().getBlockState(localPos);
@@ -125,6 +145,7 @@ public class StructurePlacer
                 storage.addPreviousDataFor(worldPos, world);
             }
 
+            final BlockState initialBlockState = trackBlockChanges ? world.getBlockState(worldPos) : null;
             final BlockPlacementResult result;
             switch (operation)
             {
@@ -156,6 +177,19 @@ public class StructurePlacer
             }
             count++;
 
+            if (trackBlockChanges)
+            {
+                final BlockState finalBlockState = world.getBlockState(worldPos);
+                if (operation == Operation.BLOCK_PLACEMENT && !finalBlockState.isAir() && !initialBlockState.equals(finalBlockState))
+                {
+                    blocksPlaced++;
+                }
+                else if (operation == Operation.BLOCK_REMOVAL && !initialBlockState.isAir() && finalBlockState.isAir())
+                {
+                    blocksRemoved++;
+                }
+            }
+
             if (storage != null)
             {
                 storage.addPostDataFor(worldPos, world);
@@ -165,7 +199,7 @@ public class StructurePlacer
                                                                   || result.getResult() == BlockPlacementResult.Result.FAIL
                                                                   || result.getResult() == BlockPlacementResult.Result.BREAK_BLOCK))
             {
-                return new StructurePhasePlacementResult(lastPos, result);
+                return new StructurePhasePlacementResult(lastPos, result, blocksPlaced, blocksRemoved);
             }
 
             lastPos = localPos;
@@ -173,7 +207,7 @@ public class StructurePlacer
 
             if (operation != Operation.GET_RES_REQUIREMENTS && count >= handler.getStepsPerCall())
             {
-                return new StructurePhasePlacementResult(lastPos, result);
+                return new StructurePhasePlacementResult(lastPos, result, blocksPlaced, blocksRemoved);
             }
         }
 
@@ -181,9 +215,14 @@ public class StructurePlacer
         {
             iterator.reset();
             return new StructurePhasePlacementResult(iterator.getProgressPos(),
-              new BlockPlacementResult(iterator.getProgressPos(), BlockPlacementResult.Result.FINISHED, requiredItems));
+              new BlockPlacementResult(iterator.getProgressPos(), BlockPlacementResult.Result.FINISHED, requiredItems),
+              blocksPlaced,
+              blocksRemoved);
         }
-        return new StructurePhasePlacementResult(iterator.getProgressPos(), new BlockPlacementResult(this.handler.getProgressPosInWorld(iterator.getProgressPos()), BlockPlacementResult.Result.LIMIT_REACHED, requiredItems));
+        return new StructurePhasePlacementResult(iterator.getProgressPos(),
+          new BlockPlacementResult(this.handler.getProgressPosInWorld(iterator.getProgressPos()), BlockPlacementResult.Result.LIMIT_REACHED, requiredItems),
+          blocksPlaced,
+          blocksRemoved);
     }
 
     /**

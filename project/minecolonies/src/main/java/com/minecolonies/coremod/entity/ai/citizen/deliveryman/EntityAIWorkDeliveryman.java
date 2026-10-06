@@ -18,6 +18,7 @@ import com.minecolonies.api.tileentities.TileEntityRack;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.ItemStackUtils;
 import com.minecolonies.api.util.Log;
+import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
@@ -303,6 +304,10 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
             return DUMPING;
         }
 
+        if (!worker.getInventoryCitizen().isEmpty())
+        {
+            MinecoloniesAIMetrics.recordWarehouseReturn();
+        }
         warehouse.getTileEntity().dumpInventoryIntoWareHouse(worker.getInventoryCitizen());
         worker.getCitizenItemHandler().setHeldItem(InteractionHand.MAIN_HAND, SLOT_HAND);
 
@@ -350,6 +355,7 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
             setDelay(WALK_DELAY);
             return DELIVERY;
         }
+        MinecoloniesAIMetrics.recordDeliveryDestination();
 
         final BlockEntity tileEntity = world.getBlockEntity(targetBuildingLocation.getInDimensionLocation());
 
@@ -364,6 +370,7 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
 
         boolean success = true;
         boolean extracted = false;
+        int deliveredItemCount = 0;
         final IItemHandler workerInventory = worker.getInventoryCitizen();
         final List<ItemStorage> itemsToDeliver = job.getTaskListWithSameDestination((IRequest<? extends Delivery>) currentTask).stream().map(r -> new ItemStorage(r.getRequest().getStack())).collect(Collectors.toList());
 
@@ -438,7 +445,9 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
                 //Insert the result back into the inventory so we do not lose it.
                 workerInventory.insertItem(i, insertionResultStack, false);
             }
-            worker.getCitizenColonyHandler().getColony().getStatisticsManager().incrementBy(ITEMS_DELIVERED, count - insertionResultStack.getCount());
+            final int insertedCount = count - insertionResultStack.getCount();
+            deliveredItemCount += insertedCount;
+            worker.getCitizenColonyHandler().getColony().getStatisticsManager().incrementBy(ITEMS_DELIVERED, insertedCount);
         }
 
         if (!extracted)
@@ -457,6 +466,10 @@ public class EntityAIWorkDeliveryman extends AbstractEntityAIInteract<JobDeliver
         worker.decreaseSaturationForContinuousAction();
         worker.getCitizenItemHandler().setHeldItem(InteractionHand.MAIN_HAND, SLOT_HAND);
         job.finishRequest(true);
+        if (deliveredItemCount > 0)
+        {
+            MinecoloniesAIMetrics.recordDelivery(deliveredItemCount, itemsToDeliver.size() > 1);
+        }
         return success ? START_WORKING : DUMPING;
     }
 

@@ -16,6 +16,7 @@ import com.minecolonies.api.compatibility.Compatibility;
 import com.minecolonies.api.entity.CustomGoalSelector;
 import com.minecolonies.api.entity.ai.pathfinding.IWalkToProxy;
 import com.minecolonies.api.entity.ai.statemachine.AIOneTimeEventTarget;
+import com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.EntityState;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
@@ -46,10 +47,13 @@ import com.minecolonies.coremod.colony.buildings.AbstractBuildingGuards;
 import com.minecolonies.coremod.colony.buildings.modules.WorkerBuildingModule;
 import com.minecolonies.coremod.colony.colonyEvents.citizenEvents.CitizenDiedEvent;
 import com.minecolonies.coremod.colony.jobs.AbstractJobGuard;
+import com.minecolonies.coremod.colony.jobs.JobBuilder;
+import com.minecolonies.coremod.colony.jobs.JobDeliveryman;
 import com.minecolonies.coremod.colony.jobs.JobKnight;
 import com.minecolonies.coremod.colony.jobs.JobNetherWorker;
 import com.minecolonies.coremod.colony.jobs.JobRanger;
 import com.minecolonies.coremod.entity.SittingEntity;
+import com.minecolonies.coremod.entity.ai.basic.AbstractAISkeleton;
 import com.minecolonies.coremod.entity.ai.basic.AbstractEntityAIBasic;
 import com.minecolonies.coremod.entity.ai.citizen.CitizenAI;
 import com.minecolonies.coremod.entity.ai.citizen.guard.AbstractEntityAIGuard;
@@ -224,6 +228,12 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
     private float lastDistanceWalked = 0;
 
     /**
+     * Last position sampled by the opt-in AI profiler.
+     */
+    @Nullable
+    private Vec3 aiMetricsLastPosition;
+
+    /**
      * Citizen data view.
      */
     private ICitizenDataView citizenDataView;
@@ -300,11 +310,76 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
         entityStateController.addTransition(new TickingTransition<>(EntityState.ACTIVE_SERVER, this::onTickDecrements, () -> null, 1));
         entityStateController.addTransition(new TickingTransition<>(EntityState.ACTIVE_SERVER, this::shouldBeInactive, () -> EntityState.INACTIVE, TICKS_20));
         entityStateController.addTransition(new TickingTransition<>(EntityState.ACTIVE_SERVER, () -> {
-            citizenAI.tick();
+            if (!MinecoloniesAIMetrics.isEnabled())
+            {
+                citizenAI.tick();
+                return false;
+            }
+
+            final long startNanos = System.nanoTime();
+            final IState previousState = citizenAI.getState();
+            final BlockPos previousTarget = getNavigation().getDesiredPos();
+            try
+            {
+                citizenAI.tick();
+            }
+            finally
+            {
+                MinecoloniesAIMetrics.recordAITick(System.nanoTime() - startNanos);
+
+                final IState currentState = citizenAI.getState();
+                if (!Objects.equals(previousState, currentState))
+                {
+                    MinecoloniesAIMetrics.recordStateChange();
+                }
+
+                final BlockPos currentTarget = getNavigation().getDesiredPos();
+                if (!Objects.equals(previousTarget, currentTarget))
+                {
+                    MinecoloniesAIMetrics.recordTargetChange();
+                }
+
+                final Vec3 currentPosition = position();
+                double distance = aiMetricsLastPosition == null ? 0.0D : aiMetricsLastPosition.distanceTo(currentPosition);
+                aiMetricsLastPosition = currentPosition;
+                // Large single-tick displacements are teleports, not walked distance.
+                if (distance > 8.0D)
+                {
+                    distance = 0.0D;
+                }
+
+                final boolean walking = !getNavigation().isDone();
+                final boolean idle = currentState == CitizenAIState.IDLE && !walking;
+                final boolean working = currentState == CitizenAIState.WORKING;
+                final IJob<?> currentJob = citizenJobHandler.getColonyJob();
+                final boolean deliveryRoute = walking && isDeliveryRouteActive(currentJob);
+                final boolean builder = currentJob instanceof JobBuilder && working;
+                MinecoloniesAIMetrics.recordCitizenActivity(distance, walking, idle, working, deliveryRoute, builder);
+                MinecoloniesAIMetrics.reportIfDue();
+            }
             return false;
         }, () -> null, 1));
 
         entityStateController.addTransition(new TickingTransition<>(EntityState.INACTIVE, this::isAlive, () -> EntityState.INIT, 100));
+    }
+
+    /**
+     * Whether this citizen is currently navigating as part of a deliveryman task.
+     *
+     * @return true while the deliveryman is collecting, delivering, or returning items.
+     */
+    private boolean isDeliveryRouteActive(@Nullable final IJob<?> job)
+    {
+        if (!(job instanceof JobDeliveryman) || !(job.getWorkerAI() instanceof AbstractAISkeleton<?> workerAI))
+        {
+            return false;
+        }
+
+        final IState state = workerAI.getState();
+        return state == AIWorkerState.PREPARE_DELIVERY
+                 || state == AIWorkerState.DELIVERY
+                 || state == AIWorkerState.PICKUP
+                 || state == AIWorkerState.DUMPING;
     }
 
     /**

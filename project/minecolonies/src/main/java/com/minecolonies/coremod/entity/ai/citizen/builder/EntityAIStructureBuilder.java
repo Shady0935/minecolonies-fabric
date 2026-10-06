@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.workorders.WorkOrderType;
 import com.minecolonies.api.entity.ai.statemachine.AITarget;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.api.util.Tuple;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.coremod.MineColonies;
@@ -126,7 +127,9 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
             job.getWorkOrder().setIteratorType(mode);
         }
 
-        structurePlacer = new Tuple<>(new StructurePlacer(structure, job.getWorkOrder().getIteratorType()), structure);
+        final StructurePlacer placer = new StructurePlacer(structure, job.getWorkOrder().getIteratorType());
+        placer.setTrackBlockChanges(MinecoloniesAIMetrics.isEnabled());
+        structurePlacer = new Tuple<>(placer, structure);
     }
 
     @Override
@@ -193,10 +196,10 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     {
         if (workFrom == null)
         {
-            workFrom = findRandomPositionToWalkTo(5, currentBlock);
+            updateWorkFrom(findRandomPositionToWalkTo(5, currentBlock));
             if (workFrom == null && pathBackupFactor > 10)
             {
-                workFrom = worker.blockPosition();
+                updateWorkFrom(worker.blockPosition());
             }
             return false;
         }
@@ -213,7 +216,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
         if (BlockPosUtil.getDistance2D(worker.blockPosition(), currentBlock) > 5L + (pathBackupFactor * 5L))
         {
-            workFrom = null;
+            updateWorkFrom(null);
             return false;
         }
 

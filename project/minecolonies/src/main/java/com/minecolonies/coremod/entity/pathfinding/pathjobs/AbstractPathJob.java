@@ -7,6 +7,7 @@ import com.minecolonies.api.blocks.huts.AbstractBlockMinecoloniesDefault;
 import com.minecolonies.api.entity.pathfinding.*;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.Log;
+import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.Network;
 import com.minecolonies.coremod.blocks.BlockDecorationController;
@@ -620,14 +621,28 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     @Override
     public final Path call()
     {
+        final boolean metricsEnabled = MinecoloniesAIMetrics.isEnabled();
+        final long startNanos = metricsEnabled ? System.nanoTime() : 0L;
+        Path path = null;
         try
         {
-            return search();
+            path = search();
+            return path;
         }
         catch (final Exception e)
         {
             // Log everything, so exceptions of the pathfinding-thread show in Log
             Log.getLogger().warn("Pathfinding Exception", e);
+        }
+        finally
+        {
+            if (metricsEnabled)
+            {
+                MinecoloniesAIMetrics.recordPathJobCompleted(System.nanoTime() - startNanos,
+                  totalNodesVisited,
+                  totalNodesAdded,
+                  path == null ? 0 : path.getNodeCount());
+            }
         }
 
         return null;

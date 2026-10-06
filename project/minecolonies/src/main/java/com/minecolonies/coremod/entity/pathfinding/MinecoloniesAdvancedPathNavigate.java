@@ -195,6 +195,7 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
       final BlockPos dest,
       final double speedFactor, final boolean safeDestination)
     {
+        final boolean repath = pathResult != null && pathResult.isInProgress();
         stop();
 
         this.destination = dest;
@@ -218,6 +219,7 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
 
         job.setPathingOptions(getPathingOptions());
         pathResult = job.getResult();
+        MinecoloniesAIMetrics.recordPathJobStarted(repath);
         pathResult.startJob(Pathfinding.getExecutor());
         return pathResult;
     }
@@ -961,6 +963,10 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
           && pathResult.isPathReachingDestination();
         if (pathResult != null)
         {
+            if (MinecoloniesAIMetrics.isEnabled() && pathResult.isCalculatingPath())
+            {
+                MinecoloniesAIMetrics.recordPathJobCancelled();
+            }
             pathResult.cancel();
             pathResult.setStatus(reachedDestination ? PathFindingStatus.COMPLETE : PathFindingStatus.CANCELLED);
             pathResult = null;

@@ -5,6 +5,7 @@ import com.minecolonies.api.entity.ai.citizen.builder.IBuilderUndestroyable;
 import com.minecolonies.api.items.ModTags;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Mob;
@@ -173,6 +174,8 @@ public class PathingStuckHandler implements IStuckHandler
             // Try path first, if path fits target pos
             if (globalTimeout > Math.max(MIN_TP_DELAY, timePerBlockDistance * Math.max(MIN_DIST_FOR_TP, distanceToGoal)))
             {
+                MinecoloniesAIMetrics.recordStuckEvent();
+                MinecoloniesAIMetrics.recordStuckRecovery();
                 completeStuckAction(navigator);
             }
         }
@@ -285,11 +288,13 @@ public class PathingStuckHandler implements IStuckHandler
         {
             return;
         }
+        MinecoloniesAIMetrics.recordStuckEvent();
         delayToNextUnstuckAction = 100;
 
         // Clear path
         if (stuckLevel == 0)
         {
+            MinecoloniesAIMetrics.recordStuckRecovery();
             stuckLevel++;
             delayToNextUnstuckAction = 100;
             navigator.getOurEntity().stopRiding();
@@ -300,6 +305,7 @@ public class PathingStuckHandler implements IStuckHandler
         // Move away, with chance to skip this.
         if (stuckLevel == 1 && rand.nextDouble() > chanceToByPassMovingAway)
         {
+            MinecoloniesAIMetrics.recordStuckRecovery();
             stuckLevel++;
             delayToNextUnstuckAction = 300;
 
@@ -323,6 +329,7 @@ public class PathingStuckHandler implements IStuckHandler
             int index = Math.min(navigator.getPath().getNextNodeIndex() + teleportRange, navigator.getPath().getNodeCount() - 1);
             final Node togo = navigator.getPath().getNode(index);
             navigator.getOurEntity().teleportTo(togo.x + 0.5d, togo.y, togo.z + 0.5d);
+            MinecoloniesAIMetrics.recordStuckRecovery();
             delayToNextUnstuckAction = 300;
         }
 
@@ -332,10 +339,12 @@ public class PathingStuckHandler implements IStuckHandler
             delayToNextUnstuckAction = 200;
             if (canPlaceLadders && rand.nextBoolean())
             {
+                MinecoloniesAIMetrics.recordStuckRecovery();
                 placeLadders(navigator);
             }
             else if (canBuildLeafBridges && rand.nextBoolean())
             {
+                MinecoloniesAIMetrics.recordStuckRecovery();
                 delayToNextUnstuckAction = 100;
                 placeLeaves(navigator);
             }
@@ -348,6 +357,7 @@ public class PathingStuckHandler implements IStuckHandler
         // break blocks
         if (stuckLevel >= 6 && stuckLevel <= 8 && canBreakBlocks)
         {
+            MinecoloniesAIMetrics.recordStuckRecovery();
             delayToNextUnstuckAction = 200;
             breakBlocks(navigator);
         }
@@ -356,6 +366,7 @@ public class PathingStuckHandler implements IStuckHandler
 
         if (stuckLevel == 9)
         {
+            MinecoloniesAIMetrics.recordStuckRecovery();
             completeStuckAction(navigator);
             resetStuckTimers();
         }
