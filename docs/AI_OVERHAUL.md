@@ -33,11 +33,14 @@ implementation decisions, validation, metrics, and checkpoints.
 - [x] Review upstream history and classify applicable changes against the 1.20.1 port.
 - [x] Backport safe Builder work-position search, directional path costs, liquid headroom collision handling, and staged stuck recovery.
 - [x] Compile and run the full 128-test GameTest suite; inspect logs and metrics.
-- [ ] Commit and push the required upstream-backport checkpoint.
+- [x] Commit and push the required upstream-backport checkpoint.
 
 ### Checkpoints
 
 - `checkpoint: baseline AI instrumentation` — `644b4319ee`, committed and pushed to `origin/ai-overhaul`.
+- `checkpoint: upstream AI and pathfinding backport` —
+  `7aabb36b9e2aa5c38d4fc8b8f6285151a76aaf74`, committed and pushed to
+  `origin/ai-overhaul`.
 
 ## Findings
 
@@ -124,7 +127,8 @@ Validation on the latest source:
 
 ### Checkpoint
 
-The code compiles and the phase is ready for the required checkpoint commit and push. Record the commit hash here after it exists on `origin/ai-overhaul`.
+The checkpoint `7aabb36b9e2aa5c38d4fc8b8f6285151a76aaf74` is committed and
+pushed to `origin/ai-overhaul`; the phase 1 build passed before the checkpoint.
 
 ## Risks and open questions
 
