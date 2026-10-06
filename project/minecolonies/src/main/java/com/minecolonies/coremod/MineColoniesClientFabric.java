@@ -83,7 +83,7 @@ public final class MineColoniesClientFabric implements ClientModInitializer
         ClientTickEvents.END_CLIENT_TICK.register(client ->
           MinecraftForge.EVENT_BUS.post(new TickEvent.ClientTickEvent(TickEvent.Phase.END)));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
-          MinecraftForge.EVENT_BUS.post(new ClientPlayerNetworkEvent.LoggingOut()));
+          client.execute(() -> MinecraftForge.EVENT_BUS.post(new ClientPlayerNetworkEvent.LoggingOut())));
         ItemTooltipCallback.EVENT.register((stack, context, lines) ->
           MinecraftForge.EVENT_BUS.post(new ItemTooltipEvent(net.minecraft.client.Minecraft.getInstance().player, stack, lines)));
 

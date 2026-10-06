@@ -1,5 +1,25 @@
 # Porting status
 
+## 2026-10-05 dedicated-client bundled structure packs
+
+- Client profile log shows all styles in integrated play, but only Shady935
+  at client startup and after disconnect; dedicated joins receive no styles.
+- Forge 1.20.1 discovers blueprints/<modid>/<style>. The Fabric client scanned
+  only blueprints/<style>, while the server already handled the namespace.
+  Immutable bundled packs are deliberately excluded from server transfers.
+- Moved namespace-aware discovery into StructurePacks and use it on both sides.
+  Direct-root packs remain supported. No user blueprints/save files are changed.
+- Also queue MineColonies disconnect cleanup on the client thread: the same log
+  reports ColonyBorderRenderer cleanup failing on Netty with wrong-thread error.
+- Structurize and MineColonies runtime builds pass. Fresh isolated runClientVisual
+  registers all 22 bundled styles plus Player847 without an integrated server;
+  OpenAL and texture atlases initialize, then the client exits normally.
+- Packaged dedicated server reaches Done; createColonyMessageCreatesAndSerializesColony
+  passes (test runfailed: no failed tests), then saves and stops cleanly.
+- Installed Structurize/MineColonies in CurseForge with verified SHA256; backup
+  mods/codex-backups/2026-10-05-dedicated-styles. Client restart/direct dedicated
+  join and render-thread logout cleanup remain MANUAL_VALIDATION_PENDING.
+
 ## 2026-10-05 builder work sound correction
 
 - [x] Compared official Forge 1.20.1 b6987ade and Structurize 8bf1f636:

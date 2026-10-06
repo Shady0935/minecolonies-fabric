@@ -1,5 +1,19 @@
 # Porting notes
 
+## 2026-10-05 structure styles missing on dedicated joins
+
+Evidence: logs/20261005-dedicated-missing-styles-client.log. Client-only loading
+registered just Shady935; the 19:56 integrated server loaded 22 bundled styles.
+After leaving singleplayer, the client cleared the shared catalog and scanned
+blueprints/minecolonies as if it were a pack (no pack.json at that namespace).
+Forge uses findResource(BLUEPRINT_FOLDER, modId) before listing style folders.
+Dedicated synchronization intentionally omits immutable mod packs, so the server
+cannot compensate for this client discovery regression. Both Fabric loaders now
+call shared StructurePacks.discoverPackAndNestedStyles. This preserves root packs
+and the existing server behavior. Client logout dispatch now uses client.execute
+so ColonyBorderRenderer GPU cleanup runs on the render thread, fixing the logged
+Netty wrong-thread exception without changing the cleanup handlers.
+
 ## Builder queued work sounds restored (2026-10-05)
 
 Official Forge 1.20.1 baseline b6987ade retains a generic BAMBOO_HIT work sound

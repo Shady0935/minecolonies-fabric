@@ -104,7 +104,7 @@ public class ServerStructurePackLoader
                             {
                                 try (final Stream<Path> paths = Files.list(modPath))
                                 {
-                                    paths.forEach(element -> discoverPackAndNestedStyles(element, modList, modOrigin));
+                                    paths.forEach(element -> StructurePacks.discoverPackAndNestedStyles(element, modList, modOrigin));
                                 }
                             }
                     catch (IOException e)
@@ -172,30 +172,6 @@ public class ServerStructurePackLoader
                 StructurePacks.setFinishedLoading();
             }
         });
-    }
-
-    /**
-     * Discover a pack directly below a mod resource root and the one-level
-     * namespace used by MineColonies (blueprints/minecolonies/&lt;style&gt;).
-     */
-    private static void discoverPackAndNestedStyles(final Path element,
-                                                    final List<String> modList,
-                                                    final String modOrigin)
-    {
-        StructurePacks.discoverPackAtPath(element, true, modList, false, modOrigin);
-        if (Files.exists(element.resolve("pack.json")) || !Files.isDirectory(element))
-        {
-            return;
-        }
-
-        try (final Stream<Path> nested = Files.list(element))
-        {
-            nested.forEach(style -> StructurePacks.discoverPackAtPath(style, true, modList, false, modOrigin));
-        }
-        catch (final IOException exception)
-        {
-            Log.getLogger().warn("Failed loading nested structure packs from mod path: " + element, exception);
-        }
     }
 
     /**

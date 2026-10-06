@@ -1,5 +1,19 @@
 # Test matrix
 
+## 2026-10-05 dedicated client pack discovery
+
+Regression evidence: logs/20261005-dedicated-missing-styles-client.log records
+22 styles discovered only by the integrated server; pure client discovery on
+startup and disconnect registers only Shady935. Forge namespace comparison and
+shared namespace-aware loader fix restore client ownership of bundled styles.
+AUTOMATED_PASS: both runtime builds; fresh isolated client bootstrap discovers
+22 bundled styles plus its personal pack without integrated-server loading
+(logs/20261005-client-styles-bootstrap.log); packaged dedicated creation/serialization
+GameTest passes and server stops cleanly (logs/20261005-client-styles-packaged-server.log).
+Profile Structurize/MineColonies jars installed and hashes verified, recorded in
+logs/20261005-dedicated-styles-install.json. Client restart/dedicated UI and logout
+cleanup behavior remain MANUAL_VALIDATION_PENDING.
+
 ## Builder queued work-sound routing (2026-10-05)
 
 - `SOURCE_CONFIRMED`: official Forge 1.20.1 builder queues BAMBOO_HIT and its

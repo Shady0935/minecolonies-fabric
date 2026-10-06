@@ -606,6 +606,31 @@ public class StructurePacks
     }
 
     /**
+     * Discover bundled packs both directly below blueprints and inside a mod
+     * namespace (blueprints/minecolonies/style). Client and server must use
+     * the same discovery: immutable jar packs are not transferred on login.
+     */
+    public static void discoverPackAndNestedStyles(final Path element,
+                                                  final List<String> modList,
+                                                  final String modOrigin)
+    {
+        discoverPackAtPath(element, true, modList, false, modOrigin);
+        if (Files.exists(element.resolve("pack.json")) || !Files.isDirectory(element))
+        {
+            return;
+        }
+
+        try (final Stream<Path> nested = Files.list(element))
+        {
+            nested.forEach(style -> discoverPackAtPath(style, true, modList, false, modOrigin));
+        }
+        catch (final IOException exception)
+        {
+            Log.getLogger().warn("Failed loading nested structure packs from mod path: " + element, exception);
+        }
+    }
+
+    /**
      * Discover a structure pack at a given path.
      * @param element the path to check for.
      * @param immutable if jar (true), else false.

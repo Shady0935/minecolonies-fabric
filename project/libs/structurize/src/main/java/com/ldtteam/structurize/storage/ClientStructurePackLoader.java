@@ -103,7 +103,7 @@ public class ClientStructurePackLoader
                 {
                     try (final Stream<Path> paths = Files.list(modPath))
                     {
-                        paths.forEach(element -> StructurePacks.discoverPackAtPath(element, true, modList, false, modOrigin));
+                        paths.forEach(element -> StructurePacks.discoverPackAndNestedStyles(element, modList, modOrigin));
                     }
                 }
                 catch (IOException e)

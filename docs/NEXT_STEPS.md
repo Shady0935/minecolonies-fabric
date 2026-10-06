@@ -1,5 +1,13 @@
 # Next steps
 
+## Dedicated client structure-pack validation (2026-10-05)
+
+Restart the CurseForge Minecolonies Fabric client after the refreshed jars.
+Join the test server directly and open the build tool: bundled styles should
+appear alongside the personal scan pack. Disconnect/rejoin and check again.
+The discovery correction is client-side; existing server namespace discovery
+already worked. Remote server installation/logs have not been inspected.
+
 ## Builder sound profile validation (2026-10-05)
 
 Restart Minecolonies Fabric with the installed MineColonies jar, stand near a
