@@ -545,6 +545,20 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   outlier remains an open follow-up if it can be reproduced outside the mixed
   GameTest server.
 
+### Follow-up validation — 2026-10-06
+
+- The final 130-test GameTest run recorded two more aggregate windows during
+  the sleep batch: 30 stuck events / 0 recoveries with 177 path jobs, then 136
+  stuck events / 34 recoveries with 65 path jobs. Average path-job time in
+  those windows was 1.20 ms and 0.48 ms; the largest observed path job was
+  18.22 ms. The counters are server-wide and do not include citizen or
+  destination identity.
+- `assignedCitizenSleepsAndWakesAtResidence` also passed in isolation (6.02 s
+  in JUnit). That run finished before the profiler's 60-second reporting
+  window, so it confirms the sleep fixture works but cannot establish that it
+  produced zero stuck events. The high aggregate count remains unattributed;
+  no extra cross-attempt backoff was added.
+
 ## Phase 11 — Profiling-driven optimization decision
 
 - The project profiler is opt-in, and the available runs are mixed functional
@@ -564,4 +578,51 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   traced before adding instrumentation or shared caches.
 - Existing excluded build/run state is not present in the fresh worktree; reuse
   only after verifying the worktree's build artifacts and test results.
-- The high stuck/recovery counters in the mixed sleep-worker GameTest window still need an isolated reproduction before any cross-attempt backoff change.
+- The high stuck/recovery counters remain unattributed; identify the citizens
+  and destinations that produce them before considering a cross-attempt backoff.
+
+## Final stabilization — 2026-10-06
+
+### Scheduler latency correction
+
+- The earlier full suite had intermittently missed automatic Builder work-order
+  assignment at its 160-tick assertion. The deterministic scheduler had
+  widened initial jitter to the full transition interval; a 100-tick
+  transition could therefore start almost 100 ticks later than its legacy
+  phase.
+- Initial deterministic jitter now uses `min(transitionRate,
+  MAX_TICKRATE_VARIANT)`, preserving citizen-specific staggering while
+  retaining the previous 0–49 tick bound. The scheduler GameTest now checks
+  64 transitions at a 100-tick rate and verifies their first checks occur by
+  tick 50.
+- Focused scheduler and Builder assignment GameTests passed (5 total tests,
+  including three MultiPiston smoke tests). The full suite then passed the
+  previously intermittent Builder assignment and navigation scenarios.
+
+### Final validation
+
+- `.\gradlew.bat build --console=plain -x sourcesJar -x remapSourcesJar` —
+  `BUILD SUCCESSFUL` in 3m22s (5 tasks; 3 executed, 2 up-to-date). The first
+  `--no-daemon` attempt exited with Windows code `0x40010004` after compiling;
+  the retry without forcing `--no-daemon` completed the full build.
+- `.\gradlew.bat runGametest` with
+  `-PgameTestRunDir=run-gametest-ai-overhaul-stabilization-20261006 -PaiMetrics=true --no-daemon` — all 130 required GameTests passed in a fresh
+  run directory; Gradle reported `BUILD SUCCESSFUL` in 15m27s. The final log is
+  `project/minecolonies/run-gametest-ai-overhaul-stabilization-20261006/logs/latest.log`.
+- The GameTest log also contains non-fatal port/environment diagnostics for
+  missing `server.properties`/`eula.txt`, unregistered data fixers, and
+  blueprint primary offsets; none interrupted the 130 passing tests.
+- The focused sleep-fixture diagnostic passed all four required tests (the
+  sleep fixture plus three MultiPiston smoke tests) in 2m59s wall-clock time.
+  Its JUnit duration for the sleep test was 6.023 s.
+- Final mixed-run AI metrics ranged from 0.48–2.32 ms average path-job time.
+  One window included a 186.68 ms AI maximum; the later 136-event stuck
+  window had a 3.04 ms AI maximum. Those windows overlap a large shared
+  GameTest server and are not controlled colony benchmarks, so they do not
+  support a general performance-improvement claim or identify a failing route.
+
+### Checkpoint
+
+The final checkpoint commit is titled `checkpoint: AI overhaul stabilization`;
+it records the verified source changes and this final validation on
+`ai-overhaul`.

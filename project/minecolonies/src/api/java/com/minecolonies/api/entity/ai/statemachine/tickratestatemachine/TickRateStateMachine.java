@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants.MAX_TICKRATE;
+import static com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickRateConstants.MAX_TICKRATE_VARIANT;
 
 /**
  * Statemachine with an added tickrate limiting of transitions, allowing transitions to be checked at a lower rate. Default tickrate is 20 tps (Minecraft default).
@@ -104,7 +105,10 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
         super.addTransition(transition);
         if (hasTickOffsetSeed)
         {
-            transition.setTicksToUpdate(deterministicOffset(tickOffsetSeed, transitionOffsetSequence, transition.getTickRate()));
+            transition.setTicksToUpdate(deterministicOffset(
+              tickOffsetSeed,
+              transitionOffsetSequence,
+              Math.min(transition.getTickRate(), MAX_TICKRATE_VARIANT)));
         }
         transitionOffsetSequence++;
     }

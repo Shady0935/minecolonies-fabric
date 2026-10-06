@@ -473,29 +473,46 @@ public final class MineColoniesGameTests implements FabricGameTest
         }
         helper.assertTrue(distinctPhases >= 3,
           "Transitions from one citizen were not spread across multiple update ticks");
+
+        final int[] longRateSchedule = getInitialAITicks(firstCitizenSeed, 100, 64, 100);
+        for (final int firstRunTick : longRateSchedule)
+        {
+            helper.assertTrue(firstRunTick > 0 && firstRunTick <= TickRateConstants.MAX_TICKRATE_VARIANT,
+              "A long-rate transition exceeded the legacy initial jitter bound: " + firstRunTick);
+        }
         helper.succeed();
     }
 
     private static int[] getInitialAITicks(final long seed)
     {
+        return getInitialAITicks(seed, 20, 8, 20);
+    }
+
+    private static int[] getInitialAITicks(
+      final long seed,
+      final int transitionRate,
+      final int transitionCount,
+      final int simulationTicks)
+    {
         final TickRateStateMachine<IAIState> stateMachine = new TickRateStateMachine<>(AIWorkerState.IDLE, ignored -> {});
         stateMachine.setInitialTickOffsetSeed(seed);
-        final int[] firstRunTicks = new int[8];
+        final int[] firstRunTicks = new int[transitionCount];
+        Arrays.fill(firstRunTicks, -1);
         final int[] currentTick = {0};
         for (int i = 0; i < firstRunTicks.length; i++)
         {
             final int transitionIndex = i;
             stateMachine.addTransition(new TickingTransition<>(AIWorkerState.IDLE, () ->
             {
-                if (firstRunTicks[transitionIndex] == 0)
+                if (firstRunTicks[transitionIndex] == -1)
                 {
                     firstRunTicks[transitionIndex] = currentTick[0];
                 }
                 return false;
-            }, () -> null, 20));
+            }, () -> null, transitionRate));
         }
 
-        for (int tick = 1; tick <= 20; tick++)
+        for (int tick = 1; tick <= simulationTicks; tick++)
         {
             currentTick[0] = tick;
             stateMachine.tick();
