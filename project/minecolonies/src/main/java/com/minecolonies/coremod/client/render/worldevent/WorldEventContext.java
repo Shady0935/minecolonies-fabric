@@ -69,6 +69,7 @@ public class WorldEventContext
             ColonyPatrolPointRenderer.render(this);
             GuardTowerRallyBannerRenderer.render(this);
             PathfindingDebugRenderer.render(this);
+            CitizenAIDebugRenderer.render(this);
 
             bufferSource.endBatch();
         }

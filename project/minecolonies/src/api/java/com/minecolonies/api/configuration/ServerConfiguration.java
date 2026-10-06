@@ -132,6 +132,8 @@ public class ServerConfiguration extends AbstractConfiguration
      *  ------------------------------------------------------------------------------ */
 
     public final FabricConfigSpec.IntValue pathfindingDebugVerbosity;
+    /** Enables lightweight citizen AI state and route visualization for nearby clients. */
+    public final FabricConfigSpec.BooleanValue citizenAiDebugOverlay;
     public final FabricConfigSpec.IntValue pathfindingMaxThreadCount;
     public final FabricConfigSpec.IntValue minimumRailsToPath;
 
@@ -299,6 +301,7 @@ public class ServerConfiguration extends AbstractConfiguration
         swapToCategory(builder, "pathfinding");
 
         pathfindingDebugVerbosity = defineInteger(builder, "pathfindingdebugverbosity", 0, 0, 10);
+        citizenAiDebugOverlay = defineBoolean(builder, "citizenaidebugoverlay", false);
         minimumRailsToPath = defineInteger(builder, "minimumrailstopath", 8, 5, 100);
         pathfindingMaxThreadCount = defineInteger(builder, "pathfindingmaxthreadcount", 2, 1, 10);
 

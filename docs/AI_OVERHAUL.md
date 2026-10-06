@@ -583,6 +583,17 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 
 ## Final stabilization — 2026-10-06
 
+### Citizen AI debug visualization
+
+- The server config option `pathfinding.citizenaidebugoverlay` enables an
+  in-world overlay above nearby citizens. It shows the citizen state, job and
+  worker AI state, current navigation target, and progress through the route.
+- While enabled, the server syncs a compact snapshot every 10 ticks and at most
+  the next 24 path nodes. With the option disabled by default, the snapshot and
+  route data remain empty during normal play.
+- The renderer highlights route nodes and the destination. Existing path-search
+  exploration data remains available through the citizen path tracking command.
+
 ### Scheduler latency correction
 
 - The earlier full suite had intermittently missed automatic Builder work-order

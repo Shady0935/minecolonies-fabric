@@ -81,6 +81,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -105,6 +107,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
@@ -139,6 +142,18 @@ import static com.minecolonies.coremod.entity.ai.minimal.EntityAIInteractToggleA
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CouplingBetweenObjects", "PMD.ExcessiveClassLength"})
 public class EntityCitizen extends AbstractEntityCitizen implements IThreatTableEntity
 {
+    private static final int AI_DEBUG_SYNC_INTERVAL_TICKS = 10;
+    private static final int AI_DEBUG_MAX_PATH_NODES = 24;
+
+    public static final EntityDataAccessor<String> DATA_AI_DEBUG_SUMMARY =
+      SynchedEntityData.defineId(EntityCitizen.class, EntityDataSerializers.STRING);
+    public static final EntityDataAccessor<Boolean> DATA_AI_DEBUG_HAS_TARGET =
+      SynchedEntityData.defineId(EntityCitizen.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<BlockPos> DATA_AI_DEBUG_TARGET =
+      SynchedEntityData.defineId(EntityCitizen.class, EntityDataSerializers.BLOCK_POS);
+    public static final EntityDataAccessor<String> DATA_AI_DEBUG_PATH =
+      SynchedEntityData.defineId(EntityCitizen.class, EntityDataSerializers.STRING);
+
     /**
      * Cooldown for calling help, in ticks.
      */
@@ -234,6 +249,11 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
     private Vec3 aiMetricsLastPosition;
 
     /**
+     * Client-side copy of the server path used by the optional AI debug overlay.
+     */
+    private List<BlockPos> aiDebugPath = List.of();
+
+    /**
      * Citizen data view.
      */
     private ICitizenDataView citizenDataView;
@@ -313,6 +333,7 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
             if (!MinecoloniesAIMetrics.isEnabled())
             {
                 citizenAI.tick();
+                updateAIDebugData();
                 return false;
             }
 
@@ -356,6 +377,7 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
                 final boolean builder = currentJob instanceof JobBuilder && working;
                 MinecoloniesAIMetrics.recordCitizenActivity(distance, walking, idle, working, deliveryRoute, builder);
                 MinecoloniesAIMetrics.reportIfDue();
+                updateAIDebugData();
             }
             return false;
         }, () -> null, 1));
@@ -380,6 +402,149 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
                  || state == AIWorkerState.DELIVERY
                  || state == AIWorkerState.PICKUP
                  || state == AIWorkerState.DUMPING;
+    }
+
+    /**
+     * Publish a compact snapshot of the current worker state and navigation path while debugging is enabled.
+     * The snapshot is entity-synced at a low rate and stays empty in normal play.
+     */
+    private void updateAIDebugData()
+    {
+        if (level().isClientSide)
+        {
+            return;
+        }
+
+        if (!MineColonies.getConfig().getServer().citizenAiDebugOverlay.get())
+        {
+            if (!entityData.get(DATA_AI_DEBUG_SUMMARY).isEmpty()
+                  || entityData.get(DATA_AI_DEBUG_HAS_TARGET)
+                  || !entityData.get(DATA_AI_DEBUG_PATH).isEmpty())
+            {
+                entityData.set(DATA_AI_DEBUG_SUMMARY, "");
+                entityData.set(DATA_AI_DEBUG_HAS_TARGET, false);
+                entityData.set(DATA_AI_DEBUG_TARGET, BlockPos.ZERO);
+                entityData.set(DATA_AI_DEBUG_PATH, "");
+            }
+            return;
+        }
+
+        if (tickCount % AI_DEBUG_SYNC_INTERVAL_TICKS != 0)
+        {
+            return;
+        }
+
+        final IJob<?> job = citizenData == null ? null : citizenData.getJob();
+        final String jobName = job == null ? "unassigned" : job.getNameTagDescription();
+        final var workerAI = job == null ? null : job.getWorkerAI();
+        final String workerState = workerAI == null ? "none" : String.valueOf(workerAI.getState());
+
+        final var navigation = getNavigation();
+        final BlockPos desiredPos = navigation.getDesiredPos();
+        final boolean hasTarget = !navigation.isDone() && desiredPos != null;
+        final BlockPos target = hasTarget ? desiredPos.immutable() : BlockPos.ZERO;
+        final Path path = navigation.getPath();
+        final int nextNode = path == null ? 0 : Math.max(0, path.getNextNodeIndex());
+        final int nodeCount = path == null ? 0 : path.getNodeCount();
+
+        final String navigationState;
+        if (!hasTarget)
+        {
+            navigationState = "idle";
+        }
+        else if (path == null || nodeCount == 0)
+        {
+            navigationState = "waiting for path to " + formatDebugPosition(target);
+        }
+        else
+        {
+            navigationState = "path " + Math.min(nextNode + 1, nodeCount) + "/" + nodeCount + " to " + formatDebugPosition(target);
+        }
+
+        final String citizenState = String.valueOf(citizenAI.getState());
+        final String summary = "AI: " + citizenState
+                                + "\nJob: " + jobName
+                                + "\nWorker: " + workerState
+                                + "\nNavigation: " + navigationState;
+
+        entityData.set(DATA_AI_DEBUG_SUMMARY, summary);
+        entityData.set(DATA_AI_DEBUG_HAS_TARGET, hasTarget);
+        entityData.set(DATA_AI_DEBUG_TARGET, target);
+        entityData.set(DATA_AI_DEBUG_PATH, encodeDebugPath(hasTarget ? path : null, nextNode, nodeCount));
+    }
+
+    private static String formatDebugPosition(final BlockPos pos)
+    {
+        return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
+    }
+
+    private static String encodeDebugPath(@Nullable final Path path, final int start, final int nodeCount)
+    {
+        if (path == null || start >= nodeCount)
+        {
+            return "";
+        }
+
+        final StringBuilder encoded = new StringBuilder();
+        final int end = Math.min(nodeCount, start + AI_DEBUG_MAX_PATH_NODES);
+        for (int index = start; index < end; index++)
+        {
+            if (encoded.length() > 0)
+            {
+                encoded.append(';');
+            }
+            final BlockPos pos = path.getNode(index).asBlockPos();
+            encoded.append(pos.getX()).append(',').append(pos.getY()).append(',').append(pos.getZ());
+        }
+        return encoded.toString();
+    }
+
+    private static List<BlockPos> decodeDebugPath(final String encoded)
+    {
+        if (encoded.isEmpty())
+        {
+            return List.of();
+        }
+
+        final List<BlockPos> decoded = new ArrayList<>();
+        try
+        {
+            for (final String node : encoded.split(";"))
+            {
+                final String[] coordinates = node.split(",");
+                if (coordinates.length != 3)
+                {
+                    return List.of();
+                }
+                decoded.add(new BlockPos(Integer.parseInt(coordinates[0]),
+                  Integer.parseInt(coordinates[1]), Integer.parseInt(coordinates[2])));
+            }
+        }
+        catch (final NumberFormatException exception)
+        {
+            return List.of();
+        }
+        return List.copyOf(decoded);
+    }
+
+    public String getAIDebugSummary()
+    {
+        return entityData.get(DATA_AI_DEBUG_SUMMARY);
+    }
+
+    public boolean hasAIDebugTarget()
+    {
+        return entityData.get(DATA_AI_DEBUG_HAS_TARGET);
+    }
+
+    public BlockPos getAIDebugTarget()
+    {
+        return entityData.get(DATA_AI_DEBUG_TARGET);
+    }
+
+    public List<BlockPos> getAIDebugPath()
+    {
+        return aiDebugPath;
     }
 
     /**
@@ -1068,6 +1233,10 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
         super.defineSynchedData();
         entityData.define(DATA_COLONY_ID, citizenColonyHandler == null ? 0 : citizenColonyHandler.getColonyId());
         entityData.define(DATA_CITIZEN_ID, citizenId);
+        entityData.define(DATA_AI_DEBUG_SUMMARY, "");
+        entityData.define(DATA_AI_DEBUG_HAS_TARGET, false);
+        entityData.define(DATA_AI_DEBUG_TARGET, BlockPos.ZERO);
+        entityData.define(DATA_AI_DEBUG_PATH, "");
     }
 
     /**
@@ -2075,6 +2244,10 @@ public class EntityCitizen extends AbstractEntityCitizen implements IThreatTable
     public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor)
     {
         super.onSyncedDataUpdated(dataAccessor);
+        if (dataAccessor == DATA_AI_DEBUG_PATH)
+        {
+            aiDebugPath = decodeDebugPath(entityData.get(DATA_AI_DEBUG_PATH));
+        }
         if (citizenColonyHandler != null)
         {
             citizenColonyHandler.onSyncDataUpdate(dataAccessor);
