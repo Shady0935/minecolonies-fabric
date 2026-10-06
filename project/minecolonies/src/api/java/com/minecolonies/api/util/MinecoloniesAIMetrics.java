@@ -1,5 +1,8 @@
 package com.minecolonies.api.util;
 
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
@@ -43,6 +46,11 @@ public final class MinecoloniesAIMetrics
     private static final LongAdder BUILDER_BLOCKS_PLACED = new LongAdder();
     private static final LongAdder BUILDER_BLOCKS_BROKEN = new LongAdder();
     private static final LongAdder BUILDER_WORK_FROM_CHANGES = new LongAdder();
+    private static final LongAdder BUILDER_PLANNER_WINDOW_OPERATIONS = new LongAdder();
+    private static final LongAdder BUILDER_PLANNER_IN_PLACE_DECISIONS = new LongAdder();
+    private static final LongAdder BUILDER_PLANNER_COVERED_OPERATIONS = new LongAdder();
+    private static final LongAdder BUILDER_PLANNER_INVALIDATIONS = new LongAdder();
+    private static final Map<String, LongAdder> BUILDER_PLANNER_INVALIDATION_REASONS = new ConcurrentHashMap<>();
     private static final LongAdder DELIVERIES = new LongAdder();
     private static final LongAdder ITEMS_DELIVERED = new LongAdder();
     private static final LongAdder WAREHOUSE_RETURNS = new LongAdder();
@@ -235,6 +243,37 @@ public final class MinecoloniesAIMetrics
         }
     }
 
+    public static void recordBuilderPlannerWindow(final int operationCount)
+    {
+        if (ENABLED && operationCount > 0)
+        {
+            BUILDER_PLANNER_WINDOW_OPERATIONS.add(operationCount);
+        }
+    }
+
+    public static void recordBuilderPlannerInPlace(final int coveredOperations)
+    {
+        if (!ENABLED)
+        {
+            return;
+        }
+        BUILDER_PLANNER_IN_PLACE_DECISIONS.increment();
+        if (coveredOperations > 0)
+        {
+            BUILDER_PLANNER_COVERED_OPERATIONS.add(coveredOperations);
+        }
+    }
+
+    public static void recordBuilderPlannerInvalidation(final String reason)
+    {
+        if (!ENABLED)
+        {
+            return;
+        }
+        BUILDER_PLANNER_INVALIDATIONS.increment();
+        BUILDER_PLANNER_INVALIDATION_REASONS.computeIfAbsent(reason, ignored -> new LongAdder()).increment();
+    }
+
     public static void recordWarehouseReturn()
     {
         if (ENABLED)
@@ -310,6 +349,19 @@ public final class MinecoloniesAIMetrics
             final long builderBlocksPlaced = BUILDER_BLOCKS_PLACED.sumThenReset();
             final long builderBlocksBroken = BUILDER_BLOCKS_BROKEN.sumThenReset();
             final long builderWorkFromChanges = BUILDER_WORK_FROM_CHANGES.sumThenReset();
+            final long builderPlannerWindowOperations = BUILDER_PLANNER_WINDOW_OPERATIONS.sumThenReset();
+            final long builderPlannerInPlaceDecisions = BUILDER_PLANNER_IN_PLACE_DECISIONS.sumThenReset();
+            final long builderPlannerCoveredOperations = BUILDER_PLANNER_COVERED_OPERATIONS.sumThenReset();
+            final long builderPlannerInvalidations = BUILDER_PLANNER_INVALIDATIONS.sumThenReset();
+            final Map<String, Long> builderPlannerInvalidationReasons = new TreeMap<>();
+            BUILDER_PLANNER_INVALIDATION_REASONS.forEach((reason, count) ->
+            {
+                final long invalidations = count.sumThenReset();
+                if (invalidations > 0)
+                {
+                    builderPlannerInvalidationReasons.put(reason, invalidations);
+                }
+            });
             final long deliveries = DELIVERIES.sumThenReset();
             final long itemsDelivered = ITEMS_DELIVERED.sumThenReset();
             final long warehouseReturns = WAREHOUSE_RETURNS.sumThenReset();
@@ -346,6 +398,11 @@ public final class MinecoloniesAIMetrics
                                    + ", builderDistancePerAction=" + (builderActions == 0 ? 0 : milliblocksToBlocks(builderDistance) / builderActions)
                                    + ", builderBlocksBroken=" + builderBlocksBroken
                                    + ", builderWorkFromChanges=" + builderWorkFromChanges
+                                   + ", builderPlannerWindowOperations=" + builderPlannerWindowOperations
+                                   + ", builderPlannerInPlaceDecisions=" + builderPlannerInPlaceDecisions
+                                   + ", builderPlannerCoveredOperations=" + builderPlannerCoveredOperations
+                                   + ", builderPlannerInvalidations=" + builderPlannerInvalidations
+                                   + ", builderPlannerInvalidationReasons=" + builderPlannerInvalidationReasons
                                    + ", deliveries=" + deliveries
                                    + ", itemsDelivered=" + itemsDelivered
                                    + ", warehouseReturns=" + warehouseReturns

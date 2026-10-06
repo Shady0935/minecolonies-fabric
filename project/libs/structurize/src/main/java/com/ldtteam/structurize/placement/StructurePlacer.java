@@ -45,6 +45,11 @@ public class StructurePlacer
     protected final AbstractBlueprintIterator iterator;
 
     /**
+     * The iterator id used to create this placer.
+     */
+    private final String iteratorId;
+
+    /**
      * The handler.
      */
     protected final IStructureHandler handler;
@@ -61,7 +66,8 @@ public class StructurePlacer
      */
     public StructurePlacer(final IStructureHandler handler)
     {
-        this.iterator = StructureIterators.getIterator(Structurize.getConfig().getServer().iteratorType.get().toString(), handler);
+        this.iteratorId = Structurize.getConfig().getServer().iteratorType.get().toString();
+        this.iterator = StructureIterators.getIterator(iteratorId, handler);
         this.handler = handler;
     }
 
@@ -72,8 +78,37 @@ public class StructurePlacer
      */
     public StructurePlacer(final IStructureHandler handler, final String id)
     {
+        this.iteratorId = id;
         this.iterator = StructureIterators.getIterator(id, handler);
         this.handler = handler;
+    }
+
+    /**
+     * Creates an independent iterator positioned at the supplied progress cursor.
+     *
+     * The returned iterator shares the read-only structure handler, but owns its own
+     * cursor and iterator state. Callers can advance it with {@link AbstractBlueprintIterator#increment()}
+     * or {@link AbstractBlueprintIterator#decrement()} to inspect future positions
+     * without changing this placer's live iterator.
+     *
+     * @param progressPos the local blueprint progress cursor.
+     * @param includeEntities whether blueprint entity data should be included.
+     * @param removing whether the preview should use removal semantics.
+     * @return an independent iterator for look-ahead inspection.
+     */
+    public AbstractBlueprintIterator createIteratorPreview(final BlockPos progressPos, final boolean includeEntities, final boolean removing)
+    {
+        final AbstractBlueprintIterator preview = StructureIterators.getIterator(iteratorId, handler);
+        preview.setProgressPos(progressPos);
+        if (includeEntities)
+        {
+            preview.includeEntities();
+        }
+        if (removing)
+        {
+            preview.setRemoving();
+        }
+        return preview;
     }
 
     /**

@@ -130,6 +130,74 @@ Validation on the latest source:
 The checkpoint `7aabb36b9e2aa5c38d4fc8b8f6285151a76aaf74` is committed and
 pushed to `origin/ai-overhaul`; the phase 1 build passed before the checkpoint.
 
+## Phase 2 — Smart Builder planner
+
+### Implementation
+
+- Added a read-only preview iterator to Structurize. It uses the same iterator
+  implementation and progress cursor as live placement without advancing the
+  Builder's active iterator or invoking placement callbacks.
+- The Builder scans at most 512 iterator entries to collect up to 32 relevant
+  operations from the active blueprint stage. It applies stage-specific
+  operation filters and does not execute planned actions early.
+- Candidate work positions are scored by how many upcoming operations they can
+  reach, distance from the citizen, and distance from the work-order location.
+  A safe current position that can reach the next operation is used in place;
+  route searches disable drops.
+- The cached plan records stage, progress cursor, work-order location, candidate
+  targets, route anchor, and invalidation reason. It rebuilds on stage, site,
+  cursor, target, safety, path, or stuck changes. A saved `workFrom` is reused
+  while safe and in range of the next operation, including when it is farther
+  from the citizen than the old two-block heuristic allowed.
+- The planner recognizes when its iterator preview has exhausted the active
+  stage, cancels stale navigation, and lets Structurize complete the phase. This
+  prevents the Builder from routing back to the last placed block.
+- Added opt-in counters for planner window size, covered operations, in-place
+  decisions, and invalidation reasons. Runtime profiling remains disabled by
+  default; the GameTest run enabled it with `-PaiMetrics=true`.
+
+### Validation and observations
+
+- `project/libs/structurize`: `gradlew build --no-daemon -x sourcesJar -x remapSourcesJar` — passed.
+- `project/minecolonies`: same build command — passed on Java 17; existing
+  deprecation/removal warnings remain.
+- Focused navigation and end-to-end Builder GameTests passed together with the
+  three required Multipiston tests (`All 5 required tests passed`). The
+  multi-stage blueprint and the material-delivery end-to-end case also passed
+  in earlier focused runs.
+- The latest complete GameTest run executed all 128 tests (JUnit duration
+  702.971 seconds) and exited with three required failures:
+  `citizenbuilderusesnavigationforconstructionsite` ended with no active path
+  four blocks from its destination; `farmeraiwalkstoassignedfieldandharvestscrop`
+  timed out with the Farmer in `PREPARING`, both crops still mature, and no
+  Warehouse pickup request; `citizenbuildercompletesworkorderthroughnavigation`
+  ended before construction materials arrived, with its Courier one block from
+  the racks and both inventories empty. The two Builder failures passed in the
+  focused rerun. A previous full Phase 2 run had only the known Stonemason
+  citizen-creation fixture failure. Varying failures across complete-suite runs
+  point to fixture/order sensitivity under the shared GameTest world; this is
+  not proof that the suite is fully stable.
+- In the latest 60-second mixed-workload metrics window (`11:15:14`), the
+  Builder recorded 22 actions, 16 placement steps, 25.382 blocks of movement,
+  1.154 blocks per action, 161 walking ticks, and 27 `workFrom` changes. The
+  planner recorded 16 in-place decisions covering 16 operations. The earlier
+  Phase 2 window with the same action and placement counts recorded 26.894
+  blocks, 1.222 blocks per action, 385 walking ticks, and 21 `workFrom`
+  changes. These are mixed-workload windows rather than a controlled A/B; they
+  do not establish a causal performance improvement. Movement was lower in the
+  latest window, while `workFrom` changes were slightly higher.
+- The full-suite run also produced a high stuck/recovery sample during the
+  shared Farmer/Courier workload. Treat it as an isolated follow-up signal,
+  consistent with the prior sleep-worker batch warning, rather than as a
+  representative steady-state rate.
+
+### Checkpoint
+
+The checkpoint uses the required commit title
+`checkpoint: smart builder planner`; push it to `origin/ai-overhaul` before
+beginning Phase 3. The full suite remains order-sensitive; the two Builder
+cases that failed there passed in isolation.
+
 ## Risks and open questions
 
 - AI timing and pathfinding metrics must remain opt-in or low overhead.

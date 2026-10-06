@@ -1576,7 +1576,12 @@ public final class MineColoniesGameTests implements FabricGameTest
               "Courier did not decrement the stone rack by the delivered stone");
             helper.assertTrue(cobblestoneRack.getCount(new ItemStack(Items.COBBLESTONE), true, false) == 15,
               "Courier did not decrement the cobblestone rack by the delivered cobblestone");
-            helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order");
+            helper.assertTrue(!job.hasWorkOrder(), "Builder did not clear its completed work order; id=" + job.getWorkOrderId()
+              + "; workOrder=" + job.getWorkOrder()
+              + "; managerOrder=" + colony.getWorkManager().getWorkOrder(order.getID())
+              + "; state=" + entity.getCitizenJobHandler().getWorkAI().getState()
+              + "; worker=" + entity.blockPosition()
+              + "; planner=" + getBuilderPlannerDebugSummary(entity.getCitizenJobHandler().getWorkAI()));
             helper.assertTrue(colony.getWorkManager().getWorkOrder(order.getID()) == null,
               "Builder did not remove the completed work order from the colony manager");
         });
@@ -1691,7 +1696,12 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.assertTrue(level.getBlockState(buildTarget).is(Blocks.STONE),
           "Builder BUILD_SOLID stage did not place the requested block");
         helper.assertTrue(level.getBlockState(buildTarget.above()).is(Blocks.TORCH),
-          "Builder DECORATE stage did not place the requested torch");
+          "Builder DECORATE stage did not place the requested torch"
+            + "; handlerStage=" + structure.getStage()
+            + "; progress=" + placementAI.getProgressPos()
+            + "; worker=" + builderCitizen.blockPosition()
+            + "; navigationPath=" + builderCitizen.getNavigation().getPath()
+            + "; planner=" + placementAI.getPlannerDebugSummary());
         helper.assertTrue(countItem(builderCitizen, Items.STONE) == 0,
           "Builder BUILD_SOLID stage did not consume the required block item");
         helper.assertTrue(countItem(builderCitizen, Items.TORCH) == 0,
@@ -12342,6 +12352,29 @@ public final class MineColoniesGameTests implements FabricGameTest
         }
     }
 
+    private static String getBuilderPlannerDebugSummary(final Object workAI)
+    {
+        Class<?> type = workAI.getClass();
+        while (type != null)
+        {
+            try
+            {
+                final java.lang.reflect.Method method = type.getDeclaredMethod("getWorkPlannerDebugSummary");
+                method.setAccessible(true);
+                return String.valueOf(method.invoke(workAI));
+            }
+            catch (final NoSuchMethodException ignored)
+            {
+                type = type.getSuperclass();
+            }
+            catch (final ReflectiveOperationException exception)
+            {
+                return "diagnostic unavailable: " + exception;
+            }
+        }
+        return "diagnostic unavailable for " + workAI.getClass().getName();
+    }
+
     private static final class TestBuilderAI extends EntityAIStructureBuilder
     {
         private TestBuilderAI(final JobBuilder job)
@@ -12367,6 +12400,11 @@ public final class MineColoniesGameTests implements FabricGameTest
         private void setWorkFrom(final BlockPos position)
         {
             workFrom = position;
+        }
+
+        private String getPlannerDebugSummary()
+        {
+            return getWorkPlannerDebugSummary();
         }
     }
 

@@ -60,6 +60,9 @@ loom {
             runDir gameTestRunDir
             vmArg '-Dfabric-api.gametest=true'
             vmArg "-Dfabric-api.gametest.report-file=${project.file('build/gametest/junit.xml').absolutePath}"
+            if (project.providers.gradleProperty('aiMetrics').getOrElse('false').toBoolean()) {
+                vmArg '-Dminecolonies.ai.metrics=true'
+            }
         }
         gametestManual {
             server()
