@@ -26,6 +26,7 @@ import com.minecolonies.fabric.event.server.ServerStartedEvent;
 import com.minecolonies.fabric.event.server.ServerStoppingEvent;
 import com.minecolonies.fabric.inventory.ContainerUpdateHooks;
 import com.minecolonies.fabric.lifecycle.FabricGameplayHooks;
+import com.minecolonies.fabric.config.CitizenAIDebugConfig;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import com.minecolonies.fabric.event.entity.EntityAttributeCreationEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
@@ -92,6 +93,7 @@ public final class MineColoniesFabric implements ModInitializer
         // Deferred values that depend on blocks, entities or items are created
         // by the upstream-shaped constructor only after those values exist.
         new MineColonies();
+        CitizenAIDebugConfig.load();
         FabricGameplayHooks.register();
 
         // Fabric reloads recipes after mod initialization. Register these

@@ -585,14 +585,18 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 
 ### Citizen AI debug visualization
 
-- The server config option `pathfinding.citizenaidebugoverlay` enables an
-  in-world overlay above nearby citizens. It shows the citizen state, job and
+- The server config file `config/minecolonies-server.toml` contains the
+  `[pathfinding]` option `citizenaidebugoverlay`. MineColonies creates the file
+  on first startup with the option set to `false`; set it to `true` and restart
+  the server to enable the in-world overlay above nearby citizens. It shows the citizen state, job and
   worker AI state, current navigation target, and progress through the route.
 - While enabled, the server syncs a compact snapshot every 10 ticks and at most
   the next 24 path nodes. With the option disabled by default, the snapshot and
   route data remain empty during normal play.
 - The renderer highlights route nodes and the destination. Existing path-search
   exploration data remains available through the citizen path tracking command.
+- Only this debug option is persisted by the current Fabric config adapter;
+  other upstream configuration values remain on their existing defaults.
 
 ### Scheduler latency correction
 

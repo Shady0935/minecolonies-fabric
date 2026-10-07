@@ -9,8 +9,8 @@ import java.util.function.Predicate;
 /**
  * Lightweight typed configuration tree for the 1.20.1 Fabric port.
  * Values are deliberately live objects with the same get/set surface the
- * gameplay code used on Forge; persistence is handled by the Fabric entrypoint
- * when the runtime config integration is added.
+ * gameplay code used on Forge; Fabric config adapters persist the options that
+ * expose runtime controls.
  */
 public final class FabricConfigSpec
 {
