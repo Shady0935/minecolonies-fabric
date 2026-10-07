@@ -5,6 +5,7 @@ import com.minecolonies.api.entity.ai.citizen.builder.IBuilderUndestroyable;
 import com.minecolonies.api.items.ModTags;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.DamageSourceKeys;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,6 +42,11 @@ public class PathingStuckHandler implements IStuckHandler
      */
     private static final int MIN_TP_DELAY    = 120 * 20;
     private static final int MIN_DIST_FOR_TP = 10;
+
+    /** Sample real movement periodically so blocked motion is caught even when the path cursor changes. */
+    private static final int STUCK_POSITION_SAMPLE_INTERVAL = 20;
+    private static final int STATIONARY_TICKS_BEFORE_REPATH = 100;
+    private static final double MIN_MOVEMENT_PER_SAMPLE_SQR = 0.04D;
 
     /**
      * Initial recovery level gives the current path several chances to advance before stronger actions.
@@ -114,6 +120,10 @@ public class PathingStuckHandler implements IStuckHandler
     private boolean hadPath         = false;
     private int     lastPathIndex   = -1;
     private int     progressedNodes = 0;
+    private Vec3    lastPositionSample;
+    private int     ticksSincePositionSample;
+    private int     stationaryTicks;
+    private boolean debugLogging;
 
     /**
      * Delay before taking unstuck actions in ticks, default 60 seconds
@@ -163,6 +173,7 @@ public class PathingStuckHandler implements IStuckHandler
         if (navigator.getOurEntity() instanceof IStuckHandlerEntity && !((IStuckHandlerEntity) navigator.getOurEntity()).canBeStuck())
         {
             resetGlobalStuckTimers();
+            resetMovementStuckTracking();
             return;
         }
 
@@ -172,9 +183,10 @@ public class PathingStuckHandler implements IStuckHandler
               new Vec3(currentDestination.getX(), currentDestination.getY(), currentDestination.getZ()));
 
             // Close enough to be considered at the goal
-            if (distanceToGoal < MIN_TARGET_DIST)
+            if (distanceToGoal < MIN_TARGET_DIST && (navigator.getPath() == null || navigator.getPath().isDone()))
             {
                 resetGlobalStuckTimers();
+                resetMovementStuckTracking();
                 return;
             }
         }
@@ -205,6 +217,7 @@ public class PathingStuckHandler implements IStuckHandler
                 globalTimeout = 0;
                 resetStuckTimers();
             }
+            resetMovementStuckTracking();
         }
         if (!hasSafeDestination)
         {
@@ -217,11 +230,13 @@ public class PathingStuckHandler implements IStuckHandler
         // A null path while the async job is still computing is not a stuck state.
         if (navigator.getPath() == null && !navigator.isDone())
         {
+            resetMovementStuckTracking();
             return;
         }
 
         if (navigator.getPath() == null || navigator.getPath().isDone())
         {
+            resetMovementStuckTracking();
             // With no path reset the last path index point to -1
             lastPathIndex = -1;
             progressedNodes = 0;
@@ -234,9 +249,16 @@ public class PathingStuckHandler implements IStuckHandler
         }
         else
         {
-            if (navigator.getPath().getNextNodeIndex() == lastPathIndex)
+            final boolean physicallyStationary = updateMovementStuckTracking(navigator);
+            if (navigator.getPath().getNextNodeIndex() == lastPathIndex || physicallyStationary)
             {
-                // Stuck when we have a path, but are not progressing on it
+                // A path cursor can advance while collision keeps the entity in place.
+                // Drop the path and let the worker AI plan a fresh route after five seconds without movement.
+                if (physicallyStationary)
+                {
+                    stuckLevel = Math.max(0, stuckLevel);
+                    delayToNextUnstuckAction = 0;
+                }
                 tryUnstuck(navigator);
             }
             else
@@ -327,6 +349,12 @@ public class PathingStuckHandler implements IStuckHandler
         if (delayToNextUnstuckAction > 0)
         {
             return;
+        }
+        if (debugLogging)
+        {
+            Log.getLogger().info("[AI-NAV] recovery entity={} uuid={} pos={} destination={} safeDestination={} stuckLevel={} actionDelay={}",
+              navigator.getOurEntity().getName().getString(), navigator.getOurEntity().getUUID(), navigator.getOurEntity().blockPosition(),
+              navigator.getDestination(), navigator.getDesiredPos(), stuckLevel, delayToNextUnstuckAction);
         }
         MinecoloniesAIMetrics.recordStuckEvent();
         delayToNextUnstuckAction = 100;
@@ -459,6 +487,61 @@ public class PathingStuckHandler implements IStuckHandler
         progressedNodes = 0;
         stuckLevel = STARTING_STUCK_LEVEL;
         moveAwayStartPos = BlockPos.ZERO;
+    }
+
+    /**
+     * Records actual entity displacement independently of path-node progress.
+     *
+     * @param navigator the active navigator.
+     * @return whether the entity has remained stationary long enough to force a replan.
+     */
+    private boolean updateMovementStuckTracking(final AbstractAdvancedPathNavigate navigator)
+    {
+        final Vec3 currentPosition = navigator.getOurEntity().position();
+        if (lastPositionSample == null)
+        {
+            lastPositionSample = currentPosition;
+            ticksSincePositionSample = 0;
+            stationaryTicks = 0;
+            return false;
+        }
+
+        if (++ticksSincePositionSample < STUCK_POSITION_SAMPLE_INTERVAL)
+        {
+            return stationaryTicks >= STATIONARY_TICKS_BEFORE_REPATH;
+        }
+
+        ticksSincePositionSample = 0;
+        final double movementSqr = currentPosition.distanceToSqr(lastPositionSample);
+        if (movementSqr < MIN_MOVEMENT_PER_SAMPLE_SQR)
+        {
+            stationaryTicks += STUCK_POSITION_SAMPLE_INTERVAL;
+            if (debugLogging)
+            {
+                final var entity = navigator.getOurEntity();
+                final var path = navigator.getPath();
+                final int nextNodeIndex = path == null ? -1 : path.getNextNodeIndex();
+                final String nextNode = path == null || nextNodeIndex < 0 || nextNodeIndex >= path.getNodeCount()
+                                          ? "none" : path.getNode(nextNodeIndex).asBlockPos().toString();
+                Log.getLogger().info("[AI-NAV] stationary entity={} uuid={} pos={} destination={} desired={} pathNode={}/{} nextNode={} movementSqr={} stationaryTicks={} stuckLevel={}",
+                  entity.getName().getString(), entity.getUUID(), currentPosition, navigator.getDestination(), navigator.getDesiredPos(),
+                  nextNodeIndex, path == null ? 0 : path.getNodeCount(), nextNode, movementSqr, stationaryTicks, stuckLevel);
+            }
+        }
+        else
+        {
+            stationaryTicks = 0;
+        }
+        lastPositionSample = currentPosition;
+        return stationaryTicks >= STATIONARY_TICKS_BEFORE_REPATH;
+    }
+
+    /** Resets the movement sample when the active route changes or ends. */
+    private void resetMovementStuckTracking()
+    {
+        lastPositionSample = null;
+        ticksSincePositionSample = 0;
+        stationaryTicks = 0;
     }
 
     /**
@@ -708,6 +791,13 @@ public class PathingStuckHandler implements IStuckHandler
     public PathingStuckHandler withCompleteStuckBlockBreak(int range)
     {
         completeStuckBlockBreakRange = range;
+        return this;
+    }
+
+    /** Enables event-level pathing diagnostics while investigating citizen navigation. */
+    public PathingStuckHandler withDebugLogging(final boolean enabled)
+    {
+        debugLogging = enabled;
         return this;
     }
 

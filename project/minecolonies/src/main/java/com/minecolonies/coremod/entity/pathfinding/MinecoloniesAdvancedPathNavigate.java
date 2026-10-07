@@ -7,6 +7,7 @@ import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.pathfinding.*;
 import com.minecolonies.api.util.*;
+import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.entity.pathfinding.pathjobs.*;
 import com.minecolonies.coremod.util.WorkerUtil;
 import net.minecraft.core.BlockPos;
@@ -103,7 +104,8 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         this.nodeEvaluator.setCanFloat(true);
         getPathingOptions().setCanSwim(true);
 
-        stuckHandler = PathingStuckHandler.createStuckHandler().withTakeDamageOnStuck(0.2f).withTeleportSteps(6).withTeleportOnFullStuck();
+        stuckHandler = PathingStuckHandler.createStuckHandler().withTakeDamageOnStuck(0.2f).withTeleportSteps(6).withTeleportOnFullStuck()
+                         .withDebugLogging(MineColonies.getConfig().getServer().citizenAiDebugLogging.get());
     }
 
     @Override
@@ -252,6 +254,12 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         }
         pathResult = job.getResult();
         MinecoloniesAIMetrics.recordPathJobStarted(repath);
+        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        {
+            Log.getLogger().info("[AI-NAV] path-job-start entity={} uuid={} job={} pos={} destination={} safeDestination={} repath={} speed={}",
+              ourEntity.getName().getString(), ourEntity.getUUID(), job.getClass().getSimpleName(), ourEntity.blockPosition(), dest,
+              safeDestination, repath, speedFactor);
+        }
         pathResult.startJob(Pathfinding.getExecutor());
         return pathResult;
     }
@@ -582,6 +590,16 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
 
     private boolean processCompletedCalculationResult()
     {
+        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        {
+            final Path calculatedPath = pathResult == null ? null : pathResult.getPath();
+            final Node endNode = calculatedPath == null ? null : calculatedPath.getEndNode();
+            Log.getLogger().info("[AI-NAV] path-job-result entity={} uuid={} job={} status={} pos={} destination={} nodes={} reachesDestination={} target={} endNode={}",
+              ourEntity.getName().getString(), ourEntity.getUUID(), pathResult == null || pathResult.getJob() == null ? "unknown" : pathResult.getJob().getClass().getSimpleName(),
+              pathResult == null ? "missing" : pathResult.getStatus(), ourEntity.blockPosition(), destination,
+              calculatedPath == null ? 0 : calculatedPath.getNodeCount(), calculatedPath != null && calculatedPath.canReach(),
+              calculatedPath == null ? "none" : calculatedPath.getTarget(), endNode == null ? "none" : endNode.asBlockPos());
+        }
         pathResult.getJob().synchToClient(mob);
         moveTo(pathResult.getPath(), getSpeedFactor());
         if (pathResult != null)

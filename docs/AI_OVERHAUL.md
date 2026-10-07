@@ -595,8 +595,24 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   route data remain empty during normal play.
 - The renderer highlights route nodes and the destination. Existing path-search
   exploration data remains available through the citizen path tracking command.
-- Only this debug option is persisted by the current Fabric config adapter;
+- The temporary `citizenaidebuglogging` option defaults to `true` in the current
+  diagnostic build. It logs path-job starts/results and stationary citizens once
+  per second, including the active node and recovery action. Turn it off after
+  collecting a useful server log to reduce log volume.
+- These two citizen debug options are persisted by the Fabric config adapter;
   other upstream configuration values remain on their existing defaults.
+
+### Stuck movement regression follow-up
+
+- The in-game report showed an active route beside a solid building wall while
+  the Builder appeared unable to make progress. The stuck handler watched path
+  node advancement but did not independently verify physical movement, so a
+  route cursor could advance while collision kept the citizen stationary.
+- The handler now samples entity displacement every second. Five consecutive
+  seconds without meaningful movement immediately enters staged recovery and
+  clears the route, allowing the profession AI to request a fresh path. This
+  remains to be confirmed in-game with the diagnostic logs; it is not yet a
+  confirmed root cause.
 
 ### Scheduler latency correction
 

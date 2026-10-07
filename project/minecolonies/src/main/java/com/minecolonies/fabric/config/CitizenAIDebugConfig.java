@@ -12,23 +12,23 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Loads and persists the server-side citizen AI debug option. */
+/** Loads and persists the server-side citizen AI debug options. */
 public final class CitizenAIDebugConfig
 {
     private static final Logger LOGGER = LoggerFactory.getLogger("minecolonies/config");
     private static final String CATEGORY = "[pathfinding]";
-    private static final String OPTION = "citizenaidebugoverlay";
+    private static final String OVERLAY_OPTION = "citizenaidebugoverlay";
+    private static final String LOGGING_OPTION = "citizenaidebuglogging";
 
     private CitizenAIDebugConfig()
     {
     }
 
-    /** Loads the option from config/minecolonies-server.toml, creating it with the default if needed. */
+    /** Loads the options from config/minecolonies-server.toml, creating missing entries with their defaults. */
     public static void load()
     {
         final Path configFile = FabricLoader.getInstance().getConfigDir().resolve("minecolonies-server.toml");
         final List<String> lines = new ArrayList<>();
-        boolean enabled = false;
         boolean writeConfig = false;
 
         try
@@ -44,67 +44,47 @@ public final class CitizenAIDebugConfig
 
             int pathfindingHeader = -1;
             int pathfindingEnd = lines.size();
-            int optionLine = -1;
             boolean inPathfinding = false;
             for (int index = 0; index < lines.size(); index++)
             {
                 final String trimmed = lines.get(index).trim();
-                if (trimmed.startsWith("[") && trimmed.endsWith("]"))
+                if (!trimmed.startsWith("[") || !trimmed.endsWith("]"))
                 {
-                    if (inPathfinding)
-                    {
-                        pathfindingEnd = index;
-                        inPathfinding = false;
-                    }
-                    if (CATEGORY.equalsIgnoreCase(trimmed))
-                    {
-                        pathfindingHeader = index;
-                        inPathfinding = true;
-                    }
                     continue;
                 }
 
-                if (inPathfinding && trimmed.startsWith(OPTION))
+                if (inPathfinding)
                 {
-                    final int equalsIndex = trimmed.indexOf('=');
-                    if (equalsIndex >= 0 && OPTION.equals(trimmed.substring(0, equalsIndex).trim()))
-                    {
-                        optionLine = index;
-                        final String rawValue = trimmed.substring(equalsIndex + 1).split("#", 2)[0].trim();
-                        if ("true".equalsIgnoreCase(rawValue) || "false".equalsIgnoreCase(rawValue))
-                        {
-                            enabled = Boolean.parseBoolean(rawValue);
-                        }
-                        else
-                        {
-                            LOGGER.warn("Invalid value for {} in {}; using false.", OPTION, configFile);
-                            lines.set(index, OPTION + " = false");
-                            writeConfig = true;
-                        }
-                        break;
-                    }
+                    pathfindingEnd = index;
+                    inPathfinding = false;
+                }
+                if (CATEGORY.equalsIgnoreCase(trimmed))
+                {
+                    pathfindingHeader = index;
+                    inPathfinding = true;
                 }
             }
 
-            MineColonies.getConfig().getServer().citizenAiDebugOverlay.set(enabled);
-
-            if (optionLine < 0)
+            if (pathfindingHeader < 0)
             {
-                if (pathfindingHeader >= 0)
+                if (!lines.isEmpty() && !lines.get(lines.size() - 1).isBlank())
                 {
-                    lines.add(pathfindingEnd, OPTION + " = false");
+                    lines.add("");
                 }
-                else
-                {
-                    if (!lines.isEmpty() && !lines.get(lines.size() - 1).isBlank())
-                    {
-                        lines.add("");
-                    }
-                    lines.add(CATEGORY);
-                    lines.add(OPTION + " = false");
-                }
+                lines.add(CATEGORY);
+                pathfindingHeader = lines.size() - 1;
+                pathfindingEnd = lines.size();
                 writeConfig = true;
             }
+
+            final boolean[] configChanged = {writeConfig};
+            final boolean overlayEnabled = readOrAddOption(lines, pathfindingHeader, pathfindingEnd, OVERLAY_OPTION, false, configFile, configChanged);
+            // Keep verbose diagnostics enabled in this temporary investigation build so the first server run is captured.
+            final boolean loggingEnabled = readOrAddOption(lines, pathfindingHeader, pathfindingEnd, LOGGING_OPTION, true, configFile, configChanged);
+            writeConfig = configChanged[0];
+
+            MineColonies.getConfig().getServer().citizenAiDebugOverlay.set(overlayEnabled);
+            MineColonies.getConfig().getServer().citizenAiDebugLogging.set(loggingEnabled);
 
             if (writeConfig)
             {
@@ -116,5 +96,39 @@ public final class CitizenAIDebugConfig
         {
             LOGGER.error("Could not load or create MineColonies server config at {}.", configFile, exception);
         }
+    }
+
+    private static boolean readOrAddOption(final List<String> lines,
+                                          final int sectionStart,
+                                          final int sectionEnd,
+                                          final String option,
+                                          final boolean defaultValue,
+                                          final Path configFile,
+                                          final boolean[] configChanged)
+    {
+        for (int index = sectionStart + 1; index < sectionEnd; index++)
+        {
+            final String trimmed = lines.get(index).trim();
+            final int equalsIndex = trimmed.indexOf('=');
+            if (equalsIndex < 0 || !option.equals(trimmed.substring(0, equalsIndex).trim()))
+            {
+                continue;
+            }
+
+            final String rawValue = trimmed.substring(equalsIndex + 1).split("#", 2)[0].trim();
+            if ("true".equalsIgnoreCase(rawValue) || "false".equalsIgnoreCase(rawValue))
+            {
+                return Boolean.parseBoolean(rawValue);
+            }
+
+            LOGGER.warn("Invalid value for {} in {}; using {}.", option, configFile, defaultValue);
+            lines.set(index, option + " = " + defaultValue);
+            configChanged[0] = true;
+            return defaultValue;
+        }
+
+        lines.add(sectionEnd, option + " = " + defaultValue);
+        configChanged[0] = true;
+        return defaultValue;
     }
 }
