@@ -614,6 +614,25 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   remains to be confirmed in-game with the diagnostic logs; it is not yet a
   confirmed root cause.
 
+### Obstacle collision regression follow-up — 2026-10-07
+
+- Server logs for Kohen Y. Gordon show the same block position (`-650,71,278`)
+  across more than a minute of repeated Builder navigation. `PathJobMoveToLocation`
+  repeatedly reported a reachable target at `-680,70,274`, followed by a
+  reachable `PathJobMoveAwayFromLocation` target at `-660,69,278`; the Builder
+  then restarted the same route cycle. No `[AI-NAV] stationary` or
+  `[AI-NAV] recovery` entries appeared in that log window.
+- `AbstractPathJob.checkHeadBlock` does inspect `pos.above()`, but the common
+  passability branch then treated every collidable block with
+  `!block.canOcclude()` as passable. `canOcclude` is a visual/light property,
+  not proof that a block has no collision; this let partial-collision blocks
+  such as hanging lanterns enter routes that the entity cannot physically walk.
+- Removed that blanket exception while retaining explicit exceptions for
+  doors, construction tape, pressure plates, decoration controllers, signs,
+  and banners. The path evaluator now treats other collidable shapes as
+  obstacles, including in the upper/head-space check. The in-game route around
+  the lantern still needs confirmation with this diagnostic build.
+
 ### Scheduler latency correction
 
 - The earlier full suite had intermittently missed automatic Builder work-order

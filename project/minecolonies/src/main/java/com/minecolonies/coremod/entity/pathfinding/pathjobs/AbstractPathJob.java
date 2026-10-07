@@ -1519,8 +1519,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
                              || block.getBlock() instanceof PressurePlateBlock
                              || block.getBlock() instanceof BlockDecorationController
                              || block.getBlock() instanceof SignBlock
-                             || block.getBlock() instanceof AbstractBannerBlock
-                             || !block.canOcclude();
+                             || block.getBlock() instanceof AbstractBannerBlock;
                 }
             }
             else if (block.getBlock() instanceof FireBlock || block.getBlock() instanceof SweetBerryBushBlock || block.getBlock() instanceof PowderSnowBlock)
