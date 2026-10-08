@@ -633,6 +633,21 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
   obstacles, including in the upper/head-space check. The in-game route around
   the lantern still needs confirmation with this diagnostic build.
 
+### Builder route dead-end follow-up — 2026-10-07
+
+- In the next server log, Gordon's work-position search for `-659,79,257`
+  approached the terrain edge at `-652,68,265`, then returned a one-node path
+  with `reachesDestination=false` every second through the latest log. The
+  Builder never got a reachable work position, so its build step could not
+  resume. The screenshot shows this at a ledge; the logs also show another
+  Builder stuck at `-713,72,276` trying to reach `-714,76,276` in the same
+  one-node failure pattern.
+- The Builder explicitly disabled all drops for work-position searches. That
+  made it impossible to take even the pathfinder's bounded safe drops when
+  routing around terrain. These searches now allow the existing drop evaluator,
+  which only accepts up to two-block drops onto a walkable surface (or water);
+  larger falls remain rejected. In-game confirmation is still needed.
+
 ### Scheduler latency correction
 
 - The earlier full suite had intermittently missed automatic Builder work-order

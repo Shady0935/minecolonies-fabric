@@ -334,7 +334,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                   nextTarget,
                   1.0D,
                   false,
-                  options -> options.setCanDrop(false));
+                  options -> options.setCanDrop(true));
             }
             else if (workPositionPath.isDone())
             {
