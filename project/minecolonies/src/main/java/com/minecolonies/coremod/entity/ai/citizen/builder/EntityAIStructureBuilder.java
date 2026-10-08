@@ -16,6 +16,7 @@ import com.minecolonies.api.entity.pathfinding.PathingOptions;
 import com.minecolonies.api.entity.pathfinding.PathResult;
 import com.minecolonies.api.entity.pathfinding.SurfaceType;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.api.util.Tuple;
 import com.minecolonies.api.util.WorldUtil;
@@ -172,8 +173,25 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     {
         if (job.getWorkOrder().getIteratorType().isEmpty())
         {
-            final String mode = BuilderModeSetting.getActualValue(building);
+            final String configuredMode = BuilderModeSetting.getActualValue(building);
+            final Tuple<BlockPos, BuildingStructureHandler.Stage> savedProgress = getProgressPos();
+            final boolean hasSavedCursor = savedProgress != null
+                                             && savedProgress.getA() != null
+                                             && !savedProgress.getA().equals(AbstractBlueprintIterator.NULL_POS);
+            // A row-major sweep repeatedly crosses the whole footprint on layered structures.
+            // Prefer Structurize's existing locality-preserving iterator for fresh default-mode orders.
+            // Never change an order once it has a saved cursor: its progress belongs to its iterator.
+            final String mode = "default".equalsIgnoreCase(configuredMode) && !hasSavedCursor ? "hilbert" : configuredMode;
             job.getWorkOrder().setIteratorType(mode);
+            if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+            {
+                Log.getLogger().info("[AI-BUILDER] iterator-selected entity={} workOrder={} configured={} selected={} savedCursor={}",
+                  worker.getCitizenData().getName(),
+                  job.getWorkOrder().getID(),
+                  configuredMode,
+                  mode,
+                  hasSavedCursor);
+            }
         }
 
         final StructurePlacer placer = new StructurePlacer(structure, job.getWorkOrder().getIteratorType());
@@ -424,6 +442,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
             collectUpcomingWorkTargets(stage, cursor);
             workPlanValid = true;
             MinecoloniesAIMetrics.recordBuilderPlannerWindow(plannedWorkTargets.size());
+            logWorkPlan("new_plan", cursor);
             return;
         }
 
@@ -438,6 +457,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                 collectUpcomingWorkTargets(stage, cursor);
                 workPlanValid = true;
                 MinecoloniesAIMetrics.recordBuilderPlannerWindow(plannedWorkTargets.size());
+                logWorkPlan("target_changed", cursor);
             }
             return;
         }
@@ -453,15 +473,41 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
             collectUpcomingWorkTargets(stage, cursor);
             workPlanValid = true;
             MinecoloniesAIMetrics.recordBuilderPlannerWindow(plannedWorkTargets.size());
+            logWorkPlan("cursor_outside_window", cursor);
             return;
         }
 
+        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        {
+            Log.getLogger().info("[AI-BUILDER] action-progress entity={} workOrder={} stage={} completed={} remainingBeforeTrim={} next={}",
+              worker.getCitizenData().getName(),
+              job.getWorkOrder().getID(),
+              stage,
+              worldCursor,
+              plannedWorkTargets.size(),
+              completedTargetIndex + 1 < plannedWorkTargets.size() ? plannedWorkTargets.get(completedTargetIndex + 1) : "window_end");
+        }
         plannedWorkTargets.subList(0, completedTargetIndex + 1).clear();
         plannedProgressCursor = cursor;
         if (plannedWorkTargets.isEmpty())
         {
             collectUpcomingWorkTargets(stage, cursor);
             MinecoloniesAIMetrics.recordBuilderPlannerWindow(plannedWorkTargets.size());
+            logWorkPlan("window_refilled", cursor);
+        }
+    }
+
+    private void logWorkPlan(final String reason, final BlockPos cursor)
+    {
+        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        {
+            Log.getLogger().info("[AI-BUILDER] plan-window entity={} workOrder={} reason={} stage={} cursor={} targets={}",
+              worker.getCitizenData().getName(),
+              job.getWorkOrder().getID(),
+              reason,
+              plannedWorkStage,
+              cursor,
+              plannedWorkTargets);
         }
     }
 

@@ -691,3 +691,22 @@ committed as `265bedbc0a` and pushed to `origin/ai-overhaul`.
 The final checkpoint commit is titled `checkpoint: AI overhaul stabilization`;
 it records the verified source changes and this final validation on
 `ai-overhaul`.
+
+### Builder locality follow-up (1.0.6-port)
+
+- Review of the latest server log found repeated one-node unreachable
+  `PathJobMoveCloseToXNearY` results, including Madalyn retrying the same
+  work target once per second. The available log does not contain actual
+  Builder movement/action traces, so it cannot verify the reported long
+  cross-build trips.
+- Structurize's `default` iterator scans row by row. Fresh work orders using
+  that inherited default now use its built-in Hilbert iterator, which keeps
+  nearby positions together. Explicit non-default modes remain unchanged, and
+  a work order with a saved progress cursor keeps its current iterator.
+- When AI debug logging is enabled, `[AI-BUILDER]` records selected iterators,
+  planned target windows, and completed targets with the next target. This
+  supports evaluating actual traversal on the next server run.
+- Packaged `minecolonies-fabric-1.20.1-1.0.6-port.jar` successfully with
+  `remapJar -x test`. This targeted iteration has not yet had an in-game
+  behavior run; the prior 1.0.5 safe-drop change still needs the reported
+  ledge case confirmed in-game.
