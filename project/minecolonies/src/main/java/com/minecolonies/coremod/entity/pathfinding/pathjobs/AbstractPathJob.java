@@ -379,8 +379,22 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         }
 
         BlockState down = level.getBlockState(pos.below());
-        while (canStandInSolidBlock(bs) && canStandInSolidBlock(down) && !com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(down, level, pos.below(), entity) && down.getFluidState().isEmpty())
+        while (canStandInSolidBlock(bs) && down.getCollisionShape(level, pos.below()).isEmpty()
+                 && !com.minecolonies.fabric.compat.FabricVanillaCompat.isLadder(down, level, pos.below(), entity)
+                 && down.getFluidState().isEmpty())
         {
+            // Opacity is unrelated to physical support: Domum timber frames, glass,
+            // slabs and closed trapdoors must not project the start through a floor.
+            // Sweep the whole body so a mob supported at a platform edge also keeps
+            // its elevation even when the block directly below its center is air.
+            final AABB descent = entity.getBoundingBox()
+                                   .move(0.0D, pos.getY() - entity.getY(), 0.0D)
+                                   .expandTowards(0.0D, -1.0D, 0.0D);
+            if (!level.noCollision(entity, descent))
+            {
+                break;
+            }
+
             pos.move(Direction.DOWN, 1);
             bs = down;
             down = level.getBlockState(pos.below());
@@ -606,6 +620,12 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     public PathResult getResult()
     {
         return result;
+    }
+
+    /** @return the prepared search origin, which may differ from the entity's feet position. */
+    public final BlockPos getStart()
+    {
+        return start;
     }
 
     @Override

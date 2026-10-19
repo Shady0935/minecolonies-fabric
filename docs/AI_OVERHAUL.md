@@ -710,3 +710,39 @@ it records the verified source changes and this final validation on
   `remapJar -x test`. This targeted iteration has not yet had an in-game
   behavior run; the prior 1.0.5 safe-drop change still needs the reported
   ledge case confirmed in-game.
+
+### Path origins above solid floors (1.0.7-port, 2026-10-18)
+
+- The test server is running 1.0.6. Its recent log repeatedly places Kairi at
+  `(-683,72,291)` while alternating 149-node and 172-node routes marked
+  reachable. Read-only console inspection confirms feet at
+  `(-682.5410127377174,72.0,291.53807084198246)` and a Domum material-textured
+  floor at `(-683,71,291)`, with the two material components used by timber
+  frames. Existing logs do not record the prepared start or first node.
+- `AbstractPathJob.prepareStart` used non-occlusion as permission to project
+  the search origin downward. Timber frames and glass have full collision
+  despite being non-occluding, so the origin could pass through an upper floor
+  and begin on the ground beneath it. The same problem affects closed
+  trapdoors and entities supported at the edge of a neighboring block.
+- Downward projection now requires an empty collision shape below the origin
+  and an unobstructed sweep of the mob's full bounding box. This also detects
+  support beside the center column. Existing door, partial-surface, water and
+  ladder handling is retained. Debug logs now include prepared `start`,
+  fractional `feetY`, `onGround`, and the result's `firstNode`.
+- Added 10 focused GameTests for Domum timber frames, glass, top/bottom slabs,
+  stairs, closed trapdoors, carpet, platform edges, doors and unobstructed
+  falling. With the two original navigation classes from the 1.0.6 dev JAR,
+  four tests reproduce an origin five blocks below the NPC. With the fix,
+  all 10 pass, along with the three MultiPiston smoke tests (13 total).
+  The focused headless runs temporarily narrow only the generated metadata's
+  GameTest entrypoint, restoring metadata and baseline class substitutions
+  afterward; source metadata retains every existing entrypoint.
+- Evidence: `logs/ai-path-origin-baseline-confirmed-20261018.xml`,
+  `logs/ai-path-origin-fixed-20261018.xml`, and the isolated
+  `project/minecolonies/run-gametest-path-origin-{baseline-confirmed,fixed}-20261018/logs/latest.log`
+  files. Runtime confirmation with Kairi still requires deploying 1.0.7.
+  Madalyn's repeated unreachable work target remains a separate known issue.
+- Final `remapJar --console=plain` completed successfully in 31 seconds after
+  restoring the full generated metadata and corrected classes. The host's
+  upload preparation still advertises a 32 MiB limit, below the approximately
+  69 MiB JAR, so 1.0.7 has not been uploaded or activated on the test server.

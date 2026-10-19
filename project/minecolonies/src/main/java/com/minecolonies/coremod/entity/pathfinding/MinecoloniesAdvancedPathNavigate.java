@@ -256,8 +256,9 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         MinecoloniesAIMetrics.recordPathJobStarted(repath);
         if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
         {
-            Log.getLogger().info("[AI-NAV] path-job-start entity={} uuid={} job={} pos={} destination={} safeDestination={} repath={} speed={}",
-              ourEntity.getName().getString(), ourEntity.getUUID(), job.getClass().getSimpleName(), ourEntity.blockPosition(), dest,
+            Log.getLogger().info("[AI-NAV] path-job-start entity={} uuid={} job={} pos={} start={} feetY={} onGround={} destination={} safeDestination={} repath={} speed={}",
+              ourEntity.getName().getString(), ourEntity.getUUID(), job.getClass().getSimpleName(), ourEntity.blockPosition(),
+              job.getStart(), ourEntity.getY(), ourEntity.onGround(), dest,
               safeDestination, repath, speedFactor);
         }
         pathResult.startJob(Pathfinding.getExecutor());
@@ -593,12 +594,14 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
         {
             final Path calculatedPath = pathResult == null ? null : pathResult.getPath();
+            final Node firstNode = calculatedPath == null || calculatedPath.getNodeCount() == 0 ? null : calculatedPath.getNode(0);
             final Node endNode = calculatedPath == null ? null : calculatedPath.getEndNode();
-            Log.getLogger().info("[AI-NAV] path-job-result entity={} uuid={} job={} status={} pos={} destination={} nodes={} reachesDestination={} target={} endNode={}",
+            Log.getLogger().info("[AI-NAV] path-job-result entity={} uuid={} job={} status={} pos={} destination={} nodes={} reachesDestination={} target={} firstNode={} endNode={}",
               ourEntity.getName().getString(), ourEntity.getUUID(), pathResult == null || pathResult.getJob() == null ? "unknown" : pathResult.getJob().getClass().getSimpleName(),
               pathResult == null ? "missing" : pathResult.getStatus(), ourEntity.blockPosition(), destination,
               calculatedPath == null ? 0 : calculatedPath.getNodeCount(), calculatedPath != null && calculatedPath.canReach(),
-              calculatedPath == null ? "none" : calculatedPath.getTarget(), endNode == null ? "none" : endNode.asBlockPos());
+              calculatedPath == null ? "none" : calculatedPath.getTarget(), firstNode == null ? "none" : firstNode.asBlockPos(),
+              endNode == null ? "none" : endNode.asBlockPos());
         }
         pathResult.getJob().synchToClient(mob);
         moveTo(pathResult.getPath(), getSpeedFactor());
