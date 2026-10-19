@@ -48,9 +48,10 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation files(project.blockui_jar)
-    modImplementation files(project.domum_jar)
-    modImplementation files(project.structurize_jar)
+    // These local development JARs already use the named mappings.
+    implementation files(project.blockui_jar)
+    implementation files(project.domum_jar)
+    implementation files(project.structurize_jar)
 }
 
 processResources {

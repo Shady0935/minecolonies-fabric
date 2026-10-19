@@ -56,3 +56,22 @@ Reiniciar también el desplazamiento evita acumular el ajuste de altura anterior
 - Sustituir ambos JAR en cliente y servidor, sin mantener dos versiones activas
   del mismo mod. Los artefactos se generan en `project/**/build/libs`.
 - Esta entrega no modifica el mundo ni los mods del servidor remoto o CurseForge.
+
+## Corrección de dependencias de arranque (1.0.9)
+
+El primer paquete omitió una restricción de Multi-Piston 0.0.1: su manifiesto
+exige exactamente Structurize 1.0.0. Fabric rechaza Structurize 1.0.1 antes de
+iniciar el servidor. MineColonies 1.0.8, a su vez, exige Multi-Piston 0.0.1.
+
+- Multi-Piston 0.0.2 acepta explícitamente Structurize 1.0.0 o 1.0.1 y compila
+  contra 1.0.1. No cambia su lógica de juego.
+- MineColonies 1.0.9 requiere Structurize 1.0.1 y Multi-Piston 0.0.2, y compila
+  contra ambos. Conserva las correcciones de 1.0.8 y el overhaul.
+- El conjunto de actualización sustituye tres JAR: MineColonies 1.0.9,
+  Structurize 1.0.1 y Multi-Piston 0.0.2, tanto en cliente como en servidor.
+- Los manifiestos empaquetados deben coincidir con esta cadena; no basta con
+  cambiar las versiones de compilación en `gradle.properties`.
+- El ZIP de servidor referencia también las nuevas versiones. Multi-Piston
+  consume los JAR locales de desarrollo como `implementation`, igual que
+  Structurize: ya están en mappings `named` y no deben remapearse de nuevo como
+  dependencias `intermediary` (el access widener de Structurize lo rechazaba).
