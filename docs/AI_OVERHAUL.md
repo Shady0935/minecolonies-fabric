@@ -774,3 +774,12 @@ it records the verified source changes and this final validation on
 - Only MineColonies changes version, to 1.0.10. Dependencies stay Structurize
   1.0.1 and Multi-Piston 0.0.2. No automated tests or in-game run have been
   performed for this change; packaging and runtime follow-up are recorded below.
+- `remapJar --console=plain` completed successfully in 4m40s. The packaged
+  manifest is 1.0.10 and requires the unchanged dependency versions above.
+  The CurseForge `Minecolonies Fabric` profile now contains that JAR, verified
+  by SHA-256 `d75466cd57ae6d26251805e9611411bbb6b7629c036cb9814cbd271aba381978`.
+  Its previous 1.0.9 JAR is in
+  `mods/codex-backups/20261019-builder-reach-a322456f`, with an install manifest.
+  Minecraft was already closed. The remote server was inspected without world
+  changes and still needs this JAR installed before Kairi's recovery can be
+  confirmed in game.
