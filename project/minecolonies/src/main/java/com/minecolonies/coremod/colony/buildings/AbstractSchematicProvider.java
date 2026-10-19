@@ -406,7 +406,8 @@ public abstract class AbstractSchematicProvider implements ISchematicProvider, I
         }
         catch (final Exception ex)
         {
-            Log.getLogger().warn("TileEntity with invalid data, restoring correct data from schematic.");
+            Log.getLogger().warn("TileEntity with invalid data at {} (building={}, pack={}, path={}), restoring data from schematic.",
+              getPosition(), getSchematicName(), te.getPackName(), te.getBlueprintPath(), ex);
             te.setSchematicName(this.getSchematicName() + Math.max(1, buildingLevel));
         }
 
@@ -416,6 +417,8 @@ public abstract class AbstractSchematicProvider implements ISchematicProvider, I
         }
         catch (final Exception ex)
         {
+            Log.getLogger().warn("Unable to restore building schematic at {} (building={}, pack={}, path={}).",
+              getPosition(), getSchematicName(), te.getPackName(), te.getBlueprintPath(), ex);
             MessageUtils.format(WARNING_INVALID_BUILDING, getSchematicName(), getID().getX(), getID().getY(), getID().getZ(), getStructurePack()).sendTo(colony).forAllPlayers();
         }
     }

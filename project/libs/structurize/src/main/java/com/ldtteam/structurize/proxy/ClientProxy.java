@@ -26,6 +26,13 @@ public class ClientProxy implements IProxy
             return;
         }
 
+        if (pos != null)
+        {
+            // A block click starts at that block. Air-use still resumes the
+            // current preview, and switching packs inside the window retains it.
+            RenderingCache.getOrCreateBlueprintPreviewData("blueprint").clearPosition();
+        }
+
         @Nullable
         final WindowExtendedBuildTool window = new WindowExtendedBuildTool(pos, groundstyle);
         window.open();

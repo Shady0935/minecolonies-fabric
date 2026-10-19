@@ -1,5 +1,6 @@
 package com.minecolonies.api.tileentities;
 
+import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.ldtteam.structurize.blueprints.v1.Blueprint;
 import com.ldtteam.structurize.storage.StructurePackMeta;
 import com.ldtteam.structurize.storage.StructurePacks;
@@ -349,7 +350,12 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
     @Override
     public void load(@NotNull final CompoundTag compound)
     {
-        super.load(compound);
+        // Reading schematic data notifies the live building. Its callback must
+        // see this load's identity, rather than an empty or previously used pack.
+        final String schematicName = compound.contains(IBlueprintDataProviderBE.TAG_BLUEPRINTDATA)
+                                       ? compound.getCompound(IBlueprintDataProviderBE.TAG_BLUEPRINTDATA)
+                                           .getString(IBlueprintDataProviderBE.TAG_SCHEMATIC_NAME).replace(".blueprint", "")
+                                       : getSchematicName();
         if (compound.contains(TAG_COLONY))
         {
             colonyId = compound.getInt(TAG_COLONY);
@@ -362,14 +368,14 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
         {
             packName = BlueprintMapping.getStyleMapping(compound.getString(TAG_STYLE));
 
-            if (this.getSchematicName().isEmpty())
+            if (schematicName.isEmpty())
             {
                 path = null;
             }
             else
             {
-                final String level = this.getSchematicName().substring(this.getSchematicName().length() - 1);
-                path = BlueprintMapping.getPathMapping(compound.getString(TAG_STYLE), this.getSchematicName().substring(0, this.getSchematicName().length() - 1)) + level
+                final String level = schematicName.substring(schematicName.length() - 1);
+                path = BlueprintMapping.getPathMapping(compound.getString(TAG_STYLE), schematicName.substring(0, schematicName.length() - 1)) + level
                          + ".blueprint";
             }
         }
@@ -381,7 +387,10 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
 
         if (packName == null || packName.isEmpty())
         {
-            final List<String> tags = new ArrayList<>(getPositionedTags().getOrDefault(BlockPos.ZERO, new ArrayList<>()));
+            final var incomingTags = compound.contains(IBlueprintDataProviderBE.TAG_BLUEPRINTDATA)
+                                       ? IBlueprintDataProviderBE.readTagPosMapFrom(compound.getCompound(IBlueprintDataProviderBE.TAG_BLUEPRINTDATA))
+                                       : getPositionedTags();
+            final List<String> tags = new ArrayList<>(incomingTags.getOrDefault(BlockPos.ZERO, new ArrayList<>()));
             if (!tags.isEmpty())
             {
                 tags.remove(DEACTIVATED);
@@ -417,6 +426,8 @@ public class TileEntityColonyBuilding extends AbstractTileEntityColonyBuilding i
         {
             registryName = new ResourceLocation(compound.getString(TAG_BUILDING_TYPE));
         }
+        super.load(compound);
+        // Rack loading reads its saved owner position; a hut always owns itself.
         buildingPos = worldPosition;
     }
 

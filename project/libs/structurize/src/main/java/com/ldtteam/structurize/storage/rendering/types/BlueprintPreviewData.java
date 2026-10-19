@@ -330,4 +330,11 @@ public class BlueprintPreviewData
     {
         this.pos = pos;
     }
+
+    /** Start a fresh placement while retaining the selected blueprint and its orientation. */
+    public void clearPosition()
+    {
+        pos = null;
+        groundOffset = 0;
+    }
 }
