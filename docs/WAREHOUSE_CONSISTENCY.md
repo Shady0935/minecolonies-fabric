@@ -77,7 +77,12 @@ versión; no hace falta romperlos ni pedir reconstruir el edificio.
 
 ## Verificación y límites
 
-Compilación y empaquetado mediante `remapJar --console=plain` por módulo.
+Compilación y empaquetado mediante `remapJar --console=plain`: Structurize 29 s,
+Multi-Piston 24 s, MineColonies 3 min 19 s y una compilación final de 1 min 29 s
+tras incluir también las posiciones de entidades de bloque pendientes de
+activar al cargar el chunk. El bytecode final contiene `getBlockEntitiesPos`.
+Las tres compilaciones finales terminaron correctamente; los avisos existentes
+son de APIs obsoletas y operaciones sin comprobar.
 No se añaden ni ejecutan pruebas automatizadas en esta corrección.
 `MANUAL_VALIDATION_PENDING`: comprobar el par señalado y otros estantes tras
 reiniciar, verificar acceso a ambos inventarios, reabrir las opciones del almacén
@@ -86,5 +91,26 @@ el cliente y depende de sus chunks/datos recibidos; no es un certificado de
 integridad de todo el edificio.
 
 Los logs de compilación y las lecturas de NBT se conservan localmente bajo
-`logs/`, excluidos de Git. La instalación del perfil y los hashes de entrega se
-registran al terminar el empaquetado.
+`logs/`, excluidos de Git.
+
+## Instalación en CurseForge y checkpoint
+
+El código está respaldado en `origin/fix/warehouse-consistency`, commit
+`37b2278387`. El 19 de octubre a las 05:39 COT se instalaron los tres artefactos
+en el perfil `Minecolonies Fabric`, comprobando manifiestos y hashes SHA-256.
+Minecraft de ese perfil (PID 31356) cerró normalmente; no fue necesario forzar
+su terminación. No se detuvieron otros procesos Java.
+
+Los tres JAR anteriores y `installed-manifest.json` están en
+`mods/codex-backups/20261019-warehouse-consistency-4098ecf3`. Cada mod tiene una
+sola versión activa. Los hashes instalados coinciden con `build/libs`:
+
+| Mod | Versión | SHA-256 |
+| --- | --- | --- |
+| MineColonies | 1.0.11-port | `3aa1fdd8db31f29370949df030e0008bbe1774ccac1d2b584ac6e147d6bb7653` |
+| Structurize | 1.0.2-port | `b78f9683e42e47a12313a4590c03d9375bd0445ea7ef022ba092c163b504dee0` |
+| Multi-Piston | 0.0.3-port | `d72ec5349c572c45833eb6b0c08872f741685269f4e28760d2e985430f3ba46f` |
+
+El servidor remoto conserva sus versiones anteriores. Para aplicar allí la
+normalización y la comparación nueva hay que sustituir los tres JAR y reiniciar.
+No se ha iniciado un cliente ni validado esta entrega en juego.

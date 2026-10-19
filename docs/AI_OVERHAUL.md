@@ -809,3 +809,14 @@ it records the verified source changes and this final validation on
   04:49:28 and 04:57:49; decoded read-only snapshot in
   `logs/kairi-colony-snapshot-20261019.json` (ignored, including unrelated colony
   data), and the server's current command/log output.
+
+### Warehouse consistency follow-up (1.0.11)
+
+The warehouse is saved as built, level 5; its Repair button and red title do not
+indicate damage. Follow-up inspection found stale blueprint/runtime NBT repair
+comparisons and mutually facing double racks both rendering the visible model.
+The fixes, read-only server evidence and remaining in-game checks are documented
+in `docs/WAREHOUSE_CONSISTENCY.md`. Branch `fix/warehouse-consistency` preserves
+the AI fixes and ships MineColonies 1.0.11 / Structurize 1.0.2 / Multi-Piston
+0.0.3 as one compatible set. All three are installed in the CurseForge test
+profile with backups and matching hashes; the remote server still needs them.
