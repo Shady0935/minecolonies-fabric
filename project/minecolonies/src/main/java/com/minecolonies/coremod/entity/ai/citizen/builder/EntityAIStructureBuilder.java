@@ -78,6 +78,12 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     /** Maximum raw blueprint positions inspected to fill the bounded work window. */
     private static final int WORK_LOOKAHEAD_SCAN_LIMIT = 512;
 
+    private static final int WORK_PATH_RETRY_TICKS = 100;
+
+    private BlockPos blockedWorkTarget;
+    private BlockPos blockedWorkOrigin;
+    private long workPathRetryAt;
+
     /**
      * Path used to select the next safe work position.
      */
@@ -322,6 +328,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                 updateWorkFrom(worker.blockPosition());
             }
             plannedRouteTarget = choosePlannerAnchor(worker.blockPosition(), nearbyPosition);
+            blockedWorkTarget = null;
             MinecoloniesAIMetrics.recordBuilderPlannerInPlace(countCoveredTargets(worker.blockPosition()));
             return true;
         }
@@ -333,8 +340,52 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
         if (workFrom == null)
         {
-            if (workPositionPath == null || workPositionPath.isCancelled())
+            // A completed one-node route may already have been cancelled by
+            // navigation. Inspect its result before submitting the same job again.
+            if (workPositionPath != null && workPositionPath.isDone())
             {
+                final Path path = workPositionPath.getPath();
+                final BlockPos endpoint = path == null || path.getEndNode() == null ? null : path.getEndNode().asBlockPos();
+                if (endpoint != null && (plannedWorkTargets.isEmpty() || isWorkTargetReachableFrom(endpoint, nextTarget)))
+                {
+                    updateWorkFrom(endpoint);
+                    blockedWorkTarget = null;
+                }
+                else if (path != null && path.getNodeCount() > 1 && !workPositionPath.isCancelled()
+                           && worker.getNavigation().isInProgress()
+                           && !((MinecoloniesAdvancedPathNavigate) worker.getNavigation()).isPathingStuck())
+                {
+                    // Let a useful partial route finish instead of cancelling it
+                    // every time the worker state machine checks its endpoint.
+                    return false;
+                }
+                else
+                {
+                    blockedWorkTarget = nextTarget.immutable();
+                    blockedWorkOrigin = worker.blockPosition().immutable();
+                    workPathRetryAt = world.getGameTime() + WORK_PATH_RETRY_TICKS;
+                    plannerInvalidationReason = "work_target_unreachable";
+                    plannedRouteTarget = null;
+                    worker.getNavigation().stop();
+                    if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+                    {
+                        Log.getLogger().info("[AI-BUILDER] work-target-unreachable entity={} target={} origin={} endpoint={} nodes={} retryTicks={}",
+                          worker.getCitizenData().getName(), nextTarget, blockedWorkOrigin, endpoint,
+                          path == null ? 0 : path.getNodeCount(), WORK_PATH_RETRY_TICKS);
+                    }
+                }
+                workPositionPath = null;
+                return false;
+            }
+
+            if (workPositionPath == null)
+            {
+                if (nextTarget.equals(blockedWorkTarget) && worker.blockPosition().equals(blockedWorkOrigin)
+                      && world.getGameTime() < workPathRetryAt)
+                {
+                    return false;
+                }
+                blockedWorkTarget = null;
                 final BlockPos routePreference = !plannedWorkTargets.isEmpty()
                                                    ? choosePlannerAnchor(worker.blockPosition(), nearbyPosition)
                                                    : nearbyPosition;
@@ -344,7 +395,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                   AbstractPathJob.prepareStart(worker),
                   nextTarget,
                   routePreference,
-                  4,
+                  STANDARD_WORKING_RANGE,
                   (int) worker.getAttribute(Attributes.FOLLOW_RANGE).getValue(),
                   worker);
                 workPositionPath = ((MinecoloniesAdvancedPathNavigate) worker.getNavigation()).setPathJob(
@@ -353,25 +404,6 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                   1.0D,
                   false,
                   options -> options.setCanDrop(true));
-            }
-            else if (workPositionPath.isDone())
-            {
-                final Path path = workPositionPath.getPath();
-                if (path != null && (plannedWorkTargets.isEmpty() || isWorkTargetReachableFrom(path.getTarget(), nextTarget)))
-                {
-                    updateWorkFrom(path.getTarget());
-                }
-                else if (path == null)
-                {
-                    resetWorkPlanner("path_failed", false);
-                }
-                else
-                {
-                    updateWorkFrom(null);
-                    plannedRouteTarget = null;
-                    plannerInvalidationReason = "route_outside_work_range";
-                }
-                workPositionPath = null;
             }
 
             return false;
@@ -720,8 +752,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
     private boolean isWorkTargetReachableFrom(final BlockPos workPosition, final BlockPos target)
     {
-        return BlockPosUtil.getDistance2D(workPosition, target) <= STANDARD_WORKING_RANGE
-                 && Math.abs(workPosition.getY() - target.getY()) <= 3;
+        return PathJobMoveCloseToXNearY.isWithinWorkRange(workPosition, target, worker.getEyeHeight(), STANDARD_WORKING_RANGE);
     }
 
     private boolean isWorkPositionSafe(final BlockPos workPosition)
@@ -748,6 +779,9 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
     private void resetWorkPlanner(final String reason, final boolean clearWorkPosition)
     {
+        blockedWorkTarget = null;
+        blockedWorkOrigin = null;
+        workPathRetryAt = 0;
         final boolean hadPlan = workPlanValid || plannedWorkStage != null || plannedProgressCursor != null || !plannedWorkTargets.isEmpty();
         if (workPositionPath != null)
         {
@@ -792,6 +826,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                  + ",route=" + plannedRouteTarget
                  + ",workFrom=" + workFrom
                  + ",invalidation=" + plannerInvalidationReason
+                 + ",blockedTarget=" + blockedWorkTarget
                  + ",pathResult=" + pathState;
     }
 

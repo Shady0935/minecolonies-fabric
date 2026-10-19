@@ -746,3 +746,31 @@ it records the verified source changes and this final validation on
   restoring the full generated metadata and corrected classes. The host's
   upload preparation still advertises a 32 MiB limit, below the approximately
   69 MiB JAR, so 1.0.7 has not been uploaded or activated on the test server.
+
+### Builder roof reach and failed-route retries (1.0.10-port, 2026-10-19)
+
+- The test server runs 1.0.9. Read-only inspection identifies Kairi G. Chernock
+  as citizen 4, UUID `bc518431-1a70-4085-be3a-f8e72cfb1fc6`, stationary at
+  `(-636.5084,69,172.7713)` with a Domum shingle slab in hand. The block below
+  is a Domum materially retexturable block; this report is not the earlier
+  origin-projected-through-floor case.
+- At 09:18:56 UTC, work order 9 enters a BUILD_SOLID window of roof targets at
+  Y=74, beginning with `(-638,74,172)`. A three-node partial route ends at
+  `(-637,69,172)`, followed by repeated one-node unreachable results at that
+  position through the 09:29–09:30 observations. Evidence is preserved in
+  `logs/kairi-work-reach-20261019.txt` (ignored runtime evidence).
+- The planner rejected targets more than three blocks above the worker's feet,
+  while its route job used a different four-block Manhattan distance. Both now
+  share a bounded five-block reach measured from eye height to the target's
+  center, retaining the horizontal Manhattan bound and avoiding work positions
+  in the target column at or above the target. The eye height is captured before
+  async search starts; path scoring and collision/support checks remain active.
+- Completed route results are inspected before cancelled status, so navigation
+  cannot discard a failed one-node result and immediately repeat it. A partial
+  route with movement is allowed to finish before another search. An unusable
+  endpoint records `work-target-unreachable` and retries after 100 game ticks,
+  unless the worker moves, the target changes, or the plan is reset. The active
+  structure cursor and resource requirements are not advanced on a failed route.
+- Only MineColonies changes version, to 1.0.10. Dependencies stay Structurize
+  1.0.1 and Multi-Piston 0.0.2. No automated tests or in-game run have been
+  performed for this change; packaging and runtime follow-up are recorded below.

@@ -16,6 +16,7 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
     private final BlockPos desiredPosition;
     private final BlockPos nearbyPosition;
     private final int distanceToDesired;
+    private final double eyeHeight;
 
     public PathJobMoveCloseToXNearY(final Level world,
                                     @NotNull final BlockPos start,
@@ -29,6 +30,7 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
         this.desiredPosition = desiredPosition;
         this.nearbyPosition = nearbyPosition;
         this.distanceToDesired = distanceToDesired;
+        this.eyeHeight = entity.getEyeHeight();
     }
 
     @Override
@@ -40,20 +42,34 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
     @Override
     protected boolean isAtDestination(@NotNull final MNode node)
     {
-        if (node.pos.getX() == desiredPosition.getX() && node.pos.getZ() == desiredPosition.getZ())
+        final BlockPos below = node.pos.below();
+        return isWithinWorkRange(node.pos, desiredPosition, eyeHeight, distanceToDesired)
+                 && SurfaceType.getSurfaceType(world, cachedBlockLookup.getBlockState(below), below, getPathingOptions()) == SurfaceType.WALKABLE;
+    }
+
+    /** Shared by route selection and the Builder so a reachable endpoint stays usable. */
+    public static boolean isWithinWorkRange(final BlockPos standingPosition, final BlockPos target,
+                                             final double eyeHeight, final int range)
+    {
+        final double dx = standingPosition.getX() - target.getX();
+        final double dz = standingPosition.getZ() - target.getZ();
+        if (Math.abs(dx) + Math.abs(dz) > range
+              || (dx == 0 && dz == 0 && standingPosition.getY() >= target.getY()))
         {
             return false;
         }
 
-        final BlockPos below = node.pos.below();
-        return manhattanDistance(desiredPosition, node.pos) <= distanceToDesired
-                 && SurfaceType.getSurfaceType(world, cachedBlockLookup.getBlockState(below), below, getPathingOptions()) == SurfaceType.WALKABLE;
+        // Measure reach from the worker's eyes to the target block's center,
+        // rather than rejecting an upper block by its height above the feet.
+        final double dy = standingPosition.getY() + eyeHeight - (target.getY() + 0.5D);
+        return dx * dx + dy * dy + dz * dz <= (double) range * range;
     }
 
     @Override
     protected double getNodeResultScore(@NotNull final MNode node)
     {
-        if (node.pos.getX() == desiredPosition.getX() && node.pos.getZ() == desiredPosition.getZ())
+        if (node.pos.getX() == desiredPosition.getX() && node.pos.getZ() == desiredPosition.getZ()
+              && node.pos.getY() >= desiredPosition.getY())
         {
             return 1000.0D;
         }
