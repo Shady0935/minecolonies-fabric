@@ -783,3 +783,29 @@ it records the verified source changes and this final validation on
   Minecraft was already closed. The remote server was inspected without world
   changes and still needs this JAR installed before Kairi's recovery can be
   confirmed in game.
+
+### Live 1.0.10 follow-up: completed work versus waiting for orders
+
+- Subsequent server traces confirm Kairi resumed work order 9 and successfully
+  placed the roof target `(-638,74,172)` at 09:48:55 UTC. The client chat records
+  completion of the warehouse repair at `(-633,64,171)` at 04:49:28 Bogota time.
+  Work order 10 then advanced through a second warehouse's roof targets at Y=80.
+- The later screenshot shows `WORKING / START_WORKING / Navigation: idle`.
+  Read-only `minecolonies citizens info 1 4` confirms START_WORKING at
+  `(-697,75,223)`. The latest saved colony data has no `workorder` in Kairi's job,
+  paused=false, no async requests, and only work order 4 remaining in the colony,
+  claimed by Madalyn's workshop at `(-712,68,277)`.
+- The client log resolves whether work order 10 vanished: at 04:57:49 Bogota
+  time Kairi says she finished repairing the warehouse at `(-695,70,227)`.
+  That building is saved as built, level 5. Thus the later START_WORKING snapshot
+  is waiting for a new eligible order after completion; it is not evidence of
+  another unreachable path. No live world edits or AI resets were needed.
+- The debug overlay's generic WORKING status and START_WORKING worker label do
+  not distinguish waiting for an order from executing one. This is a diagnostic
+  presentation limitation. No new gameplay patch or JAR is produced for this
+  observation; CurseForge remains on MineColonies 1.0.10 / Structurize 1.0.1 /
+  Multi-Piston 0.0.2.
+- Local evidence: the CurseForge profile's `logs/latest.log`, chat entries at
+  04:49:28 and 04:57:49; decoded read-only snapshot in
+  `logs/kairi-colony-snapshot-20261019.json` (ignored, including unrelated colony
+  data), and the server's current command/log output.
