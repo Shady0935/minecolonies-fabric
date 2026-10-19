@@ -75,3 +75,13 @@ iniciar el servidor. MineColonies 1.0.8, a su vez, exige Multi-Piston 0.0.1.
   consume los JAR locales de desarrollo como `implementation`, igual que
   Structurize: ya están en mappings `named` y no deben remapearse de nuevo como
   dependencias `intermediary` (el access widener de Structurize lo rechazaba).
+
+### Instalación en CurseForge
+
+El 19 de octubre se instaló MineColonies 1.0.9 y Multi-Piston 0.0.2 en el perfil
+`Minecolonies Fabric`. Structurize 1.0.1 ya coincidía con el artefacto compilado.
+Los tres JAR activos coinciden por SHA-256 con sus artefactos de distribución.
+La copia anterior de MineColonies 1.0.8 y el manifiesto de instalación quedan
+en `mods/codex-backups/20261019-dependency-fix-b2480adf` dentro del perfil.
+Minecraft estaba cerrado, por lo que no fue necesario terminar ningún proceso.
+No se ha iniciado el juego ni cambiado el servidor remoto en esta operación.
