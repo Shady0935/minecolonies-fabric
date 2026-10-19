@@ -5,6 +5,7 @@ import com.minecolonies.apiimp.initializer.EntityInitializer;
 import com.minecolonies.apiimp.initializer.ModBlocksInitializer;
 import com.minecolonies.apiimp.initializer.ModItemsInitializer;
 import com.minecolonies.apiimp.initializer.ModParticleTypesInitializer;
+import com.minecolonies.coremod.blocks.BlockMinecoloniesRack;
 import com.minecolonies.coremod.recipes.FoodIngredient;
 import com.minecolonies.coremod.recipes.PlantIngredient;
 import com.minecolonies.coremod.Network;
@@ -212,7 +213,18 @@ public final class MineColoniesFabric implements ModInitializer
         ServerWorldEvents.UNLOAD.register((server, level) ->
             MinecraftForge.EVENT_BUS.post(new LevelEvent.Unload(level)));
         ServerChunkEvents.CHUNK_LOAD.register((level, chunk) ->
-            MinecraftForge.EVENT_BUS.post(new ChunkEvent.Load(chunk, level)));
+        {
+            MinecraftForge.EVENT_BUS.post(new ChunkEvent.Load(chunk, level));
+            // Defer until block entities and adjacent loaded chunks are available.
+            // This also repairs existing malformed racks after installing the update.
+            for (final net.minecraft.core.BlockPos pos : chunk.getBlockEntitiesPos())
+            {
+                if (chunk.getBlockState(pos).getBlock() instanceof BlockMinecoloniesRack rack)
+                {
+                    level.scheduleTick(pos, rack, 1);
+                }
+            }
+        });
         ServerChunkEvents.CHUNK_UNLOAD.register((level, chunk) ->
             MinecraftForge.EVENT_BUS.post(new ChunkEvent.Unload(chunk, level)));
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) ->

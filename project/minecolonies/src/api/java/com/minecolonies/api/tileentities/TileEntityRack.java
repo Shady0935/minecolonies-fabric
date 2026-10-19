@@ -582,9 +582,9 @@ public class TileEntityRack extends AbstractTileEntityRack implements IMateriall
     }
 
     /**
-     * Invalidates the cap
+     * Invalidates the cached inventory view after removal or pair normalization.
      */
-    private void invalidateCap()
+    public void invalidateCap()
     {
         if (lastOptional != null && lastOptional.isPresent())
         {

@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +43,10 @@ public class RackPlacementHandler implements IPlacementHandler
     {
         if (world.getBlockState(pos).getBlock() == ModBlocks.blockRack)
         {
+            if (world instanceof ServerLevel serverLevel)
+            {
+                BlockMinecoloniesRack.normalizeDoubleRack(serverLevel, pos);
+            }
             return ActionProcessingResult.SUCCESS;
         }
 
@@ -49,6 +54,10 @@ public class RackPlacementHandler implements IPlacementHandler
         if (tileEntityData != null)
         {
             handleTileEntityPlacement(tileEntityData, world, pos, settings);
+        }
+        if (world instanceof ServerLevel serverLevel)
+        {
+            BlockMinecoloniesRack.normalizeDoubleRack(serverLevel, pos);
         }
         return ActionProcessingResult.SUCCESS;
     }

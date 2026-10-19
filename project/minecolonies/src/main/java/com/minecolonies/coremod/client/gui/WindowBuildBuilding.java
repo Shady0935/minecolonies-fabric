@@ -322,7 +322,7 @@ public class WindowBuildBuilding extends AbstractWindowSkeleton
             do
             {
                 result = placer.executeStructureStep(world, null, progressPos, StructurePlacer.Operation.GET_RES_REQUIREMENTS,
-                  () -> placer.getIterator().increment(DONT_TOUCH_PREDICATE.and((info, pos, handler) -> false)), true);
+                  () -> placer.getIterator().increment(DONT_TOUCH_PREDICATE), true);
 
                 progressPos = result.getIteratorPos();
                 for (final ItemStack stack : result.getBlockResult().getRequiredItems())

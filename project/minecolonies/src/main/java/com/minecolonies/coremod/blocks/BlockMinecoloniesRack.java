@@ -15,6 +15,7 @@ import com.minecolonies.api.util.constant.Constants;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
@@ -195,10 +196,69 @@ public class BlockMinecoloniesRack extends AbstractBlockMinecoloniesRack<BlockMi
             // If its not a double variant and the new neighbor is neither, then connect.
             else if (bEntity2 instanceof TileEntityRack && !state.getValue(VARIANT).isDoubleVariant() && state2.hasProperty(VARIANT) && state2.getValue(VARIANT).isDoubleVariant() && state2.getValue(FACING).equals(BY_NORMAL.get(((pos2.subtract(pos1)).asLong())).getOpposite()))
             {
-                return state.setValue(VARIANT, ((TileEntityRack) bEntity1).isEmpty() ? RackType.DEFAULTDOUBLE : RackType.FULLDOUBLE).setValue(FACING, BY_NORMAL.get(pos2.subtract(pos1).asLong()));
+                // An owner placed after its hidden half must not create a second
+                // visible owner. Blueprint placement can encounter either half first.
+                final RackType variant = state2.getValue(VARIANT) == RackType.EMPTYAIR
+                  ? (((TileEntityRack) bEntity1).isEmpty() && ((TileEntityRack) bEntity2).isEmpty() ? RackType.DEFAULTDOUBLE : RackType.FULLDOUBLE)
+                  : RackType.EMPTYAIR;
+                return state.setValue(VARIANT, variant).setValue(FACING, BY_NORMAL.get(pos2.subtract(pos1).asLong()));
             }
         }
         return super.updateShape(state, dir, state2, level, pos1, pos2);
+    }
+
+    @Override
+    public void onPlace(final BlockState state, final Level level, final BlockPos pos, final BlockState oldState, final boolean moving)
+    {
+        super.onPlace(state, level, pos, oldState, moving);
+        if (!level.isClientSide && oldState.getBlock() != this)
+        {
+            level.scheduleTick(pos, this, 1);
+        }
+    }
+
+    @Override
+    public void tick(final BlockState state, final ServerLevel level, final BlockPos pos, final RandomSource random)
+    {
+        normalizeDoubleRack(level, pos);
+    }
+
+    /**
+     * Repair malformed mutual pairs without replacing either block entity or
+     * changing its inventory, capacity or warehouse ownership. Valid pairs keep
+     * their original visible half. Called after placement and once on chunk load.
+     */
+    public static void normalizeDoubleRack(final ServerLevel level, final BlockPos pos)
+    {
+        final BlockState state = level.getBlockState(pos);
+        if (state.getBlock() != ModBlocks.blockRack || !state.getValue(VARIANT).isDoubleVariant())
+        {
+            return;
+        }
+
+        final BlockPos otherPos = pos.relative(state.getValue(FACING));
+        // Never generate or synchronously load a neighboring chunk for this repair.
+        if (level.getChunkSource().getChunkNow(otherPos.getX() >> 4, otherPos.getZ() >> 4) == null)
+        {
+            return;
+        }
+        final BlockState otherState = level.getBlockState(otherPos);
+        if (otherState.getBlock() != ModBlocks.blockRack
+              || !otherState.getValue(VARIANT).isDoubleVariant()
+              || otherState.getValue(FACING) != state.getValue(FACING).getOpposite()
+              || (state.getValue(VARIANT) == RackType.EMPTYAIR) != (otherState.getValue(VARIANT) == RackType.EMPTYAIR)
+              || !(level.getBlockEntity(pos) instanceof TileEntityRack rack)
+              || !(level.getBlockEntity(otherPos) instanceof TileEntityRack otherRack))
+        {
+            return;
+        }
+
+        final boolean ownerHere = pos.compareTo(otherPos) < 0;
+        final RackType ownerVariant = rack.isEmpty() && otherRack.isEmpty() ? RackType.DEFAULTDOUBLE : RackType.FULLDOUBLE;
+        level.setBlockAndUpdate(pos, state.setValue(VARIANT, ownerHere ? ownerVariant : RackType.EMPTYAIR));
+        level.setBlockAndUpdate(otherPos, otherState.setValue(VARIANT, ownerHere ? RackType.EMPTYAIR : ownerVariant));
+        rack.invalidateCap();
+        otherRack.invalidateCap();
     }
 
     @Override

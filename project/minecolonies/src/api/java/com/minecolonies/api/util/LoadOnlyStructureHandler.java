@@ -72,7 +72,10 @@ public class LoadOnlyStructureHandler extends CreativeStructureHandler
         }
 
 
-        return super.shouldBlocksBeConsideredEqual(state1, state2);
+        // Rack fullness and the visible half are maintained by the live pair,
+        // just as in BuildingStructureHandler; neither consumes repair items.
+        return (block1 == ModBlocks.blockRack && block2 == ModBlocks.blockRack)
+                 || super.shouldBlocksBeConsideredEqual(state1, state2);
     }
 
     @Override

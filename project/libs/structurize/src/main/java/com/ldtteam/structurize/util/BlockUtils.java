@@ -1,5 +1,7 @@
 package com.ldtteam.structurize.util;
 
+import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlock;
+import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlockComponent;
 import com.ldtteam.domumornamentum.entity.block.IMateriallyTexturedBlockEntity;
 import com.ldtteam.structurize.api.util.Utils;
 import com.ldtteam.structurize.api.util.constant.Constants;
@@ -404,7 +406,8 @@ public final class BlockUtils
         final Block structureBlock = structureState.getBlock();
         final Block worldBlock = worldState.getBlock();
 
-        if (worldState.equals(structureState))
+        if (worldState.equals(structureState)
+              || (structureBlock == worldBlock && specialEqualRule.test(structureState, worldState)))
         {
             if (tileEntityData == null)
             {
@@ -413,6 +416,24 @@ public final class BlockUtils
             else if (worldEntity == null)
             {
                 return false;
+            }
+            else if (worldEntity instanceof IMateriallyTexturedBlockEntity texturedEntity
+                       && structureBlock instanceof IMateriallyTexturedBlock texturedBlock)
+            {
+                // Compare the material components the current block actually uses.
+                // Schematics can contain obsolete texture slots and runtime colony,
+                // inventory and version data, none of which describes a repair.
+                final CompoundTag expectedTextures = tileEntityData.getCompound("textureData");
+                final CompoundTag actualTextures = texturedEntity.getTextureData().serializeNBT();
+                for (final IMateriallyTexturedBlockComponent component : texturedBlock.getComponents())
+                {
+                    final String key = component.getId().toString();
+                    if (!Objects.equals(expectedTextures.get(key), actualTextures.get(key)))
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
             else if (worldEntity instanceof IMateriallyTexturedBlockEntity)
             {
