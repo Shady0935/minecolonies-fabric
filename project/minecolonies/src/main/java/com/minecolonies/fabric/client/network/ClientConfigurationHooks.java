@@ -26,6 +26,12 @@ public final class ClientConfigurationHooks
                 }
             });
         });
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> client.execute(FabricConfiguration::restoreLocal));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            final var level = handler.getLevel();
+            client.execute(() -> {
+                FabricConfiguration.restoreLocal();
+                com.minecolonies.fabric.capability.CapabilityHooks.releaseLevel(level);
+            });
+        });
     }
 }

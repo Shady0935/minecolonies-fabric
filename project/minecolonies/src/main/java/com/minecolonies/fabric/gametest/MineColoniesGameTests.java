@@ -1347,10 +1347,35 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.getLevel().getChunk(x, z);
             }
         }
-        helper.runAfterDelay(5, () -> startCitizenBuilderCompletesWorkOrderThroughNavigation(helper));
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        owner.teleportTo(origin.getX() + 2.5, origin.getY() + 2.0, origin.getZ() + 2.5);
+        // Mock players do not send the movement packet that normally updates player tickets.
+        helper.getLevel().getChunkSource().move(owner);
+        final boolean[] started = {false};
+        final int[] preparationTicks = {0};
+        helper.onEachTick(() -> {
+            if (started[0]) { return; }
+            boolean ready = true;
+            for (int x = origin.getX() >> 4; x <= (origin.getX() + 50) >> 4; x++)
+            {
+                for (int z = origin.getZ() >> 4; z <= (origin.getZ() + 16) >> 4; z++)
+                {
+                    ready &= WorldUtil.isEntityChunkLoaded(helper.getLevel(), x, z);
+                }
+            }
+            if (ready)
+            {
+                started[0] = true;
+                startCitizenBuilderCompletesWorkOrderThroughNavigation(helper, owner);
+            }
+            else if (++preparationTicks[0] >= 600)
+            {
+                helper.assertTrue(false, "Fixture chunks did not become entity ticking before citizen creation: " + origin);
+            }
+        });
     }
 
-    private void startCitizenBuilderCompletesWorkOrderThroughNavigation(final GameTestHelper helper)
+    private void startCitizenBuilderCompletesWorkOrderThroughNavigation(final GameTestHelper helper, final ServerPlayer owner)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -1390,7 +1415,6 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.setBlock(relativeRack, ModBlocks.blockRack);
         helper.setBlock(relativeCobblestoneRack, ModBlocks.blockRack);
 
-        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
         final IColony colony = IColonyManager.getInstance().createColony(
           level, townHall, owner, "Fabric Builder End-to-End GameTest Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "Builder end-to-end fixture colony was not created");
@@ -1452,7 +1476,10 @@ public final class MineColoniesGameTests implements FabricGameTest
 
         final ICitizenData citizen = colony.getCitizenManager().spawnOrCreateCitizen(null, level, builderPos.above());
         helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
-          "Builder end-to-end fixture could not create a live citizen");
+          "Builder end-to-end fixture could not create a live citizen; data=" + citizen
+            + "; ticking=" + WorldUtil.isEntityBlockLoaded(level, builderPos.above())
+            + "; safeSpawn=" + EntityUtils.getSpawnPoint(level, builderPos.above())
+            + "; townHall=" + colony.getBuildingManager().hasTownHall());
         final WorkerBuildingModule workerModule = builder.getModuleMatching(
           WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.builder.get());
         helper.assertTrue(workerModule != null && workerModule.assignCitizen(citizen),
@@ -3837,10 +3864,35 @@ public final class MineColoniesGameTests implements FabricGameTest
                 helper.getLevel().getChunk(x, z);
             }
         }
-        helper.runAfterDelay(5, () -> startFarmerAIWalksToAssignedFieldAndHarvestsCrop(helper));
+        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
+        owner.teleportTo(origin.getX() + 2.5, origin.getY() + 2.0, origin.getZ() + 2.5);
+        // Mock players do not send the movement packet that normally updates player tickets.
+        helper.getLevel().getChunkSource().move(owner);
+        final boolean[] started = {false};
+        final int[] preparationTicks = {0};
+        helper.onEachTick(() -> {
+            if (started[0]) { return; }
+            boolean ready = true;
+            for (int x = origin.getX() >> 4; x <= (origin.getX() + 50) >> 4; x++)
+            {
+                for (int z = origin.getZ() >> 4; z <= (origin.getZ() + 16) >> 4; z++)
+                {
+                    ready &= WorldUtil.isEntityChunkLoaded(helper.getLevel(), x, z);
+                }
+            }
+            if (ready)
+            {
+                started[0] = true;
+                startFarmerAIWalksToAssignedFieldAndHarvestsCrop(helper, owner);
+            }
+            else if (++preparationTicks[0] >= 600)
+            {
+                helper.assertTrue(false, "Fixture chunks did not become entity ticking before citizen creation: " + origin);
+            }
+        });
     }
 
-    private void startFarmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
+    private void startFarmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper, final ServerPlayer owner)
     {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
@@ -3882,7 +3934,6 @@ public final class MineColoniesGameTests implements FabricGameTest
         helper.setBlock(relativeRack, ModBlocks.blockRack);
         helper.setBlock(relativeField, ModBlocks.blockScarecrow);
 
-        final ServerPlayer owner = helper.makeMockServerPlayerInLevel();
         final IColony colony = IColonyManager.getInstance().createColony(
           level, townHall, owner, "Fabric Farmer Navigation GameTest Colony", Constants.DEFAULT_STYLE);
         helper.assertTrue(colony != null, "Farmer navigation fixture colony was not created");
@@ -3967,7 +4018,10 @@ public final class MineColoniesGameTests implements FabricGameTest
         final ICitizenData citizen = colony.getCitizenManager()
           .spawnOrCreateCivilian(null, level, farmerPos.above(), true);
         helper.assertTrue(citizen != null && citizen.getEntity().isPresent(),
-          "Farmer navigation fixture could not create a live farmer citizen");
+          "Farmer navigation fixture could not create a live farmer citizen; data=" + citizen
+            + "; ticking=" + WorldUtil.isEntityBlockLoaded(level, farmerPos.above())
+            + "; safeSpawn=" + EntityUtils.getSpawnPoint(level, farmerPos.above())
+            + "; townHall=" + colony.getBuildingManager().hasTownHall());
         final WorkerBuildingModule workerModule = farmer.getModuleMatching(
           WorkerBuildingModule.class, module -> module.getJobEntry() == ModJobs.farmer.get());
         helper.assertTrue(workerModule != null, "Farmer navigation worker module was not registered");
@@ -6364,7 +6418,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             final AtomicBoolean conversionCanceled = new AtomicBoolean(false);
             final Object conversionProbe = new Object()
             {
-                @SubscribeEvent(priority = EventPriority.LOWEST)
+                @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
                 public void observe(final LivingConversionEvent.Pre event)
                 {
                     if (event.getEntity() == previous)
@@ -12751,28 +12805,28 @@ public final class MineColoniesGameTests implements FabricGameTest
         private boolean trample;
         private boolean spawn;
 
-        @SubscribeEvent
+        @SubscribeEvent(receiveCanceled = true)
         public void onPickup(final EntityItemPickupEvent event)
         {
             pickup = true;
             event.setCanceled(true);
         }
 
-        @SubscribeEvent
+        @SubscribeEvent(receiveCanceled = true)
         public void onToss(final ItemTossEvent event)
         {
             toss = true;
             event.setCanceled(true);
         }
 
-        @SubscribeEvent
+        @SubscribeEvent(receiveCanceled = true)
         public void onTrample(final BlockEvent.FarmlandTrampleEvent event)
         {
             trample = true;
             event.setCanceled(true);
         }
 
-        @SubscribeEvent
+        @SubscribeEvent(receiveCanceled = true)
         public void onSpawn(final MobSpawnEvent.PositionCheck event)
         {
             spawn = true;

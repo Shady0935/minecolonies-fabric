@@ -173,6 +173,10 @@ public final class MineColoniesFabric implements ModInitializer
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server ->
         {
+            for (final net.minecraft.server.level.ServerLevel level : server.getAllLevels())
+            {
+                com.minecolonies.fabric.capability.CapabilityHooks.releaseLevel(level);
+            }
             STARTED_SERVERS.remove(server);
             ServerLifecycleHooks.setCurrentServer(null);
         });

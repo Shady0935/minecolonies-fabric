@@ -44,6 +44,18 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
     public Collection<TestFunction> configurationTests()
     {
         return List.of(
+            new TestFunction("minecolonies_config", "inventory_provider_lifetime", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
+                final var inventory = new net.minecraft.world.SimpleContainer(3);
+                final var first = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(inventory, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.UP).orElseThrow();
+                final var second = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(inventory, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.DOWN).orElseThrow();
+                helper.assertTrue(first == second, "An unsided container must share its live handler across all faces");
+                final var furnace = new net.minecraft.world.level.block.entity.FurnaceBlockEntity(net.minecraft.core.BlockPos.ZERO, net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+                final var top = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(furnace, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.UP).orElseThrow();
+                helper.assertTrue(top == com.minecolonies.fabric.capability.CapabilityHooks.getCapability(furnace, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.UP).orElseThrow(), "Live sided handlers must be reused");
+                furnace.setRemoved();
+                helper.assertTrue(!com.minecolonies.fabric.capability.CapabilityHooks.getCapability(furnace, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.UP).isPresent(), "Removed block entities must not expose a new inventory handle");
+                passed(helper);
+            }),
             new TestFunction("minecolonies_config", "synchronous_chunk_visibility", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 final var position = new net.minecraft.core.BlockPos(560003, -59, 560003);
                 helper.getLevel().getChunk(position);

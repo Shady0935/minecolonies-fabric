@@ -124,26 +124,11 @@ public final class CapabilityHooks
         }
         else if (target instanceof Container container)
         {
-            final IItemHandler handler = new InvWrapper(container);
-            if (container instanceof net.minecraft.world.WorldlyContainer sided)
-            {
-                final Map<Direction, IItemHandler> faces = new java.util.EnumMap<>(Direction.class);
-                for (final Direction direction : Direction.values()) { faces.put(direction, new SidedInvWrapper(sided, direction)); }
-                providers.add(new ICapabilityProvider()
-                {
-                    @Override public <T> LazyOptional<T> getCapability(final Capability<T> capability, final Direction side)
-                    {
-                        return capability == ForgeCapabilities.ITEM_HANDLER
-                            ? LazyOptional.of(() -> side == null ? handler : faces.get(side)).cast() : LazyOptional.empty();
-                    }
-                });
-            }
-            else { providers.add(itemHandlerProvider(handler)); }
+            providers.add(containerProvider(container));
         }
         else if (target instanceof Player player)
         {
-            final IItemHandler handler = new InvWrapper(player.getInventory());
-            providers.add(itemHandlerProvider(handler));
+            providers.add(containerProvider(player.getInventory()));
         }
 
         if (!providers.isEmpty())
@@ -183,16 +168,45 @@ public final class CapabilityHooks
         }
     }
 
-    private static ICapabilityProvider itemHandlerProvider(final IItemHandler handler)
+    /** Remove world-owned providers only after their final save has completed. */
+    public static void releaseLevel(final Level level)
     {
+        if (level == null) { return; }
+        synchronized (ATTACHED)
+        {
+            ATTACHED.keySet().removeIf(target -> target == level
+                || target instanceof LevelChunk chunk && chunk.getLevel() == level
+                || target instanceof net.minecraft.world.level.block.entity.BlockEntity entity && entity.getLevel() == level
+                || target instanceof Player player && player.level() == level);
+        }
+    }
+
+    private static ICapabilityProvider containerProvider(final Container container)
+    {
+        // Weak keys alone do not help if a cached handler strongly references its key.
+        // Reuse live handlers, while permitting an unreferenced inventory/handler pair to be collected.
+        final java.lang.ref.WeakReference<Container> target = new java.lang.ref.WeakReference<>(container);
+        final Map<Direction, java.lang.ref.WeakReference<IItemHandler>> handlers = new java.util.HashMap<>();
         return new ICapabilityProvider()
         {
             @Override
-            public <T> LazyOptional<T> getCapability(final Capability<T> capability, final Direction side)
+            public synchronized <T> LazyOptional<T> getCapability(final Capability<T> capability, final Direction side)
             {
-                return capability == ForgeCapabilities.ITEM_HANDLER
-                    ? LazyOptional.of(() -> handler).cast()
-                    : LazyOptional.empty();
+                if (capability != ForgeCapabilities.ITEM_HANDLER) { return LazyOptional.empty(); }
+                final Container inventory = target.get();
+                if (inventory == null || inventory instanceof net.minecraft.world.level.block.entity.BlockEntity entity && entity.isRemoved())
+                { return LazyOptional.empty(); }
+                final Direction face = inventory instanceof net.minecraft.world.WorldlyContainer ? side : null;
+                final java.lang.ref.WeakReference<IItemHandler> cached = handlers.get(face);
+                IItemHandler handler = cached == null ? null : cached.get();
+                if (handler == null)
+                {
+                    handler = inventory instanceof net.minecraft.world.WorldlyContainer sided && face != null
+                        ? new SidedInvWrapper(sided, face) : new InvWrapper(inventory);
+                    handlers.put(face, new java.lang.ref.WeakReference<>(handler));
+                }
+                final IItemHandler resolved = handler;
+                return LazyOptional.of(() -> resolved).cast();
             }
         };
     }
