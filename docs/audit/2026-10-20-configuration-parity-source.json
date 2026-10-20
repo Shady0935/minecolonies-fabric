@@ -7,7 +7,14 @@
     "removed_original_server_fields": [],
     "client": 5,
     "common": 2,
-    "structurize_server": 15
+    "structurize_server": 15,
+    "definition_comparison": {
+      "server": 86,
+      "client": 5,
+      "common": 2,
+      "missing_or_changed_original_define_calls": [],
+      "method": "Compare define-call expressions after whitespace normalization; explicitly handle semicolons inside the two default item-list string literals."
+    }
   },
   "minecolonies": {
     "baseline": "E:\\Destiny\\Minecolonies Fabric 1.20.1\\references\\minecolonies-1.20.1-forge",

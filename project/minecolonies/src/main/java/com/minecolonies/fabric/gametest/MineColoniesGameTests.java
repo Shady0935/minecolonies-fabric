@@ -1544,6 +1544,8 @@ public final class MineColoniesGameTests implements FabricGameTest
         final boolean[] observedNavigation = {false};
         final boolean[] observedConstructionRange = {false};
         final boolean[] requestSubmitted = {false};
+        // Match the original interaction reach used by AbstractEntityAIBasic.walkToBlock.
+        final int pickupReach = com.minecolonies.api.util.constant.CitizenConstants.DEFAULT_RANGE_FOR_DELAY;
         final boolean[] courierReachedStoneRack = {false};
         final boolean[] courierReachedCobblestoneRack = {false};
         final boolean[] courierPickedUpStone = {false};
@@ -1615,7 +1617,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(stoneDeliveryToken[0]);
                 if (deliveryRequest != null)
                 {
-                    if (courier.blockPosition().distSqr(rackPos) <= 9)
+                    if (courier.blockPosition().distSqr(rackPos) <= pickupReach * pickupReach)
                     {
                         courierReachedStoneRack[0] = true;
                     }
@@ -1635,7 +1637,7 @@ public final class MineColoniesGameTests implements FabricGameTest
                 final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(cobblestoneDeliveryToken[0]);
                 if (deliveryRequest != null)
                 {
-                    if (courier.blockPosition().distSqr(cobblestoneRackPos) <= 9)
+                    if (courier.blockPosition().distSqr(cobblestoneRackPos) <= pickupReach * pickupReach)
                     {
                         courierReachedCobblestoneRack[0] = true;
                     }

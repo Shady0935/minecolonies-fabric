@@ -58,6 +58,9 @@ loom {
                 programArg '--quickPlayMultiplayer'
                 programArg project.providers.gradleProperty('clientVisualServer').get()
             }
+            if (project.providers.gradleProperty('clientVisualDebugPort').isPresent()) {
+                vmArg "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:${project.providers.gradleProperty('clientVisualDebugPort').get()}"
+            }
         }
         gametest {
             server()
