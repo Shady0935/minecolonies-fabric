@@ -1,0 +1,280 @@
+{
+  "date": "2026-10-20",
+  "branch": "fix/configuration-parity-audit",
+  "tested_runtime_code_commit": "3c0694bbcd",
+  "bundle_configuration_fix_commit": "11fbb1a7ee",
+  "upstream_minecolonies_commit": "b6987ade75e796dcbab573cdee0144ad54d1da12",
+  "source_comparison_files": 15848,
+  "configuration": {
+    "original_server_fields": 86,
+    "port_server_options": 93,
+    "removed_original_server_fields": [],
+    "client": 5,
+    "common": 2,
+    "structurize_server": 15,
+    "definition_comparison": {
+      "server": 86,
+      "client": 5,
+      "common": 2,
+      "missing_or_changed_original_define_calls": [],
+      "method": "Compare define-call expressions after whitespace normalization; explicitly handle semicolons inside the two default item-list string literals."
+    }
+  },
+  "gametests": {
+    "required": 149,
+    "passed": 149,
+    "failures": 0,
+    "errors": 0,
+    "xml": "docs/audit/2026-10-20-configuration-parity-gametest.xml",
+    "log": "logs/configuration-parity-verified-suite.log"
+  },
+  "unit_tests": [
+    {
+      "suite": "com.minecolonies.fabric.config.CapabilityHandleTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "suite": "com.minecolonies.fabric.config.FabricConfigPersistenceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "native_packaged_probes": {
+    "passed": 9,
+    "names": [
+      "inventory_provider_lifetime",
+      "synchronous_chunk_visibility",
+      "event_cancellation_contract",
+      "mapped_vanilla_access",
+      "inventory_face_contract",
+      "config_complete_schema",
+      "config_real_schema_migration",
+      "config_remote_authority",
+      "brewing_vanilla_bridge"
+    ],
+    "log": "logs/config-parity-delivery-console.log"
+  },
+  "production_client": {
+    "minecraft": "1.20.1",
+    "loader": "0.19.5",
+    "development": false,
+    "fabric_api": "0.92.2+1.20.1",
+    "normal_exit_code": 0,
+    "network_probe_uses_authenticated_account": false,
+    "network": {
+      "remote": {
+        "population": 351,
+        "worker_speed": 2.0,
+        "structurize_operations": 1000,
+        "request_debug": false,
+        "local_voices": false
+      },
+      "restored_local": {
+        "population": 250,
+        "worker_speed": 1.5,
+        "structurize_operations": 1500,
+        "request_debug": true,
+        "local_voices": false
+      },
+      "local_files_unchanged": true,
+      "local_file_sha256": {
+        "minecolonies-server.toml": "82531eaca587ed818053ad9ddc2b7182f48c4e509c075b48f7cd2fdb49875c0a",
+        "minecolonies-common.toml": "3a176c61017da13a456548807f7e55a0094bded43b423e69164f88c0677b6c7e",
+        "minecolonies-client.toml": "e104b618461f13fabe6bc998a2c6906bc7825adda9fd83d17f9ed3f5e2db2624",
+        "structurize-server.toml": "486df43f0ccdb86c9b8fea83b6c45645c67a582c1fdfcbf04d9dcac53ec42c96"
+      },
+      "debugger": "JDK17 JDI/JDWP on loopback, read-only getter evaluation at client tick boundary"
+    },
+    "log": "test-instance/config-parity-client-production-20261020/logs/latest.log"
+  },
+  "dedicated_restart": {
+    "normal_exit_code": 0,
+    "test_colonies_retained": 4,
+    "log": "logs/configuration-parity-network-server.log"
+  },
+  "distribution": [
+    {
+      "file": "project\\minecolonies\\build\\libs\\minecolonies-fabric-1.20.1-1.0.18-port.jar",
+      "id": "minecolonies",
+      "version": "1.0.18-port",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "fabric-api": "*",
+        "minecraft": "1.20.1",
+        "java": ">=17",
+        "blockui": "*",
+        "domum_ornamentum": "*",
+        "structurize": "1.0.4-port",
+        "multipiston": "0.0.5-port"
+      },
+      "nested": [],
+      "entries": 20242,
+      "bytes": 72483789,
+      "sha256": "e59976083919d7a682aa5b84e76a33fa265ad7cccfeb844b840b4cddc1a20fba"
+    },
+    {
+      "file": "project\\libs\\blockui\\build\\libs\\blockui-fabric-1.20.1-0.0.2-port.jar",
+      "id": "blockui",
+      "version": "0.0.2-port",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "fabric-api": "*",
+        "minecraft": "1.20.1",
+        "java": ">=17"
+      },
+      "nested": [],
+      "entries": 172,
+      "bytes": 405280,
+      "sha256": "706edd1fab9592956ab04ecf3dc79a20cb1a35e020d4a2330c483e717b71c104"
+    },
+    {
+      "file": "project\\libs\\structurize\\build\\libs\\structurize-fabric-1.20.1-1.0.4-port.jar",
+      "id": "structurize",
+      "version": "1.0.4-port",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "minecraft": "~1.20.1",
+        "fabric-api": ">=0.92.2+1.20.1",
+        "blockui": ">=0.0.2-port <0.1.0",
+        "domum_ornamentum": ">=1.0.1-port <1.1.0"
+      },
+      "nested": [
+        {
+          "file": "META-INF/jars/core-3.8.4.jar"
+        },
+        {
+          "file": "META-INF/jars/toml-3.8.4.jar"
+        }
+      ],
+      "entries": 686,
+      "bytes": 1405575,
+      "sha256": "9be1dddafb26d8959ad5fa0073a041cc0b8fafa37ff3564fa2907805a1a14321"
+    },
+    {
+      "file": "project\\libs\\multipiston\\build\\libs\\multipiston-fabric-1.20.1-0.0.5-port.jar",
+      "id": "multipiston",
+      "version": "0.0.5-port",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "minecraft": "~1.20.1",
+        "fabric-api": ">=0.92.2+1.20.1",
+        "java": ">=17",
+        "blockui": ">=0.0.2-port <0.1.0",
+        "structurize": [
+          "1.0.0-port",
+          "1.0.1-port",
+          "1.0.2-port",
+          "1.0.3-port",
+          "1.0.4-port"
+        ],
+        "domum_ornamentum": ">=1.0.1-port <1.1.0"
+      },
+      "nested": [],
+      "entries": 55,
+      "bytes": 51330,
+      "sha256": "6aff9c8035537f59f25525e158eab2fdf40e74702859bfa8e6eb990ddc0cdb85"
+    },
+    {
+      "file": "project\\libs\\domum-ornamentum\\build\\libs\\domum-ornamentum-fabric-1.20.1-1.0.2-port.jar",
+      "id": "domum_ornamentum",
+      "version": "1.0.2-port",
+      "depends": {
+        "fabricloader": ">=0.15.11",
+        "fabric-api": "*",
+        "minecraft": "1.20.1",
+        "java": ">=17"
+      },
+      "nested": [],
+      "entries": 1232,
+      "bytes": 926019,
+      "sha256": "a4eec2b5f9c69c9245298cefed310769b9aef78cfd73d46cf2a211a31e3275db"
+    }
+  ],
+  "server_bundle": {
+    "date": "2026-10-20",
+    "bundle": "project\\minecolonies\\build\\distributions\\minecolonies-fabric-1.20.1-1.0.18-port-server-mods.zip",
+    "sha256": "b79b60aa7ce6705fe4cfb1e2977734ae11be762ab87a269740b41825782cbc6c",
+    "jars": [
+      {
+        "file": "mods/minecolonies-fabric-1.20.1-1.0.18-port.jar",
+        "sha256": "e59976083919d7a682aa5b84e76a33fa265ad7cccfeb844b840b4cddc1a20fba",
+        "bytes": 72483789
+      },
+      {
+        "file": "mods/blockui-fabric-1.20.1-0.0.2-port.jar",
+        "sha256": "706edd1fab9592956ab04ecf3dc79a20cb1a35e020d4a2330c483e717b71c104",
+        "bytes": 405280
+      },
+      {
+        "file": "mods/domum-ornamentum-fabric-1.20.1-1.0.2-port.jar",
+        "sha256": "a4eec2b5f9c69c9245298cefed310769b9aef78cfd73d46cf2a211a31e3275db",
+        "bytes": 926019
+      },
+      {
+        "file": "mods/structurize-fabric-1.20.1-1.0.4-port.jar",
+        "sha256": "9be1dddafb26d8959ad5fa0073a041cc0b8fafa37ff3564fa2907805a1a14321",
+        "bytes": 1405575
+      },
+      {
+        "file": "mods/multipiston-fabric-1.20.1-0.0.5-port.jar",
+        "sha256": "6aff9c8035537f59f25525e158eab2fdf40e74702859bfa8e6eb990ddc0cdb85",
+        "bytes": 51330
+      },
+      {
+        "file": "mods/fabric-api-0.92.2+1.20.1.jar",
+        "sha256": "4500f844c45573d039d68d3963c9885aa9de7712670216e0ad3e5df16c6770fc",
+        "bytes": 2107289
+      }
+    ],
+    "profile_matches_production_client": true,
+    "backup_hashes_verified": true,
+    "run": "test-instance\\config-parity-bundle-production-20261020",
+    "authentication": true,
+    "secure_profiles": true,
+    "bind": "127.0.0.1",
+    "port": 0,
+    "rcon": false,
+    "ready": true,
+    "exit_code": 0,
+    "dimensions_saved": 3
+  },
+  "curseforge_installation": {
+    "profile": "Minecolonies Fabric",
+    "installed": [
+      {
+        "id": "minecolonies",
+        "version": "1.0.18-port",
+        "sha256": "e59976083919d7a682aa5b84e76a33fa265ad7cccfeb844b840b4cddc1a20fba"
+      },
+      {
+        "id": "blockui",
+        "version": "0.0.2-port",
+        "sha256": "706edd1fab9592956ab04ecf3dc79a20cb1a35e020d4a2330c483e717b71c104"
+      },
+      {
+        "id": "structurize",
+        "version": "1.0.4-port",
+        "sha256": "9be1dddafb26d8959ad5fa0073a041cc0b8fafa37ff3564fa2907805a1a14321"
+      },
+      {
+        "id": "multipiston",
+        "version": "0.0.5-port",
+        "sha256": "6aff9c8035537f59f25525e158eab2fdf40e74702859bfa8e6eb990ddc0cdb85"
+      }
+    ],
+    "backup_relative_to_mods": "codex-backups/20261020-config-parity-d98a4b8f",
+    "previous_jar_hashes_verified": true,
+    "one_active_version_per_id_verified": true,
+    "remote_host_updated": false,
+    "existing_config_preserved_for_startup_migration": true
+  },
+  "coverage_limits": [
+    "Does not certify every blueprint, profession, visual scenario or optional integration.",
+    "Loopback configuration login is not an authenticated public-server login.",
+    "Configuration edits require restart.",
+    "Inventory bridge supports vanilla Container and explicit providers, not arbitrary Transfer-API-only storage."
+  ]
+}

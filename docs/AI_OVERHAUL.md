@@ -912,3 +912,29 @@ Branch `fix/colony-map-null-icons` removes old citizen icons only when present
 and removes a second invalid null removal in first-time building icon creation.
 Only MineColonies changes to 1.0.17; dependencies and server logic are unchanged.
 See `docs/COLONY_MAP_NULL_ICONS.md` for evidence and pending in-game checks.
+
+### 2026-10-20: full configuration and source parity audit (1.0.18)
+
+Branch `fix/configuration-parity-audit` restores the complete original
+configuration: 86 original MineColonies server options plus seven AI controls,
+five client options, two common options and fifteen Structurize server options.
+Typed TOML persistence preserves existing settings, validates values, backs up
+migrations and synchronizes server authority without rewriting client files.
+Disconnect restores the client's local values. Configuration edits require restart.
+
+Compared 15,848 upstream files across all five modules, accounted for removed or
+relocated paths and reviewed the retained event/capability adapters. Confirmed
+omissions fixed include brewing, client recipe updates/categories, item
+decorations, remapped vanilla accesses, event cancellation, sided inventories,
+provider lifetimes and same-tick chunk visibility. No MineColonies Java sources
+are absent from the comparison. This does not certify every visual scenario or
+optional third-party integration; those limits remain documented.
+
+Verification: 149/149 required GameTests, 12/12 unit tests, nine native packaged
+probes, same-world dedicated restart and a real production client on Fabric
+Loader 0.19.5. The client/server configuration round trip verified remote values,
+local preferences, disconnect restoration and unchanged hashes for four TOMLs.
+The CurseForge profile contains MineColonies 1.0.18, Structurize 1.0.4,
+Multi-Piston 0.0.5 and BlockUI 0.0.2, with previous JARs/configs backed up under
+`mods/codex-backups/20261020-config-parity-d98a4b8f`. Domum stays at 1.0.2.
+See `docs/CONFIGURATION_PARITY.md` and `docs/audit/` for scope and evidence.

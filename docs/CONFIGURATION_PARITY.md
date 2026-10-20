@@ -8,6 +8,8 @@ persistía las opciones de IA añadidas. La implementación nueva registra el á
 completo: las 86 opciones originales de servidor de MineColonies y las siete de
 IA del port, para un total de 93 opciones de servidor,
 5 de cliente, 2 comunes y 15 de servidor de Structurize.
+Las expresiones originales de definición, incluidos predeterminados y límites,
+coinciden para las 86 opciones de servidor, las cinco de cliente y las dos comunes.
 
 La base de comparación es el Forge 1.20.1 fijado en `UPSTREAM_MAPPING.md`,
 `b6987ade75e796dcbab573cdee0144ad54d1da12` para MineColonies. Las referencias
@@ -118,6 +120,9 @@ Hallazgos ya corregidos en el código de trabajo:
 - Consulta de chunks: reconoce el cache inmediato de acceso vanilla antes de la
   lista de holders, evitando rechazar un chunk cargado en el mismo tick.
 - Enlaces de `/mc help`: vuelven a ser clicables para las URLs HTTP/HTTPS usadas.
+- ZIP del servidor: la dependencia de empaquetado de Fabric API deja de resolver
+  módulos transitivos sueltos. El JAR oficial ya contiene sus módulos de runtime;
+  así se evitan duplicados y la inclusión del módulo de GameTests en distribución.
 
 El error observado de JourneyMap en el perfil procede del entrypoint de Waystones
 que exige `journeymap.client.api.IClientPlugin`, no del plugin v2 de MineColonies.
@@ -137,12 +142,60 @@ detectaron interferencia entre fixtures y observadores que no declaraban
 esperando a que sus chunks puedan simular entidades; se conservan las exigencias
 de navegación, consumo exacto de almacén, entrega y finalización de obra.
 
-Estado final de la suite, red y copias instaladas: PENDIENTE DE REGISTRO.
+La pasada final `configuration-parity-verified-suite.log` terminó con **149/149
+GameTests obligatorios aprobados**, guardado de las tres dimensiones y salida
+correcta. La compilación final y las **12/12 pruebas JUnit** también terminaron
+correctamente. El XML final y el inventario comparativo están en `docs/audit/`.
+
+Los nueve probes nuevos pasaron además en el servidor con JAR remapeado. La
+repetición manual de los ciclos largos detectó un error del lanzador de pruebas:
+consultar el heightmap de una zona aún no cargada enterraba el fixture cuatro
+bloques. Se precargó la zona de origen. El límite de recogida del mensajero se
+comprueba con `CitizenConstants.DEFAULT_RANGE_FOR_DELAY` (4), igual que el original,
+en lugar del radio 3 que exigía antes la prueba. No se cambió la distancia del NPC.
+
+El cliente de producción usa Minecraft 1.20.1, Fabric Loader **0.19.5**, los cinco
+JAR de distribución y Fabric API 0.92.2. Arrancó, conectó por loopback a la instancia
+aislada, recibió recetas/configuración y salió normalmente. La comprobación de
+memoria por JDK JDI evaluó únicamente getters, con estos resultados:
+
+| Valor | Conectado al servidor | Restaurado al desconectar |
+|---|---:|---:|
+| Máximo de ciudadanos | 351 | 250 |
+| Multiplicador de IA | 2.0 | 1.5 |
+| Operaciones de Structurize | 1000 | 1500 |
+| Debug de peticiones | false | true |
+| Voces, preferencia exclusiva de cliente | false | false |
+
+Los hashes de los cuatro TOML del cliente fueron idénticos antes y después de
+la conexión, y se volvieron a comprobar tras cerrar el cliente. El resultado
+estructurado es `logs/configuration-parity-network-verified.json`. Una lectura
+adicional del depurador, ya desconectado, rechazó correctamente la expectativa
+de valores remotos porque encontró los locales restaurados; se conserva ese
+intento separado en los logs. La instancia dedicada reinició con las cuatro
+colonias de prueba conservadas y se detuvo normalmente después de la conexión.
 
 Versiones de entrega: MineColonies **1.0.18-port**, Structurize **1.0.4-port**,
 Multi-Piston **0.0.5-port** y BlockUI **0.0.2-port**. Domum permanece en **1.0.2-port**.
 NightConfig core/toml 3.8.4 se incluyen solamente dentro de Structurize.
 Es necesario actualizar juntos los cuatro JAR cambiados en cliente y servidor.
+El perfil CurseForge `Minecolonies Fabric` ya contiene esos cuatro JAR, una sola
+versión activa por mod y hashes idénticos a los artefactos comprobados. Los cuatro
+JAR anteriores y los TOML existentes se guardaron en
+`mods/codex-backups/20261020-config-parity-d98a4b8f`.
+La migración del perfil/servidor ocurre al arrancar la nueva versión; no hay que
+reemplazar a mano los ajustes existentes por una plantilla.
+
+El ZIP final contiene exactamente seis JAR (los cinco mods y Fabric API), sin
+módulos sueltos de desarrollo. Se extrajo en una instancia nueva de Fabric Loader
+0.15.11/Java 17, con `online-mode=true`, perfiles seguros, enlace exclusivo a
+loopback, puerto automático y RCON desactivado. Alcanzó `Done`, guardó las tres
+dimensiones y salió con código 0. No se conectó una cuenta autenticada a esa
+instancia. Los hashes del ZIP y de sus JAR, resultados de pruebas y entrega están
+conservados en `docs/audit/2026-10-20-configuration-parity-verification.json`.
+El servidor remoto de Tatnik no se actualizó en esta entrega; el perfil contiene
+los cuatro JAR que se deben subir juntos. La rama de trabajo está respaldada
+en GitHub; `version/main` no recibe estos cambios.
 
 La comparación de archivos y una suite automatizada no certifican todas las
 combinaciones de esquemas, profesiones e integraciones opcionales en una partida.

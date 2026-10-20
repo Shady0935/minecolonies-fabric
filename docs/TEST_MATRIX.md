@@ -1,5 +1,35 @@
 # Test matrix
 
+## 2026-10-20 complete configuration and adapter parity
+
+AUTOMATED_PASS: final complete suite **149/149 required GameTests**, final build
+and **12/12 JUnit tests**. The complete-suite fixtures wait for entity-ticking
+chunks and isolate long gameplay cycles; resource consumption, real navigation,
+delivery and work-order completion assertions remain enabled. Courier collection
+uses upstream's `CitizenConstants.DEFAULT_RANGE_FOR_DELAY` (4).
+
+PACKAGED_PASS: nine new schema/migration/authority/brewing/inventory/event/mapped
+access/chunk/provider probes passed against distribution JARs. A dedicated
+same-world restart retained all four test colonies and saved normally.
+PRODUCTION_CLIENT_PASS: Minecraft 1.20.1 / Fabric Loader 0.19.5, exact final JARs,
+loopback login, recipe packets and configuration synchronization; values restored
+on disconnect, client-only preferences retained and all four local TOML hashes
+unchanged after normal exit. This isolated network probe used offline mode and
+does not stand in for an authenticated user login.
+
+DELIVERED: four changed JARs installed in CurseForge with one active version per
+ID, matching hashes and backups; Domum 1.0.2 preserved. No live hosted server was
+updated by this delivery. Source comparison covers 15,848 upstream files across
+five modules. Remaining manual visual/integration coverage stays explicit in
+`KNOWN_LIMITATIONS.md`; historical entries below describe their own dated runs.
+Evidence: `docs/audit/2026-10-20-configuration-parity-gametest.xml`,
+`docs/audit/2026-10-20-configuration-parity-source.json`,
+`docs/audit/2026-10-20-configuration-parity-verification.json`,
+`logs/configuration-parity-verified-suite.log`,
+`logs/configuration-parity-shipping-build.log`,
+`logs/configuration-parity-network-verified.json` and
+`test-instance/config-parity-client-production-20261020/logs/latest.log`.
+
 ## 2026-10-05 Domum roof orientation
 
 Regression probe domumPlacementPreservesBlueprintOrientation checks 48 shingle

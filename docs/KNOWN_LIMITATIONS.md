@@ -1,5 +1,23 @@
 # Known limitations
 
+## 2026-10-20 configuration and adapter audit
+
+The full original configuration is now persisted, validated and synchronized:
+93 MineColonies server options (86 original plus seven port AI controls), five
+client, two common and fifteen Structurize server options. File edits require
+restart. See `CONFIGURATION_PARITY.md` and its source-comparison artifact.
+
+The final suite passed 149/149 required GameTests and 12/12 JUnit tests. A real
+distribution client on Fabric Loader 0.19.5 verified server authority, local-only
+preferences, disconnect restoration and unchanged local TOML hashes. This
+updates the earlier automated baseline; it does not turn historical visual
+observations or optional integrations into verified live-client behavior.
+
+The inventory bridge covers vanilla `Container` objects and the port's explicit
+providers. Arbitrary third-party storage exposing only Fabric Transfer API is
+outside this bridge's current compatibility surface. The retained event bus is
+an adapter for this port's callers, rather than a general Forge mod API.
+
 ## Solid substitution regression corrected (2026-10-03)
 
 Creative `Construido`/`Pretty` now uses the official 1.20.1 world-generation
@@ -49,9 +67,10 @@ Official baseline: Structurize commit
   mods. Build/package validation does not prove their live-client rendering,
   recipe transfer, ghost-slot, map-overlay or waypoint behavior; those remain
   for the deferred client pass.
-- The user's latest instruction defers live-client and in-game confirmations
-  until the automated port goal is complete. The later manual pass should
-  revisit the overlapping citizen-dialogue sounds and missing citizen
+- An earlier instruction deferred live-client and in-game confirmations during
+  the initial automated port. The 2026-10-20 request explicitly authorizes a
+  general comparison and verification. The remaining manual visual pass should
+  revisit historical observations of overlapping citizen-dialogue sounds and a missing citizen
   interaction window, the earlier Town Hall/colony-selection anomaly (Colony 1
   was deleted during testing, so its original state is unavailable),
   construction-hologram drift while moving, visible BlockUI translations and
@@ -313,13 +332,13 @@ Official baseline: Structurize commit
 - A small number of non-power-of-two textures reduce their mip level, and one
   vanilla emissive shader reports an unused sampler. Neither caused the client
   bootstrap to fail.
-- The latest combined 125-test GameTest run still logs the upstream-style warning that
+- The September combined 125-test GameTest run logged the warning that
   `fundamentals/townhall1.blueprint` has an incorrect `Primary Offset` when a
   fixture registers a Town Hall. The tested server routes still complete and
   the suite passes; the latest evidence is in
   `project/minecolonies/run-gametest-client-bridge-20260927/logs/latest.log`.
   The blueprint data should be audited before treating this warning as resolved.
-- The latest clean combined 125-case suite hardens only the transient Raider combat
+- That September clean combined 125-case suite hardened the transient Raider combat
   fixture state before starting the real `RaiderMeleeAI`/`AttackMoveAI` path
   and records 125/125 required tests passed, including the three focused
   MultiPiston tests. Long-range and fully in-game raid
