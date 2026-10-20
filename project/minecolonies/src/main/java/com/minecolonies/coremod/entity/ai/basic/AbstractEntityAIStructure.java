@@ -37,6 +37,7 @@ import com.minecolonies.coremod.colony.jobs.AbstractJobStructure;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
 import com.minecolonies.coremod.entity.ai.util.BuildingStructureHandler;
 import com.minecolonies.coremod.tileentities.TileEntityDecorationController;
+import com.minecolonies.fabric.config.CitizenWorkSpeedConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -182,7 +183,7 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
           /*
            * Select the appropriate State to do next.
            */
-          new AITarget(MINE_BLOCK, this::doMining, 10),
+          new AITarget(MINE_BLOCK, this::doMining, CitizenWorkSpeedConfig.builderMiningInterval()),
           /*
            * Check if we have to build something.
            */
@@ -549,9 +550,9 @@ public abstract class AbstractEntityAIStructure<J extends AbstractJobStructure<?
         {
             final double decrease = 1 - worker.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(BLOCK_PLACE_SPEED);
 
-            setDelay((int) (
+            setDelay(CitizenWorkSpeedConfig.placementDelay((int) (
               (MineColonies.getConfig().getServer().builderBuildBlockDelay.get() * PROGRESS_MULTIPLIER / (getPlaceSpeedLevel() / 2 + PROGRESS_MULTIPLIER))
-                * decrease));
+                * decrease)));
         }
         return getState();
     }

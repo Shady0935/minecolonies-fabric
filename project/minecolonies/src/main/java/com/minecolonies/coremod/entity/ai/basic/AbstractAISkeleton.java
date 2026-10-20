@@ -10,6 +10,8 @@ import com.minecolonies.api.entity.ai.statemachine.tickratestatemachine.TickingT
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.CompatibilityUtils;
 import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.coremod.colony.jobs.AbstractJobGuard;
+import com.minecolonies.fabric.config.CitizenWorkSpeedConfig;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +55,10 @@ public abstract class AbstractAISkeleton<J extends IJob<?>> implements ITickingS
         this.worker = this.job.getCitizen().getEntity().get();
         this.world = CompatibilityUtils.getWorldFromCitizen(this.worker);
         final TickRateStateMachine<IAIState> workerStateMachine = new TickRateStateMachine<>(AIWorkerState.INIT, this::onException);
+        if (!(job instanceof AbstractJobGuard<?>))
+        {
+            workerStateMachine.setActionSpeedMultiplier(CitizenWorkSpeedConfig.workerAiSpeed());
+        }
         final long citizenSeed = job.getCitizen().getColony() == null
                                    ? Integer.toUnsignedLong(job.getCitizen().getId())
                                    : ((long) job.getCitizen().getColony().getID() << 32)

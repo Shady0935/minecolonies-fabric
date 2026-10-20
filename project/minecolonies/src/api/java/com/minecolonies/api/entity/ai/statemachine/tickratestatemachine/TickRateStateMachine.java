@@ -23,6 +23,14 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
      */
     public static double slownessFactor = 1.0D;
 
+    /** Per-owner cadence of normal state actions; blocking/event checks keep their own schedule. */
+    private double actionSpeedMultiplier = 1.0D;
+
+    public void setActionSpeedMultiplier(final double multiplier)
+    {
+        actionSpeedMultiplier = Double.isFinite(multiplier) ? Math.max(0.25D, Math.min(8.0D, multiplier)) : 1.0D;
+    }
+
     /**
      * Counter keeping track of ticks
      */
@@ -152,7 +160,7 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
 
         for (int i = 0, currentStateTransitionsSize = currentStateTransitions.size(); i < currentStateTransitionsSize; i++)
         {
-            if (checkTransition(currentStateTransitions.get(i)))
+            if (checkTransition(currentStateTransitions.get(i), actionSpeedMultiplier))
             {
                 return;
             }
@@ -168,13 +176,18 @@ public class TickRateStateMachine<S extends IState> extends BasicStateMachine<IT
     @Override
     public boolean checkTransition(@NotNull final ITickingTransition<S> transition)
     {
+        return checkTransition(transition, 1.0D);
+    }
+
+    private boolean checkTransition(@NotNull final ITickingTransition<S> transition, final double actionSpeed)
+    {
         // Check if the target should be run this Tick
         if (transition.countdownTicksToUpdate() > 0)
         {
             return false;
         }
 
-        transition.setTicksToUpdate((int) (transition.getTickRate() / slownessFactor));
+        transition.setTicksToUpdate(Math.max(1, (int) Math.ceil(transition.getTickRate() / (slownessFactor * actionSpeed))));
         executedTransition = transition;
         return super.checkTransition(transition);
     }

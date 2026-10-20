@@ -9,10 +9,12 @@ import com.minecolonies.api.util.MathUtils;
 import com.minecolonies.coremod.MineColonies;
 import com.minecolonies.coremod.colony.buildings.AbstractBuilding;
 import com.minecolonies.coremod.colony.jobs.AbstractJob;
+import com.minecolonies.fabric.config.CitizenWorkSpeedConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -315,13 +317,22 @@ public abstract class AbstractEntityAIInteract<J extends AbstractJob<?, J>, B ex
      */
     private int calculateWorkerMiningDelay(@NotNull final BlockState state, @NotNull final BlockPos pos)
     {
-        final double reduction = 1 - worker.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(BLOCK_BREAK_SPEED);
-
-        return (int) (((MineColonies.getConfig().getServer().blockMiningDelayModifier.get() * Math.pow(LEVEL_MODIFIER, getBreakSpeedLevel() / 2.0))
-                         * (double) world.getBlockState(pos).getDestroySpeed(world, pos) / (double) (worker.getMainHandItem()
-                                                                                                        .getItem()
-                                                                                                        .getDestroySpeed(worker.getMainHandItem(), state)))
-                        * reduction);
+        final double reduction = Math.max(0.0, 1 - worker.getCitizenColonyHandler().getColony().getResearchManager().getResearchEffects().getEffectStrength(BLOCK_BREAK_SPEED));
+        final ItemStack tool = worker.getMainHandItem();
+        double toolSpeed = tool.getDestroySpeed(state);
+        // Vanilla Efficiency contributes only when this tool is effective for the block.
+        if (toolSpeed > 1.0D)
+        {
+            final int efficiency = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY, tool);
+            if (efficiency > 0)
+            {
+                toolSpeed += (double) efficiency * efficiency + 1;
+            }
+        }
+        final double ticks = MineColonies.getConfig().getServer().blockMiningDelayModifier.get()
+          * Math.pow(LEVEL_MODIFIER, getBreakSpeedLevel() / 2.0)
+          * state.getDestroySpeed(world, pos) / Math.max(0.001D, toolSpeed) * reduction;
+        return CitizenWorkSpeedConfig.miningDelay(ticks);
     }
 
     /**

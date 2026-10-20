@@ -1303,6 +1303,12 @@ public abstract class AbstractEntityAIBasic<J extends AbstractJob<?, J>, B exten
      */
     protected final boolean hasNotDelayed(final int time)
     {
+        if (time <= 0)
+        {
+            hasDelayed = false;
+            clearWorkTarget();
+            return false;
+        }
         if (!hasDelayed)
         {
             setDelay(time);
