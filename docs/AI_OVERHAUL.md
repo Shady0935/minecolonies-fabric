@@ -892,3 +892,14 @@ Domum is 1.0.1, Structurize 1.0.3, Multi-Piston 0.0.4, MineColonies 1.0.16;
 AI behavior is preserved. Structurize also fixes the wand reopening regression:
 only an empty blueprint selection adopts a newly clicked position; an existing
 or asynchronously loading hologram retains its adjusted anchor.
+
+### 2026-10-20: Domum material layers under water
+
+Branch `fix/domum-material-render-layers` fixes a separate port rendering issue.
+World quads inherited Domum's generic translucent layer even for opaque wood
+and terracotta, unlike upstream's per-material layers. Domum 1.0.2 emits Fabric
+quads with explicit blend modes from each material block, preserving cutouts
+and real glass translucency. Item rendering and waterlogging are unchanged.
+Only Domum is rebuilt and replaced in CurseForge; existing dependency ranges
+accept it. See `docs/DOMUM_MATERIAL_RENDER_LAYERS.md` for build, backup, installed
+hash and manual validation limits. No AI changes or automated tests.

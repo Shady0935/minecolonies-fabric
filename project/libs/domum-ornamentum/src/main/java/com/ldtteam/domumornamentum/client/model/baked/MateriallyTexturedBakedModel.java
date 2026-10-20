@@ -66,7 +66,7 @@ public final class MateriallyTexturedBakedModel implements BakedModel, FabricBak
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof IMateriallyTexturedBlockEntity textured && !textured.getTextureData().isEmpty())
         {
-            context.bakedModelConsumer().accept(RetexturedBakedModelBuilder.build(innerModel, textured.getTextureData()), state);
+            RetexturedBakedModelBuilder.emitBlockQuads(innerModel, textured.getTextureData(), state, randomSupplier, context);
         }
         else
         {

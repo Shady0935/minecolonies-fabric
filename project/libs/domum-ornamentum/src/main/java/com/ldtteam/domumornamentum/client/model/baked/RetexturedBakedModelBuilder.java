@@ -2,7 +2,13 @@ package com.ldtteam.domumornamentum.client.model.baked;
 
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.client.model.utils.ModelSpriteQuadTransformer;
+import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -19,6 +25,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Builds a lightweight model wrapper that replaces placeholder sprites with sprites from the
@@ -28,10 +36,12 @@ import java.util.Map;
 public final class RetexturedBakedModelBuilder
 {
     private static final RandomSource RANDOM = RandomSource.create();
+    private static final Map<BlendMode, RenderMaterial> RENDER_MATERIALS = new ConcurrentHashMap<>();
 
     private final BakedModel sourceModel;
     private final Map<ResourceLocation, TextureAtlasSprite> replacements = new HashMap<>();
     private final Map<ResourceLocation, Boolean> erased = new HashMap<>();
+    private final Map<ResourceLocation, BlendMode> layers = new HashMap<>();
 
     private RetexturedBakedModelBuilder(final BakedModel sourceModel)
     {
@@ -62,6 +72,37 @@ public final class RetexturedBakedModelBuilder
         return builder.build();
     }
 
+    /** Emit each component in its material's layer instead of the Domum block's generic translucent layer. */
+    public static void emitBlockQuads(final BakedModel source, final MaterialTextureData data,
+                                     final BlockState state, final Supplier<RandomSource> randomSupplier,
+                                     final RenderContext context)
+    {
+        final RetexturedBakedModelBuilder builder = new RetexturedBakedModelBuilder(source);
+        data.getTexturedComponents().forEach(builder::with);
+        final QuadEmitter emitter = context.getEmitter();
+        for (final Direction face : Direction.values())
+        {
+            builder.emitQuads(source.getQuads(state, face, randomSupplier.get()), face, emitter);
+        }
+        builder.emitQuads(source.getQuads(state, null, randomSupplier.get()), null, emitter);
+    }
+
+    private void emitQuads(final List<BakedQuad> quads, final Direction cullFace, final QuadEmitter emitter)
+    {
+        for (final BakedQuad quad : quads)
+        {
+            final ResourceLocation key = quad.getSprite().contents().name();
+            if (erased.containsKey(key)) { continue; }
+            final TextureAtlasSprite replacement = replacements.get(key);
+            final BakedQuad textured = replacement == null ? quad : ModelSpriteQuadTransformer.retexture(quad, replacement);
+            // Fixed template faces can have hard alpha holes, but must not blend with water.
+            final BlendMode blend = layers.getOrDefault(key, BlendMode.CUTOUT);
+            final RenderMaterial material = RENDER_MATERIALS.computeIfAbsent(blend,
+                mode -> RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(mode).find());
+            emitter.fromVanilla(textured, material, cullFace).emit();
+        }
+    }
+
     public RetexturedBakedModelBuilder with(final ResourceLocation source,
                                             final BakedModel target,
                                             final BlockState state)
@@ -69,6 +110,7 @@ public final class RetexturedBakedModelBuilder
         final TextureAtlasSprite sprite = firstSprite(target, state);
         if (sprite == null) erased.putIfAbsent(source, true);
         else replacements.putIfAbsent(source, sprite);
+        layers.putIfAbsent(source, BlendMode.fromRenderLayer(ItemBlockRenderTypes.getChunkRenderType(state)));
         return this;
     }
 
