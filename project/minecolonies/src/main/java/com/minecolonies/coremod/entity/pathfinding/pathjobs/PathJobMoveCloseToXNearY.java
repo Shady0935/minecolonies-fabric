@@ -18,6 +18,7 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
     private final BlockPos nearbyPosition;
     private final int distanceToDesired;
     private final double eyeHeight;
+    private final Vec3 initialFeetPosition;
 
     public PathJobMoveCloseToXNearY(final Level world,
                                     @NotNull final BlockPos start,
@@ -32,6 +33,7 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
         this.nearbyPosition = nearbyPosition;
         this.distanceToDesired = distanceToDesired;
         this.eyeHeight = entity.getEyeHeight();
+        this.initialFeetPosition = entity.position();
     }
 
     @Override
@@ -44,7 +46,12 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
     protected boolean isAtDestination(@NotNull final MNode node)
     {
         final BlockPos below = node.pos.below();
-        return isWithinWorkRange(node.pos, desiredPosition, eyeHeight, distanceToDesired)
+        // Reaching the start cell does not move the entity to that cell's center.
+        // Use the captured real position for a zero-movement route, too.
+        final boolean inReach = node.parent == null
+          ? isWithinWorkRange(initialFeetPosition, desiredPosition, eyeHeight, distanceToDesired)
+          : isWithinWorkRange(node.pos, desiredPosition, eyeHeight, distanceToDesired);
+        return inReach
                  && SurfaceType.getSurfaceType(world, cachedBlockLookup.getBlockState(below), below, getPathingOptions()) == SurfaceType.WALKABLE;
     }
 

@@ -43,6 +43,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -83,6 +84,11 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
     private BlockPos blockedWorkTarget;
     private BlockPos blockedWorkOrigin;
     private long workPathRetryAt;
+
+    private BlockPos workAlignmentTarget;
+    private BlockPos workAlignmentCell;
+    private long workAlignmentUntil;
+    private long workAlignmentRetryAt;
 
     /**
      * Path used to select the next safe work position.
@@ -314,6 +320,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
               && isWorkTargetReachableFrom(worker.blockPosition(), nextTarget)
               && isWorkPositionSafe(worker.blockPosition()))
         {
+            clearWorkAlignment();
             if (workPositionPath != null)
             {
                 workPositionPath.cancel();
@@ -331,6 +338,11 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
             blockedWorkTarget = null;
             MinecoloniesAIMetrics.recordBuilderPlannerInPlace(countCoveredTargets(worker.blockPosition()));
             return true;
+        }
+
+        if (!plannedWorkTargets.isEmpty() && tryAlignCurrentWorkPosition(nextTarget))
+        {
+            return false;
         }
 
         if (!plannedWorkTargets.isEmpty() && workFrom != null && !isWorkTargetReachableFrom(workFrom, nextTarget))
@@ -369,10 +381,12 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                     worker.getNavigation().stop();
                     if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
                     {
-                        Log.getLogger().info("[AI-BUILDER] work-target-unreachable entity={} target={} origin={} endpoint={} nodes={} retryTicks={} feetY={} eyeHeight={} currentSafe={}",
+                        Log.getLogger().info("[AI-BUILDER] work-target-unreachable entity={} target={} origin={} endpoint={} nodes={} retryTicks={} feet={} eyeHeight={} currentSafe={} centeredReach={} actualReach={}",
                           worker.getCitizenData().getName(), nextTarget, blockedWorkOrigin, endpoint,
                           path == null ? 0 : path.getNodeCount(), WORK_PATH_RETRY_TICKS,
-                          worker.getY(), worker.getEyeHeight(), isWorkPositionSafe(worker.blockPosition()));
+                          worker.position(), worker.getEyeHeight(), isWorkPositionSafe(worker.blockPosition()),
+                          PathJobMoveCloseToXNearY.isWithinWorkRange(worker.blockPosition(), nextTarget, worker.getEyeHeight(), STANDARD_WORKING_RANGE),
+                          isWorkTargetReachableFrom(worker.blockPosition(), nextTarget));
                     }
                 }
                 workPositionPath = null;
@@ -760,6 +774,80 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
         return PathJobMoveCloseToXNearY.isWithinWorkRange(workPosition, target, worker.getEyeHeight(), STANDARD_WORKING_RANGE);
     }
 
+    /**
+     * Finish the short approach which normal waypoint tolerance may omit. The
+     * worker walks within its current cell; it is never snapped or teleported.
+     */
+    private boolean tryAlignCurrentWorkPosition(final BlockPos target)
+    {
+        if (!worker.onGround() || !world.getFluidState(worker.blockPosition()).isEmpty())
+        {
+            return false;
+        }
+        final BlockPos cell = worker.blockPosition();
+        final Vec3 alignedFeet = new Vec3(cell.getX() + 0.5D, worker.getY(), cell.getZ() + 0.5D);
+        final double dx = alignedFeet.x - worker.getX();
+        final double dz = alignedFeet.z - worker.getZ();
+        if (dx * dx + dz * dz < 0.000001D || dx * dx + dz * dz > 0.500001D
+              || !PathJobMoveCloseToXNearY.isWithinWorkRange(alignedFeet, target, worker.getEyeHeight(), STANDARD_WORKING_RANGE))
+        {
+            return false;
+        }
+        final BlockPos support = BlockPos.containing(alignedFeet.x, alignedFeet.y - 0.01D, alignedFeet.z);
+        if (SurfaceType.getSurfaceType(world, world.getBlockState(support), support, new PathingOptions()) != SurfaceType.WALKABLE
+              || !world.noCollision(worker, worker.getBoundingBox().expandTowards(dx, 0.0D, dz)))
+        {
+            return false;
+        }
+
+        final long now = world.getGameTime();
+        if (!target.equals(workAlignmentTarget) || !cell.equals(workAlignmentCell))
+        {
+            clearWorkAlignment();
+            workAlignmentTarget = target.immutable();
+            workAlignmentCell = cell.immutable();
+        }
+        if (now < workAlignmentRetryAt)
+        {
+            return false;
+        }
+        if (workAlignmentUntil > 0 && now >= workAlignmentUntil)
+        {
+            // Yield to ordinary route search if normal movement failed to align.
+            workAlignmentUntil = 0;
+            workAlignmentRetryAt = now + 40;
+            return false;
+        }
+        if (workAlignmentUntil == 0)
+        {
+            workAlignmentUntil = now + 20;
+            if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+            {
+                Log.getLogger().info("[AI-BUILDER] work-position-align entity={} target={} feet={} desired={} attemptTicks=20",
+                  worker.getCitizenData().getName(), target, worker.position(), alignedFeet);
+            }
+        }
+        if (workPositionPath != null)
+        {
+            workPositionPath.cancel();
+            workPositionPath = null;
+        }
+        worker.getNavigation().stop();
+        updateWorkFrom(null);
+        blockedWorkTarget = null;
+        workPathRetryAt = 0;
+        worker.getMoveControl().setWantedPosition(alignedFeet.x, alignedFeet.y, alignedFeet.z, 0.5D);
+        return true;
+    }
+
+    private void clearWorkAlignment()
+    {
+        workAlignmentTarget = null;
+        workAlignmentCell = null;
+        workAlignmentUntil = 0;
+        workAlignmentRetryAt = 0;
+    }
+
     private boolean isWorkPositionSafe(final BlockPos workPosition)
     {
         if (workPosition == null || !world.getFluidState(workPosition).isEmpty())
@@ -789,6 +877,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
     private void resetWorkPlanner(final String reason, final boolean clearWorkPosition)
     {
+        clearWorkAlignment();
         blockedWorkTarget = null;
         blockedWorkOrigin = null;
         workPathRetryAt = 0;
