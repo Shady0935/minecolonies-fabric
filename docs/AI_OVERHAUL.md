@@ -938,3 +938,25 @@ The CurseForge profile contains MineColonies 1.0.18, Structurize 1.0.4,
 Multi-Piston 0.0.5 and BlockUI 0.0.2, with previous JARs/configs backed up under
 `mods/codex-backups/20261020-config-parity-d98a4b8f`. Domum stays at 1.0.2.
 See `docs/CONFIGURATION_PARITY.md` and `docs/audit/` for scope and evidence.
+
+### 2026-10-20: repeated zero-progress paths and quieter diagnostics (1.0.19)
+
+Branch `fix/pathfinding-no-progress` addresses the live 1.0.18 log sample where
+37 of 39 targeted results contained only the starting node. Explicit stationary
+goals now use bounded retry backoff, retaining failure history and stuck recovery
+across path replacement. Movement, a different goal/job type or a useful route
+clears it. Combat jobs without explicit navigation goals are excluded from the
+cache. Partial paths remain usable and are not reported as successful arrivals.
+
+Surface following uses fractional collision heights. Search headroom uses the
+NPC's actual height captured on the server thread, and negative-coordinate start
+fractions and support-query positions are corrected. Those code corrections do
+not prove the specific hosted slab/ceiling was the cause: that area was unloaded
+when inspected later.
+
+AI diagnostics now emit bounded summaries with calculation time and deferred
+retry counts. `citizenaidebugcitizens` selects name fragments or UUIDs; the server
+schema grows to 94. Verbosity is retained with levels 0/off, 1/summary and
+2–10/nodes. The hosted TOML was changed from 10 to 0 and read back; restart is
+required. Only MineColonies changes to 1.0.19; see `PATHFINDING_NO_PROGRESS.md`
+for build/install evidence and the explicit pending in-game verification.

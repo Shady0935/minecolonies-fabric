@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-20",
+  "branch": "fix/pathfinding-no-progress",
+  "package": {
+    "version": "1.0.19-port",
+    "file": "project\\minecolonies\\build\\libs\\minecolonies-fabric-1.20.1-1.0.19-port.jar",
+    "bytes": 72486852,
+    "sha256": "3776c773064ccca7f98431cc5aeb7e5785d6f936b65b80574beb9459a17010b0",
+    "depends": {
+      "fabricloader": ">=0.15.11",
+      "fabric-api": "*",
+      "minecraft": "1.20.1",
+      "java": ">=17",
+      "blockui": "*",
+      "domum_ornamentum": "*",
+      "structurize": "1.0.4-port",
+      "multipiston": "0.0.5-port"
+    },
+    "translation_filter_checked": [
+      "en_us",
+      "es_es",
+      "es_mx"
+    ],
+    "source_commit": "2b14666bc3",
+    "build": "logs/pathfinding-no-progress-final-build.log",
+    "tests_run_for_this_patch": false
+  },
+  "installed_jar_hash_verified": true,
+  "one_active_minecolonies_version_verified": true,
+  "backup_previous_hash_verified": true,
+  "backup_relative_to_mods": "codex-backups/20261020-ai-nav-edacfdb2",
+  "companions": [
+    {
+      "id": "blockui",
+      "version": "0.0.2-port",
+      "sha256": "706edd1fab9592956ab04ecf3dc79a20cb1a35e020d4a2330c483e717b71c104"
+    },
+    {
+      "id": "structurize",
+      "version": "1.0.4-port",
+      "sha256": "9be1dddafb26d8959ad5fa0073a041cc0b8fafa37ff3564fa2907805a1a14321"
+    },
+    {
+      "id": "multipiston",
+      "version": "0.0.5-port",
+      "sha256": "6aff9c8035537f59f25525e158eab2fdf40e74702859bfa8e6eb990ddc0cdb85"
+    },
+    {
+      "id": "domum_ornamentum",
+      "version": "1.0.2-port",
+      "sha256": "a4eec2b5f9c69c9245298cefed310769b9aef78cfd73d46cf2a211a31e3275db"
+    }
+  ],
+  "profile_game_closed_normally": true,
+  "profile_verbosity": 0,
+  "host_config": {
+    "path": "config/minecolonies-server.toml",
+    "pathfindingdebugverbosity": 0,
+    "readback_verified": true,
+    "restart_required": true,
+    "new_jar_deployed": false
+  },
+  "validation": "Final remapJar build successful; JAR metadata/classes/translations and installation hashes inspected. No automated test run for this patch. Hosted movement validation pending."
+}

@@ -1,5 +1,14 @@
 # Known limitations
 
+## 2026-10-20 navigation follow-up (1.0.19)
+
+The new citizen diagnostic filter increases the server schema from 93 to 94.
+Repeated zero-progress targeted paths now back off and fractional support and
+headroom handling are corrected. The 149/12 suite below is the 1.0.18 baseline,
+not a run of this follow-up. The actual hosted movement/retry-rate improvement
+remains to be observed after deploying 1.0.19 and restarting. See
+`PATHFINDING_NO_PROGRESS.md` for scope and diagnostic settings.
+
 ## 2026-10-20 configuration and adapter audit
 
 The full original configuration is now persisted, validated and synchronized:

@@ -83,3 +83,14 @@ La reducción real de búsquedas y el movimiento de estos colonos quedan pendien
 de observar con el nuevo JAR en el servidor. La modificación del TOML no cambia
 la configuración en memoria hasta reiniciar. Los datos de instalación y respaldo
 se registran al completar la entrega en `logs/20261020-ai-nav-profile-install.json`.
+
+Entrega completada: `minecolonies-fabric-1.20.1-1.0.19-port.jar`, 72.486.852 bytes,
+SHA-256 `3776c773064ccca7f98431cc5aeb7e5785d6f936b65b80574beb9459a17010b0`.
+La compilación final `remapJar -x test` terminó correctamente. El perfil tiene una
+sola versión activa; se verificaron las traducciones del filtro en en_us/es_es/es_mx,
+las dependencias y los hashes del JAR copiado, el anterior respaldado y los cuatro
+mods compañeros conservados. Minecraft del perfil se cerró normalmente para la
+instalación. Copia anterior y TOML en
+`mods/codex-backups/20261020-ai-nav-edacfdb2`.
+Evidencia rastreada: `docs/audit/2026-10-20-pathfinding-no-progress-delivery.json`.
+El JAR nuevo aún no se subió al host: se debe sustituir MineColonies allí y reiniciar.
