@@ -835,3 +835,18 @@ See `docs/WORKER_SPEED_CONTROLS.md` for scope, evidence and validation limits.
 MineColonies 1.0.12 is built and installed in CurseForge, with the 1.0.11 JAR
 and previous config backed up. Dependencies stay Structurize 1.0.2 / Multi-Piston
 0.0.3. In-game verification and remote installation are pending.
+
+### Kohen upper-block reach (1.0.13)
+
+The server is now confirmed on 1.0.12 with the 2x work settings. Kohen is actually
+stuck in BUILDING_STEP at `(-666,68,236)`, repeatedly failing to reach the empty
+placement target `(-666,74,237)` with a one-node path. Measuring to the target's
+center rejects a lower face that is within the existing five-block work range.
+Branch `fix/builder-block-face-reach` switches the shared route/worker reach
+check to distance to the target cell, using real live feet coordinates and the
+real current collision box. New diagnostics include feet/eye height and current
+position safety. No world edits, citizen resets or teleports were used.
+See `docs/BUILDER_BLOCK_FACE_REACH.md` for evidence, scope and remaining checks.
+MineColonies 1.0.13 is compiled, pushed and installed in CurseForge with a backup;
+the server still needs its JAR replaced and restarted. Actual in-game recovery
+is not yet confirmed.

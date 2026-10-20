@@ -58,3 +58,25 @@ ejecutar pruebas automatizadas. La evidencia de logs se conserva localmente en
 `MANUAL_VALIDATION_PENDING`: instalar 1.0.13 en el servidor y comprobar que
 Kohen supera `(-666,74,237)`, continúa su orden y no repite esa ruta de un nodo.
 El diagnóstico geométrico no equivale a haber verificado la recuperación en juego.
+
+## Compilación, instalación y checkpoint
+
+`remapJar --console=plain` terminó correctamente en 2 min 11 s, con los avisos
+existentes de APIs obsoletas. Se inspeccionaron el manifiesto de distribución,
+las dependencias activas y las dos variantes del método de alcance compilado.
+El código está respaldado en GitHub, `origin/fix/builder-block-face-reach`,
+commit `fcbdb7bfd3`.
+
+El 19 de octubre a las 21:19 COT se instaló 1.0.13 en CurseForge. SHA-256
+del JAR de distribución y del instalado:
+`f7ef4339534d640ee72525e1531e39027cc740214aa618ff329f71bc482b977b`.
+Hay una sola versión activa de cada mod. La configuración de velocidad y las
+versiones de Structurize y Multi-Piston se conservaron.
+
+Minecraft de ese perfil (PID 31688) cerró normalmente, sin terminación forzada.
+La versión 1.0.12 y el manifiesto de instalación están en
+`mods/codex-backups/20261019-builder-face-reach-2bcf475a`. No se detuvieron
+otros procesos Java.
+
+El servidor remoto sigue en 1.0.12; debe sustituirse únicamente MineColonies y
+reiniciarse antes de poder comprobar allí la recuperación de Kohen.
