@@ -2,7 +2,7 @@ package com.minecolonies.api.configuration;
 
 import com.ldtteam.structurize.util.LanguageHandler;
 import com.minecolonies.api.util.constant.Constants;
-import com.minecolonies.fabric.config.FabricConfigSpec.*;
+import com.ldtteam.structurize.config.fabric.FabricConfigSpec.*;
 
 import java.util.List;
 import java.util.function.Predicate;

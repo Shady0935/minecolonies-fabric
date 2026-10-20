@@ -604,7 +604,9 @@ public final class BackUpHelper
             }
 
             // Save config
-            final File config = new File(topworldDir, "serverconfig" + File.separator + "minecolonies-server.toml");
+            final java.nio.file.Path activeConfig = com.minecolonies.fabric.config.FabricConfiguration.activeServerFile();
+            final File config = activeConfig == null
+                ? new File(topworldDir, "serverconfig" + File.separator + "minecolonies-server.toml") : activeConfig.toFile();
             if (config.exists())
             {
                 addFileToZipWithPath(worldname + File.separator + "serverconfig" + File.separator + "minecolonies-server.toml", zos, config);

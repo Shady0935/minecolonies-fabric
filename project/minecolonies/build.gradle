@@ -116,7 +116,12 @@ dependencies {
 
     modCompileOnly 'mezz.jei:jei-1.20.1-fabric-api:15.62.0.216'
     modCompileOnlyApi 'info.journeymap:journeymap-api-fabric:1.20.1-2.0.0'
+    implementation 'com.electronwill.night-config:core:3.8.4'
+    implementation 'com.electronwill.night-config:toml:3.8.4'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
+
+tasks.withType(Test).configureEach { useJUnitPlatform() }
 
 processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -270,8 +275,8 @@ tasks.withType(Jar).configureEach {
 def serverDependencyJars = [
     file('../libs/blockui/build/libs/blockui-fabric-1.20.1-0.0.1-port.jar'),
     file('../libs/domum-ornamentum/build/libs/domum-ornamentum-fabric-1.20.1-1.0.2-port.jar'),
-    file('../libs/structurize/build/libs/structurize-fabric-1.20.1-1.0.3-port.jar'),
-    file('../libs/multipiston/build/libs/multipiston-fabric-1.20.1-0.0.4-port.jar')
+    file('../libs/structurize/build/libs/structurize-fabric-1.20.1-1.0.4-port.jar'),
+    file('../libs/multipiston/build/libs/multipiston-fabric-1.20.1-0.0.5-port.jar')
 ]
 
 tasks.register('serverModsBundle', Zip) {

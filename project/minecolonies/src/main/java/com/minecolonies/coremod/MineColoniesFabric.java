@@ -95,8 +95,7 @@ public final class MineColoniesFabric implements ModInitializer
         // Deferred values that depend on blocks, entities or items are created
         // by the upstream-shaped constructor only after those values exist.
         new MineColonies();
-        CitizenAIDebugConfig.load();
-        CitizenWorkSpeedConfig.load();
+        com.minecolonies.fabric.config.FabricConfiguration.initialize(MineColonies.getConfig());
         FabricGameplayHooks.register();
 
         // Fabric reloads recipes after mod initialization. Register these
@@ -154,6 +153,7 @@ public final class MineColoniesFabric implements ModInitializer
         ServerLifecycleEvents.SERVER_STARTING.register(server ->
         {
             ServerLifecycleHooks.setCurrentServer(server);
+            com.minecolonies.fabric.config.FabricConfiguration.serverStarting(server);
             MinecraftForge.EVENT_BUS.post(new ServerAboutToStartEvent(server));
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server ->
@@ -232,8 +232,11 @@ public final class MineColoniesFabric implements ModInitializer
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) ->
             MinecraftForge.EVENT_BUS.post(new EntityJoinLevelEvent(entity, level)));
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
-            MinecraftForge.EVENT_BUS.post(new PlayerEvent.PlayerLoggedInEvent(handler.getPlayer())));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            com.minecolonies.fabric.config.FabricConfiguration.sendTo(handler.getPlayer());
+            MinecraftForge.EVENT_BUS.post(new PlayerEvent.PlayerLoggedInEvent(handler.getPlayer()));
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> com.minecolonies.fabric.config.FabricConfiguration.serverStopped());
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
             MinecraftForge.EVENT_BUS.post(new PlayerEvent.PlayerLoggedOutEvent(handler.getPlayer())));
     }

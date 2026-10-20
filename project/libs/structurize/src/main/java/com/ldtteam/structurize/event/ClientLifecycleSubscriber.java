@@ -27,6 +27,21 @@ public final class ClientLifecycleSubscriber implements ClientModInitializer
     public void onInitializeClient()
     {
         Network.getNetwork().registerClientMessages();
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(
+            com.ldtteam.structurize.config.ServerConfigurationPersistence.CHANNEL, (client, handler, buffer, sender) -> {
+                final String json = buffer.readUtf(com.ldtteam.structurize.config.fabric.ConfigSnapshotCodec.MAX_LENGTH);
+                client.execute(() -> {
+                    if (client.getSingleplayerServer() != null) { return; }
+                    try { com.ldtteam.structurize.config.ServerConfigurationPersistence.applyRemote(json); }
+                    catch (final RuntimeException exception)
+                    {
+                        com.ldtteam.structurize.api.util.Log.getLogger().error("Invalid Structurize server configuration", exception);
+                        handler.getConnection().disconnect(net.minecraft.network.chat.Component.literal("Structurize: invalid or incompatible server configuration."));
+                    }
+                });
+            });
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
+            client.execute(com.ldtteam.structurize.config.ServerConfigurationPersistence::restoreLocal));
         ClientFutureProcessor.register();
         ClientStructurePackLoader.register();
         ClientStructurePackLoader.onClientLoading();

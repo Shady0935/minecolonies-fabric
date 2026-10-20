@@ -1,6 +1,6 @@
 package com.minecolonies.api.configuration;
 
-import com.minecolonies.fabric.config.FabricConfigSpec;
+import com.ldtteam.structurize.config.fabric.FabricConfigSpec;
 
 /**
  * Mod client configuration. Loaded clientside, not synced.

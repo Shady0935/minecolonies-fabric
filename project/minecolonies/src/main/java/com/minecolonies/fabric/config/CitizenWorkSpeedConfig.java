@@ -41,7 +41,11 @@ public final class CitizenWorkSpeedConfig
     /** Preserve other sections and comments, adding only missing work-speed keys. */
     public static void load()
     {
-        final Path file = FabricLoader.getInstance().getConfigDir().resolve("minecolonies-server.toml");
+        load(FabricLoader.getInstance().getConfigDir().resolve("minecolonies-server.toml"));
+    }
+
+    public static void load(final Path file)
+    {
         try
         {
             final List<String> lines = Files.exists(file)

@@ -40,6 +40,7 @@ public class Structurize implements ModInitializer
         ModItemGroups.initialize();
 
         config = new Configuration();
+        com.ldtteam.structurize.config.ServerConfigurationPersistence.initialize(config);
 
         BlueprintRenderSettings.instance.registerSetting(RENDER_PLACEHOLDERS, false);
         BlueprintRenderSettings.instance.registerSetting(SHARE_PREVIEWS, false);

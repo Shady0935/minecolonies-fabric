@@ -27,7 +27,11 @@ public final class CitizenAIDebugConfig
     /** Loads the options from config/minecolonies-server.toml, creating missing entries with their defaults. */
     public static void load()
     {
-        final Path configFile = FabricLoader.getInstance().getConfigDir().resolve("minecolonies-server.toml");
+        load(FabricLoader.getInstance().getConfigDir().resolve("minecolonies-server.toml"));
+    }
+
+    public static void load(final Path configFile)
+    {
         final List<String> lines = new ArrayList<>();
         boolean writeConfig = false;
 

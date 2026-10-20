@@ -2,7 +2,7 @@ package com.minecolonies.api.configuration;
 
 import com.minecolonies.api.colony.permissions.Explosions;
 import com.minecolonies.api.util.constant.CitizenConstants;
-import com.minecolonies.fabric.config.FabricConfigSpec;
+import com.ldtteam.structurize.config.fabric.FabricConfigSpec;
 
 import java.util.Arrays;
 import java.util.List;

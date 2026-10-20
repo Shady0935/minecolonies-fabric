@@ -66,11 +66,13 @@ public final class MineColoniesClientFabric implements ClientModInitializer
         }
 
         ClientNetworkHooks.register(Network.getNetwork().getRawChannel());
+        com.minecolonies.fabric.client.network.ClientConfigurationHooks.register();
 
         MinecraftForge.EVENT_BUS.register(ClientRegistryHandler.class);
         MinecraftForge.EVENT_BUS.register(ModContainerInitializers.class);
         MinecraftForge.EVENT_BUS.register(ModParticleTypesInitializer.ClientRegistration.class);
         MinecraftForge.EVENT_BUS.register(TextureReloadListener.class);
+        com.minecolonies.fabric.client.ClientItemDecorations.register();
 
         registerModelLayers();
         registerRenderers();
@@ -90,7 +92,7 @@ public final class MineColoniesClientFabric implements ClientModInitializer
         // This retained lifecycle event is only consumed by menu screens.  It
         // is dispatched directly so the common setup handler is not repeated.
         ModContainerInitializers.doClientStuff(new FMLClientSetupEvent());
-        MinecraftForge.EVENT_BUS.post(new RegisterRecipeBookCategoriesEvent());
+        com.minecolonies.fabric.client.ClientRecipeCategories.register();
 
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> MinecraftForge.EVENT_BUS.post(
           new RenderLevelStageEvent(context, RenderLevelStageEvent.Stage.AFTER_CUTOUT_MIPPED_BLOCKS_BLOCKS)));

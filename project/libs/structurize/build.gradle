@@ -40,6 +40,10 @@ dependencies {
 
     implementation files(project.blockui_jar)
     implementation files(project.domum_jar)
+    implementation 'com.electronwill.night-config:core:3.8.4'
+    implementation 'com.electronwill.night-config:toml:3.8.4'
+    include 'com.electronwill.night-config:core:3.8.4'
+    include 'com.electronwill.night-config:toml:3.8.4'
 }
 
 processResources {
