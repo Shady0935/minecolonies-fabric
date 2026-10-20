@@ -820,3 +820,18 @@ in `docs/WAREHOUSE_CONSISTENCY.md`. Branch `fix/warehouse-consistency` preserves
 the AI fixes and ships MineColonies 1.0.11 / Structurize 1.0.2 / Multi-Piston
 0.0.3 as one compatible set. All three are installed in the CurseForge test
 profile with backups and matching hashes; the remote server still needs them.
+
+### Worker speed controls (1.0.12)
+
+Kohen's read-only live inspection confirms all skills at 99 and progress on
+work order 5. Mining still had a ten-tick structure-state interval, an extra
+pass for zero-duration work, and no Efficiency contribution in the shared
+tool-speed calculation. Branch `feat/worker-speed-controls` addresses these
+and introduces bounded server settings for civilian worker action cadence,
+mining and structure placement. Defaults are 2x multipliers with one-tick
+structure mining checks. Blocking checks, guard cadence and world time retain
+their schedules; this is not a measured 2x whole-building speedup.
+See `docs/WORKER_SPEED_CONTROLS.md` for scope, evidence and validation limits.
+MineColonies 1.0.12 is built and installed in CurseForge, with the 1.0.11 JAR
+and previous config backed up. Dependencies stay Structurize 1.0.2 / Multi-Piston
+0.0.3. In-game verification and remote installation are pending.

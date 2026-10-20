@@ -74,10 +74,32 @@ No hay cambios al movimiento físico ni al tiempo del mundo, hornos o cultivos.
 
 Solo cambia MineColonies, a **1.0.12-port**. Mantiene las dependencias exactas
 Structurize 1.0.2 y Multi-Piston 0.0.3. No se añaden ni ejecutan pruebas
-automáticas. Compilación mediante `remapJar --console=plain`; instalación y
-hashes del perfil se registrarán tras finalizarla.
+automáticas. `remapJar --console=plain` terminó en 2 min 25 s; una compilación
+final de 1 min 2 s incluye la limpieza de esperas cero. Los avisos son los
+existentes sobre APIs obsoletas y operaciones sin comprobar. La inspección del
+bytecode confirma el caso de espera cero y la llamada a `clearWorkTarget`.
 
 `MANUAL_VALIDATION_PENDING`: retirar terreno con Kohen y su herramienta real,
 comparar bloques efectivamente cambiados por segundo; observar colocación,
 consumo de materiales/durabilidad y tiempo del servidor con varios constructores.
 El análisis de límites por código no sustituye esa medición en juego.
+
+## Checkpoint e instalación
+
+Código respaldado en `origin/feat/worker-speed-controls`, commit `3d1229b5db`.
+El 19 de octubre a las 21:05 COT quedó instalado en el perfil `Minecolonies
+Fabric` el JAR `minecolonies-fabric-1.20.1-1.0.12-port.jar`, SHA-256:
+`3309ae61bb6a858939eae16ada9ec22b8ac53ad3fb83aa0c74469458cab386d7`.
+El archivo del perfil coincide con el artefacto compilado y hay una sola versión
+activa. Structurize 1.0.2 y Multi-Piston 0.0.3 permanecen compatibles.
+
+Se cerró normalmente el cliente de ese perfil (PID 26792), sin terminación
+forzada. La versión anterior 1.0.11, la configuración previa y el manifiesto
+están en `mods/codex-backups/20261019-worker-speed-916f7793`. La configuración
+del perfil ya incluye los valores predeterminados de la sección nueva.
+
+El servidor remoto fue consultado sin modificaciones. El log de arranque
+confirma que tiene MineColonies 1.0.11 / Structurize 1.0.2 / Multi-Piston 0.0.3:
+solo necesita sustituir el JAR de MineColonies y reiniciar. La nueva versión
+añadirá su sección de velocidad al TOML del servidor al arrancar. No se ha
+validado todavía la mejora de rendimiento o productividad de 1.0.12 en juego.
