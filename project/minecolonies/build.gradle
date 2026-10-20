@@ -23,6 +23,9 @@ repositories {
 def serverBundleFabricApi = configurations.create('serverBundleFabricApi') {
     canBeConsumed = false
     canBeResolved = true
+    // The published runtime JAR already nests its modules; avoid loose duplicates
+    // and development-only modules such as fabric-gametest-api-v1 in the ZIP.
+    transitive = false
 }
 
 fabricApi {
