@@ -23,8 +23,8 @@
     "java": ">=17",
     "blockui": "*",
     "domum_ornamentum": "*",
-    "structurize": "1.0.2-port",
-    "multipiston": "0.0.3-port"
+    "structurize": "1.0.3-port",
+    "multipiston": "0.0.4-port"
   },
   "suggests": {
     "jei": "*",
