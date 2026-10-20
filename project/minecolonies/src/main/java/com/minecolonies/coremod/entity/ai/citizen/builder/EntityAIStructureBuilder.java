@@ -21,6 +21,7 @@ import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.api.util.Tuple;
 import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.coremod.MineColonies;
+import com.minecolonies.fabric.config.CitizenWorkSpeedConfig;
 import com.minecolonies.coremod.colony.buildings.modules.settings.BuilderModeSetting;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.coremod.colony.jobs.JobBuilder;
@@ -412,7 +413,8 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                   routePreference,
                   STANDARD_WORKING_RANGE,
                   (int) worker.getAttribute(Attributes.FOLLOW_RANGE).getValue(),
-                  worker);
+                  worker,
+                  canUseVerticalConstructionReach(nextTarget));
                 workPositionPath = ((MinecoloniesAdvancedPathNavigate) worker.getNavigation()).setPathJob(
                   pathJob,
                   nextTarget,
@@ -767,11 +769,32 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
     private boolean isWorkTargetReachableFrom(final BlockPos workPosition, final BlockPos target)
     {
+        if (canUseVerticalConstructionReach(target))
+        {
+            final Vec3 feet = workPosition.equals(worker.blockPosition()) ? worker.position() : Vec3.atBottomCenterOf(workPosition);
+            return PathJobMoveCloseToXNearY.isWithinHorizontalWorkRange(feet, target, STANDARD_WORKING_RANGE);
+        }
         if (workPosition.equals(worker.blockPosition()))
         {
             return PathJobMoveCloseToXNearY.isWithinWorkRange(worker.position(), target, worker.getEyeHeight(), STANDARD_WORKING_RANGE);
         }
         return PathJobMoveCloseToXNearY.isWithinWorkRange(workPosition, target, worker.getEyeHeight(), STANDARD_WORKING_RANGE);
+    }
+
+    /** Restore the original Builder's vertical reach only inside its loaded work blueprint. */
+    private boolean canUseVerticalConstructionReach(final BlockPos target)
+    {
+        if (!CitizenWorkSpeedConfig.builderVerticalReachCompatibility()
+              || structurePlacer == null || !structurePlacer.getB().hasBluePrint()
+              || world.isOutsideBuildHeight(target))
+        {
+            return false;
+        }
+        final BlockPos local = structurePlacer.getB().getStructurePosFromWorld(target);
+        final var blueprint = structurePlacer.getB().getBluePrint();
+        return local.getX() >= 0 && local.getX() < blueprint.getSizeX()
+                 && local.getY() >= 0 && local.getY() < blueprint.getSizeY()
+                 && local.getZ() >= 0 && local.getZ() < blueprint.getSizeZ();
     }
 
     /**

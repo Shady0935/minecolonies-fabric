@@ -20,11 +20,13 @@ public final class CitizenWorkSpeedConfig
     private static double miningSpeed = 2.0;
     private static double placementSpeed = 2.0;
     private static int builderMiningInterval = 1;
+    private static boolean builderVerticalReachCompatibility = true;
 
     private CitizenWorkSpeedConfig() { }
 
     public static double workerAiSpeed() { return workerAiSpeed; }
     public static int builderMiningInterval() { return builderMiningInterval; }
+    public static boolean builderVerticalReachCompatibility() { return builderVerticalReachCompatibility; }
 
     public static int miningDelay(final double ticks)
     {
@@ -77,6 +79,7 @@ public final class CitizenWorkSpeedConfig
             miningSpeed = readOption(options, "miningspeedmultiplier", 2.0, 0.25, 8.0, false);
             placementSpeed = readOption(options, "builderplacementspeedmultiplier", 2.0, 0.25, 8.0, false);
             builderMiningInterval = (int) readOption(options, "builderminingcheckinterval", 1, 1, 20, true);
+            builderVerticalReachCompatibility = readBooleanOption(options, "builderverticalreachcompatibility", true);
             lines.subList(start + 1, end).clear();
             lines.addAll(start + 1, options);
             if (!lines.equals(original))
@@ -84,13 +87,32 @@ public final class CitizenWorkSpeedConfig
                 Files.createDirectories(file.getParent());
                 Files.write(file, lines, StandardCharsets.UTF_8);
             }
-            LOGGER.info("Citizen work speed: AI={}x, mining={}x, builder placement={}x, mining checks={} ticks.",
-              workerAiSpeed, miningSpeed, placementSpeed, builderMiningInterval);
+            LOGGER.info("Citizen work speed: AI={}x, mining={}x, builder placement={}x, mining checks={} ticks, vertical blueprint reach={}",
+              workerAiSpeed, miningSpeed, placementSpeed, builderMiningInterval, builderVerticalReachCompatibility);
         }
         catch (final IOException exception)
         {
             LOGGER.error("Could not load citizen work speed from {}; using current defaults.", file, exception);
         }
+    }
+
+    private static boolean readBooleanOption(final List<String> lines, final String key, final boolean defaultValue)
+    {
+        final String defaultLine = key + " = " + defaultValue;
+        for (int i = 0; i < lines.size(); i++)
+        {
+            final String line = lines.get(i).trim();
+            final int equals = line.indexOf('=');
+            if (equals < 0 || !key.equals(line.substring(0, equals).trim())) { continue; }
+            final String value = line.substring(equals + 1).split("#", 2)[0].trim();
+            if ("true".equals(value)) { return true; }
+            if ("false".equals(value)) { return false; }
+            LOGGER.warn("Invalid option {}; using {}.", key, defaultValue);
+            lines.set(i, defaultLine);
+            return defaultValue;
+        }
+        lines.add(defaultLine);
+        return defaultValue;
     }
 
     private static double readOption(final List<String> lines, final String key, final double defaultValue,

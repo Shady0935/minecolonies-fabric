@@ -19,6 +19,7 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
     private final int distanceToDesired;
     private final double eyeHeight;
     private final Vec3 initialFeetPosition;
+    private final boolean verticalConstructionReach;
 
     public PathJobMoveCloseToXNearY(final Level world,
                                     @NotNull final BlockPos start,
@@ -28,18 +29,31 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
                                     final int searchRange,
                                     @NotNull final LivingEntity entity)
     {
+        this(world, start, desiredPosition, nearbyPosition, distanceToDesired, searchRange, entity, false);
+    }
+
+    public PathJobMoveCloseToXNearY(final Level world,
+                                    @NotNull final BlockPos start,
+                                    @NotNull final BlockPos desiredPosition,
+                                    @NotNull final BlockPos nearbyPosition,
+                                    final int distanceToDesired,
+                                    final int searchRange,
+                                    @NotNull final LivingEntity entity,
+                                    final boolean verticalConstructionReach)
+    {
         super(world, start, desiredPosition, searchRange, new PathResult<PathJobMoveCloseToXNearY>(), entity);
         this.desiredPosition = desiredPosition;
         this.nearbyPosition = nearbyPosition;
         this.distanceToDesired = distanceToDesired;
         this.eyeHeight = entity.getEyeHeight();
         this.initialFeetPosition = entity.position();
+        this.verticalConstructionReach = verticalConstructionReach;
     }
 
     @Override
     protected double computeHeuristic(@NotNull final BlockPos pos)
     {
-        return manhattanDistance(desiredPosition, pos) + manhattanDistance(nearbyPosition, pos) * 2.0D;
+        return workDistance(desiredPosition, pos) + workDistance(nearbyPosition, pos) * 2.0D;
     }
 
     @Override
@@ -48,9 +62,10 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
         final BlockPos below = node.pos.below();
         // Reaching the start cell does not move the entity to that cell's center.
         // Use the captured real position for a zero-movement route, too.
-        final boolean inReach = node.parent == null
-          ? isWithinWorkRange(initialFeetPosition, desiredPosition, eyeHeight, distanceToDesired)
-          : isWithinWorkRange(node.pos, desiredPosition, eyeHeight, distanceToDesired);
+        final Vec3 feet = node.parent == null ? initialFeetPosition : Vec3.atBottomCenterOf(node.pos);
+        final boolean inReach = verticalConstructionReach
+          ? isWithinHorizontalWorkRange(feet, desiredPosition, distanceToDesired)
+          : isWithinWorkRange(feet, desiredPosition, eyeHeight, distanceToDesired);
         return inReach
                  && SurfaceType.getSurfaceType(world, cachedBlockLookup.getBlockState(below), below, getPathingOptions()) == SurfaceType.WALKABLE;
     }
@@ -89,6 +104,23 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
         return Math.max(0.0D, Math.max(blockCoordinate - coordinate, coordinate - (blockCoordinate + 1.0D)));
     }
 
+    /** Legacy Builder reach: vertical blueprint work is allowed from nearby safe ground. */
+    public static boolean isWithinHorizontalWorkRange(final Vec3 feet, final BlockPos target, final int range)
+    {
+        final BlockPos standing = BlockPos.containing(feet);
+        final int dx = standing.getX() - target.getX();
+        final int dz = standing.getZ() - target.getZ();
+        return Math.abs(dx) + Math.abs(dz) <= range
+                 && !(dx == 0 && dz == 0 && feet.y >= target.getY());
+    }
+
+    private int workDistance(final BlockPos first, final BlockPos second)
+    {
+        return verticalConstructionReach
+                 ? Math.abs(first.getX() - second.getX()) + Math.abs(first.getZ() - second.getZ())
+                 : manhattanDistance(first, second);
+    }
+
     @Override
     protected double getNodeResultScore(@NotNull final MNode node)
     {
@@ -98,7 +130,7 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
             return 1000.0D;
         }
 
-        double score = manhattanDistance(desiredPosition, node.pos) * 2.0D + manhattanDistance(nearbyPosition, node.pos);
+        double score = workDistance(desiredPosition, node.pos) * 2.0D + workDistance(nearbyPosition, node.pos);
         if (node.isSwimming() || SurfaceType.isWater(world, node.pos.below()))
         {
             score += 50.0D;
