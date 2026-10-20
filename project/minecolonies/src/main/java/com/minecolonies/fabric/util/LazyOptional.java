@@ -85,9 +85,11 @@ public final class LazyOptional<T>
         if (isPresent()) consumer.accept(value);
     }
 
+    @SuppressWarnings("unchecked")
     public <U> LazyOptional<U> cast()
     {
-        return LazyOptional.of(() -> (U) value());
+        // A generic view must retain the original handle's invalidation state.
+        return (LazyOptional<U>) (LazyOptional<?>) this;
     }
 
     public <U> LazyOptional<U> lazyMap(final Function<? super T, ? extends U> mapper)

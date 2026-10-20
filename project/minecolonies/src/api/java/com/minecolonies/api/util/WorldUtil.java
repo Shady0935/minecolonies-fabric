@@ -63,10 +63,14 @@ public class WorldUtil
      */
     public static boolean isChunkLoaded(final LevelAccessor world, final int x, final int z)
     {
-        if (world.getChunkSource() instanceof ServerChunkCache)
+        if (world.getChunkSource() instanceof ServerChunkCache cache)
         {
+            // A synchronous block access may have loaded the chunk this tick,
+            // before ChunkMap publishes its next visible-holder snapshot.
+            // Vanilla's non-loading lookup also checks that immediate cache.
+            if (cache.getChunkNow(x, z) != null) { return true; }
             final ChunkHolder holder = com.minecolonies.fabric.compat.FabricVanillaCompat.getVisibleChunk(
-              (ServerChunkCache) world.getChunkSource(), ChunkPos.asLong(x, z));
+              cache, ChunkPos.asLong(x, z));
             if (holder != null)
             {
                 return holder.getFullChunkFuture().getNow(ChunkHolder.UNLOADED_LEVEL_CHUNK).left().isPresent();

@@ -23,6 +23,11 @@ import java.util.List;
 /** Real-loader probes for full schemas, migration, server authority and the brewing bridge. */
 public final class MineColoniesConfigurationGameTests implements FabricGameTest
 {
+    private static void passed(final net.minecraft.gametest.framework.GameTestHelper helper)
+    {
+        helper.succeed();
+        org.slf4j.LoggerFactory.getLogger("minecolonies/config-audit").info("Configuration parity probe passed at {}", helper.absolutePos(net.minecraft.core.BlockPos.ZERO));
+    }
     private static final class CancelProbe extends com.minecolonies.fabric.event.Event { }
     private static final class CancellationListeners
     {
@@ -39,13 +44,19 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
     public Collection<TestFunction> configurationTests()
     {
         return List.of(
+            new TestFunction("minecolonies_config", "synchronous_chunk_visibility", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
+                final var position = new net.minecraft.core.BlockPos(560003, -59, 560003);
+                helper.getLevel().getChunk(position);
+                helper.assertTrue(com.minecolonies.api.util.WorldUtil.isBlockLoaded(helper.getLevel(), position), "A synchronously loaded chunk must be visible to block access in the same tick");
+                passed(helper);
+            }),
             new TestFunction("minecolonies_config", "event_cancellation_contract", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 final var bus = new com.minecolonies.fabric.common.MinecraftForge.EventBus();
                 final var listeners = new CancellationListeners();
                 bus.register(listeners);
                 helper.assertTrue(bus.post(new CancelProbe()), "Cancellation must propagate to dispatcher");
                 helper.assertTrue(listeners.ordinary == 0 && listeners.canceled == 1, "Only opt-in listeners may receive canceled events");
-                helper.succeed();
+                passed(helper);
             }),
             new TestFunction("minecolonies_config", "mapped_vanilla_access", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 final var stand = new net.minecraft.world.level.block.entity.BrewingStandBlockEntity(net.minecraft.core.BlockPos.ZERO, net.minecraft.world.level.block.Blocks.BREWING_STAND.defaultBlockState());
@@ -59,10 +70,11 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                 com.minecolonies.fabric.compat.FabricVanillaCompat.setSpawnerRequiredPlayerRange(spawner, 17);
                 helper.assertTrue(spawner.save(new net.minecraft.nbt.CompoundTag()).getShort("RequiredPlayerRange") == 17, "Spawner range accessor must persist");
                 helper.assertTrue(com.minecolonies.fabric.compat.FabricVanillaCompat.navigatingMobs(helper.getLevel()) != null, "Navigation collection must be accessible");
-                helper.succeed();
+                passed(helper);
             }),
             new TestFunction("minecolonies_config", "inventory_face_contract", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 final var furnace = new net.minecraft.world.level.block.entity.FurnaceBlockEntity(net.minecraft.core.BlockPos.ZERO, net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+                furnace.setLevel(helper.getLevel());
                 final var top = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(furnace, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.UP).orElseThrow();
                 final var bottom = com.minecolonies.fabric.capability.CapabilityHooks.getCapability(furnace, com.minecolonies.fabric.capability.ForgeCapabilities.ITEM_HANDLER, net.minecraft.core.Direction.DOWN).orElseThrow();
                 helper.assertTrue(top.getSlots() == 1 && bottom.getSlots() == 2, "Furnace face slots must match vanilla");
@@ -78,7 +90,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                 final var stand = new net.minecraft.world.level.block.entity.BrewingStandBlockEntity(net.minecraft.core.BlockPos.ZERO, net.minecraft.world.level.block.Blocks.BREWING_STAND.defaultBlockState());
                 final var bottles = new com.minecolonies.fabric.inventory.InvWrapper(stand);
                 helper.assertTrue(bottles.insertItem(0, new ItemStack(Items.GLASS_BOTTLE, 8), false).getCount() == 7 && stand.getItem(0).getCount() == 1, "Bottle slot must be limited to one item");
-                helper.succeed();
+                passed(helper);
             }),
             new TestFunction("minecolonies_config", "config_complete_schema", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 helper.assertTrue(MineColonies.getConfig().serverSpec().options().size() == 93, "Server schema must expose all 93 options");
@@ -87,7 +99,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                 helper.assertTrue(Structurize.getConfig().serverSpec().options().size() == 15, "Structurize must expose all fifteen options");
                 helper.assertTrue(Files.isRegularFile(FabricConfiguration.activeServerFile()), "Effective server config must exist");
                 helper.assertTrue(Files.isRegularFile(FabricLoader.getInstance().getConfigDir().resolve("structurize-server.toml")), "Structurize config must exist");
-                helper.succeed();
+                passed(helper);
             }),
             new TestFunction("minecolonies_config", "config_real_schema_migration", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 try
@@ -102,7 +114,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                     helper.assertTrue(configuration.getServer().citizenAiDebugOverlay.get(), "AI overlay setting must survive migration");
                     helper.assertTrue(Files.readString(file).contains("workeraispeedmultiplier"), "Unknown work-speed section must survive migration");
                     helper.assertTrue(configuration.serverSpec().snapshot().size() == 93, "All original server settings must remain available");
-                    helper.succeed();
+                    passed(helper);
                 }
                 catch (final java.io.IOException exception) { throw new IllegalStateException(exception); }
             }),
@@ -118,7 +130,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                 client.serverSpec().applySnapshot(local);
                 helper.assertTrue(client.getServer().maxColonySize.get() == 20, "Local setting must restore after remote snapshot");
                 helper.assertTrue(!ServerPlayNetworking.getGlobalReceivers().contains(FabricConfiguration.CHANNEL), "Clients must not be able to send configuration overrides to the server");
-                helper.succeed();
+                passed(helper);
             }),
             new TestFunction("minecolonies_config", "brewing_vanilla_bridge", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
                 final ItemStack water = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
@@ -130,7 +142,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                 helper.assertTrue(BrewingRecipeRegistry.getOutput(new ItemStack(Items.DRAGON_BREATH), splash).is(Items.LINGERING_POTION), "Dragon breath must produce lingering potion");
                 helper.assertTrue(BrewingRecipeRegistry.getOutput(new ItemStack(Items.STONE), water).isEmpty(), "Invalid brewing input must have no output");
                 helper.assertTrue(!BrewingRecipeRegistry.getRecipes().isEmpty(), "Recipe discovery must include the vanilla brewing adapter");
-                helper.succeed();
+                passed(helper);
             }));
     }
 }

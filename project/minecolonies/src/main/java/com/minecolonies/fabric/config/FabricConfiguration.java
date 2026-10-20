@@ -73,6 +73,7 @@ public final class FabricConfiguration
     {
         ConfigSnapshotCodec.apply(json, configuration.serverSpec(), configuration.commonSpec());
         remoteApplied = true;
+        org.slf4j.LoggerFactory.getLogger("minecolonies/config").info("Applied remote configuration: {} server and {} common options; local files unchanged.", configuration.serverSpec().options().size(), configuration.commonSpec().options().size());
         com.minecolonies.coremod.colony.requestsystem.init.RequestSystemInitializer.reconfigureLogging();
     }
 
@@ -83,6 +84,7 @@ public final class FabricConfiguration
             configuration.serverSpec().applySnapshot(localServer);
             configuration.commonSpec().applySnapshot(localCommon);
             remoteApplied = false;
+            org.slf4j.LoggerFactory.getLogger("minecolonies/config").info("Restored local configuration after disconnect.");
             com.minecolonies.coremod.colony.requestsystem.init.RequestSystemInitializer.reconfigureLogging();
         }
     }

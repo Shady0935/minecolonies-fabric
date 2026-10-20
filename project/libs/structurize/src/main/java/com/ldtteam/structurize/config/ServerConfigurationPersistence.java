@@ -53,6 +53,7 @@ public final class ServerConfigurationPersistence
     {
         ConfigSnapshotCodec.apply(json, spec, EMPTY);
         remoteApplied = true;
+        org.slf4j.LoggerFactory.getLogger("structurize/config").info("Applied {} server options from remote server; local file unchanged.", spec.options().size());
     }
 
     public static void restoreLocal()

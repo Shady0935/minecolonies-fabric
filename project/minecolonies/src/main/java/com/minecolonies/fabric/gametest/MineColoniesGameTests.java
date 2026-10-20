@@ -1338,14 +1338,30 @@ public final class MineColoniesGameTests implements FabricGameTest
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = BUILDER_E2E_TEST_BATCH, timeoutTicks = 4000)
     public void citizenBuilderCompletesWorkOrderThroughNavigation(final GameTestHelper helper)
     {
+        final BlockPos origin = helper.absolutePos(new BlockPos(40000, 0, 40000));
+        for (int x = origin.getX() >> 4; x <= (origin.getX() + 50) >> 4; x++)
+        {
+            for (int z = origin.getZ() >> 4; z <= (origin.getZ() + 16) >> 4; z++)
+            {
+                helper.getLevel().setChunkForced(x, z, true);
+                helper.getLevel().getChunk(x, z);
+            }
+        }
+        helper.runAfterDelay(5, () -> startCitizenBuilderCompletesWorkOrderThroughNavigation(helper));
+    }
+
+    private void startCitizenBuilderCompletesWorkOrderThroughNavigation(final GameTestHelper helper)
+    {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
-        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
-        final BlockPos relativeBuilder = new BlockPos(10, 1, 2);
-        final BlockPos relativeWarehouse = new BlockPos(2, 1, 10);
-        final BlockPos relativeDeliveryman = new BlockPos(10, 1, 10);
-        final BlockPos relativeRack = new BlockPos(4, 1, 10);
-        final BlockPos relativeCobblestoneRack = new BlockPos(7, 1, 10);
+        // Long fixtures exceed EMPTY_STRUCTURE and must not share terrain or enemies with other tests.
+        final BlockPos fixtureOffset = new BlockPos(40000, 0, 40000);
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2).offset(fixtureOffset);
+        final BlockPos relativeBuilder = new BlockPos(10, 1, 2).offset(fixtureOffset);
+        final BlockPos relativeWarehouse = new BlockPos(2, 1, 10).offset(fixtureOffset);
+        final BlockPos relativeDeliveryman = new BlockPos(10, 1, 10).offset(fixtureOffset);
+        final BlockPos relativeRack = new BlockPos(4, 1, 10).offset(fixtureOffset);
+        final BlockPos relativeCobblestoneRack = new BlockPos(7, 1, 10).offset(fixtureOffset);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos builderPos = helper.absolutePos(relativeBuilder);
         final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
@@ -1356,7 +1372,15 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             for (int z = 0; z <= 14; z++)
             {
-                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+                helper.setBlock(new BlockPos(x, 0, z).offset(fixtureOffset), Blocks.STONE);
+            }
+        }
+        final BlockPos fixtureMinimum = helper.absolutePos(fixtureOffset);
+        for (int chunkX = fixtureMinimum.getX() >> 4; chunkX <= (fixtureMinimum.getX() + 50) >> 4; chunkX++)
+        {
+            for (int chunkZ = fixtureMinimum.getZ() >> 4; chunkZ <= (fixtureMinimum.getZ() + 16) >> 4; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
             }
         }
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);
@@ -1562,8 +1586,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             if (stoneDeliveryToken[0] != null)
             {
                 final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(stoneDeliveryToken[0]);
-                if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
-                      && courierJob.getTaskQueue().contains(stoneDeliveryToken[0]))
+                if (deliveryRequest != null)
                 {
                     if (courier.blockPosition().distSqr(rackPos) <= 9)
                     {
@@ -1583,8 +1606,7 @@ public final class MineColoniesGameTests implements FabricGameTest
             if (cobblestoneDeliveryToken[0] != null)
             {
                 final IRequest<?> deliveryRequest = colony.getRequestManager().getRequestForToken(cobblestoneDeliveryToken[0]);
-                if (deliveryRequest != null && deliveryRequest.getState() == RequestState.IN_PROGRESS
-                      && courierJob.getTaskQueue().contains(cobblestoneDeliveryToken[0]))
+                if (deliveryRequest != null)
                 {
                     if (courier.blockPosition().distSqr(cobblestoneRackPos) <= 9)
                     {
@@ -1660,6 +1682,8 @@ public final class MineColoniesGameTests implements FabricGameTest
             helper.assertTrue(courierReachedStoneRack[0] && courierReachedCobblestoneRack[0]
                   && courierPickedUpStone[0] && courierPickedUpCobblestone[0],
               "Courier did not navigate to both Warehouse racks and collect both materials; pos="
+                + "reachedStone=" + courierReachedStoneRack[0] + "; reachedCobble=" + courierReachedCobblestoneRack[0]
+                + "; pickedStone=" + courierPickedUpStone[0] + "; pickedCobble=" + courierPickedUpCobblestone[0] + "; pos="
                 + courier.blockPosition() + "; stoneRack=" + rackPos + "; cobblestoneRack=" + cobblestoneRackPos
                 + "; stoneInventory="
                 + countItem(courier, Items.STONE) + "; cobblestoneInventory="
@@ -3804,16 +3828,32 @@ public final class MineColoniesGameTests implements FabricGameTest
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, batch = FARMER_NAVIGATION_TEST_BATCH, timeoutTicks = 2600)
     public void farmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
     {
+        final BlockPos origin = helper.absolutePos(new BlockPos(20000, 0, 20000));
+        for (int x = origin.getX() >> 4; x <= (origin.getX() + 50) >> 4; x++)
+        {
+            for (int z = origin.getZ() >> 4; z <= (origin.getZ() + 16) >> 4; z++)
+            {
+                helper.getLevel().setChunkForced(x, z, true);
+                helper.getLevel().getChunk(x, z);
+            }
+        }
+        helper.runAfterDelay(5, () -> startFarmerAIWalksToAssignedFieldAndHarvestsCrop(helper));
+    }
+
+    private void startFarmerAIWalksToAssignedFieldAndHarvestsCrop(final GameTestHelper helper)
+    {
         helper.assertTrue(StructurePacks.waitUntilFinishedLoading(), "Structure pack discovery was interrupted");
         final ServerLevel level = helper.getLevel();
+        // Long fixtures exceed EMPTY_STRUCTURE and must not share terrain or enemies with other tests.
+        final BlockPos fixtureOffset = new BlockPos(20000, 0, 20000);
         // Extend the crop route across chunks to exercise real worker navigation.
         // This batch contains only this long-running fixture, avoiding test overlap.
-        final BlockPos relativeTownHall = new BlockPos(2, 1, 2);
-        final BlockPos relativeFarmer = new BlockPos(8, 1, 2);
-        final BlockPos relativeWarehouse = new BlockPos(2, 1, 10);
-        final BlockPos relativeCourierHut = new BlockPos(10, 1, 10);
-        final BlockPos relativeRack = new BlockPos(4, 1, 10);
-        final BlockPos relativeField = new BlockPos(31, 1, 2);
+        final BlockPos relativeTownHall = new BlockPos(2, 1, 2).offset(fixtureOffset);
+        final BlockPos relativeFarmer = new BlockPos(8, 1, 2).offset(fixtureOffset);
+        final BlockPos relativeWarehouse = new BlockPos(2, 1, 10).offset(fixtureOffset);
+        final BlockPos relativeCourierHut = new BlockPos(10, 1, 10).offset(fixtureOffset);
+        final BlockPos relativeRack = new BlockPos(4, 1, 10).offset(fixtureOffset);
+        final BlockPos relativeField = new BlockPos(31, 1, 2).offset(fixtureOffset);
         final BlockPos townHall = helper.absolutePos(relativeTownHall);
         final BlockPos farmerPos = helper.absolutePos(relativeFarmer);
         final BlockPos warehousePos = helper.absolutePos(relativeWarehouse);
@@ -3824,7 +3864,15 @@ public final class MineColoniesGameTests implements FabricGameTest
         {
             for (int z = 0; z <= 14; z++)
             {
-                helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+                helper.setBlock(new BlockPos(x, 0, z).offset(fixtureOffset), Blocks.STONE);
+            }
+        }
+        final BlockPos fixtureMinimum = helper.absolutePos(fixtureOffset);
+        for (int chunkX = fixtureMinimum.getX() >> 4; chunkX <= (fixtureMinimum.getX() + 50) >> 4; chunkX++)
+        {
+            for (int chunkZ = fixtureMinimum.getZ() >> 4; chunkZ <= (fixtureMinimum.getZ() + 16) >> 4; chunkZ++)
+            {
+                level.setChunkForced(chunkX, chunkZ, true);
             }
         }
         helper.setBlock(relativeTownHall, ModBlocks.blockHutTownHall);

@@ -23,7 +23,8 @@ def strip_comments(text):
 def audit(port, baseline):
     def inventory(root):
         return {str(file.relative_to(root)).replace("\\", "/"): file
-                for folder in ("src/main/java", "src/api/java", "src/main/resources", "src/api/resources")
+                for folder in ("src/main/java", "src/api/java", "src/client/java",
+                               "src/main/resources", "src/api/resources", "src/client/resources")
                 for file in (root / folder).rglob("*") if file.is_file()}
     print("Inventory", flush=True)
     original, current = inventory(baseline), inventory(port)
@@ -56,6 +57,10 @@ def audit(port, baseline):
                        "changed": len(changed), "missing": len(original.keys() - current.keys()),
                        "added": len(current.keys() - original.keys()), "adapters": len(adapters)},
             "missing": sorted(original.keys() - current.keys()), "changed": changed,
+            "relocated_source_candidates": {
+                key: [candidate for candidate in current if candidate.endswith('/' + Path(key).name)]
+                for key in sorted(original.keys() - current.keys()) if key.endswith('.java')
+            },
             "added": sorted(current.keys() - original.keys()),
             "handlers": handlers,
             "events_without_constructor_site": [event for event in handlers if not event["constructor_sites"]],
