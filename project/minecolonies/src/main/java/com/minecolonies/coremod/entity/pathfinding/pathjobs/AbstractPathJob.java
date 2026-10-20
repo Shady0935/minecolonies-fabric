@@ -1277,7 +1277,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
 
         //  Do we have something to stand on in the target space?
         final BlockState below = cachedBlockLookup.getBlockState(pos.below());
-        final SurfaceType walkability = SurfaceType.getSurfaceType(world, below, pos);
+        final SurfaceType walkability = SurfaceType.getSurfaceType(world, below, pos.below());
         if (walkability == SurfaceType.WALKABLE)
         {
             //  Level path
@@ -1321,7 +1321,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         for (int i = 2; i <= 10; i++)
         {
             final BlockState below = cachedBlockLookup.getBlockState(pos.below(i));
-            if (SurfaceType.getSurfaceType(world, below, pos) == SurfaceType.WALKABLE && i <= 3 || isLiquid(below))
+            if (SurfaceType.getSurfaceType(world, below, pos.below(i)) == SurfaceType.WALKABLE && i <= 3 || isLiquid(below))
             {
                 //  Level path
                 return pos.getY() - i + 1;
@@ -1439,7 +1439,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             }
             if (parent != null)
             {
-                final VoxelShape bb3 = cachedBlockLookup.getBlockState(parent.pos.below()).getCollisionShape(world, pos.below());
+                final VoxelShape bb3 = cachedBlockLookup.getBlockState(parent.pos.below()).getCollisionShape(world, parent.pos.below());
                 if ((pos.above().getY() + getStartY(bb2, 1)) - (parent.pos.below().getY() + getEndY(bb3, 0)) + 1.0E-6D < entityHeight)
                 {
                     return true;
