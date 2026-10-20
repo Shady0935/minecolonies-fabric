@@ -196,7 +196,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
             // Never change an order once it has a saved cursor: its progress belongs to its iterator.
             final String mode = "default".equalsIgnoreCase(configuredMode) && !hasSavedCursor ? "hilbert" : configuredMode;
             job.getWorkOrder().setIteratorType(mode);
-            if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+            if (com.minecolonies.api.util.CitizenAIDiagnostics.shouldLog(worker))
             {
                 Log.getLogger().info("[AI-BUILDER] iterator-selected entity={} workOrder={} configured={} selected={} savedCursor={}",
                   worker.getCitizenData().getName(),
@@ -380,7 +380,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                     plannerInvalidationReason = "work_target_unreachable";
                     plannedRouteTarget = null;
                     worker.getNavigation().stop();
-                    if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+                    if (com.minecolonies.api.util.CitizenAIDiagnostics.shouldLog(worker))
                     {
                         Log.getLogger().info("[AI-BUILDER] work-target-unreachable entity={} target={} origin={} endpoint={} nodes={} retryTicks={} feet={} eyeHeight={} currentSafe={} centeredReach={} actualReach={}",
                           worker.getCitizenData().getName(), nextTarget, blockedWorkOrigin, endpoint,
@@ -526,7 +526,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
             return;
         }
 
-        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        if (com.minecolonies.api.util.CitizenAIDiagnostics.shouldLog(worker))
         {
             Log.getLogger().info("[AI-BUILDER] action-progress entity={} workOrder={} stage={} completed={} remainingBeforeTrim={} next={}",
               worker.getCitizenData().getName(),
@@ -548,7 +548,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
     private void logWorkPlan(final String reason, final BlockPos cursor)
     {
-        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        if (com.minecolonies.api.util.CitizenAIDiagnostics.shouldLog(worker))
         {
             Log.getLogger().info("[AI-BUILDER] plan-window entity={} workOrder={} reason={} stage={} cursor={} targets={}",
               worker.getCitizenData().getName(),
@@ -844,7 +844,7 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
         if (workAlignmentUntil == 0)
         {
             workAlignmentUntil = now + 20;
-            if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+            if (com.minecolonies.api.util.CitizenAIDiagnostics.shouldLog(worker))
             {
                 Log.getLogger().info("[AI-BUILDER] work-position-align entity={} target={} feet={} desired={} attemptTicks=20",
                   worker.getCitizenData().getName(), target, worker.position(), alignedFeet);

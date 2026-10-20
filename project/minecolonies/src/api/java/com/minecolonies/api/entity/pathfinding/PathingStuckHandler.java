@@ -350,7 +350,7 @@ public class PathingStuckHandler implements IStuckHandler
         {
             return;
         }
-        if (debugLogging)
+        if (debugLogging && com.minecolonies.api.util.CitizenAIDiagnostics.shouldLog(navigator.getOurEntity()))
         {
             Log.getLogger().info("[AI-NAV] recovery entity={} uuid={} pos={} destination={} safeDestination={} stuckLevel={} actionDelay={}",
               navigator.getOurEntity().getName().getString(), navigator.getOurEntity().getUUID(), navigator.getOurEntity().blockPosition(),

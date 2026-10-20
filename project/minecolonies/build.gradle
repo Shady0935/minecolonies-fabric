@@ -141,6 +141,7 @@ processResources {
         'src/main/resources/assets/minecolonies/lang/en_us.json',
         'src/main/resources/assets/minecolonies/lang/es_es.json',
         fileTree(dir: 'src/main/translations/es_es', includes: ['*.json']),
+        fileTree(dir: 'src/main/translations/en_us', includes: ['*.json']),
         'src/main/generated/resources/assets/minecolonies/lang/default.json',
         'src/main/generated/resources/assets/minecolonies/lang/quests.json'
     ).withPropertyName('minecoloniesTranslations')
@@ -163,6 +164,8 @@ processResources {
             file('src/main/generated/resources/assets/minecolonies/lang/default.json'),
             file('src/main/generated/resources/assets/minecolonies/lang/quests.json')
         ]
+        languageSources.addAll(fileTree(
+            dir: 'src/main/translations/en_us', includes: ['*.json']).files.sort { it.name })
         final Map<String, Object> mergedTranslations = new LinkedHashMap<>()
         languageSources.each { File languageSource ->
             if (!languageSource.isFile()) {

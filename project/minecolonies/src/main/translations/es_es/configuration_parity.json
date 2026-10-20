@@ -1,6 +1,7 @@
 {
   "minecolonies.config.citizenaidebugoverlay.comment": "Muestra los estados de IA y las rutas previstas de los colonos cercanos para depuración.",
   "minecolonies.config.citizenaidebuglogging.comment": "Registra diagnósticos de IA y navegación de los colonos. Genera muchos mensajes; desactívalo al terminar de investigar.",
+  "minecolonies.config.citizenaidebugcitizens.comment": "Limita los logs de IA a estos fragmentos de nombre (sin distinguir mayúsculas) o UUID exactos. Vacío selecciona todos. Verbosity: 0 desactiva volcados, 1 resume búsquedas y 2-10 incluyen nodos.",
   "minecolonies.config.workeraispeedmultiplier.comment": "Multiplicador de la frecuencia de decisiones de los trabajadores; los valores mayores reducen las esperas entre decisiones.",
   "minecolonies.config.miningspeedmultiplier.comment": "Multiplicador de la velocidad de rotura de bloques de los trabajadores.",
   "minecolonies.config.builderplacementspeedmultiplier.comment": "Multiplicador de la velocidad de colocación de bloques del constructor.",

@@ -136,6 +136,8 @@ public class ServerConfiguration extends AbstractConfiguration
     public final FabricConfigSpec.BooleanValue citizenAiDebugOverlay;
     /** Temporarily logs citizen path jobs and movement-stuck recovery for AI diagnostics. */
     public final FabricConfigSpec.BooleanValue citizenAiDebugLogging;
+    /** Empty selects everyone; otherwise match a name fragment or exact UUID. */
+    public final FabricConfigSpec.ConfigValue<List<? extends String>> citizenAiDebugCitizens;
     public final FabricConfigSpec.IntValue pathfindingMaxThreadCount;
     public final FabricConfigSpec.IntValue minimumRailsToPath;
     public final FabricConfigSpec.DoubleValue workerAiSpeedMultiplier;
@@ -310,6 +312,8 @@ public class ServerConfiguration extends AbstractConfiguration
         pathfindingDebugVerbosity = defineInteger(builder, "pathfindingdebugverbosity", 0, 0, 10);
         citizenAiDebugOverlay = defineBoolean(builder, "citizenaidebugoverlay", false);
         citizenAiDebugLogging = defineBoolean(builder, "citizenaidebuglogging", true);
+        citizenAiDebugCitizens = defineList(builder, "citizenaidebugcitizens", List.<String>of(),
+          value -> value instanceof String text && !text.isBlank() && text.length() <= 128);
         minimumRailsToPath = defineInteger(builder, "minimumrailstopath", 8, 5, 100);
         pathfindingMaxThreadCount = defineInteger(builder, "pathfindingmaxthreadcount", 2, 1, 10);
 

@@ -6,6 +6,7 @@ import com.minecolonies.api.blocks.decorative.AbstractBlockMinecoloniesConstruct
 import com.minecolonies.api.blocks.huts.AbstractBlockMinecoloniesDefault;
 import com.minecolonies.api.entity.pathfinding.*;
 import com.minecolonies.api.util.BlockPosUtil;
+import com.minecolonies.api.util.CitizenAIDiagnostics;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.MinecoloniesAIMetrics;
 import com.minecolonies.coremod.MineColonies;
@@ -141,6 +142,9 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
      * The entity this job belongs to.
      */
     protected WeakReference<LivingEntity> entity;
+    private final int diagnosticVerbosity;
+    private final double entityHeight;
+    private volatile long calculationNanos;
 
     /**
      * AbstractPathJob constructor.
@@ -197,6 +201,9 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             debugNodesPath = new HashSet<>();
         }
         this.entity = new WeakReference<>(entity);
+        diagnosticVerbosity = CitizenAIDiagnostics.isSelected(entity)
+          ? MineColonies.getConfig().getServer().pathfindingDebugVerbosity.get() : 0;
+        entityHeight = entity == null ? 2.0D : entity.getBbHeight();
     }
 
     /**
@@ -284,6 +291,9 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             debugNodesPath = new HashSet<>();
         }
         this.entity = new WeakReference<>(entity);
+        diagnosticVerbosity = CitizenAIDiagnostics.isSelected(entity)
+          ? MineColonies.getConfig().getServer().pathfindingDebugVerbosity.get() : 0;
+        entityHeight = entity == null ? 2.0D : entity.getBbHeight();
     }
 
     /**
@@ -362,8 +372,8 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         final boolean isFineToStandIn = canStandInSolidBlock(bs);
         if (bs.blocksMotion() && !isFineToStandIn && collisionShape.max(Direction.Axis.Y) > 0)
         {
-            final double relPosX = Math.abs(entity.getX() % 1);
-            final double relPosZ = Math.abs(entity.getZ() % 1);
+            final double relPosX = entity.getX() - Mth.floor(entity.getX());
+            final double relPosZ = entity.getZ() - Mth.floor(entity.getZ());
 
             for (final AABB box : collisionShape.toAabbs())
             {
@@ -628,6 +638,10 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         return start;
     }
 
+    public final long getCalculationNanos() { return calculationNanos; }
+
+    protected final boolean isVerboseEnabled() { return diagnosticVerbosity > DEBUG_VERBOSITY_NONE; }
+
     @Override
     public PathingOptions getPathingOptions()
     {
@@ -643,7 +657,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
     public final Path call()
     {
         final boolean metricsEnabled = MinecoloniesAIMetrics.isEnabled();
-        final long startNanos = metricsEnabled ? System.nanoTime() : 0L;
+        final long startNanos = System.nanoTime();
         Path path = null;
         try
         {
@@ -657,9 +671,10 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         }
         finally
         {
+            calculationNanos = System.nanoTime() - startNanos;
             if (metricsEnabled)
             {
-                MinecoloniesAIMetrics.recordPathJobCompleted(System.nanoTime() - startNanos,
+                MinecoloniesAIMetrics.recordPathJobCompleted(calculationNanos,
                   totalNodesVisited,
                   totalNodesAdded,
                   path == null ? 0 : path.getNodeCount());
@@ -739,7 +754,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             addNodeToDebug(currentNode);
         }
 
-        if (MineColonies.getConfig().getServer().pathfindingDebugVerbosity.get() == DEBUG_VERBOSITY_FULL)
+        if (diagnosticVerbosity >= DEBUG_VERBOSITY_FULL)
         {
             Log.getLogger().info(String.format("Examining node [%d,%d,%d] ; g=%f ; f=%f",
               currentNode.pos.getX(), currentNode.pos.getY(), currentNode.pos.getZ(), currentNode.getCost(), currentNode.getScore()));
@@ -957,7 +972,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             node = node.parent;
         }
 
-        doDebugPrinting(points);
+        doDebugPrinting(points, isAtDestination(targetNode));
 
         return new Path(Arrays.asList(points), getPathTargetPos(targetNode), isAtDestination(targetNode));
     }
@@ -978,18 +993,22 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
      *
      * @param points the points to print.
      */
-    private void doDebugPrinting(@NotNull final Node[] points)
+    private void doDebugPrinting(@NotNull final Node[] points, final boolean reachesGoal)
     {
-        if (MineColonies.getConfig().getServer().pathfindingDebugVerbosity.get() > DEBUG_VERBOSITY_NONE)
+        if (isVerboseEnabled())
         {
-            Log.getLogger().info("Path found:");
+            Log.getLogger().info("Path search outcome={} nodes={} visited={} added={}",
+              reachesGoal ? "REACHABLE" : this instanceof PathJobRandomPos ? "WANDER"
+                : points.length <= 1 ? "NO_PROGRESS" : "PARTIAL",
+              points.length, totalNodesVisited, totalNodesAdded);
 
-            for (@NotNull final Node p : points)
+            if (diagnosticVerbosity >= DEBUG_VERBOSITY_FULL)
             {
-                Log.getLogger().info(String.format("Step: [%d,%d,%d]", p.x, p.y, p.z));
+                for (@NotNull final Node p : points)
+                {
+                    Log.getLogger().info("Step: [{},{},{}]", p.x, p.y, p.z);
+                }
             }
-
-            Log.getLogger().info(String.format("Total Nodes Visited %d / %d", totalNodesVisited, totalNodesAdded));
         }
     }
 
@@ -1348,7 +1367,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         {
             final VoxelShape bb1 = cachedBlockLookup.getBlockState(pos).getCollisionShape(world, pos);
             final VoxelShape bb2 = cachedBlockLookup.getBlockState(pos.above(2)).getCollisionShape(world, pos.above(2));
-            if ((pos.above(2).getY() + getStartY(bb2, 1)) - (pos.getY() + getEndY(bb1, 0)) < 2)
+            if ((pos.above(2).getY() + getStartY(bb2, 1)) - (pos.getY() + getEndY(bb1, 0)) < entityHeight)
             {
                 return -100;
             }
@@ -1364,7 +1383,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
         {
             final VoxelShape bb1 = cachedBlockLookup.getBlockState(pos).getCollisionShape(world, pos);
             final VoxelShape bb2 = cachedBlockLookup.getBlockState(parent.pos.above(2)).getCollisionShape(world, parent.pos.above(2));
-            if ((parent.pos.above(2).getY() + getStartY(bb2, 1)) - (pos.getY() + getEndY(bb1, 0)) < 2)
+            if ((parent.pos.above(2).getY() + getStartY(bb2, 1)) - (pos.getY() + getEndY(bb1, 0)) < entityHeight)
             {
                 return -100;
             }
@@ -1414,14 +1433,14 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
                 bb1 = Shapes.block();
             }
             final VoxelShape bb2 = cachedBlockLookup.getBlockState(pos.above()).getCollisionShape(world, pos.above());
-            if ((pos.above().getY() + getStartY(bb2, 1)) - (pos.below().getY() + getEndY(bb1, 0)) < 2)
+            if ((pos.above().getY() + getStartY(bb2, 1)) - (pos.below().getY() + getEndY(bb1, 0)) + 1.0E-6D < entityHeight)
             {
                 return true;
             }
             if (parent != null)
             {
                 final VoxelShape bb3 = cachedBlockLookup.getBlockState(parent.pos.below()).getCollisionShape(world, pos.below());
-                if ((pos.above().getY() + getStartY(bb2, 1)) - (parent.pos.below().getY() + getEndY(bb3, 0)) < 1.75)
+                if ((pos.above().getY() + getStartY(bb2, 1)) - (parent.pos.below().getY() + getEndY(bb3, 0)) + 1.0E-6D < entityHeight)
                 {
                     return true;
                 }
@@ -1433,7 +1452,7 @@ public abstract class AbstractPathJob implements Callable<Path>, IPathJob
             final BlockState hereState = cachedBlockLookup.getBlockState(localPos.below());
             final VoxelShape bb1 = cachedBlockLookup.getBlockState(pos).getCollisionShape(world, pos);
             final VoxelShape bb2 = cachedBlockLookup.getBlockState(localPos.above()).getCollisionShape(world, localPos.above());
-            if ((localPos.above().getY() + getStartY(bb2, 1)) - (pos.getY() + getEndY(bb1, 0)) >= 2)
+            if ((localPos.above().getY() + getStartY(bb2, 1)) - (pos.getY() + getEndY(bb1, 0)) + 1.0E-6D >= entityHeight)
             {
                 return false;
             }

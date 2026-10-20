@@ -105,7 +105,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                 passed(helper);
             }),
             new TestFunction("minecolonies_config", "config_complete_schema", FabricGameTest.EMPTY_STRUCTURE, 40, 0, true, helper -> {
-                helper.assertTrue(MineColonies.getConfig().serverSpec().options().size() == 93, "Server schema must expose all 93 options");
+                helper.assertTrue(MineColonies.getConfig().serverSpec().options().size() == 94, "Server schema must expose all 94 options, including the citizen log filter");
                 helper.assertTrue(MineColonies.getConfig().clientSpec().options().size() == 5, "Client schema must retain five options");
                 helper.assertTrue(MineColonies.getConfig().commonSpec().options().size() == 2, "Common schema must retain two options");
                 helper.assertTrue(Structurize.getConfig().serverSpec().options().size() == 15, "Structurize must expose all fifteen options");
@@ -125,7 +125,7 @@ public final class MineColoniesConfigurationGameTests implements FabricGameTest
                     helper.assertTrue(configuration.getServer().maxCitizenPerColony.get() == 350, "Actual gameplay value must load from TOML");
                     helper.assertTrue(configuration.getServer().citizenAiDebugOverlay.get(), "AI overlay setting must survive migration");
                     helper.assertTrue(Files.readString(file).contains("workeraispeedmultiplier"), "Unknown work-speed section must survive migration");
-                    helper.assertTrue(configuration.serverSpec().snapshot().size() == 93, "All original server settings must remain available");
+                    helper.assertTrue(configuration.serverSpec().snapshot().size() == 94, "All original server settings and the citizen log filter must remain available");
                     passed(helper);
                 }
                 catch (final java.io.IOException exception) { throw new IllegalStateException(exception); }

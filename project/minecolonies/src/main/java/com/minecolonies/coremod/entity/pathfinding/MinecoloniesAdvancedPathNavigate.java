@@ -50,6 +50,21 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
     @Nullable
     private PathResult<AbstractPathJob> pathResult;
 
+    // Survives stop()/replacement of a failed path. A completed async job is not
+    // necessarily a successful route, and must not be resubmitted every AI tick.
+    @Nullable private PathResult<AbstractPathJob> failedPathResult;
+    @Nullable private BlockPos failedDestination;
+    @Nullable private Class<?> failedJobType;
+    private Vec3 failedAt = Vec3.ZERO;
+    private int noProgressFailures;
+    private long retryAfterTick;
+    private long jobQueuedNanos;
+    private long nextDiagnosticTick;
+    private String lastDiagnosticOutcome = "";
+    private int diagnosticJobs;
+    private int diagnosticDeferred;
+    private int diagnosticFailures;
+
     /**
      * The world time when a path was added.
      */
@@ -218,6 +233,14 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
       final boolean safeDestination,
       @Nullable final Consumer<PathingOptions> configureOptions)
     {
+        if (job instanceof PathJobMoveToLocation && reuseFailedPath(dest, speedFactor, safeDestination, job.getClass()))
+        {
+            return failedPathResult;
+        }
+        if (!(job instanceof PathJobMoveToLocation) || !java.util.Objects.equals(failedDestination, dest))
+        {
+            clearFailedPath();
+        }
         final boolean repath = pathResult != null && pathResult.isInProgress();
         stop();
 
@@ -254,15 +277,48 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         }
         pathResult = job.getResult();
         MinecoloniesAIMetrics.recordPathJobStarted(repath);
-        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
-        {
-            Log.getLogger().info("[AI-NAV] path-job-start entity={} uuid={} job={} pos={} start={} feetY={} onGround={} destination={} safeDestination={} repath={} speed={}",
-              ourEntity.getName().getString(), ourEntity.getUUID(), job.getClass().getSimpleName(), ourEntity.blockPosition(),
-              job.getStart(), ourEntity.getY(), ourEntity.onGround(), dest,
-              safeDestination, repath, speedFactor);
-        }
+        jobQueuedNanos = System.nanoTime();
+        diagnosticJobs++;
         pathResult.startJob(Pathfinding.getExecutor());
         return pathResult;
+    }
+
+    private void clearFailedPath()
+    {
+        failedPathResult = null;
+        failedDestination = null;
+        failedJobType = null;
+        noProgressFailures = 0;
+        retryAfterTick = 0;
+    }
+
+    private boolean reuseFailedPath(@Nullable final BlockPos goal, final double speed, final boolean safe, final Class<?> jobType)
+    {
+        if (failedPathResult == null) return false;
+        if (goal == null || !goal.equals(failedDestination) || failedJobType != jobType
+              || ourEntity.position().distanceToSqr(failedAt) > 0.25D)
+        {
+            clearFailedPath();
+            return false;
+        }
+        if (level.getGameTime() >= retryAfterTick || (pathResult != null && pathResult.isInProgress())) return false;
+        // Keep the goal visible to stuck recovery throughout the cooldown, without
+        // pretending a failed result is an active or successful path.
+        destination = goal;
+        originalDestination = goal;
+        if (safe)
+        {
+            desiredPos = goal;
+            desiredPosTimeout = 50 * 20;
+        }
+        else if (goal.equals(desiredPos))
+        {
+            desiredPos = null;
+            desiredPosTimeout = 0;
+        }
+        walkSpeedFactor = speed;
+        diagnosticDeferred++;
+        return true;
     }
 
     @Override
@@ -381,7 +437,7 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
     {
         final BlockPos blockpos = pos.below();
         final VoxelShape voxelshape = world.getBlockState(blockpos).getCollisionShape(world, blockpos);
-        if (voxelshape.isEmpty() || voxelshape.max(Direction.Axis.Y) < 1.0)
+        if (voxelshape.isEmpty())
         {
             return pos.getY();
         }
@@ -394,6 +450,8 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         final int newX = Mth.floor(x);
         final int newY = (int) y;
         final int newZ = Mth.floor(z);
+
+        if (reuseFailedPath(new BlockPos(newX, newY, newZ), speedFactor, true, PathJobMoveToLocation.class)) return failedPathResult;
 
         if (pathResult != null && pathResult.getJob() instanceof PathJobMoveToLocation &&
               (
@@ -591,19 +649,55 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
 
     private boolean processCompletedCalculationResult()
     {
-        if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
+        final AbstractPathJob job = pathResult.getJob();
+        final Path calculatedPath = pathResult.getPath();
+        final boolean noProgress = job instanceof PathJobMoveToLocation
+          && (calculatedPath == null || !calculatedPath.canReach() && calculatedPath.getNodeCount() <= 1);
+        if (noProgress && destination != null)
         {
-            final Path calculatedPath = pathResult == null ? null : pathResult.getPath();
-            final Node firstNode = calculatedPath == null || calculatedPath.getNodeCount() == 0 ? null : calculatedPath.getNode(0);
-            final Node endNode = calculatedPath == null ? null : calculatedPath.getEndNode();
-            Log.getLogger().info("[AI-NAV] path-job-result entity={} uuid={} job={} status={} pos={} destination={} nodes={} reachesDestination={} target={} firstNode={} endNode={}",
-              ourEntity.getName().getString(), ourEntity.getUUID(), pathResult == null || pathResult.getJob() == null ? "unknown" : pathResult.getJob().getClass().getSimpleName(),
-              pathResult == null ? "missing" : pathResult.getStatus(), ourEntity.blockPosition(), destination,
-              calculatedPath == null ? 0 : calculatedPath.getNodeCount(), calculatedPath != null && calculatedPath.canReach(),
-              calculatedPath == null ? "none" : calculatedPath.getTarget(), firstNode == null ? "none" : firstNode.asBlockPos(),
-              endNode == null ? "none" : endNode.asBlockPos());
+            if (!java.util.Objects.equals(failedDestination, destination) || failedJobType != job.getClass()
+                  || ourEntity.position().distanceToSqr(failedAt) > 0.25D)
+                clearFailedPath();
+            failedDestination = destination == null ? null : destination.immutable();
+            failedJobType = job.getClass();
+            failedAt = ourEntity.position();
+            noProgressFailures = Math.min(noProgressFailures + 1, 30);
+            retryAfterTick = level.getGameTime() + Math.min(100, 10 << Math.min(noProgressFailures - 1, 4));
+            diagnosticFailures++;
+        }
+        else clearFailedPath();
+
+        final String outcome = noProgress ? "NO_PROGRESS" : calculatedPath == null ? "NO_PATH"
+          : calculatedPath.canReach() ? "REACHABLE" : job instanceof PathJobRandomPos ? "WANDER" : "PARTIAL";
+        if (CitizenAIDiagnostics.shouldLog(ourEntity)
+              && (level.getGameTime() >= nextDiagnosticTick
+                    || !outcome.equals(lastDiagnosticOutcome) && level.getGameTime() >= nextDiagnosticTick - 80))
+        {
+            Log.getLogger().info("[AI-NAV] path-summary entity={} uuid={} job={} outcome={} pos={} feetY={} start={} destination={} nodes={} end={} computeMs={} queueAndComputeMs={} jobs={} deferred={} failures={} consecutiveNoProgress={} retryInTicks={}",
+              ourEntity.getName().getString(), ourEntity.getUUID(), job.getClass().getSimpleName(), outcome,
+              ourEntity.blockPosition(), ourEntity.getY(), job.getStart(), destination,
+              calculatedPath == null ? 0 : calculatedPath.getNodeCount(),
+              calculatedPath == null || calculatedPath.getEndNode() == null ? "none" : calculatedPath.getEndNode().asBlockPos(),
+              job.getCalculationNanos() / 1_000_000.0D, (System.nanoTime() - jobQueuedNanos) / 1_000_000.0D,
+              diagnosticJobs, diagnosticDeferred, diagnosticFailures, noProgressFailures,
+              Math.max(0, retryAfterTick - level.getGameTime()));
+            nextDiagnosticTick = level.getGameTime() + 100;
+            lastDiagnosticOutcome = outcome;
+            diagnosticJobs = diagnosticDeferred = diagnosticFailures = 0;
         }
         pathResult.getJob().synchToClient(mob);
+        if (noProgress)
+        {
+            pathResult.setStatus(PathFindingStatus.CANCELLED);
+            // Jobs without an explicit navigation goal include combat searches.
+            // Do not cache unrelated moving combat targets under a null key.
+            if (destination != null) failedPathResult = pathResult;
+            pathResult = null;
+            super.stop();
+            // Retain destination/desiredPos so the existing recovery timer can
+            // advance even while no useful route is available.
+            return false;
+        }
         moveTo(pathResult.getPath(), getSpeedFactor());
         if (pathResult != null)
         {
@@ -992,7 +1086,8 @@ public class MinecoloniesAdvancedPathNavigate extends AbstractAdvancedPathNaviga
         stop();
         if (finishedResult != null)
         {
-            finishedResult.setStatus(PathFindingStatus.COMPLETE);
+            finishedResult.setStatus(finishedResult.isPathReachingDestination()
+              ? PathFindingStatus.COMPLETE : PathFindingStatus.CANCELLED);
         }
     }
 

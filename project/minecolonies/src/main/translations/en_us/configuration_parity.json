@@ -1,0 +1,10 @@
+{
+  "minecolonies.config.citizenaidebugoverlay.comment": "Show nearby citizens' AI states and planned paths for debugging.",
+  "minecolonies.config.citizenaidebuglogging.comment": "Log citizen AI and navigation diagnostics. Verbose; disable after investigating problems.",
+  "minecolonies.config.citizenaidebugcitizens.comment": "Limit AI logs to these citizen name fragments (case insensitive) or exact UUIDs. Empty selects everyone. Path verbosity: 0 disables dumps, 1 summarizes searches, 2-10 include nodes.",
+  "minecolonies.config.workeraispeedmultiplier.comment": "Worker AI decision cadence multiplier; larger values reduce waits between decisions.",
+  "minecolonies.config.miningspeedmultiplier.comment": "Mining speed multiplier, applied after tool and skill calculations.",
+  "minecolonies.config.builderplacementspeedmultiplier.comment": "Builder block placement speed multiplier.",
+  "minecolonies.config.builderminingcheckinterval.comment": "Ticks between the builder's mining progress checks.",
+  "minecolonies.config.builderverticalreachcompatibility.comment": "Allow vertical construction within the active blueprint from nearby safe ground, matching the original builder's horizontal reach rule."
+}
