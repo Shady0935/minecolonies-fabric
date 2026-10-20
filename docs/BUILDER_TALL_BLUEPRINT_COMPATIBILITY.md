@@ -48,3 +48,24 @@ Compilación mediante `remapJar --console=plain`, sin añadir ni ejecutar tests.
 comprobar que Kohen coloca el objetivo de Y=75 y sigue avanzando en la columna
 alta, sin repetir el mismo fallo cada 100 ticks. El diagnóstico del servidor
 identifica la regresión; no demuestra todavía la recuperación con 1.0.15.
+
+## Compilación e instalación local
+
+`remapJar --console=plain`: BUILD SUCCESSFUL en 2 min 10 s, con los avisos
+existentes de APIs obsoletas. Código respaldado en GitHub, rama
+`fix/builder-tall-blueprint-compatibility`, commit `8aef6eb81e`.
+
+Instalado el 19 de octubre a las 22:40 COT en el perfil `Minecolonies Fabric`.
+Metadatos y dependencias inspeccionados: una sola versión activa de MineColonies
+1.0.15, Structurize 1.0.2 y Multi-Piston 0.0.3. Hash SHA-256 del JAR instalado,
+igual al de distribución:
+`7f99bc4ea9c0a10d02c396660c09f8b64812d772abefad2e4f67e271373f2f1d`.
+
+Minecraft de ese perfil (PID 25096) cerró normalmente. La versión anterior
+1.0.14, la configuración previa y el manifiesto de instalación se conservaron en
+`mods/codex-backups/20261019-tall-blueprint-1eb60343`. Se añadió la nueva opción
+en la config local preservando los valores de velocidad y depuración.
+
+El servidor todavía ejecuta 1.0.14: sustituir solo MineColonies por 1.0.15 y
+reiniciar. La opción se añadirá automáticamente en su configuración al iniciar.
+La recuperación de Kohen continúa pendiente de validación en juego.
