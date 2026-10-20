@@ -369,9 +369,10 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
                     worker.getNavigation().stop();
                     if (MineColonies.getConfig().getServer().citizenAiDebugLogging.get())
                     {
-                        Log.getLogger().info("[AI-BUILDER] work-target-unreachable entity={} target={} origin={} endpoint={} nodes={} retryTicks={}",
+                        Log.getLogger().info("[AI-BUILDER] work-target-unreachable entity={} target={} origin={} endpoint={} nodes={} retryTicks={} feetY={} eyeHeight={} currentSafe={}",
                           worker.getCitizenData().getName(), nextTarget, blockedWorkOrigin, endpoint,
-                          path == null ? 0 : path.getNodeCount(), WORK_PATH_RETRY_TICKS);
+                          path == null ? 0 : path.getNodeCount(), WORK_PATH_RETRY_TICKS,
+                          worker.getY(), worker.getEyeHeight(), isWorkPositionSafe(worker.blockPosition()));
                     }
                 }
                 workPositionPath = null;
@@ -752,6 +753,10 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
 
     private boolean isWorkTargetReachableFrom(final BlockPos workPosition, final BlockPos target)
     {
+        if (workPosition.equals(worker.blockPosition()))
+        {
+            return PathJobMoveCloseToXNearY.isWithinWorkRange(worker.position(), target, worker.getEyeHeight(), STANDARD_WORKING_RANGE);
+        }
         return PathJobMoveCloseToXNearY.isWithinWorkRange(workPosition, target, worker.getEyeHeight(), STANDARD_WORKING_RANGE);
     }
 
@@ -763,9 +768,14 @@ public class EntityAIStructureBuilder extends AbstractEntityAIStructureWithWorkO
         }
 
         final boolean alreadyStandingAtPosition = worker.blockPosition().equals(workPosition);
+        if (alreadyStandingAtPosition)
+        {
+            // Do not reject a valid live position because centering its block
+            // would move the worker's body into an adjacent partial obstacle.
+            return world.noCollision(worker, worker.getBoundingBox());
+        }
         final BlockPos support = workPosition.below();
-        if (!alreadyStandingAtPosition
-              && SurfaceType.getSurfaceType(world, world.getBlockState(support), support, new PathingOptions()) != SurfaceType.WALKABLE)
+        if (SurfaceType.getSurfaceType(world, world.getBlockState(support), support, new PathingOptions()) != SurfaceType.WALKABLE)
         {
             return false;
         }

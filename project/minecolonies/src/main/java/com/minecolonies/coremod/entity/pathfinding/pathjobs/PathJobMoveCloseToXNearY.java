@@ -6,6 +6,7 @@ import com.minecolonies.coremod.entity.pathfinding.MNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,18 +52,34 @@ public class PathJobMoveCloseToXNearY extends AbstractPathJob
     public static boolean isWithinWorkRange(final BlockPos standingPosition, final BlockPos target,
                                              final double eyeHeight, final int range)
     {
-        final double dx = standingPosition.getX() - target.getX();
-        final double dz = standingPosition.getZ() - target.getZ();
-        if (Math.abs(dx) + Math.abs(dz) > range
-              || (dx == 0 && dz == 0 && standingPosition.getY() >= target.getY()))
+        return isWithinWorkRange(Vec3.atBottomCenterOf(standingPosition), target, eyeHeight, range);
+    }
+
+    /** Use real feet coordinates for the live worker, and node centers for planned positions. */
+    public static boolean isWithinWorkRange(final Vec3 standingPosition, final BlockPos target,
+                                             final double eyeHeight, final int range)
+    {
+        final BlockPos standingBlock = BlockPos.containing(standingPosition);
+        final int blockDx = standingBlock.getX() - target.getX();
+        final int blockDz = standingBlock.getZ() - target.getZ();
+        if (Math.abs(blockDx) + Math.abs(blockDz) > range
+              || (blockDx == 0 && blockDz == 0 && standingPosition.y >= target.getY()))
         {
             return false;
         }
 
-        // Measure reach from the worker's eyes to the target block's center,
-        // rather than rejecting an upper block by its height above the feet.
-        final double dy = standingPosition.getY() + eyeHeight - (target.getY() + 0.5D);
+        // A block is worked on at its nearest face, not only at its center.
+        // In particular, the lower face of a roof can be inside five blocks
+        // while its center is outside. Keep the same bounded interaction range.
+        final double dx = distanceToBlockAxis(standingPosition.x, target.getX());
+        final double dy = distanceToBlockAxis(standingPosition.y + eyeHeight, target.getY());
+        final double dz = distanceToBlockAxis(standingPosition.z, target.getZ());
         return dx * dx + dy * dy + dz * dz <= (double) range * range;
+    }
+
+    private static double distanceToBlockAxis(final double coordinate, final int blockCoordinate)
+    {
+        return Math.max(0.0D, Math.max(blockCoordinate - coordinate, coordinate - (blockCoordinate + 1.0D)));
     }
 
     @Override
