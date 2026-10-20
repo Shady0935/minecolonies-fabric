@@ -903,3 +903,12 @@ and real glass translucency. Item rendering and waterlogging are unchanged.
 Only Domum is rebuilt and replaced in CurseForge; existing dependency ranges
 accept it. See `docs/DOMUM_MATERIAL_RENDER_LAYERS.md` for build, backup, installed
 hash and manual validation limits. No AI changes or automated tests.
+
+### 2026-10-20: town hall map client crash
+
+The profile's 02:21:09 crash identifies `View.removeChild(null)` from
+`WindowColonyMap.addCitizens` while opening the town hall map in 1.0.16.
+Branch `fix/colony-map-null-icons` removes old citizen icons only when present
+and removes a second invalid null removal in first-time building icon creation.
+Only MineColonies changes to 1.0.17; dependencies and server logic are unchanged.
+See `docs/COLONY_MAP_NULL_ICONS.md` for evidence and pending in-game checks.

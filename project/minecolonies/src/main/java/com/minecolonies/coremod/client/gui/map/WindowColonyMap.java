@@ -343,7 +343,7 @@ public class WindowColonyMap extends AbstractWindowSkeleton
 
             uiBuilding.setVisible(true);
 
-            dragView.removeChild(this.buildings.get(buildingView));
+            // This branch creates the first icon; there is no previous child to remove.
             this.buildings.put(buildingView, uiBuilding);
         }
 
@@ -390,8 +390,11 @@ public class WindowColonyMap extends AbstractWindowSkeleton
                     citizenView.setSize(citizenView.getWidth() + 6, citizenView.getHeight() + 6);
                 }
 
-                dragView.removeChild(citizens.get(data));
-                citizens.put(data, citizenView);
+                final Pane previous = citizens.put(data, citizenView);
+                if (previous != null)
+                {
+                    dragView.removeChild(previous);
+                }
             }
         }
     }
