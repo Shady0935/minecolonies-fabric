@@ -26,10 +26,10 @@ public class ClientProxy implements IProxy
             return;
         }
 
-        if (pos != null)
+        if (pos != null && !RenderingCache.getOrCreateBlueprintPreviewData("blueprint").hasBlueprintSelection())
         {
-            // A block click starts at that block. Air-use still resumes the
-            // current preview, and switching packs inside the window retains it.
+            // Only a new placement adopts the clicked position. Reopening a
+            // loaded or still-loading selection preserves its adjusted anchor.
             RenderingCache.getOrCreateBlueprintPreviewData("blueprint").clearPosition();
         }
 

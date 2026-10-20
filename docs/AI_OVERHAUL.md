@@ -879,3 +879,16 @@ active blueprint with horizontal range five and safe standing positions.
 false retains strict 3D reach. This adds no scaffolding or climbing system.
 See `docs/BUILDER_TALL_BLUEPRINT_COMPATIBILITY.md`. Only MineColonies changes
 to 1.0.15-port; server installation and in-game recovery remain pending.
+
+### 2026-10-19: Domum inventory material icons
+
+Branch `fix/domum-inventory-material-models` fixes a port rendering issue:
+the model loader omitted top-level `#inventory` identifiers, so material NBT
+was not passed to Domum's existing item quad renderer. Compared the upstream
+1.20.1 Forge implementation's stack-specific render passes with Fabric's model
+loading source. The fix adds inventory wrappers for Domum IDoItem models.
+See `docs/DOMUM_INVENTORY_MATERIALS.md` for source references and validation limits.
+Domum is 1.0.1, Structurize 1.0.3, Multi-Piston 0.0.4, MineColonies 1.0.16;
+AI behavior is preserved. Structurize also fixes the wand reopening regression:
+only an empty blueprint selection adopts a newly clicked position; an existing
+or asynchronously loading hologram retains its adjusted anchor.

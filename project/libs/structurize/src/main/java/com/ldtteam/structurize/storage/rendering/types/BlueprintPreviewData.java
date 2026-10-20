@@ -130,6 +130,12 @@ public class BlueprintPreviewData
         this.blueprintFuture = blueprintFuture;
     }
 
+    /** A loaded or pending selection belongs to the placement the player is already adjusting. */
+    public boolean hasBlueprintSelection()
+    {
+        return blueprint != null || blueprintFuture != null;
+    }
+
     /**
      * set the y offset between current and original position
      * this also actually adjusts the position -- ensure that's set first
