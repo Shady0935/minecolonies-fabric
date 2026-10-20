@@ -49,7 +49,9 @@ public class InvWrapper implements IItemHandlerModifiable
             return stack;
         }
 
-        final int limit = Math.min(getSlotLimit(slot), stack.getMaxStackSize());
+        final int limit = container instanceof net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity
+            && slot == 1 && stack.is(net.minecraft.world.item.Items.BUCKET) ? 1
+            : Math.min(getSlotLimit(slot), stack.getMaxStackSize());
         final int room = limit - (current.isEmpty() ? 0 : current.getCount());
         if (room <= 0)
         {
@@ -93,7 +95,9 @@ public class InvWrapper implements IItemHandlerModifiable
     @Override
     public int getSlotLimit(final int slot)
     {
-        return slot >= 0 && slot < getSlots() ? Math.min(64, container.getMaxStackSize()) : 0;
+        if (slot < 0 || slot >= getSlots()) { return 0; }
+        return container instanceof net.minecraft.world.level.block.entity.BrewingStandBlockEntity && slot < 3
+            ? 1 : container.getMaxStackSize();
     }
 
     @Override

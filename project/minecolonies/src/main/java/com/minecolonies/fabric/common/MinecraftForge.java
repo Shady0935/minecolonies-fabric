@@ -92,6 +92,8 @@ public final class MinecraftForge
 
                 try
                 {
+                    if (event instanceof Event canceled && canceled.isCanceled()
+                          && !entry.method().getAnnotation(SubscribeEvent.class).receiveCanceled()) { continue; }
                     entry.method().setAccessible(true);
                     entry.method().invoke(Modifier.isStatic(entry.method().getModifiers()) ? null : entry.listener(), event);
                 }

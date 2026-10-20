@@ -4,6 +4,7 @@ import com.minecolonies.coremod.event.capabilityproviders.MinecoloniesChunkCapab
 import com.minecolonies.coremod.event.capabilityproviders.MinecoloniesWorldCapabilityProvider;
 import com.minecolonies.coremod.event.capabilityproviders.MinecoloniesWorldColonyManagerCapabilityProvider;
 import com.minecolonies.fabric.inventory.InvWrapper;
+import com.minecolonies.fabric.inventory.SidedInvWrapper;
 import com.minecolonies.fabric.inventory.IItemHandler;
 import com.minecolonies.fabric.util.LazyOptional;
 import net.minecraft.core.Direction;
@@ -124,7 +125,20 @@ public final class CapabilityHooks
         else if (target instanceof Container container)
         {
             final IItemHandler handler = new InvWrapper(container);
-            providers.add(itemHandlerProvider(handler));
+            if (container instanceof net.minecraft.world.WorldlyContainer sided)
+            {
+                final Map<Direction, IItemHandler> faces = new java.util.EnumMap<>(Direction.class);
+                for (final Direction direction : Direction.values()) { faces.put(direction, new SidedInvWrapper(sided, direction)); }
+                providers.add(new ICapabilityProvider()
+                {
+                    @Override public <T> LazyOptional<T> getCapability(final Capability<T> capability, final Direction side)
+                    {
+                        return capability == ForgeCapabilities.ITEM_HANDLER
+                            ? LazyOptional.of(() -> side == null ? handler : faces.get(side)).cast() : LazyOptional.empty();
+                    }
+                });
+            }
+            else { providers.add(itemHandlerProvider(handler)); }
         }
         else if (target instanceof Player player)
         {

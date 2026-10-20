@@ -49,7 +49,11 @@ public final class BrewingRecipeRegistry
     {
         for (IBrewingRecipe recipe : getRecipes())
         {
-            if (recipe.isInput(input) && recipe.isIngredient(ingredient)) return recipe.getOutput(input, ingredient);
+            if (recipe.isInput(input) && recipe.isIngredient(ingredient))
+            {
+                final ItemStack output = recipe.getOutput(input, ingredient);
+                if (!output.isEmpty()) { return output; }
+            }
         }
         return ItemStack.EMPTY;
     }

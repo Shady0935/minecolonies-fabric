@@ -32,7 +32,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 
-import java.lang.reflect.Field;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
@@ -63,22 +63,12 @@ public final class FabricVanillaCompat
 
     public static int getBrewingTime(final BrewingStandBlockEntity brewingStand)
     {
-        try
-        {
-            final var field = BrewingStandBlockEntity.class.getDeclaredField("brewTime");
-            field.setAccessible(true);
-            return field.getInt(brewingStand);
-        }
-        catch (ReflectiveOperationException ignored)
-        {
-            return 0;
-        }
+        return brewingStand == null ? 0 : brewingStand.brewTime;
     }
 
     public static float getStepHeight(final Mob mob)
     {
-        final Float value = readField(mob, "maxUpStep", Float.class);
-        return value == null ? 0.6F : value;
+        return mob == null ? 0.6F : mob.maxUpStep;
     }
 
     public static boolean isAdvancementDone(final ClientAdvancements advancements, final Advancement advancement)
@@ -89,20 +79,17 @@ public final class FabricVanillaCompat
 
     public static Vec3 getExplosionPosition(final Explosion explosion)
     {
-        final Double x = readField(explosion, "x", Double.class);
-        final Double y = readField(explosion, "y", Double.class);
-        final Double z = readField(explosion, "z", Double.class);
-        return x == null || y == null || z == null ? Vec3.ZERO : new Vec3(x, y, z);
+        return explosion == null ? Vec3.ZERO : new Vec3(explosion.x, explosion.y, explosion.z);
     }
 
     public static void setSpawnerRequiredPlayerRange(final BaseSpawner spawner, final int range)
     {
-        writeField(spawner, "requiredPlayerRange", range);
+        if (spawner != null) { spawner.requiredPlayerRange = range; }
     }
 
     public static CompoundTag getSpawnerEntityTag(final BaseSpawner spawner)
     {
-        final SpawnData data = readField(spawner, "nextSpawnData", SpawnData.class);
+        final SpawnData data = spawner == null ? null : spawner.nextSpawnData;
         return data == null ? new CompoundTag() : data.getEntityToSpawn();
     }
 
@@ -110,19 +97,7 @@ public final class FabricVanillaCompat
     public static List<Entity> releaseAllOccupants(final BeehiveBlockEntity hive, final BlockState state,
                                                     final BeehiveBlockEntity.BeeReleaseStatus status)
     {
-        try
-        {
-            final var release = BeehiveBlockEntity.class.getDeclaredMethod("releaseAllOccupants", BlockState.class,
-              BeehiveBlockEntity.BeeReleaseStatus.class);
-            release.setAccessible(true);
-            final Object result = release.invoke(hive, state, status);
-            return result instanceof List<?> list ? (List<Entity>) list : List.of();
-        }
-        catch (ReflectiveOperationException ignored)
-        {
-            hive.emptyAllLivingFromHive(null, state, status);
-            return List.of();
-        }
+        return hive == null ? List.of() : hive.releaseAllOccupants(state, status);
     }
 
     public static ChunkHolder getVisibleChunk(final ServerChunkCache source, final long key)
@@ -140,15 +115,14 @@ public final class FabricVanillaCompat
     @SuppressWarnings("unchecked")
     public static SortedArraySet<Ticket<?>> getTickets(final DistanceManager distanceManager, final long key)
     {
-        final Map<Long, SortedArraySet<Ticket<?>>> tickets = readField(distanceManager, "tickets", Map.class);
-        return tickets == null ? null : tickets.get(key);
+        return distanceManager == null ? null : distanceManager.tickets.get(key);
     }
 
     @SuppressWarnings("unchecked")
     @Nullable
     public static Set<Mob> navigatingMobs(final ServerLevel level)
     {
-        return readField(level, "navigatingMobs", Set.class);
+        return level == null ? null : level.navigatingMobs;
     }
 
     /**
@@ -165,70 +139,4 @@ public final class FabricVanillaCompat
         attributes.forEach(FabricDefaultAttributeRegistry::register);
     }
 
-    private static <T> T readField(final Object target, final String name, final Class<T> type)
-    {
-        if (target == null)
-        {
-            return null;
-        }
-        final Field field = findField(target.getClass(), name);
-        if (field == null)
-        {
-            return null;
-        }
-        try
-        {
-            field.setAccessible(true);
-            final Object value = field.get(target);
-            return type.isInstance(value) ? type.cast(value) : null;
-        }
-        catch (ReflectiveOperationException ignored)
-        {
-            return null;
-        }
-    }
-
-    private static void writeField(final Object target, final String name, final Object value)
-    {
-        if (target == null)
-        {
-            return;
-        }
-        final Field field = findField(target.getClass(), name);
-        if (field == null)
-        {
-            return;
-        }
-        try
-        {
-            field.setAccessible(true);
-            field.set(target, value);
-        }
-        catch (ReflectiveOperationException ignored)
-        {
-            // Access transformers/mappings may expose this field directly on another runtime.
-        }
-    }
-
-    /**
-     * Find a mapped Minecraft field on the concrete class or one of its parents.
-     * Vanilla keeps several of the fields used by the Forge compatibility layer
-     * on a superclass, while callers pass a concrete entity/block implementation.
-     */
-    @Nullable
-    private static Field findField(final Class<?> type, final String name)
-    {
-        for (Class<?> current = type; current != null; current = current.getSuperclass())
-        {
-            try
-            {
-                return current.getDeclaredField(name);
-            }
-            catch (NoSuchFieldException ignored)
-            {
-                // Continue with the next Minecraft superclass.
-            }
-        }
-        return null;
-    }
 }

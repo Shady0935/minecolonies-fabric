@@ -35,9 +35,8 @@ public final class FabricConfiguration
         FabricConfigFile.load(config.serverSpec(), directory.resolve("minecolonies-server.toml"));
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
         { FabricConfigFile.load(config.clientSpec(), directory.resolve("minecolonies-client.toml")); }
-        CitizenAIDebugConfig.load();
-        CitizenWorkSpeedConfig.load();
         rememberLocal();
+        ConfigSnapshotCodec.encode(configuration.serverSpec(), configuration.commonSpec());
     }
 
     /** An existing Forge-style world override takes precedence; global Fabric configuration remains the default. */
@@ -47,17 +46,14 @@ public final class FabricConfiguration
         activeServerFile = directory.resolve("minecolonies-server.toml");
         FabricConfigFile.load(configuration.commonSpec(), directory.resolve("minecolonies-common.toml"));
         FabricConfigFile.load(configuration.serverSpec(), directory.resolve("minecolonies-server.toml"));
-        CitizenAIDebugConfig.load();
-        CitizenWorkSpeedConfig.load();
         rememberLocal();
         final Path worldConfig = server.getWorldPath(LevelResource.ROOT).resolve("serverconfig/minecolonies-server.toml");
         if (Files.isRegularFile(worldConfig))
         {
             activeServerFile = worldConfig;
             FabricConfigFile.load(configuration.serverSpec(), worldConfig);
-            CitizenAIDebugConfig.load(worldConfig);
-            CitizenWorkSpeedConfig.load(worldConfig);
         }
+        ConfigSnapshotCodec.encode(configuration.serverSpec(), configuration.commonSpec());
     }
 
     public static Path activeServerFile() { return activeServerFile; }
@@ -95,8 +91,6 @@ public final class FabricConfiguration
     {
         configuration.serverSpec().applySnapshot(localServer);
         configuration.commonSpec().applySnapshot(localCommon);
-        CitizenAIDebugConfig.load();
-        CitizenWorkSpeedConfig.load();
     }
 
     private static void rememberLocal()

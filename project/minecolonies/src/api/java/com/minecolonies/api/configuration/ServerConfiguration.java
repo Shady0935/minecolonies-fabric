@@ -138,6 +138,11 @@ public class ServerConfiguration extends AbstractConfiguration
     public final FabricConfigSpec.BooleanValue citizenAiDebugLogging;
     public final FabricConfigSpec.IntValue pathfindingMaxThreadCount;
     public final FabricConfigSpec.IntValue minimumRailsToPath;
+    public final FabricConfigSpec.DoubleValue workerAiSpeedMultiplier;
+    public final FabricConfigSpec.DoubleValue miningSpeedMultiplier;
+    public final FabricConfigSpec.DoubleValue builderPlacementSpeedMultiplier;
+    public final FabricConfigSpec.IntValue builderMiningCheckInterval;
+    public final FabricConfigSpec.BooleanValue builderVerticalReachCompatibility;
 
     /*  --------------------------------------------------------------------------------- *
      *  ------------------- ######## Request System Settings ######## ------------------- *
@@ -314,6 +319,13 @@ public class ServerConfiguration extends AbstractConfiguration
         delayBetweenRetries = defineInteger(builder, "delaybetweenretries", 1200, 30, 10000);
         creativeResolve = defineBoolean(builder, "creativeresolve", false);
         canPlayerUseResetCommand = defineBoolean(builder, "canplayeruseresetcommand", false);
+
+        swapToCategory(builder, "ai_work_speed");
+        workerAiSpeedMultiplier = defineDouble(builder, "workeraispeedmultiplier", 2.0, 0.25, 8.0);
+        miningSpeedMultiplier = defineDouble(builder, "miningspeedmultiplier", 2.0, 0.25, 8.0);
+        builderPlacementSpeedMultiplier = defineDouble(builder, "builderplacementspeedmultiplier", 2.0, 0.25, 8.0);
+        builderMiningCheckInterval = defineInteger(builder, "builderminingcheckinterval", 1, 1, 20);
+        builderVerticalReachCompatibility = defineBoolean(builder, "builderverticalreachcompatibility", true);
 
         finishCategory(builder);
     }

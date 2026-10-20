@@ -54,6 +54,10 @@ loom {
             runDir clientVisualRunDir
             programArg '--username'
             programArg clientVisualUsername
+            if (project.providers.gradleProperty('clientVisualServer').isPresent()) {
+                programArg '--quickPlayMultiplayer'
+                programArg project.providers.gradleProperty('clientVisualServer').get()
+            }
         }
         gametest {
             server()
@@ -273,7 +277,7 @@ tasks.withType(Jar).configureEach {
 }
 
 def serverDependencyJars = [
-    file('../libs/blockui/build/libs/blockui-fabric-1.20.1-0.0.1-port.jar'),
+    file('../libs/blockui/build/libs/blockui-fabric-1.20.1-0.0.2-port.jar'),
     file('../libs/domum-ornamentum/build/libs/domum-ornamentum-fabric-1.20.1-1.0.2-port.jar'),
     file('../libs/structurize/build/libs/structurize-fabric-1.20.1-1.0.4-port.jar'),
     file('../libs/multipiston/build/libs/multipiston-fabric-1.20.1-0.0.5-port.jar')

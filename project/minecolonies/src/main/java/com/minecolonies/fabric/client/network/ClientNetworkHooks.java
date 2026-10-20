@@ -69,6 +69,8 @@ public final class ClientNetworkHooks
     {
     }
 
+    public static boolean isClientWorldEmpty() { return Minecraft.getInstance().level == null; }
+
     public static void register(final SimpleChannel channel)
     {
         if (!REGISTERED.add(channel.id()))

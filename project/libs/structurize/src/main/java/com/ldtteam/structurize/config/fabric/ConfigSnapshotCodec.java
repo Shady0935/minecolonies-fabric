@@ -16,14 +16,19 @@ public final class ConfigSnapshotCodec
 
     public static String encode(final FabricConfigSpec server, final FabricConfigSpec common)
     {
-        return new Gson().toJson(Map.of("version", 1, "server", server.snapshot(), "common", common.snapshot()));
+        final String json = new Gson().toJson(Map.of("version", 1, "server", server.snapshot(), "common", common.snapshot()));
+        if (json.length() > MAX_LENGTH) { throw new IllegalArgumentException("Configuration snapshot exceeds " + MAX_LENGTH + " characters"); }
+        return json;
     }
 
     public static void apply(final String json, final FabricConfigSpec server, final FabricConfigSpec common)
     {
         if (json.length() > MAX_LENGTH) { throw new IllegalArgumentException("Configuration snapshot too large"); }
         final JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-        if (root.get("version").getAsInt() != 1) { throw new IllegalArgumentException("Unknown configuration snapshot version"); }
+        if (!root.has("version") || !root.get("version").isJsonPrimitive()
+            || !root.getAsJsonPrimitive("version").isNumber()
+            || root.get("version").getAsBigDecimal().compareTo(java.math.BigDecimal.ONE) != 0)
+        { throw new IllegalArgumentException("Unknown configuration snapshot version"); }
         final Map<String, Object> serverValues = decode(root.getAsJsonObject("server"));
         final Map<String, Object> commonValues = decode(root.getAsJsonObject("common"));
         server.validateSnapshot(serverValues);

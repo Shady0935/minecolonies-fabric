@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
@@ -34,12 +35,14 @@ public class BOGuiGraphics
     private final Minecraft minecraft;
     private final PoseStack pose;
     private final BufferSource bufferSource;
+    private final GuiGraphics itemDecorations;
 
     public BOGuiGraphics(final Minecraft mc, final PoseStack ps, final BufferSource buffers)
     {
         minecraft = mc;
         pose = ps;
         bufferSource = buffers;
+        itemDecorations = new GuiGraphics(mc, buffers);
     }
 
     public PoseStack pose()
@@ -74,31 +77,12 @@ public class BOGuiGraphics
 
     public void renderItemDecorations(final ItemStack itemStack, final int x, final int y, @Nullable final String altStackSize)
     {
-        final String stackSize = altStackSize == null ? (itemStack.getCount() == 1 ? null : Integer.toString(itemStack.getCount())) : altStackSize;
-        if (stackSize != null)
-        {
-            final Font font = getFont(itemStack);
-            font.drawInBatch(stackSize,
-                x + 19 - font.width(stackSize),
-                y + 6,
-                0xFFFFFF,
-                true,
-                pose.last().pose(),
-                bufferSource,
-                Font.DisplayMode.NORMAL,
-                0,
-                LightTexture.FULL_BRIGHT);
-        }
-
-        if (itemStack.isDamaged())
-        {
-            final int barWidth = Math.round(13.0F - itemStack.getDamageValue() * 13.0F / itemStack.getMaxDamage());
-            final int barColor = 255 - Mth.clamp(Math.round(itemStack.getDamageValue() * 255.0F / itemStack.getMaxDamage()), 0, 255);
-            UiRenderMacros.fill(pose, x + 2, y + 13, 13, 2, 0xFF000000);
-            UiRenderMacros.fill(pose, x + 2, y + 13, barWidth, 1, 0xFF000000 | (barColor << 16) | ((255 - barColor) << 8));
-        }
+        // Use vanilla's complete count/durability/cooldown path, as upstream did.
+        // The Fabric item-decoration hook can then also run inside BlockUI windows.
+        itemDecorations.pose().last().pose().set(pose.last().pose());
+        itemDecorations.pose().last().normal().set(pose.last().normal());
+        itemDecorations.renderItemDecorations(getFont(itemStack), itemStack, x, y, altStackSize);
     }
-
     public int drawString(final String text, final float x, final float y, final int color)
     {
         return drawString(text, x, y, color, false);

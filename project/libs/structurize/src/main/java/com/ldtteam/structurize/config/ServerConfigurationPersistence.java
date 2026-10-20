@@ -30,11 +30,13 @@ public final class ServerConfigurationPersistence
         final Path global = FabricLoader.getInstance().getConfigDir().resolve("structurize-server.toml");
         FabricConfigFile.load(spec, global);
         local = spec.snapshot();
+        ConfigSnapshotCodec.encode(spec, EMPTY);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             FabricConfigFile.load(spec, global);
             local = spec.snapshot();
             final Path override = server.getWorldPath(LevelResource.ROOT).resolve("serverconfig/structurize-server.toml");
             if (Files.isRegularFile(override)) { FabricConfigFile.load(spec, override); }
+            ConfigSnapshotCodec.encode(spec, EMPTY);
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (ServerPlayNetworking.canSend(handler.getPlayer(), CHANNEL))

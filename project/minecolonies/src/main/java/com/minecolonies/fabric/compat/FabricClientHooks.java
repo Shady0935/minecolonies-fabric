@@ -27,9 +27,8 @@ public final class FabricClientHooks
     {
         try
         {
-            final Class<?> minecraft = Class.forName("net.minecraft.client.Minecraft");
-            final Object instance = minecraft.getMethod("getInstance").invoke(null);
-            return minecraft.getField("level").get(instance) == null;
+            final Class<?> bridge = Class.forName("com.minecolonies.fabric.client.network.ClientNetworkHooks");
+            return (Boolean) bridge.getMethod("isClientWorldEmpty").invoke(null);
         }
         catch (ReflectiveOperationException ignored)
         {
