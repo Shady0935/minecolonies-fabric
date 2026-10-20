@@ -850,3 +850,20 @@ See `docs/BUILDER_BLOCK_FACE_REACH.md` for evidence, scope and remaining checks.
 MineColonies 1.0.13 is compiled, pushed and installed in CurseForge with a backup;
 the server still needs its JAR replaced and restarted. Actual in-game recovery
 is not yet confirmed.
+
+### Kohen exact arrival alignment (1.0.14)
+
+Live 1.0.13 inspection shows Kohen at `(-670,69,232)` targeting `(-674,74,232)`.
+The route claims success with one node, but the Builder rejects the live position.
+The old target is no longer air. The discrepancy comes from accepting the center
+of the start cell while the entity is about 32 cm off-center: centered reach is
+about 4.93 blocks and actual reach about 5.15. The previous patch did not handle
+this physical arrival step.
+Branch `fix/builder-arrival-alignment` captures the real start coordinates for
+zero-movement route goals and adds a bounded, collision-checked local walk to
+the cell center when needed. A failed 20-tick attempt yields to ordinary pathing
+for 40 ticks. No teleportation, block skipping or world edits are used.
+See `docs/BUILDER_ARRIVAL_ALIGNMENT.md` for evidence and limits. MineColonies
+1.0.14 is compiled, pushed and installed in CurseForge with the old JAR backed
+up. Dependencies and work-speed settings remain unchanged. Remote installation
+and actual recovery verification are pending.

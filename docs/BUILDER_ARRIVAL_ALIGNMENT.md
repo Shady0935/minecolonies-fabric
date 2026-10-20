@@ -67,3 +67,22 @@ camina esos centímetros o busca otra posición, coloca `(-674,74,232)` y contin
 Confirmar que no alterna indefinidamente entre rutas alcanzadas y posiciones
 rechazadas. La recuperación de la nueva versión todavía no está verificada en
 juego; los logs de 1.0.13 identifican el desacuerdo, no validan el arreglo.
+
+## Compilación e instalación
+
+`remapJar --console=plain` terminó correctamente en 2 min 15 s, con los avisos
+existentes sobre APIs obsoletas. Se inspeccionaron el manifiesto, las dependencias
+activas y la presencia de la captura de posición inicial y del ajuste local en
+las clases compiladas. Código respaldado en `origin/fix/builder-arrival-alignment`,
+commit `39e96649b6`.
+
+El 19 de octubre a las 21:31 COT se instaló el JAR de MineColonies 1.0.14 en
+el perfil de CurseForge, con SHA-256 igual al de distribución:
+`b6e944efc026eaac51ec67afd46aab41de54ff1311138d2694a193cee8e4a27b`.
+Hay una sola versión activa; Structurize 1.0.2, Multi-Piston 0.0.3 y la config
+de velocidad permanecen como estaban.
+
+Minecraft de ese perfil (PID 29736) cerró normalmente. No fue necesario forzarlo
+ni detener otros procesos Java. La versión anterior y el manifiesto están en
+`mods/codex-backups/20261019-builder-alignment-5088773f`.
+El servidor remoto sigue en 1.0.13; solo necesita sustituir MineColonies y reiniciar.
