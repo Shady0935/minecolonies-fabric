@@ -48,3 +48,11 @@ normales; no garantiza grandes cargas si la producción real es escasa.
 Se entrega el JAR al perfil CurseForge con copia de seguridad, manteniendo los
 mods compañeros y la configuración de debug. El despliegue remoto se informa
 por separado; compilar o instalar en el perfil no actualiza el host.
+
+Entrega completada: JAR de 72.487.678 bytes, SHA-256
+`d3a4ff16fc6b73a0bbfcf83e13e5f742b0339ef706f6121d7e45dd4c4c869128`.
+`remapJar -x test` finalizó correctamente. Perfil actualizado con una sola versión
+activa, dependencias y hash comprobados; Minecraft se cerró normalmente.
+Anterior y TOML respaldados en `mods/codex-backups/20261022-courier-batch-e64bb202`.
+No se modificó la configuración ni se desplegó el JAR al servidor.
+Registro: `audit/2026-10-22-courier-pickup-batching-delivery.json`.

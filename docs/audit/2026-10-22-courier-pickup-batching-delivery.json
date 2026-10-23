@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-10-22T23:30:18.4032933-05:00",
+  "configChanged": false,
+  "companionsUnchanged": true,
+  "previous": [
+    {
+      "file": "minecolonies-fabric-1.20.1-1.0.19-port.jar",
+      "sha256": "3776c773064ccca7f98431cc5aeb7e5785d6f936b65b80574beb9459a17010b0",
+      "version": "1.0.19-port"
+    }
+  ],
+  "remoteJarUpdated": false,
+  "version": "1.0.20-port",
+  "closedProcesses": [
+    {
+      "forced": false,
+      "id": 33304
+    }
+  ],
+  "installed": "C:\\Users\\Shady\\curseforge\\minecraft\\Instances\\Minecolonies Fabric\\mods\\minecolonies-fabric-1.20.1-1.0.20-port.jar",
+  "sha256": "d3a4ff16fc6b73a0bbfcf83e13e5f742b0339ef706f6121d7e45dd4c4c869128",
+  "backup": "C:\\Users\\Shady\\curseforge\\minecraft\\Instances\\Minecolonies Fabric\\mods\\codex-backups\\20261022-courier-batch-e64bb202",
+  "bytes": 72487678,
+  "sourceCommit": "86a1d78ff9",
+  "branch": "fix/courier-pickup-batching",
+  "build": {
+    "command": "gradlew.bat remapJar -x test --console=plain",
+    "result": "BUILD SUCCESSFUL",
+    "testsRun": false
+  },
+  "serverObservationPending": true,
+  "modMetadata": {
+    "id": "minecolonies",
+    "version": "1.0.20-port",
+    "depends": {
+      "fabricloader": ">=0.15.11",
+      "fabric-api": "*",
+      "minecraft": "1.20.1",
+      "java": ">=17",
+      "blockui": "*",
+      "domum_ornamentum": "*",
+      "structurize": "1.0.4-port",
+      "multipiston": "0.0.5-port"
+    }
+  },
+  "changedClassPresent": true
+}
