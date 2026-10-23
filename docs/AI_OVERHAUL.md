@@ -1,5 +1,14 @@
 # AI overhaul work log
 
+## 2026-10-22 — courier production pickups (1.0.20)
+
+Branch `fix/courier-pickup-batching` follows 1.0.19. Native Fabric SavedData and
+live container reads identified a restaurant pickup without eligible surplus.
+Normal pickup requests now check courier retention rules and share a persisted
+400-tick production window; priority 10+ remains immediate. See
+`COURIER_PICKUP_BATCHING.md`. Distribution compilation excludes tests; hosted
+trip reduction remains pending deployment and observation.
+
 ## Scope and source plan
 
 This branch isolates the AI, navigation, decision-making, and performance work

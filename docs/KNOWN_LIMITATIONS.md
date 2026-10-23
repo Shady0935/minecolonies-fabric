@@ -1,5 +1,12 @@
 # Known limitations
 
+## 2026-10-22 courier pickups (1.0.20)
+
+Routine pickups now require collectible surplus and share a fixed 400-tick
+production window, persisted with the building. Priority 10+ remains immediate.
+Actual trip reduction awaits hosted observation; see `COURIER_PICKUP_BATCHING.md`.
+The distribution is compiled without running the historical test suite.
+
 ## 2026-10-20 navigation follow-up (1.0.19)
 
 The new citizen diagnostic filter increases the server schema from 93 to 94.

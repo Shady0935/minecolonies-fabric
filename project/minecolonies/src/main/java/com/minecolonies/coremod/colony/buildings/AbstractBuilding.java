@@ -87,6 +87,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.minecolonies.api.colony.requestsystem.requestable.deliveryman.AbstractDeliverymanRequestable.getPlayerActionPriority;
+import static com.minecolonies.api.colony.requestsystem.requestable.deliveryman.AbstractDeliverymanRequestable.getMaxBuildingPriority;
 import static com.minecolonies.api.util.constant.BuildingConstants.CONST_DEFAULT_MAX_BUILDING_LEVEL;
 import static com.minecolonies.api.util.constant.BuildingConstants.NO_WORK_ORDER;
 import static com.minecolonies.api.util.constant.Constants.MOD_ID;
@@ -150,6 +151,12 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
      * Made to check if the building has to update the server/client.
      */
     private boolean dirty = false;
+
+    /** Normal production pickups share a fixed window; later deposits must not postpone it. */
+    private static final int PICKUP_BATCH_TICKS = 20 * 20;
+    private static final String TAG_PENDING_PICKUP = "pendingPickupBatch";
+    private int pendingPickupPriority = -1;
+    private long pendingPickupDue;
 
     /**
      * Set of building modules this building has.
@@ -344,6 +351,17 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     {
         super.deserializeNBT(compound);
         loadRequestSystemFromNBT(compound);
+        pendingPickupPriority = -1;
+        if (compound.contains(TAG_PENDING_PICKUP))
+        {
+            final CompoundTag pending = compound.getCompound(TAG_PENDING_PICKUP);
+            final int priority = pending.getInt("priority");
+            if (priority >= 0 && priority < getMaxBuildingPriority(true))
+            {
+                pendingPickupPriority = priority;
+                pendingPickupDue = pending.getLong("due");
+            }
+        }
         if (compound.contains(TAG_IS_BUILT))
         {
             isBuilt = compound.getBoolean(TAG_IS_BUILT);
@@ -390,6 +408,13 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
         compound.putString(TAG_BUILDING_TYPE, this.getBuildingType().getRegistryName().toString());
         writeRequestSystemToNBT(compound);
         compound.putBoolean(TAG_IS_BUILT, isBuilt);
+        if (pendingPickupPriority >= 0)
+        {
+            final CompoundTag pending = new CompoundTag();
+            pending.putInt("priority", pendingPickupPriority);
+            pending.putLong("due", pendingPickupDue);
+            compound.put(TAG_PENDING_PICKUP, pending);
+        }
         compound.putString(TAG_CUSTOM_NAME, customName);
 
         CompoundTag modules = new CompoundTag();
@@ -747,6 +772,19 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
     public void onColonyTick(final IColony colony)
     {
         getModulesByType(ITickingModule.class).forEach(module -> module.onColonyTick(colony));
+        if (pendingPickupPriority >= 0 && colony.getWorld() != null
+              && colony.getWorld().getGameTime() >= pendingPickupDue)
+        {
+            final int priority = pendingPickupPriority;
+            pendingPickupPriority = -1;
+            markDirty();
+            // Recheck at dispatch: cooking/crafting may have consumed the surplus meanwhile.
+            if (getOpenRequestsByRequestableType().getOrDefault(TypeConstants.PICKUP, Collections.emptyList()).isEmpty()
+                  && hasPickupSurplus())
+            {
+                createRequest(new Pickup(priority), true);
+            }
+        }
     }
 
     /**
@@ -1576,8 +1614,45 @@ public abstract class AbstractBuilding extends AbstractBuildingContainer
             return false;
         }
 
+        if (scaledPriority < getMaxBuildingPriority(true))
+        {
+            if (!hasPickupSurplus() || colony.getWorld() == null)
+            {
+                return false;
+            }
+            if (pendingPickupPriority < 0)
+            {
+                pendingPickupDue = colony.getWorld().getGameTime() + PICKUP_BATCH_TICKS;
+            }
+            pendingPickupPriority = Math.max(pendingPickupPriority, scaledPriority);
+            markDirty();
+            return true;
+        }
+
+        // Full storage and explicit player pickups retain their immediate behavior.
+        pendingPickupPriority = -1;
         createRequest(new Pickup(scaledPriority), true);
         return true;
+    }
+
+    /** Use the courier's retention rules and complete combined inventory, without extracting items. */
+    private boolean hasPickupSurplus()
+    {
+        final IItemHandler handler = getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
+        if (handler == null)
+        {
+            return false;
+        }
+        final List<ItemStorage> kept = new ArrayList<>();
+        for (int slot = 0; slot < handler.getSlots(); slot++)
+        {
+            final ItemStack stack = handler.getStackInSlot(slot);
+            if (!stack.isEmpty() && EntityAIWorkDeliveryman.workerRequiresItem(this, stack, kept) > 0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
